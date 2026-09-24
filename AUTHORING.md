@@ -103,3 +103,12 @@ Non si modificano dentro le guide: si modifica il file in `shared/` e si esegue 
 
 - Minore (1.4 → 1.5): contenuti o laboratori aggiunti, correzioni. Maggiore (1.x → 2.0): revisione profonda.
 - Ogni rilascio passa da `scripts/release.mjs` (aggiorna `docs.json` e `CHANGELOG.md`) e ha un tag `<slug>-v<versione>`.
+
+## 10. Esame a risposta aperta
+
+La pagina `/esame/` raccoglie domande aperte sulle guide, valutate da un esaminatore AI (intelligenza artificiale) con la chiave API dell'utente, salvata solo nel suo browser.
+
+- Le domande di una guida stanno in `exams/<slug>.json` (vedi `exams/transazioni.json`): `id`, `title`, `difficulty` (media, alta, molto alta), `time` in secondi, `maxChars`, `chapters`, `prompt`, `criteria` (ognuno con `id`, `weight`, `text`).
+- Il materiale che l'esaminatore riceve è estratto dalla guida a ogni build: servono sezioni con id stabili `<section class="st" id="cap-N">` (o `<section id="cap-N">`), e `chapters` elenca i numeri N rilevanti per la domanda. Tieni il materiale per domanda sotto i 60.000 caratteri circa.
+- Domande sfidanti: un caso concreto da ragionare, non una definizione da ripetere. I criteri descrivono i concetti attesi, verificabili nel materiale; pesi da 1 a 3.
+- Il voto è calcolato dalla pagina: criteri pesati (pieno 1, parziale ½), meno 1 per ogni errore grave e ¼ per ogni imprecisione.

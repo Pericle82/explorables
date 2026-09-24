@@ -1,0 +1,463 @@
+{
+  "slug": "transazioni",
+  "title": "Quando il COMMIT non basta più",
+  "area": "Database e transazioni",
+  "questions": [
+    {
+      "id": "tx-01",
+      "title": "Durabile senza aver scritto i dati",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        3,
+        8
+      ],
+      "prompt": "Un'applicazione esegue UPDATE conti SET saldo = 70 WHERE id = 1 e riceve «COMMIT eseguito». Un istante dopo il server perde la corrente: la pagina modificata era ancora solo nel buffer pool, e nel file dati c'è ancora saldo = 100. Spiega perché il dato non va perso, che cosa succede al riavvio e perché il database lascia di proposito il file dati indietro.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Al commit il database rende durevole il log (WAL, write-ahead log) con fsync, non la pagina dati: la promessa si basa sulla nota nel log."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "La pagina sporca resta nel buffer pool e viene scritta sul file dati più tardi (checkpointer / background writer)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Al riavvio il recovery rilegge il log e rifà (redo) la modifica committata, riportando la pagina a saldo = 70."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "L'LSN (Log Sequence Number) scritto nella pagina permette al redo di capire se la nota è già applicata ed evitare di applicarla due volte."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il motivo del ritardo: il log si scrive in sequenza (veloce), le pagine dati andrebbero scritte in ordine sparso (lento); rimandarle permette di accorparle."
+        }
+      ]
+    },
+    {
+      "id": "tx-02",
+      "title": "Checkpoint frequenti o rari?",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1200,
+      "chapters": [
+        3
+      ],
+      "prompt": "Devi configurare la frequenza dei checkpoint di un database. Descrivi che cosa fa un checkpoint e il compromesso tra checkpoint molto frequenti e molto rari: che cosa migliora e che cosa peggiora in ciascun caso?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il checkpoint forza sul file dati le pagine sporche e registra nel log il punto fino a cui tutto è già nei file dati, così il log precedente può essere riciclato e il recovery ripartire da lì."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Checkpoint frequenti: recovery più breve e log più piccolo, ma più scritture (picchi di I/O, la stessa pagina riscritta più volte, più immagini complete di pagina nel WAL)."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Checkpoint rari: meno I/O e più accorpamento delle scritture, ma recovery più lungo e più log da conservare."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Menziona che nella realtà il checkpoint è «fuzzy»: le transazioni continuano mentre lavora e il recovery riparte dal redo point annotato all'inizio."
+        }
+      ]
+    },
+    {
+      "id": "tx-03",
+      "title": "Lost update in tre configurazioni",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        7,
+        9,
+        10
+      ],
+      "prompt": "Saldo = 100. T1 legge il saldo, T2 legge il saldo, T2 esegue UPDATE saldo = 70 e committa, poi T1 esegue UPDATE saldo = 90 (valore calcolato in applicazione) e committa. Descrivi l'esito in: (a) PostgreSQL READ COMMITTED, (b) PostgreSQL REPEATABLE READ, (c) MySQL/InnoDB REPEATABLE READ. Poi indica almeno due modi per ottenere il risultato corretto.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "(a) PostgreSQL READ COMMITTED: l'UPDATE di T1 va a buon fine e sovrascrive, saldo finale 90: lost update."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "(b) PostgreSQL REPEATABLE READ: l'UPDATE di T1 fallisce con errore di serializzazione 40001 perché la riga è stata modificata da una transazione non visibile nel suo snapshot; serve un retry."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "(c) InnoDB REPEATABLE READ: nessun errore, l'UPDATE è una lettura corrente che sovrascrive: lost update anche qui."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Soluzioni corrette: UPDATE atomico (saldo = saldo - 10), SELECT … FOR UPDATE prima della lettura, oppure locking ottimistico con colonna di versione (@Version) e retry."
+        }
+      ]
+    },
+    {
+      "id": "tx-04",
+      "title": "Il write skew dei medici reperibili",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1500,
+      "chapters": [
+        6,
+        7
+      ],
+      "prompt": "Regola: almeno un medico deve restare reperibile. Due medici, entrambi reperibili, si tolgono contemporaneamente: ciascuno conta i reperibili, vede 2 e aggiorna solo la propria riga. In PostgreSQL REPEATABLE READ entrambe le transazioni committano. Spiega perché lo snapshot isolation non lo impedisce e come lo impediresti.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Le due transazioni leggono lo stesso insieme ma scrivono righe diverse: non c'è alcun conflitto scrittura-scrittura da rilevare, e lo snapshot era vero alla lettura ma falso alla scrittura."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "È un'anomalia di decisione (write skew), non di lettura: nessun ordine seriale produce «zero reperibili»."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "SERIALIZABLE (in PostgreSQL SSI, Serializable Snapshot Isolation) rileva le dipendenze lettura-scrittura incrociate e interrompe una transazione con 40001: serve il retry."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Alternativa: bloccare esplicitamente le righe lette (SELECT … FOR UPDATE), con il limite che funziona solo se le righe da proteggere esistono già."
+        }
+      ]
+    },
+    {
+      "id": "tx-05",
+      "title": "Che cosa risolve davvero MVCC",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [
+        1,
+        7
+      ],
+      "prompt": "Con MVCC (multiversion concurrency control) si dice che «i lettori non bloccano gli scrittori e gli scrittori non bloccano i lettori». Spiega come ci riesce, quale conflitto resta comunque e quali costi introduce.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il database conserva più versioni della riga: il lettore vede uno snapshot di sole versioni committate e non deve aspettare lo scrittore né prendere lock."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Due scritture sulla stessa riga restano in fila: lo scrittore prende comunque il lock esclusivo."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Costo: le versioni vecchie occupano spazio e vanno ripulite (VACUUM in PostgreSQL, bloat)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Costo: diventa decisivo quando si scatta lo snapshot (per istruzione o per transazione), e lo snapshot isolation lascia passare anomalie come il write skew."
+        }
+      ]
+    },
+    {
+      "id": "tx-06",
+      "title": "La C di ACID non è come le altre",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        4,
+        6,
+        12
+      ],
+      "prompt": "Perché si dice che la C di ACID è di natura diversa da A, I e D? Distingui anche i significati di «consistency» che spesso si confondono e spiega dove si mette concretamente un invariante.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La consistenza dipende dagli invarianti dell'applicazione: il database la garantisce solo per le regole dichiarate (constraint) e grazie ad A, I e D; il resto è responsabilità di chi scrive le transazioni."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Distingue la C di ACID (invarianti rispettati) dalla C di CAP (tutti vedono lo stesso valore, linearizzabilità) e dalla consistenza eventuale dei sistemi distribuiti."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Dove mettere l'invariante: nel database con constraint dichiarativi (CHECK, UNIQUE, FOREIGN KEY, indice parziale unico) quando possibile, invece che solo nel codice applicativo."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Esempio concreto di invariante (es. «al più un elemento attivo» con indice parziale unico, oppure saldo non negativo con CHECK)."
+        }
+      ]
+    },
+    {
+      "id": "tx-07",
+      "title": "Ottimistico o pessimistico?",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        9,
+        10
+      ],
+      "prompt": "Un utente modifica un profilo in un form per dieci minuti prima di salvare; in un altro servizio, centinaia di worker prelevano lavori da una coda sulla stessa tabella. Per ciascun caso scegli tra locking ottimistico e pessimistico e motiva la scelta, indicando costi e rischi.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Form con lungo tempo di riflessione e conflitti rari: ottimistico (colonna di versione / @Version, oppure ETag + If-Match), senza lock tenuti per minuti; in caso di conflitto errore e retry o merge mostrato all'utente."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Coda con molta contesa: pessimistico con SELECT … FOR UPDATE e transazioni brevi (con SKIP LOCKED, dove disponibile, i worker saltano le righe già prese invece di aspettarsi: è un di più, non un requisito)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Costi dell'ottimistico: con contesa alta i retry si moltiplicano e il lavoro viene buttato."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Costi del pessimistico: attese, lock da tenere brevi, rischio di deadlock (acquisire i lock sempre nello stesso ordine)."
+        }
+      ]
+    },
+    {
+      "id": "tx-08",
+      "title": "Il filtro che disattiva il lock",
+      "difficulty": "molto alta",
+      "time": 600,
+      "maxChars": 1500,
+      "chapters": [
+        11,
+        7
+      ],
+      "prompt": "Una query di lock è SELECT … WHERE id = :id AND deleted_at IS NULL FOR UPDATE. Mentre T2 la esegue, T1 ha appena impostato deleted_at sulla stessa riga e poi committa. Che cosa riceve T2 in PostgreSQL READ COMMITTED, che cosa in REPEATABLE READ, e come riscriveresti la query? Enuncia la regola generale.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "READ COMMITTED: T2 aspetta il lock, poi rivaluta la WHERE sulla versione nuova (EvalPlanQual); deleted_at non è più NULL, quindi zero righe e nessun lock preso."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "REPEATABLE READ: niente rivalutazione, la query fallisce con errore 40001."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Riscrittura: bloccare solo per chiave primaria (WHERE id = :id FOR UPDATE) e controllare deleted_at nel codice dopo aver preso il lock."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Regola: FOR UPDATE blocca il risultato, non «la riga»; bloccare su colonne immutabili e filtrare su quelle mutabili dopo il lock."
+        }
+      ]
+    },
+    {
+      "id": "tx-09",
+      "title": "2PC e il partecipante in dubbio",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [
+        12
+      ],
+      "prompt": "Spiega come funziona il two-phase commit (2PC) e che cosa succede se il coordinatore si spegne dopo che tutti i partecipanti hanno votato «sì» ma prima di comunicare l'esito. Perché tra microservizi si usa poco?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Fase di prepare (voto, con lavoro reso durevole e lock tenuti) e fase di commit/abort ordinata dal coordinatore."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Chi ha votato sì è «in dubbio»: non può annullare da solo né committare, e tiene i lock finché il coordinatore non torna: questo è il blocco."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Motivi del poco uso tra servizi: blocco e latenza, disponibilità accoppiata (un partecipante giù blocca tutti), mancanza di supporto XA in REST, Kafka e molti NoSQL."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Nota che il 2PC sopravvive dentro i database distribuiti, dove il coordinatore è replicato (consenso) e il blocco è mitigato."
+        }
+      ]
+    },
+    {
+      "id": "tx-10",
+      "title": "Progetta la saga dell'ordine",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        13,
+        14
+      ],
+      "prompt": "Creazione ordine su quattro servizi: ordini, credito cliente, magazzino, pagamenti. Progetta la saga: ordine dei passi e posizione del pivot, compensazioni (e perché non sono rollback), come eviti di perdere o duplicare i messaggi tra servizi.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Passi compensabili prima del pivot (crea ordine PENDING, riserva credito, riserva stock), pivot sul passo irreversibile (addebito), dopo il pivot solo passi ripetibili (retry)."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La compensazione è una nuova transazione semantica che disfa l'effetto (es. rilascia credito, ordine REJECTED), visibile e registrata; non cancella la storia come un rollback."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Transactional outbox: scrivere l'effetto e il messaggio nella stessa transazione locale, poi pubblicarlo (relay o CDC)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Consegna at-least-once: handler e compensazioni idempotenti (chiave di deduplicazione o operazioni naturalmente idempotenti)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Sceglie e motiva orchestrazione o coreografia."
+        }
+      ]
+    },
+    {
+      "id": "tx-11",
+      "title": "La saga non ha la I",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        14,
+        7
+      ],
+      "prompt": "Una saga garantisce atomicità semantica ma non isolamento. Fai un esempio concreto di anomalia che ne deriva e descrivi almeno due contromisure, collegandole ai meccanismi dei database che le ispirano.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Esempio corretto: altri vedono lo stato intermedio (dirty read di un ordine PENDING poi annullato) oppure due saghe si sovrascrivono (lost update su stock o credito)."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Almeno due contromisure descritte correttamente tra: semantic lock (stato *_PENDING), commutative updates (reserve/release invece di set), pessimistic view (riordinare i passi), reread value, version file, by value."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Collegamento ai meccanismi DB: semantic lock ≈ lock, reread value ≈ controllo ottimistico di versione, commutative ≈ UPDATE atomico."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Nota i limiti: il semantic lock ha bisogno di scadenza/riconciliazione, come i lock distribuiti."
+        }
+      ]
+    },
+    {
+      "id": "tx-12",
+      "title": "Dove si perde un commit",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        8
+      ],
+      "prompt": "Il database ha risposto «commit» ma dopo un blackout la transazione non c'è. Percorri la catena da write() al disco e indica tutti i punti in cui la durabilità può saltare, per configurazione o per colpa di hardware e sistema operativo.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "write() arriva solo alla page cache del kernel: senza fsync il dato è in RAM."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Configurazioni che rinunciano alla garanzia: synchronous_commit = off in PostgreSQL, innodb_flush_log_at_trx_commit = 0 o 2 in InnoDB (si può perdere circa l'ultimo secondo)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Cache del disco: dischi senza protezione da blackout o che dichiarano scritto ciò che è ancora in cache; su macOS fsync non svuota la cache del disco (serve F_FULLFSYNC)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Errori di fsync: il caso Linux del 2018 (pagine marcate pulite dopo un fsync fallito); PostgreSQL oggi va in PANIC e riparte dal WAL."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il database fa fsync del log per commit (con group commit), non dei file dati."
+        }
+      ]
+    },
+    {
+      "id": "tx-13",
+      "title": "Un database in più",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        16,
+        14
+      ],
+      "prompt": "Accanto a PostgreSQL vuoi aggiungere Redis come cache e un database vettoriale per la ricerca semantica. Quale problema transazionale introduci e come lo gestisci? In quale caso eviteresti del tutto il secondo datastore?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Ogni coppia di datastore è un confine transazionale spezzato: scrivere su PostgreSQL e aggiornare Redis o il vettoriale non è atomico."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Soluzioni: una sola fonte di verità, propagazione con outbox o CDC (Change Data Capture), consumatori idempotenti, accettare che i secondari siano allineati in modo eventuale."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Specificità del vettoriale: gli indici ANN possono aggiornarsi in modo asincrono (un vettore appena inserito può non essere trovabile subito)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Quando evitarlo: pgvector tiene vettore e riga nella stessa transazione PostgreSQL, se volumi e prestazioni lo permettono."
+        }
+      ]
+    }
+  ]
+}

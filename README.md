@@ -14,10 +14,12 @@ Guide interattive in italiano: ogni guida è un unico file HTML autonomo, con la
 
 ```
 explorables/
+├── exams/<slug>.json      domande a risposta aperta della guida, per la pagina /esame/
 ├── docs.json              manifest: titolo, descrizione, tag, versione e cronologia di ogni guida
 ├── docs/<slug>.html       sorgente di ogni guida (frammento HTML, identico a quello pubblicato come artifact)
 ├── templates/
 │   ├── index.html         modello della pagina iniziale
+│   ├── exam.html          pagina dell'esame a risposta aperta
 │   └── guide.html         modello di partenza per ogni nuova guida (tema, struttura, navigazione)
 ├── shared/                componenti condivisi inseriti in ogni guida
 │   ├── toc.html           pannello «Indice» con tutti i capitoli
@@ -74,6 +76,10 @@ node scripts/release.mjs kafka-internals 1.0 "Prima versione" \
 ```
 
 La pagina iniziale si aggiorna da sola alla build successiva.
+
+## Esame a risposta aperta
+
+La pagina `/esame/` propone domande aperte (da `exams/*.json`) con tempo e caratteri limitati. Le risposte le valuta Claude tramite l'API di Anthropic, chiamata direttamente dal browser con la chiave che l'utente inserisce nella pagina (salvata solo nel suo browser); il materiale di riferimento è estratto dalle guide a ogni build (`dist/esame/context/`). Senza chiave è disponibile l'autovalutazione sui criteri. Dettagli in AUTHORING.md, §10.
 
 ## Convenzioni di versione
 

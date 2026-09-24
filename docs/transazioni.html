@@ -564,7 +564,7 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-si
   <p class="part-note">Il vocabolario minimo, che cosa sia esattamente una transazione, e dove finiscono i byte quando premi «salva». Tutto il resto è conseguenza di queste tre cose.</p>
 </div>
 
-<section>
+<section id="cap-1">
   <h2>1 · Le basi: tabelle, operazioni, confine</h2>
   <p class="sub">Un capitolo di vocabolario. Se questi termini ti sono già familiari, scorri fino al capitolo 2: ma è qui che vengono definiti, e tutto il documento li usa senza rispiegarli.</p>
 
@@ -777,7 +777,7 @@ T1: COMMIT                     → da ora la versione 70 è quella committata; l
 
 </section>
 
-<section>
+<section id="cap-2">
   <h2>2 · Che cos'è una transazione</h2>
   <p class="sub">Il concetto arriva dalla contabilità, non dall'informatica — e il malinteso più costoso riguarda dove ne finisca il confine.</p>
 
@@ -895,7 +895,7 @@ saldo finale: 90.  Corretto: 60.  Il prelievo di 30 è sparito.</code></pre>
 
 </section>
 
-<section>
+<section id="cap-3">
   <h2>3 · Come funziona un database</h2>
   <p class="sub">Un database è una macchina costruita attorno a un solo problema: la memoria veloce si perde, quella durevole è lenta. Ogni componente di questo capitolo nasce da un tentativo di tenere insieme le due cose.</p>
 
@@ -1365,7 +1365,7 @@ il recovery:
   <p class="part-note">Ogni lettera con il suo scenario concreto, il meccanismo che la realizza e il modo tipico in cui viene fraintesa.</p>
 </div>
 
-<section>
+<section id="cap-4">
   <h2>4 · Le quattro promesse</h2>
   <p class="sub">Il capitolo 2 ha mostrato da quali guasti nascono le quattro promesse. Qui, prima di prenderle una per una, il meccanismo che realizza ciascuna.</p>
 
@@ -1400,7 +1400,7 @@ il recovery:
 
 </section>
 
-<section>
+<section id="cap-5">
   <h2>5 · A · Atomicity</h2>
   <p class="sub">Tutto o niente. La lettera più semplice da enunciare e la più fraintesa nel meccanismo.</p>
 
@@ -1517,7 +1517,7 @@ al riavvio:
 
 </section>
 
-<section>
+<section id="cap-6">
   <h2>6 · C · Consistency</h2>
   <p class="sub">L'unica lettera che non dipende soltanto dal database.</p>
 
@@ -1637,7 +1637,7 @@ COMMIT;</code></pre>
 
 </section>
 
-<section>
+<section id="cap-7">
   <h2>7 · I · Isolation</h2>
   <p class="sub">La lettera aggiunta per ultima, e quella che costa di più. È anche la più lunga da trattare, perché non è una promessa sola: è una scala.</p>
 
@@ -2048,7 +2048,7 @@ ordine seriale  →  una delle due viene abortita</code></pre>
 
 </section>
 
-<section>
+<section id="cap-8">
   <h2>8 · D · Durability</h2>
   <p class="sub">Dopo il commit, resiste. Sembra la lettera più ovvia: è quella che dipende dal maggior numero di strati fuori dal database.</p>
 
@@ -2124,7 +2124,7 @@ ordine seriale  →  una delle due viene abortita</code></pre>
   <p class="part-note">Le decisioni che prendi scrivendo codice: quale strategia di lock, dove metterlo, e come non perdere un aggiornamento.</p>
 </div>
 
-<section>
+<section id="cap-9">
   <h2>9 · Lock: ottimistico vs pessimistico</h2>
   <p class="sub">Due scommesse opposte sulla stessa domanda: quanto è probabile che qualcuno tocchi questo dato mentre lo sto usando?</p>
 
@@ -2236,7 +2236,7 @@ WHERE id=? AND version=7</code></pre>
 
 </section>
 
-<section>
+<section id="cap-10">
   <h2>10 · Lost update, in laboratorio</h2>
   <p class="sub">Due thread, saldo iniziale 100. T1 preleva 10, T2 preleva 30. Il risultato corretto è 60. Scegli una strategia e avanza passo per passo.</p>
 
@@ -2301,7 +2301,7 @@ WHERE id=? AND version=7</code></pre>
 
 </section>
 
-<section>
+<section id="cap-11">
   <h2>11 · Il predicato al posto giusto</h2>
   <p class="sub">Due casi reali in cui la mossa apparentemente più pulita — mettere il filtro dentro la query, rendere l'indice più piccolo — rompe silenziosamente qualcosa. E per lo stesso motivo.</p>
 
@@ -2421,7 +2421,7 @@ query B:  WHERE status = $1          → $1 implica 'PENDING' ?  boh   ✘ indic
   <p class="part-note">Quando l'operazione attraversa due datasource, il confine ACID si rompe e l'atomicità diventa un problema di protocollo.</p>
 </div>
 
-<section>
+<section id="cap-12">
   <h2>12 · Quando il confine si rompe</h2>
   <p class="sub">In un monolite l'atomicità te la regala il database. Appena spezzi il dominio in servizi con datasource separati, diventa un problema di protocollo.</p>
 
@@ -2517,7 +2517,7 @@ Coord ──────────► A       Coord ────────�
 
 </section>
 
-<section>
+<section id="cap-13">
   <h2>13 · La saga</h2>
   <p class="sub">Nata nel 1987 per un problema completamente diverso. Prima il concetto, poi la macchina per farla fallire.</p>
 
@@ -2605,7 +2605,7 @@ Ordini ──evt──► Pagamenti          ┌──► Ordini
 
 </section>
 
-<section>
+<section id="cap-14">
   <h2>14 · Il prezzo della saga: manca la I</h2>
   <p class="sub">Saga garantisce A (semantica, via compensazione), C (alla fine, non durante) e D. Non I — e stavolta gli stati intermedi li vedono tutti.</p>
 
@@ -2662,7 +2662,7 @@ Ordini ──evt──► Pagamenti          ┌──► Ordini
 
 </section>
 
-<section>
+<section id="cap-15">
   <h2>15 · Casi d'uso reali</h2>
   <p class="sub">Come si combinano i pezzi in quattro domini che conosci.</p>
 
@@ -2717,7 +2717,7 @@ Ordini ──evt──► Pagamenti          ┌──► Ordini
   <p class="part-note">Tutto il documento finora parlava di database relazionali. Esistono altre famiglie, nate da esigenze che il modello relazionale serve male, e ognuna ridisegna il confine transazionale a modo suo.</p>
 </div>
 
-<section>
+<section id="cap-16">
   <h2>16 · Le altre famiglie di database</h2>
   <p class="sub">Una mappa: che cosa sono, da quale esigenza nascono, che cosa garantiscono e quando sceglierle. Tre famiglie hanno un approfondimento dedicato in documenti separati.</p>
 
@@ -2862,7 +2862,7 @@ query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, eucl
   <p class="part-note">La cronologia delle idee, il glossario completo e il test di autovalutazione.</p>
 </div>
 
-<section>
+<section id="cap-17">
   <h2>17 · Riferimenti</h2>
   <h3>Quarant'anni in dieci righe</h3>
   <p>Nessuno dei pattern di questo documento è nato per i microservizi. Sapere da quale problema vengono spiega perché hanno la forma che hanno.</p>

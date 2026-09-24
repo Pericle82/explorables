@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-24
+- **Quando il COMMIT non basta più** (`transazioni`) v2.3: Id stabili per i capitoli (cap-1 … cap-17), usati dall'esame a risposta aperta e dai link esterni
 - **Da Assistente ad Agente** (`assistente-agente`) v1.2: Pannello Indice con tutte le sezioni, come in transazioni
 - **Anatomia del Training LLM** (`training-llm`) v1.7: Pannello Indice con tutti i capitoli e le sottosezioni, come in transazioni
 - **Da Assistente ad Agente** (`assistente-agente`) v1.1: Riferimenti incrociati con anteprima, anche verso la guida sul training (SFT, DPO, RLVR); termini chiave e sezioni collegati con popup

@@ -1,6 +1,6 @@
 // Genera il sito statico in dist/ a partire da docs.json e dai file in docs/.
 // Nessuna dipendenza: basta Node 18+.  Uso: node scripts/build.mjs
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, copyFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, copyFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -69,6 +69,20 @@ b.addEventListener("click",function(){set(p.hidden);});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!p.hidden){set(false);b.focus();}});
 document.addEventListener("click",function(e){if(!p.hidden&&!n.contains(e.target))set(false);});})();`;
 
+// --- esami a risposta aperta (exams/<slug>.json) ---
+const EXAM_DIR = join(ROOT, "exams");
+const exams = existsSync(EXAM_DIR) ? readdirSync(EXAM_DIR).filter((f) => f.endsWith(".json")).sort().map((f) => JSON.parse(readFileSync(join(EXAM_DIR, f), "utf8"))) : [];
+for (const ex of exams) {
+  if (!docs.find((d) => d.slug === ex.slug)) errors.push(`exams/${ex.slug}.json: nessuna guida con slug «${ex.slug}» in docs.json`);
+  const ids = new Set();
+  for (const q of ex.questions || []) {
+    for (const k of ["id", "title", "prompt", "time", "maxChars", "chapters", "criteria", "difficulty"]) if (q[k] == null) errors.push(`exams/${ex.slug}.json · ${q.id ?? "?"}: manca «${k}»`);
+    if (ids.has(q.id)) errors.push(`exams/${ex.slug}.json: id duplicato ${q.id}`); ids.add(q.id);
+  }
+}
+if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
+const examLi = exams.length ? `<p class="xpl-h">Mettiti alla prova</p><ul><li><a href="../esame/"><span>✎ Esame a risposta aperta</span><small>${exams.reduce((n, e) => n + e.questions.length, 0)} domande</small></a></li></ul>` : "";
+
 // --- pagine dei documenti ---
 // I file in docs/ sono nello stesso formato pubblicato come artifact: senza doctype, <html>, <head>, <body>.
 // Qui si spostano in <head> i tag iniziali (title, link, meta, style) e si aggiunge lo scheletro.
@@ -92,6 +106,7 @@ for (const d of docs) {
   <a class="xpl-all" href="../">← Tutte le guide</a>
   <p class="xpl-h">Guide</p>
   <ul>${items}</ul>
+  ${examLi}
   ${docs.length > 1 ? `<div class="xpl-pn"><a href="../${esc(prev.slug)}/" title="${esc(prev.title)}">← Precedente</a><a href="../${esc(next.slug)}/" title="${esc(next.title)}">Successiva →</a></div>` : ""}
   <p class="xpl-v">Questa guida: versione ${esc(d.version)} del ${esc(fmtDate(d.updated))}</p>
 </div>
@@ -119,6 +134,50 @@ ${nav}
 }
 if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
 
+// --- pagina d'esame e materiale di riferimento per l'esaminatore ---
+function htmlToText(h) {
+  return h.replace(/<(script|style|svg|button|nav)\b[\s\S]*?<\/\1>/gi, "")
+    .replace(/<(br|\/p|\/li|\/tr|\/h[1-6]|\/pre|\/div|\/dt|\/dd|\/table|\/ul|\/ol)[^>]*>/gi, "\n")
+    .replace(/<\/t[dh]>/gi, " | ").replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&")
+    .split("\n").map((l) => l.replace(/[ \t]+/g, " ").trimEnd()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+if (exams.length) {
+  const EX = join(DIST, "esame");
+  mkdirSync(join(EX, "context"), { recursive: true });
+  const examData = { exams: [] };
+  for (const ex of exams) {
+    const d = docs.find((x) => x.slug === ex.slug);
+    const src = readFileSync(join(ROOT, "docs", `${ex.slug}.html`), "utf8");
+    const chapters = {};
+    for (const m of src.matchAll(/<section id="cap-(\d+)"[^>]*>([\s\S]*?)<\/section>/g)) {
+      const h2 = (m[2].match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [, ""])[1];
+      chapters[m[1]] = { title: htmlToText(h2).replace(/^\d+\s*·\s*/, ""), text: htmlToText(m[2]) };
+    }
+    for (const q of ex.questions) for (const n of q.chapters) if (!chapters[n]) errors.push(`exams/${ex.slug}.json · ${q.id}: capitolo ${n} non trovato (serve <section id="cap-${n}"> nella guida)`);
+    writeFileSync(join(EX, "context", `${ex.slug}.json`), JSON.stringify({ slug: ex.slug, title: d.title, version: d.version, chapters }));
+    examData.exams.push({ slug: ex.slug, title: d.title, area: ex.area || d.title, guideUrl: `../${ex.slug}/`, chapterTitles: Object.fromEntries(Object.entries(chapters).map(([k, v]) => [k, v.title])), questions: ex.questions });
+  }
+  if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
+  const guideTpl = readFileSync(join(ROOT, "templates", "guide.html"), "utf8");
+  const theme = (guideTpl.match(/<style>[\s\S]*?<\/style>/) || [""])[0];
+  const items = docs.map((x) => `<li><a href="../${esc(x.slug)}/"><span>${esc(x.title)}</span><small>v${esc(x.version)}</small></a></li>`).join("");
+  const nav = `<nav class="xpl-nav" aria-label="Navigazione tra le guide">
+<div class="xpl-panel" id="xpl-panel" hidden>
+  <a class="xpl-all" href="../">← Tutte le guide</a>
+  <p class="xpl-h">Guide</p>
+  <ul>${items}</ul>
+  <p class="xpl-h">Mettiti alla prova</p><ul><li><a href="./" aria-current="page"><span>✎ Esame a risposta aperta</span></a></li></ul>
+</div>
+<button class="xpl-btn" type="button" aria-expanded="false" aria-controls="xpl-panel"><span aria-hidden="true">☰</span> ${esc(site.title)}</button>
+</nav>`;
+  const page = readFileSync(join(ROOT, "templates", "exam.html"), "utf8").replace(/\{\{(\w+)\}\}/g, (all, k) => ({
+    THEME_CSS: theme, NAV_CSS: NAV_CSS, NAV: nav, NAV_JS_TAG: `<script>${NAV_JS}</script>`,
+    DATA: JSON.stringify(examData).replace(/</g, "\\u003c"),
+  })[k] ?? all);
+  writeFileSync(join(EX, "index.html"), page);
+}
+
 // --- pagina iniziale ---
 const sorted = [...docs].sort((a, b) => (b.updated || "").localeCompare(a.updated || "") || a.title.localeCompare(b.title));
 const allTags = [...new Set(docs.flatMap((d) => d.tags || []))].sort((a, b) => a.localeCompare(b));
@@ -141,8 +200,10 @@ const cards = sorted.map((d) => {
 const chips = allTags.map((t) => `<button class="chip" aria-pressed="false" data-tag="${esc(tagKey(t))}">${esc(t)}</button>`).join("");
 const latest = sorted[0]?.updated;
 const tpl = readFileSync(join(ROOT, "templates", "index.html"), "utf8");
-const fill = { LANG: site.lang || "it", TITLE: site.title, SUBTITLE: site.subtitle, AUTHOR: site.author || "", COUNT: String(docs.length), UPDATED: fmtDate(latest), BUILT: fmtDate(today), CHIPS: chips, CARDS: cards };
-const index = tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => (k in fill ? (["CHIPS", "CARDS"].includes(k) ? fill[k] : esc(fill[k])) : `{{${k}}}`));
+const examCount = exams.reduce((n, e) => n + e.questions.length, 0);
+const EXAM_LINK = exams.length ? `<a class="exam-link" href="esame/"><b>✎ Mettiti alla prova</b><span>${examCount} domande a risposta aperta, valutate da un esaminatore AI sul contenuto delle guide</span></a>` : "";
+const fill = { EXAM_LINK, LANG: site.lang || "it", TITLE: site.title, SUBTITLE: site.subtitle, AUTHOR: site.author || "", COUNT: String(docs.length), UPDATED: fmtDate(latest), BUILT: fmtDate(today), CHIPS: chips, CARDS: cards };
+const index = tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => (k in fill ? (["CHIPS", "CARDS", "EXAM_LINK"].includes(k) ? fill[k] : esc(fill[k])) : `{{${k}}}`));
 writeFileSync(join(DIST, "index.html"), index);
 
 // --- file di servizio ---
@@ -150,5 +211,5 @@ copyFileSync(join(ROOT, "CHANGELOG.md"), join(DIST, "CHANGELOG.md"));
 writeFileSync(join(DIST, "docs.json"), JSON.stringify(manifest, null, 2));
 writeFileSync(join(DIST, ".nojekyll"), "");
 
-console.log(`Sito generato in dist/: ${docs.length} guide + pagina iniziale.`);
+console.log(`Sito generato in dist/: ${docs.length} guide + pagina iniziale${exams.length ? ` + esame (${exams.reduce((n, e) => n + e.questions.length, 0)} domande)` : ""}.`);
 for (const d of sorted) console.log(`  /${d.slug}/  v${d.version}  (${d.updated})`);
