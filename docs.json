@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.5",
+      "version": "1.6",
       "updated": "2026-09-24",
       "history": [
+        {
+          "version": "1.6",
+          "date": "2026-09-24",
+          "notes": "Riferimenti incrociati con anteprima: capitoli, fasi (SFT, DPO, GRPO, RLVR, OPD), concetti base e termini del glossario diventano link con popup"
+        },
         {
           "version": "1.5",
           "date": "2026-09-24",
@@ -61,9 +66,14 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.0",
+      "version": "1.1",
       "updated": "2026-09-24",
       "history": [
+        {
+          "version": "1.1",
+          "date": "2026-09-24",
+          "notes": "Riferimenti incrociati con anteprima, anche verso la guida sul training (SFT, DPO, RLVR); termini chiave e sezioni collegati con popup"
+        },
         {
           "version": "1.0",
           "date": "2026-09-24",
