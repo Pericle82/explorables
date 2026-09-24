@@ -1,0 +1,1366 @@
+<title>Anatomia del Training LLM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F1F3F1; --surface:#FFFFFF; --surface-2:#E7ECE8; --ink:#15201B; --muted:#56655E;
+  --line:#CCD5D0; --grid:#DFE5E1; --accent:#1E6B58; --accent-soft:#D3E7DF;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1412; --surface:#151D1A; --surface-2:#1D2723; --ink:#E2E9E5; --muted:#94A49C;
+    --line:#2B3732; --grid:#222D29; --accent:#5DC2A3; --accent-soft:#1C3A30;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1412; --surface:#151D1A; --surface-2:#1D2723; --ink:#E2E9E5; --muted:#94A49C;
+  --line:#2B3732; --grid:#222D29; --accent:#5DC2A3; --accent-soft:#1C3A30;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+
+/* pipeline */
+.pipeline{margin-top:10px;display:grid;grid-template-columns:1fr 4fr;gap:14px}
+.phase-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px}
+.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stage{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;position:relative;height:100%;transition:border-color .15s, transform .15s}
+.stage:hover{border-color:var(--accent);transform:translateY(-2px)}
+.stage:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stage .n{font-family:var(--mono);font-size:.72rem;color:var(--accent)}
+.stage b{font-family:var(--serif);font-size:1.08rem;font-weight:650;line-height:1.2}
+.stage span.d{font-size:.85rem;color:var(--muted);line-height:1.4}
+.stage .t{margin-top:auto;font-family:var(--mono);font-size:.7rem;color:var(--ink);background:var(--accent-soft);padding:3px 6px;border-radius:4px;align-self:flex-start}
+.flowline{display:flex;align-items:center;gap:8px;margin-top:16px;font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.flowline .bar{flex:1;height:2px;background:linear-gradient(90deg,var(--line),var(--accent))}
+@media (max-width:760px){
+  .pipeline{grid-template-columns:1fr}
+  .stages{grid-template-columns:1fr 1fr}
+}
+
+/* nav */
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-inline:-20px;padding:10px 20px;overflow-x:auto;white-space:nowrap}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+
+/* sections */
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+
+/* token strip */
+.tokens{display:flex;flex-wrap:wrap;gap:4px}
+.tok{font-family:var(--mono);font-size:.85rem;padding:4px 7px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.tok.prompt{color:var(--muted);background:var(--surface-2);border-style:dashed}
+.tok.resp{border-color:var(--accent);background:var(--accent-soft)}
+button.tok{cursor:pointer;color:var(--ink)}
+button.tok.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr 52px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .25s}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.sample{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;white-space:pre-wrap}
+
+/* diagram boxes */
+.diag{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.box.hot{border-color:var(--accent);background:var(--accent-soft)}
+.box.dead{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.arr{color:var(--muted);font-family:var(--mono)}
+.diag-title{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* grpo table */
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.adv{position:relative;height:12px;background:var(--surface-2);border-radius:2px;min-width:120px}
+.adv i{position:absolute;top:0;bottom:0;border-radius:2px}
+.adv::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted)}
+.scroll-x{overflow-x:auto}
+
+/* summary */
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+.dots{display:flex;gap:3px;flex-wrap:wrap}
+.dots i{width:9px;height:9px;border-radius:2px;background:var(--surface-2);border:1px solid var(--line)}
+.dots i.on{background:var(--accent);border-color:var(--accent)}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* concetti base */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.loop .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.loop .box b{font-family:var(--serif);font-size:1rem}
+.loop .box span{color:var(--muted);font-size:.82rem}
+.loop .box em{font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+@media (max-width:760px){.loop{grid-template-columns:1fr 1fr}}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+.tok small{font-size:.62rem;color:var(--muted);margin-left:4px}
+
+/* v3: dataset, bpe, live */
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.map{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.map .box{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);font-weight:500}
+.map .box small{font-family:var(--mono);font-size:.68rem;color:var(--muted);font-weight:400}
+.map .box:hover{border-color:var(--accent)}
+.mix{display:flex;height:26px;border-radius:5px;overflow:hidden;gap:2px}
+.mix span{display:block;height:100%}
+.mixleg{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.84rem}
+.mixleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.chunk-sep{width:1px;align-self:stretch;background:var(--muted);margin:0 4px}
+.emb-table tr.on td{background:var(--accent-soft);font-weight:600}
+.emb-table tr.unused td{color:var(--muted);opacity:.6}
+.tok.spec{border-color:var(--warn);color:var(--warn)}
+.tok.base{background:var(--surface-2)}
+.tok.merged{border-color:var(--accent)}
+.ohrow{display:flex;align-items:center;gap:12px;min-width:max-content}
+.ohrow .op{font-family:var(--mono);font-size:1.4rem;color:var(--muted)}
+table.mt{border-collapse:collapse;font-family:var(--mono);font-size:.82rem}
+table.mt caption{font-size:.7rem;color:var(--muted);text-align:left;padding-bottom:4px;caption-side:top}
+table.mt th{font-weight:400;color:var(--muted);padding:4px 8px;font-size:.74rem}
+table.mt td{padding:5px 9px;border:1px solid var(--line);text-align:right}
+table.mt .hot,table.mt td.hot{background:var(--accent-soft);font-weight:600}
+table.mt tr.dim td{color:var(--muted)}
+.stackdiag{display:flex;flex-direction:column;align-items:center;gap:0;max-width:520px}
+.stackdiag .sd{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 12px;font-size:.88rem;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;position:relative;margin-bottom:18px}
+.stackdiag .sd:not(:last-child)::after{content:"↓";position:absolute;left:50%;bottom:-18px;color:var(--muted);font-family:var(--mono);font-size:.8rem}
+.stackdiag .sd small{font-family:var(--mono);color:var(--muted);margin-left:auto;font-size:.74rem}
+.stackdiag .blk{border-color:var(--accent);background:var(--accent-soft)}
+.stackdiag .blk b{font-family:var(--serif)}
+.stackdiag .blk span{color:var(--muted);font-size:.82rem}
+.stackdiag .io{background:var(--surface-2)}
+.stackdiag .sdots{border:none;background:none;justify-content:center;padding:0;font-size:1.2rem;color:var(--muted)}
+.bpe-words{display:flex;flex-direction:column;gap:6px}
+.bpe-row{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center}
+.txt{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;max-width:100%}
+.grid3{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif);font-size:1rem}
+.grid3 .box span{color:var(--muted);font-size:.82rem}
+.grid3 .box em{font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--accent);margin-top:auto}
+@media (max-width:760px){.grid3{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.grid3,.loop{grid-template-columns:1fr}}
+.calc{display:flex;flex-direction:column;gap:6px}
+.calc .eq{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.9rem;padding:8px 12px;background:var(--surface-2);border-radius:6px}
+.calc .eq strong{font-family:var(--mono);margin-left:auto}
+.track{height:12px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.track .fill{height:100%;background:var(--accent)}
+.status{display:flex;flex-wrap:wrap;gap:10px 26px;padding:12px 14px;background:var(--surface-2);border-radius:8px}
+.status div{display:flex;flex-direction:column}
+.status small{font-size:.72rem;color:var(--muted)}
+.status strong{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.stepper{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.stepper button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;flex-direction:column;gap:2px;font-size:.76rem;line-height:1.25;padding:8px;border-radius:6px;border:1px solid var(--line);color:var(--muted);height:100%}
+.stepper button span{font-family:var(--mono);font-size:.7rem}
+.stepper button.done{color:var(--ink)}
+.stepper button.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.stepper button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){.stepper{grid-template-columns:repeat(4,1fr)}}
+.phase{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px;min-height:220px}
+.phase h4{margin:0;font-family:var(--serif);font-size:1.15rem;font-weight:650}
+.seqrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:36px 1fr;gap:8px;align-items:center;padding:4px 6px;border-radius:6px;border:1px solid transparent}
+.seqrow.sel{border-color:var(--accent);background:var(--accent-soft)}
+.seqrow:focus-visible{outline:2px solid var(--accent)}
+.tok.alt{background:var(--surface-2)}
+.tok.ghost{border-style:dashed;opacity:.65}
+.tok.okc{border-color:var(--good);color:var(--good)}
+.batches{display:flex;flex-wrap:wrap;gap:8px}
+.bgrp{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-family:var(--mono);font-size:.82rem}
+.bgrp small{font-size:.66rem;color:var(--muted)}
+.bgrp.on{border-color:var(--accent);background:var(--accent-soft)}
+.bgrp.past{opacity:.55}
+.fwbox{max-height:340px;overflow:auto}
+.heat text{font-size:10px}
+.live .btn:disabled{opacity:.35}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Come si costruisce un <abbr title="Large Language Model">LLM</abbr> (Large Language Model, modello linguistico di grandi dimensioni)</span>
+  <h1>Dal testo grezzo al modello che ragiona</h1>
+  <p class="lede">Il pre-training produce un laureato che ha letto l'intera biblioteca ma non sa comportarsi. Il post-training è il tirocinio: impara il formato, poi cosa piace alle persone, poi a risolvere esercizi con la soluzione in fondo al libro, e infine insegna a un junior. Si parte da un capitolo sui concetti base (token, loss, gradienti, learning rate) e poi ogni fase ha un laboratorio interattivo.</p>
+
+  <div class="pipeline" aria-label="Pipeline di training">
+    <div>
+      <div class="phase-label">Pre-training</div>
+      <button class="stage" data-go="pre">
+        <span class="n">fase 1</span><b>Pre-training + warm-up</b>
+        <span class="d">Trilioni di token, un solo compito: prevedere il token successivo.</span>
+        <span class="t">conoscenza</span>
+      </button>
+    </div>
+    <div>
+      <div class="phase-label">Post-training</div>
+      <div class="stages">
+        <button class="stage" data-go="sft"><span class="n">fase 2</span><b>SFT</b><span class="d">Imitare risposte ideali: il modello diventa un assistente.</span><span class="t">formato</span></button>
+        <button class="stage" data-go="dpo"><span class="n">fase 3</span><b>DPO</b><span class="d">Coppie migliore/peggiore: allinearsi alle preferenze.</span><span class="t">preferenze</span></button>
+        <button class="stage" data-go="grpo"><span class="n">fase 4</span><b>GRPO + RLVR</b><span class="d">Esplorare e premiare ciò che un verificatore conferma.</span><span class="t">ragionamento</span></button>
+        <button class="stage" data-go="opd"><span class="n">fase 5</span><b>OPD</b><span class="d">Un teacher grande corregge token per token uno student piccolo.</span><span class="t">compressione</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="flowline"><span>«sa tutto, non sa comportarsi»</span><span class="bar"></span><span>«si comporta, ragiona, costa poco»</span></div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#base">0a · Concetti base</a><a href="#live">0b · Training dal vivo</a><a href="#pre">1 · Pre-training</a><a href="#sft">2 · SFT</a><a href="#dpo">3 · DPO</a><a href="#grpo">4 · GRPO + RLVR</a><a href="#opd">5 · OPD</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 0. CONCETTI BASE ============ -->
+<section class="st" id="base">
+  <div class="sec-head">
+    <span class="eyebrow">Capitolo 0a · Concetti base</span>
+    <h2>Il vocabolario minimo per capire tutto il resto</h2>
+  </div>
+  <div class="prose stack">
+    <p>Tutte le fasi che seguono sono variazioni dello stesso meccanismo: il modello fa una previsione, una <b>loss</b> misura quanto ha sbagliato, e i <b>pesi</b> vengono spostati di poco nella direzione che riduce l'errore. Cambiano solo <i>da dove arrivano i dati</i> e <i>come si calcola l'errore</i>. Questo capitolo costruisce il meccanismo pezzo per pezzo, nell'ordine in cui i dati lo attraversano: richiamo di algebra → dataset → token → pesi → embedding → strati → loss → batch, step ed epoch. Il capitolo 0b li mette tutti insieme in un training vero, da eseguire passo per passo.</p>
+  </div>
+
+  <div class="map" aria-label="Percorso dei dati">
+    <a href="#c-alg" class="box">Algebra<small>vettori e matrici</small></a><span class="arr">→</span>
+    <a href="#c-dataset" class="box">Dataset<small>testo grezzo</small></a><span class="arr">→</span>
+    <a href="#c-token" class="box">Token<small>BPE</small></a><span class="arr">→</span>
+    <a href="#c-pesi" class="box">Pesi<small>il modello</small></a><span class="arr">→</span>
+    <a href="#c-emb" class="box">Embedding<small>da ID a vettore</small></a><span class="arr">→</span>
+    <a href="#c-layer" class="box">Strati<small>dentro il modello</small></a><span class="arr">→</span>
+    <a href="#c-loss" class="box">Loss<small>l'errore</small></a><span class="arr">→</span>
+    <a href="#c-batch" class="box">Batch · step · epoch<small>il ritmo</small></a><span class="arr">→</span>
+    <a href="#live" class="box hot">Training dal vivo<small>tutto insieme</small></a>
+  </div>
+
+  <!-- ALGEBRA -->
+  <h3 id="c-alg" class="anchor">Richiamo di algebra: vettori e matrici</h3>
+  <div class="prose stack">
+    <p>Dentro un LLM ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Bastano queste definizioni per seguire tutto il resto del documento.</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
+    <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
+    <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati uno sopra l'altro.</dd><span class="ex">E: V × d, una riga per token</span></div>
+    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
+    <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è "acceso" (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è "più grande" dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0]</span></div>
+    <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1</span></div>
+    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
+    <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato "trasforma" un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
+    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
+    <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
+    <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2]</span></div>
+    <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso</span></div>
+  </dl>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il prodotto scalare come misura di somiglianza</h3><span class="tag">matematica reale</span></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="ctl"><label for="dpA">Direzione di a <output id="dpAo"></output></label><input id="dpA" type="range" min="0" max="359" value="30"></div>
+        <div class="ctl"><label for="dpB">Direzione di b <output id="dpBo"></output></label><input id="dpB" type="range" min="0" max="359" value="70"></div>
+        <div class="ctl"><label for="dpL">Lunghezza di b <output id="dpLo"></output></label><input id="dpL" type="range" min="0.2" max="1.5" step="0.05" value="1"></div>
+        <div class="formula" id="dpF"></div>
+        <p class="callout" id="dpMsg"></p>
+      </div>
+      <svg id="dpChart" class="chart" viewBox="0 0 300 300" style="max-width:340px;justify-self:center" role="img" aria-label="Due vettori nel piano"></svg>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: one-hot × matrice = una riga</h3><span class="tag">matematica reale</span></div>
+    <div class="seg" id="ohSel" role="group" aria-label="Token"></div>
+    <div class="scroll-x"><div class="ohrow" id="ohOut"></div></div>
+    <p class="formula" id="ohF"></p>
+    <p class="note">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È per questo che l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot compare anche nella loss: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
+  </div>
+
+  <!-- DATASET -->
+  <h3 id="c-dataset" class="anchor">Il dataset: com'è fatto davvero</h3>
+  <div class="prose stack">
+    <p>Nel <b>pre-training</b> il dataset <b>non contiene domande e risposte</b>, né etichette. È solo testo: miliardi di documenti (pagine web, libri, articoli scientifici, codice sorgente), salvati di solito in file JSONL (JSON Lines, un oggetto JSON per riga), un documento per riga. Le coppie "input → risposta attesa" non le scrive nessuno: si ricavano automaticamente dal testo stesso. Per ogni posizione, l'obiettivo è semplicemente il token che viene dopo. Per questo si parla di apprendimento <i>auto-supervisionato</i>: il testo fa da domanda e da soluzione insieme.</p>
+    <p>Prima di arrivare al modello, il testo grezzo passa per una lunga pipeline di pulizia. È la parte meno visibile del lavoro, ma è quella che incide di più sulla qualità:</p>
+  </div>
+  <div class="diag">
+    <span class="box">Raccolta (crawl del web, libri, repository di codice)</span><span class="arr">→</span>
+    <span class="box">Estrazione del testo dall'HTML</span><span class="arr">→</span>
+    <span class="box">Filtri di qualità e lingua</span><span class="arr">→</span>
+    <span class="box">Deduplicazione</span><span class="arr">→</span>
+    <span class="box">Rimozione di dati personali e contenuti tossici</span><span class="arr">→</span>
+    <span class="box hot">Tokenizzazione e divisione in shard (file-blocchi)</span>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Una miscela tipica di pre-training</h3><span class="tag">indicativa</span></div>
+    <div class="mix" id="mixBar"></div>
+    <div class="mixleg" id="mixLeg"></div>
+    <p class="note">Ogni laboratorio usa una sua "ricetta" e la tiene segreta. Le proporzioni indicano l'ordine di grandezza, non dati ufficiali. Verso la fine del pre-training si alza spesso la quota di dati di alta qualità (matematica, codice, testi curati): è la fase chiamata <i>annealing</i> o mid-training.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Com'è fatta una riga del dataset, fase per fase</h3></div>
+    <div class="seg" id="dsFmt" role="group" aria-label="Formato del dataset">
+      <button aria-pressed="true" data-v="pre">Pre-training</button><button aria-pressed="false" data-v="sft">SFT</button><button aria-pressed="false" data-v="dpo">DPO</button><button aria-pressed="false" data-v="rlvr">RLVR</button>
+    </div>
+    <pre class="sample" id="dsCode"></pre>
+    <p class="callout" id="dsMsg"></p>
+  </div>
+
+  <!-- TOKEN / BPE -->
+  <h3 id="c-token" class="anchor">Token e BPE (Byte Pair Encoding, codifica per coppie di byte)</h3>
+  <div class="prose stack">
+    <p>Un LLM non vede lettere né parole, ma <b>token</b>: frammenti di testo presi da un vocabolario fisso (tipicamente 30.000–250.000 voci). Ogni token è un numero intero (ID). In italiano un token corrisponde in media a circa 3–4 caratteri.</p>
+    <p>Chi decide quali frammenti entrano nel vocabolario? L'algoritmo <b>BPE</b>, che si "allena" sul corpus <i>prima</i> del modello, una volta sola:</p>
+    <ol class="steps">
+      <li>Si parte dai simboli più piccoli: i singoli caratteri (nei tokenizer moderni, i singoli byte, così qualsiasi testo è rappresentabile).</li>
+      <li>Si conta quale <b>coppia di simboli adiacenti</b> compare più spesso in tutto il corpus.</li>
+      <li>Quella coppia viene <b>fusa</b> in un nuovo simbolo, che entra nel vocabolario. La regola di fusione (<i>merge</i>) viene salvata.</li>
+      <li>Si ripete finché il vocabolario raggiunge la dimensione desiderata.</li>
+    </ol>
+    <p>Il risultato: le sequenze frequenti ("gatt", "ione", " della") diventano un token solo, mentre le parole rare vengono composte da pezzi. Per tokenizzare un testo nuovo si applicano le stesse regole di fusione, nello stesso ordine in cui sono state imparate.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Il vocabolario dipende dal corpus.</b> Il tokenizer si allena su un campione rappresentativo dei dati di pre-training, una volta sola, e poi viene congelato: ogni token ha la sua riga nella matrice di embedding e la sua uscita nell'ultimo strato, quindi cambiarlo renderebbe inutili quei pesi. Un modello multilingua usa <b>un solo vocabolario condiviso</b>, allenato su una miscela bilanciata di lingue; per questo i vocabolari multilingua sono più grandi (128.000–256.000 token).</p>
+    <p><b>Cosa si configura.</b> L'iperparametro principale è la <b>dimensione del vocabolario</b>, cioè quanti merge fare. La lunghezza dei singoli token non si fissa: emerge dalle frequenze. Nei fatti però è limitata dalla <b>pre-tokenizzazione</b>: prima del BPE un'espressione regolare divide il testo in blocchi (parole con lo spazio iniziale, numeri, punteggiatura) e i merge non superano mai quei confini. Alcune librerie offrono anche un tetto esplicito, facoltativo: <span class="k">max_sentencepiece_length</span> in SentencePiece (default 16 caratteri) e <span class="k">max_token_length</span> nel BpeTrainer di Hugging Face (default nessun limite).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: BPE passo per passo</h3><span class="tag">algoritmo reale</span></div>
+    <label for="bpeIn" class="muted" style="font-size:.8rem">Corpus di allenamento (puoi modificarlo)</label>
+    <textarea id="bpeIn" rows="2">il gatto dorme. il gatto mangia. la gatta dorme. il cane mangia 1500 pasti. il gatto mangia 150 pasti.</textarea>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>Pre-tokenizzazione</label>
+        <div class="seg" id="bpePre" role="group" aria-label="Pre-tokenizzazione">
+          <button aria-pressed="true" data-v="on">Attiva (come nei tokenizer reali)</button><button aria-pressed="false" data-v="off">Disattivata</button>
+        </div>
+      </div>
+      <div class="ctl" style="max-width:260px"><label for="bpeMax">Lunghezza massima del token <output id="bpeMaxo"></output></label><input id="bpeMax" type="range" min="0" max="10" value="0"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="bpe1">Esegui 1 merge</button>
+      <button class="btn ghost" id="bpe5">Esegui 5 merge</button>
+      <button class="btn ghost" id="bpe20">Esegui 20 merge</button>
+      <button class="btn ghost" id="bpeR">Ricomincia</button>
+    </div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">Coppie adiacenti più frequenti</div>
+        <div class="bars" id="bpePairs"></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">Regole di merge imparate, in ordine</div>
+        <div class="tokens" id="bpeMerges"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="diag-title">Vocabolario attuale: <span id="bpeVocN"></span> token con il loro ID</div>
+      <div class="tokens" id="bpeVocab"></div>
+      <div class="row" style="gap:14px;font-size:.8rem"><span class="row" style="gap:6px"><span class="tok spec">sp</span> token speciale</span><span class="row" style="gap:6px"><span class="tok base">a</span> simbolo di base</span><span class="row" style="gap:6px"><span class="tok merged">ab</span> creato da un merge</span><span class="row" style="gap:6px"><span class="tok resp">ab</span> ultimo merge</span></div>
+      <p class="note">Il vocabolario parte dai simboli di base (i singoli caratteri presenti nel corpus) più i token speciali, e ogni merge aggiunge <b>un</b> token con un nuovo ID. I simboli di base non vengono mai tolti, anche quando nel corpus non compaiono più da soli: servono per scrivere parole mai viste. Il training del tokenizer si ferma quando il vocabolario raggiunge la dimensione scelta; da lì in poi ID e token non cambiano più.</p>
+    </div>
+    <div class="stack">
+      <div class="diag-title" id="bpeWordsTitle"></div>
+      <div id="bpeWords" class="bpe-words"></div>
+    </div>
+    <div class="readout" id="bpeStats"></div>
+    <div class="stack">
+      <label for="bpeNew" class="muted" style="font-size:.8rem">Applica le regole imparate a un testo nuovo</label>
+      <input id="bpeNew" type="text" value="il gatto mangia 1500 pesci." class="txt">
+      <div class="tokens" id="bpeNewOut"></div>
+    </div>
+    <p class="callout" id="bpeMsg"></p>
+    <p class="note">Il simbolo · rappresenta lo spazio: come nei tokenizer reali (GPT, Llama) lo spazio fa parte del token che lo segue, quindi «·gatto» e «gatto» sono token diversi. I tokenizer reali lavorano sui byte UTF-8 (Unicode Transformation Format, 8 bit) e fanno decine di migliaia di merge su gigabyte di testo, ma l'algoritmo è esattamente questo. Le coppie che compaiono una volta sola non vengono fuse (frequenza minima 2). Cambiando i due vincoli il laboratorio ripete da capo lo stesso numero di merge, così puoi confrontare i risultati.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: tokenizzatore</h3><span class="tag">approssimazione</span></div>
+    <label for="tokIn" class="muted" style="font-size:.8rem">Scrivi un testo</label>
+    <textarea id="tokIn" rows="2">Il fine-tuning dell'LLM è straordinariamente efficace!</textarea>
+    <div class="tokens" id="tokOut"></div>
+    <div class="readout" id="tokStats"></div>
+    <p class="note">Qui la divisione è simulata con una regola semplice, non con un vero vocabolario BPE, ma si vede l'effetto: parole corte e frequenti restano intere, parole lunghe vengono spezzate. Il numero accanto a ogni token è il suo ID.</p>
+  </div>
+
+  <!-- PESI -->
+  <h3 id="c-pesi" class="anchor">I pesi: il modello è fatto di numeri</h3>
+  <div class="prose stack">
+    <p>I <b>pesi</b> (o <b>parametri</b>) sono i numeri che il training modifica, e sono l'unica cosa che il modello "sa". Sono organizzati in grandi matrici. Quando un token entra nel modello, viene trasformato in un vettore e moltiplicato per queste matrici, strato dopo strato. Alla fine esce un punteggio per ogni token del vocabolario.</p>
+    <p>Un'analogia: un mixer audio con miliardi di manopole. All'inizio le manopole sono in posizione casuale e il suono è rumore. Il training gira ogni manopola di una frazione, milioni di volte, finché il suono è quello giusto. Nessuno regola una manopola a mano, né sa cosa rappresenti la singola manopola.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Dove stanno i pesi in un transformer</h3></div>
+    <div class="grid3">
+      <div class="box"><b>Embedding</b><span>Una riga di numeri per ogni token del vocabolario. È il "significato" iniziale del token.</span><em>vocabolario × dimensione</em></div>
+      <div class="box"><b>Attention</b><span>Matrici che decidono quali token precedenti guardare e quanto pesano per quello attuale.</span><em>ripetuto per ogni strato</em></div>
+      <div class="box"><b>MLP (Multi-Layer Perceptron, percettrone multistrato)</b><span>Matrici che elaborano l'informazione raccolta. Qui si pensa sia immagazzinata buona parte della conoscenza fattuale.</span><em>circa 2/3 dei parametri</em></div>
+      <div class="box"><b>Testa di output</b><span>Trasforma l'ultimo vettore in un punteggio (logit) per ogni token del vocabolario.</span><em>dimensione × vocabolario</em></div>
+    </div>
+    <p class="note">Un modello "7B" ha 7 miliardi di questi numeri: in formato bf16 (brain floating point a 16 bit, cioè 2 byte ciascuno) occupano circa 14 GB. Durante il training servono anche i gradienti e lo stato dell'ottimizzatore, quindi la memoria necessaria è diverse volte più grande. Nel training dal vivo qui sotto il modello ha solo 225 pesi, e li puoi vedere tutti.</p>
+  </div>
+
+  <!-- EMBEDDING -->
+  <h3 id="c-emb" class="anchor">Embedding: da ID a vettore</h3>
+  <div class="prose stack">
+    <p>Un ID come 2 non dice nulla al modello: è solo un'etichetta. Il primo strato di ogni LLM trasforma ciascun ID in un <b>vettore</b> di d numeri (d = 4.096 in un modello da 7B), cioè un punto in uno spazio a d dimensioni. Quel vettore è l'<b>embedding</b> del token.</p>
+    <p><b>Come si assegna un embedding a ogni token del vocabolario.</b> Non esiste un embedding "giusto" da assegnare all'inizio. Il procedimento è puramente meccanico:</p>
+    <ol class="steps">
+      <li>Il BPE finisce e il vocabolario viene <b>congelato</b>: una lista di V token, ciascuno con il suo ID da 0 a V − 1 (compresi i token speciali come <span class="k">&lt;eos&gt;</span> e i simboli di base).</li>
+      <li>Si crea la matrice E con <b>V righe</b> e <b>d colonne</b>. La riga i appartiene al token con ID i: l'abbinamento è solo per posizione, come l'indice di un array.</li>
+      <li>Si riempie E di <b>numeri casuali piccoli</b>, per esempio estratti da una distribuzione normale con media 0 e deviazione standard 0,02. A questo punto le righe non significano nulla: «·gatto» e «·martedì» sono vettori casuali qualsiasi.</li>
+      <li>Il training aggiorna le righe a ogni step, e il significato emerge poco a poco (lo vedi nel secondo laboratorio qui sotto).</li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: dal vocabolario BPE alla matrice E</h3><span class="tag">inizializzazione reale</span></div>
+    <p>Questa matrice è costruita sul vocabolario del <a href="#c-token">laboratorio BPE</a> qui sopra: se esegui altri merge, compaiono nuove righe. Qui d = 4 per leggibilità.</p>
+    <div class="row"><button class="btn ghost" id="eiSeed">Ri-inizializza con un altro seme casuale</button><span class="muted" id="eiInfo" style="font-size:.85rem"></span></div>
+    <div class="scroll-x fwbox"><table class="gtable emb-table" id="eiTable"></table></div>
+    <p class="note">Premendo «Ri-inizializza» i numeri cambiano completamente, e va bene così: all'inizio servono solo valori piccoli e diversi tra loro, così che ogni riga parta da un punto diverso. Anche i simboli di base (le singole lettere) hanno la loro riga, perché restano nel vocabolario per rappresentare le parole mai viste.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Come si calcola: non si calcola, si legge.</b> Il modello contiene una <b>matrice di embedding</b> E con una riga per ogni token del vocabolario (V righe × d colonne). L'embedding del token con ID 2 è semplicemente la riga 2 di E. Matematicamente equivale a moltiplicare un <a href="#c-alg">vettore one-hot</a> (tutti zeri, con un 1 in posizione 2) per E, ma nella pratica si fa una lettura diretta (lookup), molto più veloce. La matrice di input [B × L] di ID diventa così un tensore [B × L × d] di vettori.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il lookup nella matrice E</h3><span class="tag">valori illustrativi</span></div>
+    <div class="diag-title">Frase in input (clicca un token)</div>
+    <div class="tokens" id="embSent"></div>
+    <div class="scroll-x"><table class="gtable emb-table" id="embTable"></table></div>
+    <p class="note" id="embNote"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>Da dove vengono i numeri di E.</b> Nessuno li sceglie. All'inizio del training E è riempita di numeri casuali piccoli, come tutti gli altri pesi, ed è aggiornata dal backward pass come tutti gli altri pesi. In ogni step ricevono gradiente <b>solo le righe dei token presenti nel batch</b>. Token che compaiono in contesti simili ricevono aggiornamenti simili, e i loro vettori si avvicinano: nessuno impone che «gatto» stia vicino a «cane», emerge dal compito di prevedere il token successivo. È la stessa idea di word2vec, ma qui gli embedding si allenano insieme al resto del modello.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: gli embedding si organizzano durante il training</h3><span class="tag">proiezione illustrativa in 2D</span></div>
+    <div class="ctl" style="max-width:420px"><label for="embT">Avanzamento del training <output id="embTo"></output></label><input id="embT" type="range" min="0" max="100" value="0"></div>
+    <svg id="embChart" class="chart" viewBox="0 0 560 300" style="max-width:720px" role="img" aria-label="Embedding proiettati in due dimensioni"></svg>
+    <p class="callout" id="embMsg"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>Statico all'ingresso, contestuale dopo.</b> La riga di E è identica ogni volta che il token compare: «banca» ha lo stesso embedding in «la banca del fiume» e in «il conto in banca». Sono gli strati successivi (attention e MLP) a mescolarlo con i token vicini, finché all'ultimo strato i due «banca» sono vettori diversi, uno vicino a «fiume», l'altro vicino a «conto».</p>
+  </div>
+  <div class="diag">
+    <span class="box">ID del token</span><span class="arr">→</span>
+    <span class="box hot">riga di E<br><small class="muted">embedding statico</small></span><span class="arr">→</span>
+    <span class="box">+ informazione di posizione<br><small class="muted">RoPE</small></span><span class="arr">→</span>
+    <span class="box">N strati di attention + MLP</span><span class="arr">→</span>
+    <span class="box hot">vettore contestuale<br><small class="muted">dipende dalla frase</small></span><span class="arr">→</span>
+    <span class="box">confronto con tutte le righe di E<br><small class="muted">logit</small></span>
+  </div>
+  <div class="prose stack">
+    <p><b>La posizione si aggiunge a parte.</b> La riga di E non sa <i>dove</i> si trova il token: «il cane morde l'uomo» e «l'uomo morde il cane» avrebbero gli stessi vettori. I primi transformer sommavano un secondo vettore, l'embedding posizionale; i modelli attuali usano quasi tutti RoPE (Rotary Position Embedding, embedding posizionale rotazionale), che codifica la posizione ruotando i vettori dentro l'attention.</p>
+    <p><b>La stessa matrice anche in uscita.</b> In molti modelli la testa di output riusa E (<i>weight tying</i>, condivisione dei pesi): il logit di ogni token è il prodotto scalare tra l'ultimo vettore contestuale e la riga di E di quel token. Prevedere il token successivo significa quindi cercare la riga di E più simile al vettore prodotto dal modello.</p>
+  </div>
+  <div class="scroll-x">
+  <table class="sum" style="min-width:600px">
+    <thead><tr><th></th><th>Embedding di token</th><th>Embedding semantico (retrieval)</th></tr></thead>
+    <tbody>
+      <tr><td>Rappresenta</td><td>Un singolo token, senza contesto</td><td>Un'intera frase o un documento</td></tr>
+      <tr><td>Si ottiene</td><td>Leggendo una riga di E, all'ingresso del modello</td><td>Dall'ultimo strato di un modello, facendo la media (pooling) dei vettori contestuali di tutti i token</td></tr>
+      <tr><td>Si allena</td><td>Insieme all'LLM, prevedendo il token successivo</td><td>Con training contrastivo: frasi simili vicine, frasi diverse lontane</td></tr>
+      <tr><td>Dimensioni tipiche</td><td>V × d, es. 128.000 × 4.096 ≈ 524 milioni di pesi</td><td>Un vettore da 384–3.072 numeri per testo</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- STRATI -->
+  <h3 id="c-layer" class="anchor">Gli strati: cosa succede dentro il modello</h3>
+  <div class="prose stack">
+    <p>Uno <b>strato</b> (layer) è un blocco di calcoli con i <b>propri pesi</b>. Riceve un vettore per ogni token e restituisce un vettore per ogni token, della stessa dimensione: entra una matrice [L × d], esce una matrice [L × d]. Siccome ingresso e uscita hanno la stessa forma, gli strati si possono <b>impilare</b>: l'uscita di uno è l'ingresso del successivo. "Deep" in <i>deep learning</i> significa proprio questo: molti strati in fila. Un modello da 7B ne ha 32, i modelli più grandi oltre 100.</p>
+  </div>
+  <div class="stackdiag">
+    <div class="sd io">ID dei token <small>[L]</small></div>
+    <div class="sd">Embedding: lettura delle righe di E <small>[L × d]</small></div>
+    <div class="sd blk"><b>Blocco 1</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd blk"><b>Blocco 2</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd sdots">⋮</div>
+    <div class="sd blk"><b>Blocco N</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd">Testa di output: × Eᵀ <small>[L × V] logit</small></div>
+    <div class="sd io">softmax → una distribuzione su V token per ogni posizione</div>
+  </div>
+  <div class="prose stack">
+    <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi:</p>
+    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token "guarda" gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> ("cosa sto cercando"), una <i>key</i> ("cosa offro") e un <i>value</i> ("cosa passo se vengo scelto"). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; una softmax trasforma questi punteggi in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La causal mask esclude i token successivi.</p>
+    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token.</p>
+    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un "flusso" (il <i>residual stream</i>) che si arricchisce strato dopo strato. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: dove guarda l'attention</h3><span class="tag">valori illustrativi</span></div>
+    <div class="diag-title">Clicca un token: vedi quanto peso dà a sé stesso e ai token precedenti</div>
+    <div class="tokens" id="attSent"></div>
+    <div class="bars" id="attBars"></div>
+    <p class="callout" id="attMsg"></p>
+    <p class="note">Un blocco ha in realtà molte "teste" di attention in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
+    <div class="scroll-x"><table class="gtable">
+      <tr><th>Componente</th><th>Matrici</th><th>Pesi</th></tr>
+      <tr><td>Embedding E</td><td class="mono">32.000 × 4.096</td><td class="mono">131 milioni</td></tr>
+      <tr><td>Attention (per blocco)</td><td class="mono">4 matrici 4.096 × 4.096 (query, key, value, output)</td><td class="mono">67 milioni</td></tr>
+      <tr><td>MLP (per blocco)</td><td class="mono">3 matrici 4.096 × 11.008</td><td class="mono">135 milioni</td></tr>
+      <tr><td>Un blocco completo</td><td class="mono">attention + MLP</td><td class="mono">≈ 202 milioni</td></tr>
+      <tr><td>32 blocchi</td><td class="mono">32 × 202 milioni</td><td class="mono">≈ 6,48 miliardi</td></tr>
+      <tr><td>Testa di output</td><td class="mono">4.096 × 32.000 (qui non condivisa con E)</td><td class="mono">131 milioni</td></tr>
+      <tr><td><b>Totale</b></td><td></td><td class="mono"><b>≈ 6,74 miliardi → "7B"</b></td></tr>
+    </table></div>
+    <p class="note">Oltre il 95% dei pesi sta negli strati, non nell'embedding. L'MLP ne contiene circa due terzi.</p>
+  </div>
+
+  <!-- LOSS -->
+  <h3 id="c-loss" class="anchor">La loss: un numero che misura l'errore</h3>
+  <div class="prose stack">
+    <p>La <b>loss</b> (funzione di perdita) riassume in un solo numero quanto le previsioni del modello sono lontane dall'obiettivo. Tutto il training consiste nel farla scendere. Negli LLM si usa quasi sempre la <b>cross-entropy</b> (entropia incrociata) sul token successivo.</p>
+    <p>Il meccanismo: per ogni posizione la rete produce un <b>logit</b> (punteggio grezzo) per ciascun token del vocabolario. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1. La loss guarda solo la probabilità assegnata al token corretto: <span class="k">loss = −log p(token corretto)</span>. Se il modello dà 100% al token giusto la loss è 0, se gli dà 50% è 0,69, se gli dà 1% è 4,6. La loss di un batch è la media su tutti i suoi token.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">valori illustrativi</span></div>
+    <div class="sample">Contesto: «La capitale della Francia è» → token corretto: «Parigi»</div>
+    <div class="controls">
+      <div class="ctl"><label for="smT">Avanzamento del training <output id="smTo"></output></label><input id="smT" type="range" min="0" max="100" value="60"></div>
+      <div class="ctl"><label for="smTemp">Temperatura (solo in generazione) <output id="smTempo"></output></label><input id="smTemp" type="range" min="0.2" max="2" step="0.1" value="1"></div>
+    </div>
+    <div class="bars" id="smBars"></div>
+    <div class="readout" id="smStats"></div>
+    <p class="note">All'inizio i logit sono quasi uguali: ogni token ha probabilità ≈ 1/6 e la loss vale log 6 ≈ 1,79. Il training separa i logit e la loss scende. La <b>temperatura</b> divide i logit prima della softmax e si usa solo quando il modello genera: sotto 1 rende l'output più deterministico, sopra 1 più vario. La loss di training si calcola sempre a temperatura 1.</p>
+  </div>
+
+  <!-- BATCH STEP EPOCH -->
+  <h3 id="c-batch" class="anchor">Esempio, sequenza, batch, step, epoch</h3>
+  <div class="prose stack">
+    <p>Questi termini descrivono il <i>ritmo</i> del training, cioè come il dataset viene servito al modello. Conviene definirli in ordine, dal più piccolo al più grande:</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Esempio (una previsione)</dt><dd>La coppia "contesto → token successivo". È l'unità minima su cui si calcola la loss.</dd><span class="ex">«il gatto» → «dorme»</span></div>
+    <div><dt>Sequenza</dt><dd>Un pezzo del flusso di token lungo quanto la <b>context length</b> (lunghezza del contesto) L. Una sequenza di L token contiene L esempi, perché ogni posizione predice la successiva, tutte in parallelo.</dd><span class="ex">L = 8.192 token nei modelli attuali</span></div>
+    <div><dt>Batch (gruppo di esempi)</dt><dd>Le B sequenze elaborate <b>insieme</b> prima di aggiornare i pesi. Si fa la media della loss su tutte, così il gradiente è meno "rumoroso" di quello di un esempio solo, e le GPU (Graphics Processing Unit) lavorano in parallelo.</dd><span class="ex">B = batch size, in sequenze</span></div>
+    <div><dt>Batch di token</dt><dd>È lo <b>stesso batch</b>, misurato in token invece che in sequenze: B × L. Negli LLM si parla quasi sempre così, perché le sequenze possono avere lunghezze diverse.</dd><span class="ex">512 × 8.192 ≈ 4 milioni di token</span></div>
+    <div><dt>Step (giro completo)</dt><dd>Un ciclo intero su <b>un</b> batch: forward pass, calcolo della loss, backward pass, aggiornamento dei pesi. Ogni step cambia i pesi una volta sola.</dd><span class="ex">1 batch = 1 step = 1 aggiornamento</span></div>
+    <div><dt>Epoch (epoca)</dt><dd>Un passaggio completo su <b>tutto</b> il dataset, cioè tutti i batch una volta. All'inizio di ogni epoch l'ordine delle sequenze viene rimescolato. Nel pre-training si fa di solito circa un'epoch sola (i dati sono troppi per ripeterli); nel fine-tuning 1–3.</dd><span class="ex">step per epoch = token del dataset ÷ token per batch</span></div>
+  </dl>
+  <div class="lab">
+    <div class="lab-head"><h3>Calcolatore: quanti step servono?</h3><span class="tag">ordini di grandezza</span></div>
+    <div class="seg" id="calcPre" role="group" aria-label="Scenari">
+      <button aria-pressed="true" data-v="demo">Training dal vivo (sotto)</button><button aria-pressed="false" data-v="sft">Fine-tuning SFT</button><button aria-pressed="false" data-v="pre">Pre-training grande</button>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="cD">Token nel dataset</label><input id="cD" class="txt" type="number" min="1"></div>
+      <div class="ctl"><label for="cL">Context length L (token per sequenza)</label><input id="cL" class="txt" type="number" min="1"></div>
+      <div class="ctl"><label for="cB">Batch size B (sequenze per batch)</label><input id="cB" class="txt" type="number" min="1"></div>
+    </div>
+    <div class="calc" id="calcOut"></div>
+  </div>
+
+  <!-- LOOP + GD -->
+  <h3 class="anchor">Il ciclo di uno step, e il learning rate</h3>
+  <div class="lab">
+    <div class="loop">
+      <div class="box hot"><em>1 · forward pass</em><b>Previsione</b><span>Il batch attraversa la rete; per ogni posizione esce un logit per ogni token del vocabolario.</span></div>
+      <div class="box"><em>2 · loss</em><b>Misura dell'errore</b><span>La media di −log p(token corretto) su tutti i token del batch.</span></div>
+      <div class="box"><em>3 · backward pass</em><b>Gradienti</b><span>La backpropagation (retropropagazione) calcola, per ogni peso, in che direzione spostarlo per ridurre la loss.</span></div>
+      <div class="box"><em>4 · optimizer step</em><b>Aggiornamento</b><span>L'ottimizzatore sposta ogni peso di un passo proporzionale al learning rate.</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Immagina la loss come un paesaggio collinare, dove ogni punto è una combinazione di pesi. Il <b>gradiente</b> indica la direzione in salita più ripida; il <b>gradient descent</b> (discesa del gradiente) fa un passo nella direzione opposta. La lunghezza del passo è il <b>learning rate</b> (η).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: discesa su una loss a una dimensione</h3><span class="tag">matematica reale</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="gdLr">Learning rate η <output id="gdLro"></output></label><input id="gdLr" type="range" min="0.05" max="2.2" step="0.05" value="0.3"></div>
+      <div class="ctl"><label for="gdN">Numero di step <output id="gdNo"></output></label><input id="gdN" type="range" min="1" max="20" value="8"></div>
+    </div>
+    <svg id="gdChart" class="chart" viewBox="0 0 560 240" style="max-width:720px" role="img" aria-label="Discesa del gradiente"></svg>
+    <div class="formula">w ← w − η · ∂loss/∂w        loss(w) = ½ (w − 1)²   →   ∂loss/∂w = w − 1</div>
+    <p class="callout" id="gdMsg"></p>
+  </div>
+
+  <!-- glossary -->
+  <h3 class="anchor">Glossario dei termini che ritornano</h3>
+  <dl class="gloss">
+    <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e della loro varianza. Costa circa 2 copie extra dei pesi in memoria.</dd><span class="ex">standard di fatto per gli LLM</span></div>
+    <div><dt>Perplexity (perplessità)</dt><dd>È e elevato alla loss: quanti token equiprobabili il modello "sta considerando" in media. Perplexity 1 vuol dire certezza assoluta, 6 vuol dire tirare un dado a sei facce.</dd><span class="ex">metrica classica del pre-training</span></div>
+    <div><dt>Checkpoint</dt><dd>Un salvataggio dei pesi (e dello stato dell'ottimizzatore) a un certo step. Si riparte da lì se il training diverge.</dd></div>
+    <div><dt>Train / validation</dt><dd>Si misura la loss anche su dati mai visti. Se la loss di training scende ma quella di validazione sale, c'è <b>overfitting</b> (sovradattamento): il modello memorizza invece di generalizzare.</dd></div>
+    <div><dt>Full fine-tuning vs LoRA</dt><dd>Il primo aggiorna tutti i pesi. LoRA (Low-Rank Adaptation, adattamento a basso rango) congela il modello e allena piccole matrici aggiuntive: meno memoria, risultati spesso simili.</dd></div>
+    <div><dt>Base model / modello di riferimento</dt><dd>Il base model esce dal pre-training. Nel post-training si tiene una copia congelata (reference) per misurare quanto il modello nuovo se ne allontana.</dd></div>
+    <div><dt>Divergenza KL</dt><dd>La KL (Kullback-Leibler) misura quanto due distribuzioni di probabilità differiscono. Nel post-training fa da "guinzaglio": impedisce al modello di allontanarsi troppo dal riferimento.</dd></div>
+    <div><dt>Policy</dt><dd>Nel linguaggio dell'RL (Reinforcement Learning, apprendimento per rinforzo) è il modello che si sta allenando: dato un contesto, "sceglie l'azione", cioè il token.</dd></div>
+    <div><dt>Reward</dt><dd>Un punteggio assegnato a una risposta completa: da un umano, da un reward model o da un verificatore automatico.</dd></div>
+    <div><dt>Rollout</dt><dd>Una risposta generata dal modello durante il training RL, che poi viene valutata.</dd></div>
+    <div><dt>On-policy vs off-policy</dt><dd>On-policy: si impara da testo generato dal modello stesso, adesso. Off-policy: da testo scritto da altri (persone, un altro modello, una versione vecchia).</dd></div>
+    <div><dt>Online vs offline</dt><dd>Online: il modello genera nuovi esempi durante il training (GRPO, OPD). Offline: il dataset è fisso fin dall'inizio (SFT, DPO).</dd></div>
+  </dl>
+</section>
+
+<!-- ============ 0b. TRAINING DAL VIVO ============ -->
+<section class="st" id="live">
+  <div class="sec-head">
+    <span class="eyebrow">Capitolo 0b · Training dal vivo</span>
+    <h2>Un training vero, dal dataset all'aggiornamento dei pesi</h2>
+  </div>
+  <div class="prose stack">
+    <p>Qui sotto c'è un modello linguistico minuscolo che si allena davvero nel tuo browser: dataset, tokenizzazione, sequenze, batch, forward pass, loss, gradienti e aggiornamento, con la matematica reale. Segui gli 8 passaggi con <b>Avanti</b>. Dopo il primo giro, il ciclo riparte dal passo 4 con il batch successivo; quando i batch finiscono, inizia una nuova epoch.</p>
+    <p class="note">Semplificazione onesta: un transformer usa tutto il contesto a sinistra, mentre questo modello guarda solo l'ultimo token (un <i>modello a bigrammi</i>). I suoi pesi sono una tabella 15 × 15: riga = token attuale, colonna = token successivo. Il flusso del training però è identico a quello di un LLM.</p>
+  </div>
+
+  <div class="lab live">
+    <div class="controls">
+      <div class="ctl"><label for="lvB">Batch size B (sequenze per batch) <output id="lvBo"></output></label><input id="lvB" type="range" min="1" max="7" value="2"></div>
+      <div class="ctl"><label for="lvLr">Learning rate η <output id="lvLro"></output></label><input id="lvLr" type="range" min="0.5" max="20" step="0.5" value="5"></div>
+      <div class="row" style="flex:0 1 auto">
+        <button class="btn ghost" id="lvEp">Allena 1 epoch</button>
+        <button class="btn ghost" id="lvEp20">Allena 20 epoch</button>
+        <button class="btn ghost" id="lvRs">Ricomincia</button>
+      </div>
+    </div>
+    <div class="status" id="lvStatus"></div>
+    <ol class="stepper" id="lvStepper"></ol>
+    <div class="phase" id="lvPanel" aria-live="polite"></div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="lvPrev">← Indietro</button>
+      <button class="btn" id="lvNext">Avanti →</button>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="lab">
+      <div class="lab-head"><h3>Loss per step</h3></div>
+      <svg id="lvLoss" class="chart" viewBox="0 0 460 220" role="img" aria-label="Loss per step"></svg>
+      <p class="note">Ogni punto è la loss di un batch, prima dell'aggiornamento. La linea tratteggiata è log 15 ≈ 2,71, la loss di un modello che tira a indovinare tra 15 token.</p>
+    </div>
+    <div class="lab">
+      <div class="lab-head"><h3>I 225 pesi del modello</h3></div>
+      <div class="scroll-x"><svg id="lvHeat" class="chart heat" viewBox="0 0 400 400" role="img" aria-label="Matrice dei pesi"></svg></div>
+      <p class="note">Riga = token attuale, colonna = token successivo. <span style="color:var(--accent)">Verde</span>: peso positivo (successione favorita). <span style="color:var(--bad)">Rosso</span>: peso negativo. Passa sopra una cella per il valore.</p>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Prova il modello</h3></div>
+    <div class="controls">
+      <div class="ctl"><label for="lvTry">Token attuale</label><select id="lvTry" class="txt"></select></div>
+      <div class="row" style="flex:0 1 auto"><button class="btn ghost" id="lvGen">Genera una frase da «il»</button></div>
+    </div>
+    <div class="bars" id="lvTryBars"></div>
+    <div class="sample" id="lvGenOut">Allena il modello e poi genera: all'inizio le frasi sono casuali, dopo qualche epoch somigliano a quelle del dataset.</div>
+  </div>
+</section>
+
+<!-- ============ 1. PRE-TRAINING ============ -->
+<section class="st" id="pre">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 1 · Pre-training</span>
+    <h2>Prevedere il token successivo, trilioni di volte</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il modello legge testo grezzo (web, codice, libri) e per ogni posizione deve indovinare il token successivo. La loss è la <i>cross-entropy</i> (entropia incrociata): quanto il modello è "sorpreso" dal token vero. Minimizzandola su trilioni di esempi emergono grammatica, fatti, stile e i primi embrioni di ragionamento.</p>
+    <p><b>Il warm-up</b> riguarda il <i>learning rate</i> (tasso di apprendimento, cioè quanto è grande ogni passo di aggiornamento dei pesi). All'inizio i pesi sono casuali, i gradienti enormi e le statistiche dell'ottimizzatore Adam (Adaptive Moment Estimation) non ancora stabilizzate: un passo pieno subito fa "esplodere" la loss. Per questo il learning rate parte da circa zero e sale linearmente per qualche migliaio di step, poi decade. È come scaldare un motore a freddo prima di dare gas.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: schedule del learning rate</h3><span class="tag">simulazione illustrativa</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="wu">Warm-up <output id="wuo"></output></label><input id="wu" type="range" min="0" max="10" step="0.5" value="2"></div>
+      <div class="ctl" style="flex:0 1 auto"><label>Schedule dopo il warm-up</label>
+        <div class="seg" id="sched" role="group" aria-label="Schedule">
+          <button aria-pressed="true" data-v="cos">Cosine</button><button aria-pressed="false" data-v="wsd">WSD</button><button aria-pressed="false" data-v="const">Costante</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><div class="diag-title">Learning rate</div><svg id="lrChart" class="chart" viewBox="0 0 460 220" role="img" aria-label="Curva del learning rate"></svg></div>
+      <div><div class="diag-title">Loss di training</div><svg id="lossChart" class="chart" viewBox="0 0 460 220" role="img" aria-label="Curva della loss"></svg></div>
+    </div>
+    <p class="callout" id="lrMsg"></p>
+    <p class="note">Prova a portare il warm-up a 0%: nei primi step la loss mostra picchi (spike) di instabilità. Con WSD (Warmup-Stable-Decay, riscaldamento-stabile-decadimento) la loss resta più alta nella fase piatta e cala di colpo nel decadimento finale. Il vantaggio pratico è che puoi prolungare la fase stabile e fermarti quando vuoi.</p>
+  </div>
+
+  <p class="prose"><b>Risultato:</b> un <i>base model</i>. Se gli scrivi "Qual è la capitale della Francia?" potrebbe rispondere con altre tre domande, perché sul web quella frase compare spesso dentro un quiz. Sa la risposta, ma non sa che tu la vuoi.</p>
+</section>
+
+<!-- ============ 2. SFT ============ -->
+<section class="st" id="sft">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 2 · SFT (Supervised Fine-Tuning, fine-tuning supervisionato)</span>
+    <h2>Il behavior shift: stesso sapere, altro comportamento</h2>
+  </div>
+  <div class="prose stack">
+    <p>Si addestra su decine o centinaia di migliaia di coppie <i>prompt → risposta ideale</i>, scritte da persone o da un modello più forte. La loss è sempre next-token prediction, con una differenza: si calcola <b>solo sui token della risposta</b>. Il prompt fa da contesto ma non viene "imparato".</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Dove si calcola la loss</h3></div>
+    <div class="tokens" id="maskStrip"></div>
+    <div class="row" style="gap:18px;font-size:.82rem">
+      <span class="row" style="gap:6px"><span class="tok prompt">tok</span> prompt: nessuna loss (maschera)</span>
+      <span class="row" style="gap:6px"><span class="tok resp">tok</span> risposta: loss di cross-entropy</span>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: come si sposta la distribuzione dell'output</h3><span class="tag">valori illustrativi</span></div>
+    <div class="ctl"><label for="sftp">Avanzamento SFT <output id="sftpo"></output></label><input id="sftp" type="range" min="0" max="100" value="0"></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">Prompt: «Qual è la capitale della Francia?» — che tipo di continuazione genera?</div>
+        <div class="bars" id="sftBars"></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">Continuazione più probabile</div>
+        <div class="sample" id="sftSample"></div>
+      </div>
+    </div>
+    <p class="note">Il cold start dei modelli di ragionamento avviene qui: si aggiungono esempi con catene di ragionamento (CoT, Chain-of-Thought) per insegnare il formato "prima penso, poi rispondo". Il vero miglioramento del ragionamento arriva dopo, con l'RL (Reinforcement Learning, apprendimento per rinforzo).</p>
+  </div>
+
+  <p class="prose callout"><b>Limite dell'SFT:</b> il modello imita e basta. Vede solo risposte "giuste", quindi non impara cosa rende una risposta migliore di un'altra, e non può superare la qualità di chi ha scritto i dati.</p>
+</section>
+
+<!-- ============ 3. DPO ============ -->
+<section class="st" id="dpo">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 3 · Policy optimization · DPO (Direct Preference Optimization, ottimizzazione diretta delle preferenze)</span>
+    <h2>Imparare dal confronto, senza reward model</h2>
+  </div>
+  <div class="prose stack">
+    <p>Invece di una sola risposta ideale, il dataset contiene <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). "Policy" è il nome del modello nel linguaggio dell'RL: la regola che, dato un contesto, sceglie l'azione (il token successivo).</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Perché "direct": cosa elimina rispetto a RLHF</h3></div>
+    <div class="stack">
+      <div class="diag-title">RLHF (Reinforcement Learning from Human Feedback) con PPO (Proximal Policy Optimization)</div>
+      <div class="diag">
+        <span class="box">Coppie di preferenza</span><span class="arr">→</span>
+        <span class="box">Addestra un reward model</span><span class="arr">→</span>
+        <span class="box">Genera risposte</span><span class="arr">→</span>
+        <span class="box">Il reward model le valuta</span><span class="arr">→</span>
+        <span class="box">Aggiornamento PPO + critic</span><span class="arr">↺</span>
+      </div>
+      <div class="diag-title" style="margin-top:8px">DPO</div>
+      <div class="diag">
+        <span class="box">Coppie di preferenza</span><span class="arr">→</span>
+        <span class="box dead">reward model</span>
+        <span class="box dead">generazione online</span><span class="arr">→</span>
+        <span class="box hot">Una loss di classificazione sulle coppie</span>
+      </div>
+      <p class="note">DPO dimostra che il modello stesso, confrontato con un modello di riferimento congelato (quello uscito dall'SFT), contiene già un reward implicito. Non servono il reward model né l'RL: basta una loss supervisionata, stabile ed economica.</p>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la loss di DPO</h3><span class="tag">formula reale</span></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="sample" style="font-family:var(--sans)"><b>Prompt:</b> «Spiegami cos'è un'API»<br><span style="color:var(--good)">✓ chosen:</span> «Un'API è un contratto che permette a due programmi di parlarsi. Esempio: l'app meteo chiede i dati al server…»<br><span style="color:var(--bad)">✗ rejected:</span> «API significa Application Programming Interface.»</div>
+        <div class="ctl"><label for="dc">Δ chosen: log π(chosen) − log π<sub>ref</sub>(chosen) <output id="dco"></output></label><input id="dc" type="range" min="-3" max="3" step="0.1" value="0"></div>
+        <div class="ctl"><label for="dr">Δ rejected: log π(rejected) − log π<sub>ref</sub>(rejected) <output id="dro"></output></label><input id="dr" type="range" min="-3" max="3" step="0.1" value="0"></div>
+        <div class="ctl"><label for="beta">β (quanto può allontanarsi dal riferimento) <output id="betao"></output></label><input id="beta" type="range" min="0.05" max="1" step="0.05" value="0.5"></div>
+      </div>
+      <div class="stack">
+        <svg id="dpoChart" class="chart" viewBox="0 0 460 240" role="img" aria-label="Curva della loss DPO"></svg>
+        <div class="readout">
+          <div><small>reward implicito chosen</small><strong id="rc"></strong></div>
+          <div><small>reward implicito rejected</small><strong id="rr"></strong></div>
+          <div><small>margine</small><strong id="mg"></strong></div>
+          <div><small>loss</small><strong id="ls"></strong></div>
+          <div><small>peso del gradiente</small><strong id="gw"></strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="formula">L = −log σ( β·[log π(y<sub>c</sub>)/π<sub>ref</sub>(y<sub>c</sub>)] − β·[log π(y<sub>r</sub>)/π<sub>ref</sub>(y<sub>r</sub>)] )</div>
+    <p class="callout" id="dpoMsg"></p>
+  </div>
+  <p class="prose"><b>Da ricordare:</b> DPO è <b>offline</b>, cioè i dati sono fissi e il modello non genera nulla durante il training. È ottimo per ciò che è soggettivo: stile, utilità, tono, sicurezza.</p>
+</section>
+
+<!-- ============ 4. GRPO + RLVR ============ -->
+<section class="st" id="grpo">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 4 · GRPO (Group Relative Policy Optimization) + RLVR (Reinforcement Learning with Verifiable Rewards)</span>
+    <h2>Il modello esplora, il verificatore giudica</h2>
+  </div>
+  <div class="prose stack">
+    <p>Sono due idee diverse che lavorano insieme:</p>
+    <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e difficile da "truccare" (reward hacking).</p>
+    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è il suo reward confrontato con la media del gruppo: sopra la media viene rinforzata, sotto viene scoraggiata.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: un passo di GRPO</h3><span class="tag">simulazione</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="gn">Dimensione del gruppo N <output id="gno"></output></label><input id="gn" type="range" min="2" max="16" value="8"></div>
+      <div class="ctl" style="flex:0 1 auto"><label>Difficoltà del prompt (probabilità iniziale di risposta giusta)</label>
+        <div class="seg" id="gdiff" role="group" aria-label="Difficoltà">
+          <button aria-pressed="false" data-v="0.75">Facile 75%</button><button aria-pressed="true" data-v="0.3">Media 30%</button><button aria-pressed="false" data-v="0.03">Difficile 3%</button>
+        </div>
+      </div>
+    </div>
+    <div class="sample">Prompt: «Quanto fa 17 × 23?»   Verificatore: risposta_finale == 391</div>
+    <div class="row">
+      <button class="btn" id="gGen">Genera gruppo</button>
+      <button class="btn ghost" id="gUpd" disabled>Applica aggiornamento</button>
+      <button class="btn ghost" id="gAuto">Esegui 25 iterazioni</button>
+      <button class="btn ghost" id="gReset">Reset</button>
+    </div>
+    <div class="scroll-x"><table class="gtable" id="gTable"></table></div>
+    <div class="readout" id="gStats"></div>
+    <p class="callout" id="gMsg"></p>
+    <div><div class="diag-title">Probabilità di risposta corretta nel tempo</div><svg id="gChart" class="chart" style="max-width:640px" viewBox="0 0 460 180" role="img" aria-label="Accuratezza per iterazione"></svg></div>
+    <div class="formula">A<sub>i</sub> = (r<sub>i</sub> − media(r)) / dev.std(r)</div>
+    <p class="note">Prova la difficoltà "Difficile": quasi tutti i gruppi sono tutti sbagliati, i vantaggi valgono zero e il modello non impara niente. Per questo nell'RLVR si selezionano prompt di difficoltà intermedia (curriculum). Allo stesso modo, un prompt che il modello risolve sempre non insegna più nulla.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Cosa serve in memoria durante il training</h3></div>
+    <div class="grid2">
+      <div class="stack"><div class="diag-title">PPO</div>
+        <div class="diag"><span class="box hot">Policy (si allena)</span><span class="box">Riferimento (congelato)</span><span class="box">Reward model</span><span class="box hot">Critic / value model (si allena)</span></div>
+        <p class="note">Il critic stima "quanto mi aspetto di guadagnare da qui" ed è grande quanto la policy.</p>
+      </div>
+      <div class="stack"><div class="diag-title">GRPO + RLVR</div>
+        <div class="diag"><span class="box hot">Policy (si allena)</span><span class="box">Riferimento (congelato)</span><span class="box">Verificatore (codice)</span><span class="box dead">critic</span></div>
+        <p class="note">La media del gruppo sostituisce il critic come baseline: all'incirca metà della memoria.</p>
+      </div>
+    </div>
+  </div>
+  <p class="prose callout"><b>Perché conta:</b> qui il modello non imita più, <b>esplora</b>. Genera ragionamenti suoi e rinforza quelli che portano alla risposta giusta. Così può superare i dati di partenza, ed è in questa fase che nei modelli di ragionamento (tipo DeepSeek-R1) emergono comportamenti come ricontrollare i passaggi o tornare indietro dopo un errore.</p>
+</section>
+
+<!-- ============ 5. OPD ============ -->
+<section class="st" id="opd">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 5 · Knowledge distillation · OPD (On-Policy Distillation, distillazione on-policy)</span>
+    <h2>Lo student scrive, il teacher corregge ogni parola</h2>
+  </div>
+  <div class="prose stack">
+    <p>Obiettivo: trasferire le capacità di un modello grande (<i>teacher</i>) a uno piccolo ed economico (<i>student</i>). Cambia molto <b>chi genera il testo</b> su cui si impara e <b>quanto è denso il segnale</b>. Confronta le tre modalità sullo stesso esercizio.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: tre modi di insegnare allo student</h3><span class="tag">valori illustrativi</span></div>
+    <div class="seg" id="omode" role="group" aria-label="Modalità">
+      <button aria-pressed="false" data-v="off">Distillazione off-policy</button><button aria-pressed="false" data-v="rl">RLVR</button><button aria-pressed="true" data-v="opd">OPD</button>
+    </div>
+    <div class="diag-title" id="oTitle"></div>
+    <div class="tokens" id="oTokens"></div>
+    <div class="callout" id="oMsg"></div>
+    <div class="sample" id="oDetail" style="font-family:var(--sans)"></div>
+  </div>
+
+  <div class="prose stack">
+    <p><b>Il problema dell'off-policy</b> è l'<i>exposure bias</i> (distorsione da esposizione): in training lo student vede solo le traiettorie perfette del teacher. In inferenza, quando sbaglia un passo, si trova in un territorio mai visto e l'errore si propaga.</p>
+    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL, lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata sulle sequenze dello student. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
+  </div>
+</section>
+
+<!-- ============ SUMMARY ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Cinque fasi a confronto</h2></div>
+  <div class="scroll-x">
+  <table class="sum">
+    <thead><tr><th>Fase</th><th>Dati</th><th>Segnale</th><th>Chi genera</th><th>Densità del segnale</th><th>Insegna</th></tr></thead>
+    <tbody>
+      <tr><td>Pre-training</td><td>Testo grezzo, trilioni di token</td><td>Next token</td><td>Nessuno (testo esistente)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token</span></td><td>Conoscenza</td></tr>
+      <tr><td>SFT</td><td>Prompt → risposta ideale</td><td>Imitazione</td><td>Persone o modello forte</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token della risposta</span></td><td>Formato, comportamento</td></tr>
+      <tr><td>DPO</td><td>Coppie chosen / rejected</td><td>Preferenza relativa</td><td>Dataset fisso (offline)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 confronto per coppia</span></td><td>Stile, utilità, sicurezza</td></tr>
+      <tr><td>GRPO + RLVR</td><td>Prompt + verificatore</td><td>Reward 0/1 per risposta</td><td>Il modello stesso (online)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 numero per sequenza</span></td><td>Ragionamento verificabile</td></tr>
+      <tr><td>OPD</td><td>Prompt + teacher</td><td>Distribuzione del teacher</td><td>Lo student (online)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token dello student</span></td><td>Comprimere il ragionamento</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="prose note">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, oppure usano OPD al posto dell'RL per i modelli piccoli.</p>
+</section>
+
+<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La formula di DPO e il calcolo dei vantaggi in GRPO sono invece quelli reali.</footer>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const $=s=>document.querySelector(s);
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function seg(id,cb){const g=$(id);g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v);});return ()=>g.querySelector('[aria-pressed="true"]').dataset.v;}
+
+/* summary dots */
+document.querySelectorAll(".dots").forEach(d=>{const m=d.textContent.match(/%D(\d+)%/);const n=m?+m[1]:0;d.innerHTML="";for(let i=0;i<10;i++){const s=document.createElement("i");if(n===10||i===9&&n===1)s.className="on";d.appendChild(s);}});
+
+/* pipeline nav */
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>document.getElementById(b.dataset.go).scrollIntoView()));
+const links=[...document.querySelectorAll("nav.toc a")];
+const secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+function spy(){let cur=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<140)cur=i;});links.forEach((a,i)=>a.classList.toggle("on",i===cur));}
+addEventListener("scroll",spy,{passive:true});spy();
+
+/* ---------- generic line chart ---------- */
+function lineChart(svg,{W=460,H=220,xs,series,yMax,yMin=0,xTicks,yTicks,xFmt,yFmt,xLabel}){
+  clear(svg);const L=46,R=12,T=12,B=34;const pw=W-L-R,ph=H-T-B;
+  const X=v=>L+(v-xs[0])/(xs[1]-xs[0])*pw, Y=v=>T+ph-(v-yMin)/(yMax-yMin)*ph;
+  yTicks.forEach(v=>{el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),class:"gl"},svg);const t=el("text",{x:L-6,y:Y(v)+4,"text-anchor":"end"},svg);t.textContent=yFmt(v);});
+  xTicks.forEach(v=>{const t=el("text",{x:X(v),y:H-B+16,"text-anchor":"middle"},svg);t.textContent=xFmt(v);});
+  el("line",{x1:L,x2:W-R,y1:T+ph,y2:T+ph,class:"ax"},svg);
+  if(xLabel){const t=el("text",{x:W-R,y:H-4,"text-anchor":"end"},svg);t.textContent=xLabel;}
+  series.forEach(s=>{
+    const d=s.pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+","+Y(Math.min(yMax,Math.max(yMin,p[1]))).toFixed(1)).join("");
+    if(s.area){el("path",{d:d+`L${X(s.pts[s.pts.length-1][0])},${T+ph}L${X(s.pts[0][0])},${T+ph}Z`,fill:s.color,opacity:.12,stroke:"none"},svg);}
+    el("path",{d,fill:"none",stroke:s.color,"stroke-width":s.w||2,"stroke-linejoin":"round","stroke-dasharray":s.dash||""},svg);
+  });
+  return {X,Y,L,T,pw,ph};
+}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- 1. LR warm-up ---------- */
+const wu=$("#wu");let schedV="cos";
+const getSched=seg("#sched",v=>{schedV=v;drawLR();});
+function lr(u,W,s){const peak=1,min=.1;if(W>0&&u<W)return peak*u/W;
+  if(s==="const")return peak;
+  if(s==="cos"){const p=(u-W)/(1-W);return min+.5*(peak-min)*(1+Math.cos(Math.PI*p));}
+  const ds=.8;if(u<ds)return peak;return peak-(peak-min)*(u-ds)/(1-ds);}
+function noise(u){return Math.abs(Math.sin(u*913.7)*Math.sin(u*317.3+1.3));}
+function drawLR(){
+  const Wp=+wu.value, W=Wp/100; $("#wuo").textContent=Wp+"% ("+(Wp*1000).toLocaleString("it-IT")+" step)";
+  const lrP=[],lsP=[];let maxSpike=0;
+  for(let i=0;i<=400;i++){const u=i/400;const l=lr(u,W,schedV);lrP.push([u,l]);
+    const safe=Math.min(1,u/.012);const inst=Math.max(0,l-safe);
+    const spike=inst*4.2*noise(u);maxSpike=Math.max(maxSpike,spike);
+    const loss=1.9+6.2*Math.exp(-u/.07)+.5*Math.exp(-u/.45)+.45*l*Math.min(1,u*3)+spike;lsP.push([u,loss]);}
+  const acc=css("--accent"),bad=css("--bad");
+  const xt=[0,.25,.5,.75,1],xf=v=>v===0?"0":(v*100)+"k";
+  const c=lineChart($("#lrChart"),{xs:[0,1],series:[{pts:lrP,color:acc,area:true}],yMax:1.1,xTicks:xt,yTicks:[0,.5,1],xFmt:xf,yFmt:v=>v===1?"picco":v===0?"0":(v*100)+"%",xLabel:"step"});
+  if(W>0){const g=$("#lrChart");el("rect",{x:c.X(0),y:c.T,width:c.X(W)-c.X(0),height:c.ph,fill:css("--warn"),opacity:.14},g);const t=el("text",{x:c.X(W)+4,y:c.T+12},g);t.textContent="warm-up";}
+  lineChart($("#lossChart"),{xs:[0,1],series:[{pts:lsP,color:maxSpike>.3?bad:acc,w:1.6}],yMax:9,yMin:1.5,xTicks:xt,yTicks:[2,4,6,8],xFmt:xf,yFmt:v=>v,xLabel:"step"});
+  const m=$("#lrMsg");
+  if(Wp===0)m.innerHTML="<b>Nessun warm-up:</b> il primo passo usa già il learning rate massimo con pesi casuali. I picchi nella loss sono il segno di aggiornamenti troppo grandi; su un modello vero il training può divergere (loss a NaN, Not a Number) e va riavviato da un checkpoint.";
+  else if(maxSpike>.3)m.innerHTML="<b>Warm-up troppo corto:</b> la salita è ripida e qualche picco di instabilità resta.";
+  else m.innerHTML="<b>Warm-up sufficiente:</b> la loss scende in modo liscio. Nei modelli reali il warm-up dura di solito da qualche centinaio a qualche migliaio di step, una frazione minima del training.";
+}
+wu.addEventListener("input",drawLR);
+
+/* ---------- 2. SFT ---------- */
+const mask=[["<utente>",0],["Qual",0],["è",0],["la",0],["capitale",0],["della",0],["Francia",0],["?",0],["<assistente>",0],["La",1],["capitale",1],["della",1],["Francia",1],["è",1],["Parigi",1],[".",1],["<fine>",1]];
+mask.forEach(([t,r])=>{const s=document.createElement("span");s.className="tok "+(r?"resp":"prompt");s.textContent=t;$("#maskStrip").appendChild(s);});
+const cats=[["Risposta diretta",.18,.9],["Altre domande (stile quiz)",.38,.02],["Continua come articolo web",.29,.03],["Testo da forum / rumore",.15,.01],["Chiede chiarimenti",0,.04]];
+const sftp=$("#sftp");
+function drawSFT(){const p=sftp.value/100;$("#sftpo").textContent=sftp.value+"%";
+  const box=$("#sftBars");box.innerHTML="";let best=null,bv=-1;
+  const vals=cats.map(c=>c[1]+(c[2]-c[1])*Math.pow(p,.8));const sum=vals.reduce((a,b)=>a+b,0);
+  cats.forEach((c,i)=>{const v=vals[i]/sum;if(v>bv){bv=v;best=i;}
+    const r=document.createElement("div");r.className="barrow";r.innerHTML=`<span>${c[0]}</span><div class="track"><div class="fill" style="width:${(v*100).toFixed(1)}%"></div></div><span class="v">${(v*100).toFixed(0)}%</span>`;box.appendChild(r);});
+  const samples=["La capitale della Francia è Parigi. Posso aiutarti con altro?","Qual è la capitale della Germania?\nQual è la capitale della Spagna?\nQual è la capitale dell'Italia?","Scopri tutto sulla capitale della Francia in questa guida completa: storia, monumenti, i 10 quartieri da non perdere…","anch'io me lo chiedevo lol, cmq ciao a tutti è il mio primo post"];
+  $("#sftSample").textContent=samples[best]||samples[0];}
+sftp.addEventListener("input",drawSFT);
+
+/* ---------- 3. DPO ---------- */
+const dc=$("#dc"),dr=$("#dr"),beta=$("#beta");
+const sig=x=>1/(1+Math.exp(-x));
+function drawDPO(){const b=+beta.value,c=+dc.value,r=+dr.value;
+  $("#dco").textContent=c.toFixed(1);$("#dro").textContent=r.toFixed(1);$("#betao").textContent=b.toFixed(2);
+  const m=b*(c-r),loss=Math.log1p(Math.exp(-m)),gw=sig(-m);
+  $("#rc").textContent=(b*c).toFixed(2);$("#rr").textContent=(b*r).toFixed(2);$("#mg").textContent=m.toFixed(2);$("#ls").textContent=loss.toFixed(3);$("#gw").textContent=gw.toFixed(2);
+  const pts=[];for(let i=0;i<=200;i++){const x=-4+8*i/200;pts.push([x,Math.log1p(Math.exp(-x))]);}
+  const svg=$("#dpoChart");
+  const k=lineChart(svg,{H:240,xs:[-4,4],series:[{pts,color:css("--accent")}],yMax:4.2,xTicks:[-4,-2,0,2,4],yTicks:[0,1,2,3,4],xFmt:v=>v,yFmt:v=>v,xLabel:"margine →"});
+  const cx=k.X(Math.max(-4,Math.min(4,m))),cy=k.Y(Math.min(4.2,loss));
+  el("line",{x1:cx,x2:cx,y1:k.T,y2:k.T+k.ph,stroke:css("--muted"),"stroke-dasharray":"3 3"},svg);
+  el("circle",{cx,cy,r:6,fill:css("--ink"),stroke:css("--surface"),"stroke-width":2},svg);
+  const t1=el("text",{x:k.X(-3.9),y:k.T+k.ph-8},svg);t1.textContent="preferisce la rejected";
+  const t2=el("text",{x:k.X(3.9),y:k.T+k.ph-8,"text-anchor":"end"},svg);t2.textContent="preferisce la chosen";
+  const msg=$("#dpoMsg");
+  if(m<-.2)msg.innerHTML="<b>Il modello sbaglia:</b> ha alzato la probabilità della risposta scartata più di quella preferita. La loss è alta e il gradiente pesa molto: l'aggiornamento sarà forte.";
+  else if(m<.8)msg.innerHTML="<b>Punto di partenza tipico:</b> subito dopo l'SFT il modello coincide col riferimento, quindi Δ = 0 e la loss vale log 2 ≈ 0,693. Il training spinge Δ chosen in su e Δ rejected in giù.";
+  else msg.innerHTML="<b>Coppia già separata:</b> il peso del gradiente σ(−margine) è piccolo e questa coppia non contribuisce quasi più. DPO si concentra da solo sugli esempi in cui il modello sbaglia ancora. Nota che β più alto rende più \"costoso\" allontanarsi dal riferimento: basta un Δ più piccolo per ottenere lo stesso margine.";
+}
+[dc,dr,beta].forEach(i=>i.addEventListener("input",drawDPO));
+
+/* ---------- 4. GRPO ---------- */
+const gn=$("#gn");let p0=.3,p=.3,hist=[[0,.3]],group=null;
+seg("#gdiff",v=>{p0=+v;reset();});
+const wrong=["381","401","371","3910","291","393","421"];
+function gen(){const N=+gn.value;group=[];for(let i=0;i<N;i++){const ok=Math.random()<p;group.push({ans:ok?"391":wrong[Math.floor(Math.random()*wrong.length)],r:ok?1:0});}
+  const mean=group.reduce((a,g)=>a+g.r,0)/N;const sd=Math.sqrt(group.reduce((a,g)=>a+(g.r-mean)**2,0)/N);
+  group.forEach(g=>g.a=sd>0?(g.r-mean)/sd:0);group.mean=mean;group.sd=sd;return group;}
+function update(){if(!group)return false;const sig=group.sd>0;if(sig){p=Math.min(.98,p+.32*p*(1-p)*(.6+.4*Math.random()));}hist.push([hist.length,p]);const g=group;group=null;return {sig,g};}
+function renderGroup(g){const t=$("#gTable");if(!g){t.innerHTML="";return;}
+  let h="<tr><th>#</th><th>Risposta</th><th>Verificatore</th><th>Reward</th><th>Vantaggio A<sub>i</sub></th><th></th></tr>";
+  g.forEach((x,i)=>{const w=Math.min(50,Math.abs(x.a)*22);const col=x.a>0?"var(--good)":"var(--bad)";const style=x.a>=0?`left:50%;width:${w}%;background:${col}`:`right:50%;width:${w}%;background:${col}`;
+    h+=`<tr><td class="mono">${i+1}</td><td class="mono">${x.ans}</td><td><span class="pill ${x.r?"ok":"ko"}">${x.r?"corretto":"errato"}</span></td><td class="mono">${x.r}</td><td class="mono">${x.a>=0?"+":""}${x.a.toFixed(2)}</td><td style="width:40%"><div class="adv"><i style="${style}"></i></div></td></tr>`;});
+  t.innerHTML=h;
+  $("#gStats").innerHTML=`<div><small>corrette</small><strong>${g.filter(x=>x.r).length} / ${g.length}</strong></div><div><small>media reward</small><strong>${g.mean.toFixed(2)}</strong></div><div><small>dev. standard</small><strong>${g.sd.toFixed(2)}</strong></div><div><small>P(corretta) attuale</small><strong>${(p*100).toFixed(0)}%</strong></div>`;
+  $("#gMsg").innerHTML=g.sd===0?`<b>Nessun segnale:</b> tutte le risposte hanno lo stesso reward (${g.mean===1?"tutte giuste":"tutte sbagliate"}), quindi ogni vantaggio vale 0 e il gradiente è nullo. Questo gruppo è calcolo sprecato.`:"<b>Segnale utile:</b> le risposte corrette hanno vantaggio positivo e la loro probabilità verrà alzata, quelle errate verranno scoraggiate. Nota che nessuno ha dovuto scrivere la risposta giusta: basta saperla verificare.";}
+function drawG(){lineChart($("#gChart"),{H:180,xs:[0,Math.max(25,hist.length-1)],series:[{pts:hist,color:css("--accent"),area:true}],yMax:1,xTicks:[0,Math.max(25,hist.length-1)],yTicks:[0,.5,1],xFmt:v=>v,yFmt:v=>(v*100)+"%",xLabel:"iterazione"});}
+function reset(){p=p0;hist=[[0,p]];group=null;renderGroup(null);$("#gStats").innerHTML="";$("#gMsg").innerHTML="Premi <b>Genera gruppo</b>: il modello produce N risposte allo stesso prompt e il verificatore assegna a ciascuna reward 1 o 0.";$("#gUpd").disabled=true;drawG();}
+$("#gGen").onclick=()=>{renderGroup(gen());$("#gUpd").disabled=false;};
+$("#gUpd").onclick=()=>{const r=update();$("#gUpd").disabled=true;drawG();$("#gMsg").innerHTML=r.sig?`<b>Aggiornato.</b> La probabilità di rispondere correttamente ora è ${(p*100).toFixed(0)}%. Genera un nuovo gruppo.`:"<b>Nessun aggiornamento</b>: senza varianza nel gruppo il gradiente è zero. Genera un nuovo gruppo.";};
+$("#gAuto").onclick=()=>{let dead=0;for(let i=0;i<25;i++){gen();if(group.sd===0)dead++;update();}renderGroup(null);$("#gUpd").disabled=true;drawG();$("#gStats").innerHTML=`<div><small>P(corretta) attuale</small><strong>${(p*100).toFixed(0)}%</strong></div><div><small>gruppi senza segnale</small><strong>${dead} / 25</strong></div>`;$("#gMsg").innerHTML=`<b>25 iterazioni:</b> ${dead} gruppi su 25 non hanno prodotto segnale. `+(p0<.1?"Con un prompt troppo difficile il modello resta quasi fermo.":p>.9?"Ormai il prompt è \"risolto\": i gruppi saranno sempre più spesso tutti giusti, cioè senza segnale.":"La curva sale più in fretta quando l'accuratezza è intorno al 50%, dove i gruppi sono più vari.");};
+$("#gReset").onclick=reset;
+gn.addEventListener("input",()=>{$("#gno").textContent=gn.value;});
+
+/* ---------- 5. OPD ---------- */
+const stud=[["17",.97],["×",.95],["23",.98],["=",.96],["17",.82,[["17",.82],["20",.10],["391",.05]]],["×",.93],["20",.91],["+",.95],["17",.96],["×",.97],["3",.98],["=",.97],["340",.95],["+",.96],["41",.03,[["51",.94],["41",.03],["61",.01]]],["=",.97],["381",.88,[["381",.88],["391",.09]]]];
+const teach=["17","×","23","=","17","×","20","+","17","×","3","=","340","+","51","=","391"];
+let sel=14;
+function drawOPD(mode){const box=$("#oTokens");box.innerHTML="";const D=$("#oDetail");
+  if(mode==="off"){$("#oTitle").textContent="Testo generato dal TEACHER: lo student lo imita (SFT)";
+    teach.forEach(t=>{const s=document.createElement("span");s.className="tok resp";s.textContent=t;box.appendChild(s);});
+    $("#oMsg").innerHTML="<b>Segnale denso ma sulla traiettoria sbagliata:</b> lo student vede solo il ragionamento perfetto del teacher. Non vedrà mai il proprio errore «41», quindi in inferenza non saprà gestirlo.";
+    D.innerHTML="Chi genera: il teacher · Feedback: ogni token · Rischio: exposure bias";return;}
+  if(mode==="rl"){$("#oTitle").textContent="Testo generato dallo STUDENT: un solo reward alla fine";
+    stud.forEach(([t])=>{const s=document.createElement("span");s.className="tok";s.style.background="var(--bad-soft)";s.style.borderColor="var(--bad)";s.textContent=t;box.appendChild(s);});
+    const f=document.createElement("span");f.className="pill ko";f.style.alignSelf="center";f.textContent="reward = 0";box.appendChild(f);
+    $("#oMsg").innerHTML="<b>Segnale sui propri errori ma scarso:</b> la risposta è sbagliata e tutti i 17 token vengono penalizzati allo stesso modo, anche i 14 corretti. Il modello deve scoprire da solo, con molti tentativi, che il problema era «41».";
+    D.innerHTML="Chi genera: lo student · Feedback: 1 numero per sequenza · Costo: servono molti campioni";return;}
+  $("#oTitle").textContent="Testo generato dallo STUDENT: il teacher valuta ogni token (clicca un token)";
+  stud.forEach(([t,pt],i)=>{const b=document.createElement("button");b.className="tok"+(i===sel?" sel":"");const pen=-Math.log(pt);const a=Math.min(1,pen/3);
+    b.style.background=`color-mix(in srgb, var(--bad) ${Math.round(a*70)}%, var(--surface))`;b.style.borderColor=a>.3?"var(--bad)":"var(--line)";b.textContent=t;b.setAttribute("aria-label",`${t}, probabilità del teacher ${(pt*100).toFixed(0)}%`);
+    b.onclick=()=>{sel=i;drawOPD("opd");};box.appendChild(b);});
+  $("#oMsg").innerHTML="<b>Segnale sui propri errori e denso:</b> la penalità si concentra su «41», l'unico punto in cui il teacher non sarebbe andato. Nota che «381» è penalizzato poco: <i>dato</i> 340 + 41, il teacher avrebbe scritto anche lui 381. Il teacher giudica ogni passo nel contesto dello student.";
+  const [t,pt,alts]=stud[sel];const pen=-Math.log(pt);
+  let h=`<b>Token «${t}»</b> · probabilità del teacher: <span class="mono">${(pt*100).toFixed(0)}%</span> · penalità ≈ −log p = <span class="mono">${pen.toFixed(2)}</span>`;
+  if(alts)h+="<br>Cosa avrebbe scritto il teacher: "+alts.map(([a,v])=>`<span class="mono">${a}</span> ${(v*100).toFixed(0)}%`).join(" · ");
+  else h+="<br>Il teacher è d'accordo: nessuna correzione rilevante.";
+  D.innerHTML=h;}
+const getMode=seg("#omode",drawOPD);
+
+/* ---------- 0. concetti base ---------- */
+const tokIn=$("#tokIn");
+function hashId(s){let h=2166136261;for(const c of s){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return (h>>>0)%50000+100;}
+function drawTok(){const txt=tokIn.value;const out=$("#tokOut");out.innerHTML="";
+  const parts=txt.match(/ ?[A-Za-zÀ-ÿ]+|'| ?\d{1,3}|[^\sA-Za-zÀ-ÿ\d]| +/g)||[];
+  const toks=[];
+  parts.forEach(p=>{const core=p.trim();if(core.length>6&&/[A-Za-zÀ-ÿ]/.test(core)){const lead=p.startsWith(" ")?" ":"";let rest=core,first=true;while(rest.length>0){const n=rest.length<=5?rest.length:4;toks.push((first?lead:"")+rest.slice(0,n));rest=rest.slice(n);first=false;}}else toks.push(p);});
+  toks.forEach((t,i)=>{const s=document.createElement("span");s.className="tok "+(i%2?"":"resp");s.textContent=t.replace(/ /g,"·");const sm=document.createElement("small");sm.textContent=hashId(t);s.appendChild(sm);out.appendChild(s);});
+  const chars=txt.length;$("#tokStats").innerHTML=`<div><small>caratteri</small><strong>${chars}</strong></div><div><small>token</small><strong>${toks.length}</strong></div><div><small>caratteri per token</small><strong>${toks.length?(chars/toks.length).toFixed(1):"–"}</strong></div><div><small>legenda</small><strong style="font-size:.8rem;font-family:var(--sans);font-weight:400">· = spazio, numero = ID</strong></div>`;}
+tokIn.addEventListener("input",drawTok);
+
+const smCands=[["Parigi",5.2],["Lione",2.6],["una",2.2],["la",1.8],["bella",1.2],["Roma",.6]];
+const smT=$("#smT"),smTemp=$("#smTemp");
+function softmax(ls,T){const m=Math.max(...ls);const e=ls.map(l=>Math.exp((l-m)/T));const s=e.reduce((a,b)=>a+b,0);return e.map(x=>x/s);}
+function drawSM(){const k=smT.value/100,T=+smTemp.value;$("#smTo").textContent=smT.value+"%";$("#smTempo").textContent=T.toFixed(1);
+  const logits=smCands.map(c=>c[1]*k);const pT=softmax(logits,T),p1=softmax(logits,1);
+  const box=$("#smBars");box.innerHTML="";
+  smCands.forEach((c,i)=>{const r=document.createElement("div");r.className="barrow";r.innerHTML=`<span>${c[0]} <span class="muted mono" style="font-size:.74rem">logit ${logits[i].toFixed(2)}</span></span><div class="track"><div class="fill" style="width:${(pT[i]*100).toFixed(1)}%;${i===0?"":"background:var(--muted)"}"></div></div><span class="v">${(pT[i]*100).toFixed(1)}%</span>`;box.appendChild(r);});
+  const loss=-Math.log(p1[0]);
+  $("#smStats").innerHTML=`<div><small>p(«Parigi») a T=1</small><strong>${(p1[0]*100).toFixed(1)}%</strong></div><div><small>loss = −log p</small><strong>${loss.toFixed(3)}</strong></div><div><small>perplexity = e<sup>loss</sup></small><strong>${Math.exp(loss).toFixed(2)}</strong></div>`;}
+[smT,smTemp].forEach(i=>i.addEventListener("input",drawSM));
+
+const gdLr=$("#gdLr"),gdN=$("#gdN");
+function drawGD(){const eta=+gdLr.value,N=+gdN.value;$("#gdLro").textContent=eta.toFixed(2);$("#gdNo").textContent=N;
+  const f=w=>.5*(w-1)**2;const curve=[];for(let i=0;i<=200;i++){const w=-4+10*i/200;curve.push([w,f(w)]);}
+  const svg=$("#gdChart");
+  const c=lineChart(svg,{W:560,H:240,xs:[-4,6],series:[{pts:curve,color:css("--muted"),w:1.5}],yMax:13,xTicks:[-4,-2,0,1,2,4,6],yTicks:[0,4,8,12],xFmt:v=>v,yFmt:v=>v,xLabel:"peso w"});
+  let w=-3;const path=[[w,f(w)]];for(let i=0;i<N;i++){w=w-eta*(w-1);path.push([w,f(w)]);}
+  const inb=v=>Math.max(-4,Math.min(6,v));
+  for(let i=1;i<path.length;i++){el("line",{x1:c.X(inb(path[i-1][0])),y1:c.Y(Math.min(13,path[i-1][1])),x2:c.X(inb(path[i][0])),y2:c.Y(Math.min(13,path[i][1])),stroke:css("--accent"),"stroke-width":1.5,opacity:.7},svg);}
+  path.forEach((p,i)=>{if(p[0]<-4||p[0]>6||p[1]>13)return;el("circle",{cx:c.X(p[0]),cy:c.Y(p[1]),r:i===path.length-1?6:4,fill:i===0?css("--warn"):i===path.length-1?css("--ink"):css("--accent"),stroke:css("--surface"),"stroke-width":1.5},svg);});
+  const t=el("text",{x:c.X(1),y:c.Y(0)-8,"text-anchor":"middle"},svg);t.textContent="minimo";
+  const last=path[path.length-1];const m=$("#gdMsg");
+  if(eta>=2)m.innerHTML=`<b>Divergenza:</b> con η ≥ 2 ogni passo supera il minimo e atterra più lontano di prima. Loss finale ${last[1]>999?"≫ 1000":last[1].toFixed(2)}. È ciò che succede a un LLM con learning rate troppo alto: la loss esplode. Il warm-up serve proprio a evitarlo nei primi step, quando la "forma del paesaggio" è ancora sconosciuta.`;
+  else if(eta>1)m.innerHTML=`<b>Oscillazione:</b> il passo salta oltre il minimo e rimbalza da una parte all'altra, pur avvicinandosi. Loss finale ${last[1].toFixed(4)}.`;
+  else if(eta<.15)m.innerHTML=`<b>Troppo lento:</b> passi minuscoli, dopo ${N} step siamo ancora lontani (loss ${last[1].toFixed(3)}). Con un LLM significherebbe settimane di GPU (Graphics Processing Unit) sprecate.`;
+  else m.innerHTML=`<b>Buon learning rate:</b> la loss scende in modo regolare fino a ${last[1].toFixed(4)}. Negli LLM si parte alti (dopo il warm-up) e si riduce η verso la fine, per "assestarsi" nel minimo.`;}
+[gdLr,gdN].forEach(i=>i.addEventListener("input",drawGD));
+
+/* ---------- dataset mix & formats ---------- */
+(function(){const mix=[["Web",55,"--accent"],["Codice",20,"--good"],["Matematica e scienza",10,"--warn"],["Libri e articoli",8,"--muted"],["Multilingue e altro",7,"--line"]];
+  const bar=$("#mixBar"),leg=$("#mixLeg");
+  mix.forEach(([n,v,c])=>{const s=document.createElement("span");s.style.width=v+"%";s.style.background=`var(${c})`;s.title=`${n}: ${v}%`;bar.appendChild(s);
+    const l=document.createElement("span");l.innerHTML=`<i style="background:var(${c})"></i>${n} <b class="mono">${v}%</b>`;leg.appendChild(l);});})();
+const DS={
+ pre:{code:`{"text": "Il gatto domestico (Felis catus) è un mammifero carnivoro della famiglia dei felidi. Vive a stretto contatto con l'uomo da circa 10.000 anni...", "source": "web"}
+{"text": "def fattoriale(n):\\n    return 1 if n <= 1 else n * fattoriale(n - 1)", "source": "code"}
+{"text": "Capitolo primo. Quel ramo del lago di Como, che volge a mezzogiorno...", "source": "books"}`,
+  msg:"<b>Solo testo, nessuna etichetta.</b> Ogni riga è un documento intero. Il training lo trasforma in token e usa ogni token come «risposta attesa» per i token che lo precedono. Un dataset reale ha miliardi di righe come queste, per migliaia di miliardi di token."},
+ sft:{code:`{"messages": [
+  {"role": "system", "content": "Sei un assistente utile."},
+  {"role": "user", "content": "Qual è la capitale della Francia?"},
+  {"role": "assistant", "content": "La capitale della Francia è Parigi."}
+]}`,
+  msg:"<b>Conversazioni già scritte.</b> Vengono formattate con un <i>chat template</i> (token speciali che separano i ruoli) e poi tokenizzate. La loss si calcola solo sui token del ruolo <span class=\"k\">assistant</span>. Tipicamente da decine a centinaia di migliaia di righe."},
+ dpo:{code:`{"prompt": "Spiegami cos'è un'API",
+ "chosen": "Un'API è un contratto che permette a due programmi di parlarsi. Esempio: l'app meteo chiede i dati al server...",
+ "rejected": "API significa Application Programming Interface."}`,
+  msg:"<b>Terne prompt / preferita / scartata.</b> Le preferenze vengono da annotatori umani o da un modello giudice. Nessuna risposta è «giusta» in assoluto: conta solo quale delle due è migliore."},
+ rlvr:{code:`{"prompt": "Quanto fa 17 × 23? Metti il risultato finale in \\\\boxed{}.",
+ "answer": "391"}
+{"prompt": "Scrivi una funzione Python is_palindrome(s).",
+ "tests": ["assert is_palindrome('anna')", "assert not is_palindrome('gatto')"]}`,
+  msg:"<b>Solo il problema e il modo di verificarlo.</b> Il dataset non contiene la soluzione scritta per esteso: la genera il modello durante il training, e un verificatore (confronto con la risposta o esecuzione dei test) assegna il reward."}};
+seg("#dsFmt",v=>{$("#dsCode").textContent=DS[v].code;$("#dsMsg").innerHTML=DS[v].msg;});
+$("#dsCode").textContent=DS.pre.code;$("#dsMsg").innerHTML=DS.pre.msg;
+
+/* ---------- BPE ---------- */
+let bpe={},bpeMode="on";
+const BPE_RE=/ ?[a-zà-ÿ]+| ?\d{1,3}| ?[^\sa-zà-ÿ\d]+|\s+/gi;
+const vis=t=>t.replace(/ /g,"·");
+function bpeChunks(text){if(bpeMode==="off")return text?[vis(text)]:[];return (text.match(BPE_RE)||[]).map(vis);}
+function bpeInit(replay){const n=replay||0;const text=$("#bpeIn").value.trim().toLowerCase().replace(/\s+/g," ");const freq=new Map();bpeChunks(text).forEach(c=>freq.set(c,(freq.get(c)||0)+1));
+  bpe={words:[...freq.entries()].map(([w,f])=>({w,f,sym:[...w]})),merges:[],last:null,skipped:0};bpe.base=new Set(bpe.words.flatMap(o=>o.sym)).size;bpe.baseChars=new Set(bpe.words.flatMap(o=>[...o.w])).size;
+  for(let i=0;i<n;i++)if(!bpeStep())break;bpeDraw();}
+const bpeMaxLen=()=>+$("#bpeMax").value;
+function bpeCounts(){const c=new Map();bpe.words.forEach(o=>{for(let i=0;i<o.sym.length-1;i++){const k=o.sym[i]+"\u0000"+o.sym[i+1];c.set(k,(c.get(k)||0)+o.f);}});return [...c.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const [a,b]=k.split("\u0000");return {a,b,v,long:bpeMaxLen()>0&&(a+b).length>bpeMaxLen()};});}
+function bpeStep(){const c=bpeCounts().filter(x=>x.v>=2&&!x.long);if(!c.length)return false;const {a,b}=c[0];
+  bpe.words.forEach(o=>{const s=[];for(let i=0;i<o.sym.length;i++){if(i<o.sym.length-1&&o.sym[i]===a&&o.sym[i+1]===b){s.push(a+b);i++;}else s.push(o.sym[i]);}o.sym=s;});
+  bpe.merges.push([a,b]);bpe.last=a+b;return true;}
+function bpeApply(text){const t=text.toLowerCase().replace(/\s+/g," ");return bpeChunks(t).map(ch=>{let s=[...ch];
+  bpe.merges.forEach(([a,b])=>{const r=[];for(let i=0;i<s.length;i++){if(i<s.length-1&&s[i]===a&&s[i+1]===b){r.push(a+b);i++;}else r.push(s[i]);}s=r;});return s;});}
+function tokEl(s,cls){const e=document.createElement("span");e.className="tok"+(cls?" "+cls:"");e.textContent=s;return e;}
+function bpeDraw(){const all=bpeCounts();const firstOk=all.findIndex(x=>x.v>=2&&!x.long);const c=all.slice(0,Math.max(6,firstOk+1)).slice(0,8);const box=$("#bpePairs");box.innerHTML="";const mx=c.length?c[0].v:1;
+  if(firstOk<0)box.innerHTML+='<p class="muted" style="font-size:.85rem">Nessun merge possibile: le coppie rimaste compaiono una volta sola'+(bpeMaxLen()?" o supererebbero la lunghezza massima":"")+'.</p>';
+  c.forEach((x,i)=>{const r=document.createElement("div");r.className="barrow";r.innerHTML=`<span class="mono">${x.a} + ${x.b}${i===firstOk?' <span class="pill ok">prossimo</span>':x.long?' <span class="pill ko">troppo lungo</span>':""}</span><div class="track"><div class="fill" style="width:${x.v/mx*100}%;${i===firstOk?"":"background:var(--muted)"}"></div></div><span class="v">${x.v}</span>`;box.appendChild(r);});
+  const m=$("#bpeMerges");m.innerHTML=bpe.merges.length?"":'<span class="muted">Ancora nessuna: premi «Esegui 1 merge».</span>';
+  bpe.merges.forEach(([a,b],i)=>{const s=document.createElement("span");s.className="tok"+(i===bpe.merges.length-1?" resp":"");s.innerHTML=`<small style="margin:0 4px 0 0">${i+1}.</small>${a} + ${b} → ${a+b}`;m.appendChild(s);});
+  $("#bpeWordsTitle").textContent=bpeMode==="on"?"Come appare ora il corpus: blocchi della pre-tokenizzazione, con la loro frequenza":"Come appare ora il corpus: un unico flusso, nessun confine";
+  const W=$("#bpeWords");W.innerHTML="";bpe.words.forEach(o=>{const d=document.createElement("div");d.className="bpe-row";d.innerHTML=`<span class="muted mono">×${o.f}</span>`;const t=document.createElement("div");t.className="tokens";o.sym.forEach(s=>t.appendChild(tokEl(s,s===bpe.last?"resp":"")));d.appendChild(t);W.appendChild(d);});
+  const total=bpe.words.reduce((s,o)=>s+o.sym.length*o.f,0);const longest=bpe.merges.reduce((m,[a,b])=>(a+b).length>m.length?a+b:m,"");
+  $("#bpeStats").innerHTML=`<div><small>merge eseguiti</small><strong>${bpe.merges.length}</strong></div><div><small>vocabolario (speciali + base + merge)</small><strong>1 + ${bpe.baseChars} + ${bpe.merges.length} = ${1+bpe.baseChars+bpe.merges.length}</strong></div><div><small>token per il corpus</small><strong>${total}</strong></div><div><small>token più lungo</small><strong>${longest?"«"+longest+"» ("+longest.length+")":"–"}</strong></div>`;
+  const cross=bpe.merges.map(([a,b])=>a+b).filter(t=>/[a-zà-ÿ\d.,!?]·|[.,!?][a-zà-ÿ·]|[a-zà-ÿ]\d|\d[a-zà-ÿ]/i.test(t));
+  $("#bpeMsg").innerHTML=bpeMode==="off"?(cross.length?`<b>Senza pre-tokenizzazione i merge attraversano parole e punteggiatura:</b> ${cross.slice(0,5).map(t=>`<span class="k">${t}</span>`).join(" ")}. Token così mescolano pezzi di parole diverse, sprecano posti nel vocabolario e rendono più difficile per il modello riconoscere la stessa parola in contesti diversi.`:"<b>Pre-tokenizzazione disattivata.</b> Esegui qualche merge: vedrai nascere token che scavalcano spazi e punteggiatura, come «o·» o «.·il».")
+   :`<b>Pre-tokenizzazione attiva:</b> il testo è diviso in blocchi (parole con lo spazio iniziale, numeri a gruppi di massimo 3 cifre, punteggiatura) e nessun merge li attraversa. Nota come «1500» viene sempre diviso nei blocchi «·150» e «0», qualunque merge si faccia.${bpeMaxLen()?` Con il tetto a ${bpeMaxLen()} caratteri, le coppie che produrrebbero un token più lungo vengono saltate e il merge passa alla coppia successiva.`:" Prova ad aggiungere un tetto alla lunghezza massima."}`;
+  bpeNewDraw();drawVocab();}
+function bpeNewDraw(){const o=$("#bpeNewOut");o.innerHTML="";bpeApply($("#bpeNew").value).forEach((ch,ci)=>{if(ci&&bpeMode==="on"){const sep=document.createElement("span");sep.className="chunk-sep";sep.setAttribute("aria-hidden","true");o.appendChild(sep);}ch.forEach(s=>o.appendChild(tokEl(s,s.length>1?"resp":"")));});}
+$("#bpe1").onclick=()=>{bpeStep();bpeDraw();};
+$("#bpe5").onclick=()=>{for(let i=0;i<5;i++)if(!bpeStep())break;bpeDraw();};
+$("#bpe20").onclick=()=>{for(let i=0;i<20;i++)if(!bpeStep())break;bpeDraw();};
+seg("#bpePre",v=>{bpeMode=v;bpeInit(bpe.merges.length);});
+$("#bpeMax").addEventListener("input",()=>{$("#bpeMaxo").textContent=bpeMaxLen()?bpeMaxLen()+" caratteri":"nessun limite";bpeInit(bpe.merges.length);});
+$("#bpeMaxo").textContent="nessun limite";
+$("#bpeR").onclick=()=>bpeInit(0);$("#bpeIn").addEventListener("change",()=>bpeInit(0));$("#bpeNew").addEventListener("input",bpeNewDraw);
+
+/* ---------- calcolatore ---------- */
+const CALC={demo:[42,6,2],sft:[100e6,4096,64],pre:[15e12,8192,512]};
+function fmtN(n){if(n>=1e12)return (n/1e12).toLocaleString("it-IT",{maximumFractionDigits:1})+" mila miliardi";if(n>=1e9)return (n/1e9).toLocaleString("it-IT",{maximumFractionDigits:1})+" miliardi";if(n>=1e6)return (n/1e6).toLocaleString("it-IT",{maximumFractionDigits:2})+" milioni";return Math.round(n).toLocaleString("it-IT");}
+function calc(){const D=+$("#cD").value||1,L=+$("#cL").value||1,B=+$("#cB").value||1;const seqN=Math.floor(D/L),tpb=B*L,spe=Math.ceil(seqN/B);
+  $("#calcOut").innerHTML=`<div class="eq"><span>${fmtN(D)} token</span><span class="arr">÷ L = ${fmtN(L)}</span><strong>${fmtN(seqN)} sequenze</strong></div>
+  <div class="eq"><span>${fmtN(seqN)} esempi-sequenza × L</span><span class="arr">=</span><strong>${fmtN(seqN*L)} previsioni di token</strong></div>
+  <div class="eq"><span>B = ${fmtN(B)} sequenze × L</span><span class="arr">=</span><strong>${fmtN(tpb)} token per batch</strong></div>
+  <div class="eq"><span>${fmtN(seqN)} sequenze ÷ B</span><span class="arr">=</span><strong>${fmtN(spe)} step per epoch</strong></div>
+  <p class="note" style="margin-top:6px">${spe===1?"Un solo step: ogni epoch aggiorna i pesi una volta.":`Ogni epoch aggiorna i pesi ${fmtN(spe)} volte, una per batch.`}${D>=1e12?" A questa scala si fa circa un'epoch sola: il training dura settimane su migliaia di GPU.":""}</p>`;}
+seg("#calcPre",v=>{const [D,L,B]=CALC[v];$("#cD").value=D;$("#cL").value=L;$("#cB").value=B;calc();});
+["#cD","#cL","#cB"].forEach(s=>$(s).addEventListener("input",calc));
+$("#cD").value=42;$("#cL").value=6;$("#cB").value=2;
+
+/* ---------- training dal vivo ---------- */
+const LV_DOCS=["il gatto dorme sul divano","il cane dorme nel giardino","il gatto mangia il pesce","il cane mangia la carne","la gatta dorme sul letto","la gatta mangia il pesce","il cane dorme sul letto","il gatto dorme nel giardino"];
+const LV_VOCAB=["<eos>","il","la","gatto","gatta","cane","dorme","mangia","sul","nel","divano","giardino","letto","pesce","carne"];
+const LV_V=LV_VOCAB.length,LV_L=6;
+const lvId=Object.fromEntries(LV_VOCAB.map((t,i)=>[t,i]));
+const lvDocIds=LV_DOCS.map(d=>[...d.split(" ").map(w=>lvId[w]),0]);
+const lvStream=[],lvStreamDoc=[];lvDocIds.forEach((d,i)=>d.forEach(t=>{lvStream.push(t);lvStreamDoc.push(i);}));
+const lvSeqs=[];for(let s=0;s+LV_L<lvStream.length;s+=LV_L)lvSeqs.push({start:s,ids:lvStream.slice(s,s+LV_L+1)});
+const LV_PH=["Dataset","Tokenizzazione","Sequenze","Batch","Forward pass","Loss","Backward pass","Aggiornamento"];
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let lv={};
+const T=i=>LV_VOCAB[i];
+const esc=s=>s.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function lvReset(){lv={W:Array.from({length:LV_V},()=>new Float64Array(LV_V)),B:+$("#lvB").value,step:0,epoch:1,order:[],bi:0,hist:[],phase:0,batch:null,fw:null,grad:null,applied:false,after:null,tok:0,selSeq:0,selRow:0,newEpoch:false,maxPhase:0};lvShuffle();lvLoad();lvRender();}
+function lvShuffle(){const r=rng(11+lv.epoch*7);const o=lvSeqs.map((_,i)=>i);for(let i=o.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[o[i],o[j]]=[o[j],o[i]];}lv.order=o;lv.bi=0;}
+const lvNB=()=>Math.ceil(lvSeqs.length/lv.B);
+function lvProbs(a){const w=lv.W[a];let m=-Infinity;for(const x of w)m=Math.max(m,x);const e=Array.from(w,x=>Math.exp(x-m));const s=e.reduce((x,y)=>x+y,0);return e.map(x=>x/s);}
+function lvForward(batch){const rows=[];batch.forEach(si=>{const ids=lvSeqs[si].ids;for(let k=0;k<LV_L;k++){const a=ids[k],b=ids[k+1],p=lvProbs(a);let top=0;p.forEach((v,i)=>{if(v>p[top])top=i;});rows.push({si,k,a,b,p,pt:p[b],nll:-Math.log(p[b]),top});}});return {rows,loss:rows.reduce((s,r)=>s+r.nll,0)/rows.length};}
+function lvBackward(fw){const G=Array.from({length:LV_V},()=>new Float64Array(LV_V));const N=fw.rows.length;fw.rows.forEach(r=>{for(let j=0;j<LV_V;j++)G[r.a][j]+=(r.p[j]-(j===r.b?1:0))/N;});return G;}
+function lvLoad(){lv.batch=lv.order.slice(lv.bi*lv.B,(lv.bi+1)*lv.B);lv.fw=lvForward(lv.batch);lv.grad=null;lv.applied=false;lv.after=null;lv.selRow=0;}
+function lvApply(){if(lv.applied)return;if(!lv.grad)lv.grad=lvBackward(lv.fw);const eta=+$("#lvLr").value;for(let i=0;i<LV_V;i++)for(let j=0;j<LV_V;j++)lv.W[i][j]-=eta*lv.grad[i][j];lv.applied=true;lv.step++;lv.tok+=lv.fw.rows.length;lv.hist.push([lv.step,lv.fw.loss]);lv.after=lvForward(lv.batch).loss;}
+function lvNextBatch(){lv.bi++;lv.newEpoch=false;if(lv.bi>=lvNB()){lv.epoch++;lvShuffle();lv.newEpoch=true;}lvLoad();}
+function lvTrain(n){for(let i=0;i<n;i++){if(lv.applied)lvNextBatch();lvApply();}lv.phase=7;lv.maxPhase=7;lvRender();}
+
+function lvStatus(){const last=lv.hist.length?lv.hist[lv.hist.length-1][1]:null;
+  $("#lvStatus").innerHTML=`<div><small>epoch</small><strong>${lv.epoch}</strong></div><div><small>batch in questa epoch</small><strong>${lv.bi+1} / ${lvNB()}</strong></div><div><small>step completati</small><strong>${lv.step}</strong></div><div><small>token visti</small><strong>${lv.tok}</strong></div><div><small>loss dell'ultimo step</small><strong>${last==null?"–":last.toFixed(3)}</strong></div>`;}
+function lvStepperDraw(){const o=$("#lvStepper");o.innerHTML="";LV_PH.forEach((n,i)=>{const li=document.createElement("li");const b=document.createElement("button");b.innerHTML=`<span>${i+1}</span>${n}`;b.className=(i===lv.phase?"on ":"")+(i<=lv.maxPhase?"done":"");b.setAttribute("aria-current",i===lv.phase?"step":"false");
+  b.onclick=()=>{if(i===7&&!lv.applied){lvApply();}lv.phase=i;lv.maxPhase=Math.max(lv.maxPhase,i);lvRender();};li.appendChild(b);o.appendChild(li);});}
+function chip(id,extra=""){return `<span class="tok ${extra}">${esc(T(id))}<small>${id}</small></span>`;}
+function lvPanel(){const P=$("#lvPanel");const ph=lv.phase;let h=`<h4>${ph+1} · ${LV_PH[ph]}</h4>`;
+  if(ph===0){h+=`<p>Il nostro dataset di pre-training: 8 «documenti» in formato JSONL. Come nei dataset veri, è solo testo, senza etichette né risposte.</p><pre class="sample">${LV_DOCS.map(d=>`{"text": "${d}"}`).join("\n")}</pre><p class="note">Un dataset reale ha miliardi di documenti lunghi pagine intere. Qui sono 8 frasi di 5 parole, così si può seguire ogni numero.</p>`;}
+  else if(ph===1){h+=`<p>Il tokenizzatore trasforma ogni documento in una lista di ID. Alla fine di ogni documento aggiunge il token speciale <span class="k">&lt;eos&gt;</span> (end of sequence, fine sequenza), che separa un documento dal successivo.</p><div class="diag-title">Vocabolario: 15 token</div><div class="tokens">${LV_VOCAB.map((_,i)=>chip(i)).join("")}</div><div class="diag-title" style="margin-top:10px">Documenti tokenizzati</div><div class="stack" style="gap:6px">${lvDocIds.map((d,i)=>`<div class="bpe-row"><span class="muted mono">doc ${i+1}</span><div class="tokens">${d.map(t=>chip(t)).join("")}</div></div>`).join("")}</div><p class="note">Per leggibilità qui una parola = un token. Un LLM userebbe un vocabolario BPE come quello costruito sopra.</p>`;}
+  else if(ph===2){const used=lvSeqs.length*LV_L+1;h+=`<p>Tutti i documenti vengono <b>concatenati</b> in un unico flusso di ${lvStream.length} token, poi tagliato in <b>sequenze</b> di lunghezza fissa (context length L = ${LV_L}). Da ogni sequenza si ricavano ${LV_L} esempi spostando di un token: l'input è il token in posizione k, l'obiettivo (target) quello in posizione k+1. Le sequenze attraversano i confini dei documenti: è normale, <span class="k">&lt;eos&gt;</span> insegna al modello dove finisce un testo.</p>
+  <div class="stack" style="gap:6px">${lvSeqs.map((s,i)=>`<button class="seqrow${i===lv.selSeq?" sel":""}" data-seq="${i}"><span class="mono muted">S${i+1}</span><span class="tokens">${s.ids.map((t,k)=>chip(t,(k===LV_L?"ghost ":"")+(lvStreamDoc[s.start+k]%2?"alt":""))).join("")}</span></button>`).join("")}</div>
+  <p class="note">L'ultimo token di ogni riga (tratteggiato) serve solo come target dell'ultima posizione ed è anche il primo della sequenza successiva. Gli ultimi ${lvStream.length-used} token del flusso non bastano per una sequenza intera e vengono scartati (in alternativa si usa il padding, cioè riempimento).</p>
+  <div class="diag-title">Esempi contenuti nella sequenza S${lv.selSeq+1} (clicca un'altra riga per cambiarla)</div>
+  <div class="scroll-x"><table class="gtable"><tr><th>posizione</th><th>contesto visto da un transformer</th><th>input del nostro modello</th><th>target</th></tr>${lvSeqs[lv.selSeq].ids.slice(0,LV_L).map((t,k)=>`<tr><td class="mono">${k+1}</td><td class="mono">${lvSeqs[lv.selSeq].ids.slice(0,k+1).map(x=>esc(T(x))).join(" ")}</td><td>${chip(t)}</td><td>${chip(lvSeqs[lv.selSeq].ids[k+1],"resp")}</td></tr>`).join("")}</table></div>
+  <p class="callout">In totale: ${lvSeqs.length} sequenze × ${LV_L} posizioni = <b>${lvSeqs.length*LV_L} esempi</b> di previsione, ricavati da testo senza alcuna etichetta scritta a mano.</p>`;}
+  else if(ph===3){const nb=lvNB();h+=`<p>All'inizio di ogni epoch le ${lvSeqs.length} sequenze vengono <b>mescolate</b> e raggruppate in batch da B = ${lv.B}. Un batch di ${lv.B} sequenze × ${LV_L} token = <b>${lv.B*LV_L} token</b>: «batch di sequenze» e «batch di token» sono la stessa cosa misurata in due unità.</p>
+  <div class="diag-title">Epoch ${lv.epoch}: ordine mescolato, ${nb} batch → ${nb} step</div>
+  <div class="batches">${Array.from({length:nb},(_,b)=>`<div class="bgrp${b===lv.bi?" on":""}${b<lv.bi?" past":""}"><small>batch ${b+1}${b===lv.bi?" · questo":b<lv.bi?" · fatto":""}</small><span>${lv.order.slice(b*lv.B,(b+1)*lv.B).map(s=>"S"+(s+1)).join(" ")}</span></div>`).join("")}</div>
+  ${lv.newEpoch?`<p class="callout"><b>Nuova epoch.</b> Tutti i batch della epoch precedente sono stati usati: il modello ha visto ogni sequenza una volta. L'ordine è stato rimescolato.</p>`:""}
+  ${lvSeqs.length%lv.B?`<p class="note">${lvSeqs.length} non è divisibile per ${lv.B}: l'ultimo batch è più piccolo. Nei training reali spesso si scarta (drop_last).</p>`:""}
+  <div class="diag-title">Contenuto del batch ${lv.bi+1}</div><div class="stack" style="gap:6px">${lv.batch.map(s=>`<div class="bpe-row"><span class="mono muted">S${s+1}</span><div class="tokens">${lvSeqs[s].ids.map((t,k)=>chip(t,k===LV_L?"ghost":"")).join("")}</div></div>`).join("")}</div>`;}
+  else if(ph===4){h+=`<p>Il batch attraversa il modello. Per ogni input, il modello prende la riga dei pesi di quel token, applica la softmax e ottiene una probabilità per ciascuno dei 15 token possibili. Qui guardiamo la probabilità assegnata al <b>target corretto</b>.${lv.step===0?" Con tutti i pesi a 0 le probabilità sono uniformi: 1/15 ≈ 6,7% per ogni token.":""}</p>
+  <div class="scroll-x fwbox"><table class="gtable"><tr><th>seq</th><th>input</th><th>target</th><th>p(target)</th><th></th><th>previsione migliore</th></tr>${lv.fw.rows.map(r=>`<tr><td class="mono">S${r.si+1}·${r.k+1}</td><td>${chip(r.a)}</td><td>${chip(r.b,"resp")}</td><td class="mono">${(r.pt*100).toFixed(1)}%</td><td style="width:28%"><div class="track"><div class="fill" style="width:${r.pt*100}%"></div></div></td><td>${chip(r.top,r.top===r.b?"okc":"")}</td></tr>`).join("")}</table></div>`;}
+  else if(ph===5){const mx=Math.max(...lv.fw.rows.map(r=>r.nll),2.8);h+=`<p>Per ogni esempio la loss è −log p(target). La loss del batch è la <b>media</b> dei ${lv.fw.rows.length} valori: un solo numero che riassume quanto il modello ha sbagliato su questo batch.</p>
+  <div class="fwbox bars">${lv.fw.rows.map(r=>`<div class="barrow"><span class="mono">${esc(T(r.a))} → ${esc(T(r.b))}</span><div class="track"><div class="fill" style="width:${r.nll/mx*100}%;background:var(--bad)"></div></div><span class="v">${r.nll.toFixed(2)}</span></div>`).join("")}</div>
+  <div class="formula">loss = (1/${lv.fw.rows.length}) · Σ −log p(target) = <b>${lv.fw.loss.toFixed(3)}</b></div>
+  <p class="note">Riferimento: log 15 = 2,708 è la loss di chi tira a indovinare. Gli esempi con barra lunga sono quelli in cui il modello sbaglia di più, e peseranno di più nel gradiente. Alcune transizioni sono ambigue per natura (dopo «il» può venire «gatto», «cane» o «pesce»), quindi la loss non potrà mai arrivare a 0.</p>`;}
+  else if(ph===6){if(!lv.grad)lv.grad=lvBackward(lv.fw);const r=lv.fw.rows[lv.selRow];const g=r.p.map((v,j)=>v-(j===r.b?1:0));
+  h+=`<p>Il backward pass calcola il <b>gradiente</b>: per ogni peso, di quanto e in che verso cambierebbe la loss se lo aumentassimo. Per softmax + cross-entropy la formula è semplice: gradiente del logit j = p(j) − (1 se j è il target, altrimenti 0).</p>
+  <div class="diag-title">Esempio ${r.si+1}·${r.k+1}: input «${esc(T(r.a))}», target «${esc(T(r.b))}» (scegli un altro esempio)</div>
+  <select id="lvRowSel" class="txt" aria-label="Esempio">${lv.fw.rows.map((x,i)=>`<option value="${i}"${i===lv.selRow?" selected":""}>S${x.si+1}·${x.k+1}: ${esc(T(x.a))} → ${esc(T(x.b))}</option>`).join("")}</select>
+  <div class="scroll-x"><table class="gtable"><tr><th>token successivo</th><th>p</th><th>obiettivo</th><th>gradiente p − y</th><th>il peso…</th></tr>${g.map((v,j)=>({v,j})).sort((x,y)=>Math.abs(y.v)-Math.abs(x.v)).slice(0,6).map(({v,j})=>`<tr><td>${chip(j,j===r.b?"resp":"")}</td><td class="mono">${r.p[j].toFixed(3)}</td><td class="mono">${j===r.b?1:0}</td><td class="mono">${v>=0?"+":""}${v.toFixed(3)}</td><td>${v<0?'<span class="pill ok">salirà</span>':'<span class="pill ko">scenderà</span>'}</td></tr>`).join("")}</table></div>
+  <p class="note">Il target ha gradiente negativo (quindi il suo peso salirà), tutti gli altri token positivo (i loro pesi scenderanno, in proporzione a quanta probabilità avevano rubato). Il gradiente del batch è la media su tutti gli esempi. Solo le righe dei token che compaiono come input nel batch ricevono un gradiente: le altre restano ferme in questo step.</p>
+  <div class="diag-title">Gradiente medio del batch sui 225 pesi</div><div class="scroll-x"><svg id="lvGrad" class="chart heat" viewBox="0 0 400 400" style="max-width:440px" role="img" aria-label="Gradiente"></svg></div>`;}
+  else if(ph===7){const eta=+$("#lvLr").value;h+=`<p>L'ottimizzatore sposta ogni peso nel verso opposto al gradiente, di un passo proporzionale al learning rate. Qui usiamo la forma più semplice, SGD (Stochastic Gradient Descent, discesa stocastica del gradiente); gli LLM usano AdamW, che adatta il passo a ogni peso.</p>
+  <div class="formula">W ← W − η · gradiente        η = ${eta}</div>
+  <div class="readout"><div><small>loss del batch prima</small><strong>${lv.fw.loss.toFixed(3)}</strong></div><div><small>loss dello stesso batch dopo</small><strong style="color:var(--good)">${lv.after.toFixed(3)}</strong></div><div><small>step</small><strong>${lv.step}</strong></div><div><small>token visti finora</small><strong>${lv.tok}</strong></div></div>
+  <p class="callout"><b>Step ${lv.step} completato.</b> Un giro completo: forward, loss, backward, aggiornamento. La loss sullo stesso batch è scesa, ma conta quella sui batch <i>successivi</i>: il modello deve generalizzare, non solo ricordare questo batch. ${lv.bi+1>=lvNB()?"Questo era l'ultimo batch dell'epoch: il prossimo step aprirà l'epoch "+(lv.epoch+1)+" con un nuovo mescolamento.":`Il prossimo step userà il batch ${lv.bi+2} di ${lvNB()}.`}</p>
+  <p class="note">La matrice dei pesi qui sotto è già aggiornata. Premi «Prossimo step» per tornare al passo 4 con il batch successivo, oppure usa «Allena 1 epoch» per far girare tutti i batch in automatico.</p>`;}
+  P.innerHTML=h;
+  P.querySelectorAll("[data-seq]").forEach(b=>b.onclick=()=>{lv.selSeq=+b.dataset.seq;lvRender();});
+  const rs=$("#lvRowSel");if(rs)rs.onchange=()=>{lv.selRow=+rs.value;lvRender();};
+  if(ph===6)lvHeat($("#lvGrad"),lv.grad,true);}
+function lvHeat(svg,M,isGrad){clear(svg);const L=66,Tp=66,c=22;const W=L+c*LV_V+34;svg.setAttribute("viewBox",`0 0 ${W} ${Tp+c*LV_V+4}`);
+  let mx=0;M.forEach(r=>r.forEach(v=>mx=Math.max(mx,Math.abs(v))));mx=mx||1;
+  const acc=css("--accent"),bad=css("--bad"),bg=css("--surface-2");
+  LV_VOCAB.forEach((t,i)=>{const a=el("text",{x:L-5,y:Tp+c*i+c/2+4,"text-anchor":"end"},svg);a.textContent=t;
+    const b=el("text",{x:0,y:0,"text-anchor":"start",transform:`translate(${L+c*i+c/2+4},${Tp-5}) rotate(-60)`},svg);b.textContent=t;});
+  for(let i=0;i<LV_V;i++)for(let j=0;j<LV_V;j++){const v=M[i][j];const col=isGrad?(v<0?acc:bad):(v>=0?acc:bad);const r=el("rect",{x:L+c*j+1,y:Tp+c*i+1,width:c-2,height:c-2,rx:2,fill:Math.abs(v)<1e-9?bg:col,"fill-opacity":Math.abs(v)<1e-9?1:Math.max(.08,Math.abs(v)/mx)},svg);
+    const tt=el("title",{},r);tt.textContent=`${T(i)} → ${T(j)}: ${isGrad?"gradiente ":"peso "}${v.toFixed(3)}`;}
+  const cap=el("text",{x:2,y:12},svg);cap.textContent=isGrad?"verde = il peso salirà":"riga → colonna";}
+function lvLossChart(){const h=lv.hist;const xmax=Math.max(10,h.length);const c=lineChart($("#lvLoss"),{xs:[0,xmax],series:h.length?[{pts:h,color:css("--accent"),w:1.6}]:[],yMax:3,xTicks:[0,Math.round(xmax/2),xmax],yTicks:[0,1,2,3],xFmt:v=>v,yFmt:v=>v,xLabel:"step"});
+  el("line",{x1:c.L,x2:c.L+c.pw,y1:c.Y(Math.log(15)),y2:c.Y(Math.log(15)),stroke:css("--muted"),"stroke-dasharray":"4 4"},$("#lvLoss"));
+  const nb=lvNB();for(let e=nb;e<=xmax;e+=nb){if(xmax/nb>30)break;el("line",{x1:c.X(e),x2:c.X(e),y1:c.T,y2:c.T+c.ph,stroke:css("--grid")},$("#lvLoss"));}}
+function lvTryDraw(){const a=+$("#lvTry").value;const p=lvProbs(a);const top=p.map((v,i)=>[v,i]).sort((x,y)=>y[0]-x[0]).slice(0,5);
+  $("#lvTryBars").innerHTML=top.map(([v,i])=>`<div class="barrow"><span>«${esc(T(a))}» → «${esc(T(i))}»</span><div class="track"><div class="fill" style="width:${v*100}%"></div></div><span class="v">${(v*100).toFixed(0)}%</span></div>`).join("");}
+function lvRender(){lvStatus();lvStepperDraw();lvPanel();lvHeat($("#lvHeat"),lv.W,false);lvLossChart();lvTryDraw();
+  $("#lvPrev").disabled=lv.phase===0;$("#lvNext").textContent=lv.phase===6?"Applica l'aggiornamento →":lv.phase===7?"Prossimo step →":"Avanti →";
+  $("#lvBo").textContent=$("#lvB").value+" ("+(+$("#lvB").value*LV_L)+" token)";$("#lvLro").textContent=$("#lvLr").value;}
+$("#lvNext").onclick=()=>{if(lv.phase<6)lv.phase++;else if(lv.phase===6){lvApply();lv.phase=7;}else{lvNextBatch();lv.phase=3;}lv.maxPhase=Math.max(lv.maxPhase,lv.phase);lvRender();};
+$("#lvPrev").onclick=()=>{if(lv.phase>0)lv.phase--;lvRender();};
+$("#lvEp").onclick=()=>lvTrain(lvNB());$("#lvEp20").onclick=()=>lvTrain(lvNB()*20);$("#lvRs").onclick=lvReset;
+$("#lvB").addEventListener("input",lvReset);$("#lvLr").addEventListener("input",()=>{$("#lvLro").textContent=$("#lvLr").value;});
+$("#lvTry").innerHTML=LV_VOCAB.map((t,i)=>`<option value="${i}"${i===1?" selected":""}>${esc(t)}</option>`).join("");$("#lvTry").onchange=lvTryDraw;
+$("#lvGen").onclick=()=>{let a=1;const out=["il"];for(let i=0;i<8;i++){const p=lvProbs(a);let r=Math.random(),n=0;for(;n<LV_V-1;n++){r-=p[n];if(r<=0)break;}if(n===0){out.push("<eos>");break;}out.push(T(n));a=n;}$("#lvGenOut").textContent=out.join(" ");};
+/* ---------- embedding ---------- */
+const EMB_V=[["<eos>",0],["il",1],["·gatto",2],["·cane",3],["·dorme",4],["·mangia",5],["·sul",6],["·divano",7]];
+const EMB_SENT=[1,2,4,6,7];
+function embRow(i){const r=rng(97+i*13);return Array.from({length:6},()=>((r()*2-1)*.5));}
+let embSel=2;
+function drawEmb(){const s=$("#embSent");s.innerHTML="";EMB_SENT.forEach(id=>{const b=document.createElement("button");b.className="tok"+(id===embSel?" sel resp":"");b.innerHTML=`${esc(EMB_V[id][0])}<small>${id}</small>`;b.onclick=()=>{embSel=id;drawEmb();};s.appendChild(b);});
+  let h=`<tr><th>ID</th><th>token</th>${[1,2,3,4,5,6].map(k=>`<th>dim ${k}</th>`).join("")}<th>…</th><th>dim 4.096</th></tr>`;
+  EMB_V.forEach(([t,i])=>{const r=embRow(i);const on=i===embSel;const used=EMB_SENT.includes(i);h+=`<tr class="${on?"on":""}${used?"":" unused"}"><td class="mono">${i}</td><td class="mono">${esc(t)}</td>${r.map(v=>`<td class="mono">${v>=0?"+":""}${v.toFixed(3)}</td>`).join("")}<td class="mono">…</td><td class="mono">${(embRow(i+50)[0]).toFixed(3)}</td></tr>`;});
+  h+=`<tr class="unused"><td class="mono">…</td><td class="mono" colspan="9">altre righe, fino a V = 50.000</td></tr>`;
+  $("#embTable").innerHTML=h;
+  $("#embNote").innerHTML=`Il token «${esc(EMB_V[embSel][0])}» ha ID ${embSel}, quindi il suo embedding è la <b>riga ${embSel}</b> della matrice: il modello la legge e la passa agli strati successivi. Le righe in grigio appartengono a token che non compaiono in questa frase: in questo step non ricevono gradiente. I valori mostrati sono casuali, come all'inizio del training.`;}
+const EMB_PTS=[["gatto","a",[.25,.72]],["gatta","a",[.3,.8]],["cane","a",[.18,.64]],["pesce","a",[.36,.62]],["dorme","v",[.72,.78]],["mangia","v",[.8,.7]],["corre","v",[.7,.66]],["lunedì","g",[.62,.24]],["martedì","g",[.7,.18]],["domenica","g",[.76,.28]],["sul","p",[.2,.22]],["nel","p",[.27,.16]]];
+const EMB_COL={a:"--accent",v:"--warn",g:"--bad",p:"--muted"};
+function drawEmbChart(){const t=+$("#embT").value/100;$("#embTo").textContent=$("#embT").value+"%";const svg=$("#embChart");clear(svg);
+  const W=560,H=300,pad=30;const X=v=>pad+v*(W-2*pad),Y=v=>H-pad-v*(H-2*pad);
+  el("rect",{x:pad,y:pad,width:W-2*pad,height:H-2*pad,fill:"none",stroke:css("--grid")},svg);
+  const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  EMB_PTS.forEach(([n,g,[tx,ty]],i)=>{const r=rng(301+i*7);const rx=.08+r()*.84,ry=.08+r()*.84;const x=rx+(tx-rx)*e,y=ry+(ty-ry)*e;
+    el("circle",{cx:X(x),cy:Y(y),r:6,fill:css(EMB_COL[g]),stroke:css("--surface"),"stroke-width":1.5},svg);
+    const tt=el("text",{x:X(x)+9,y:Y(y)+4},svg);tt.textContent=n;tt.style.fill=css("--ink");tt.style.fontSize="12px";});
+  const lg=[["animali","a"],["verbi","v"],["giorni","g"],["preposizioni","p"]];lg.forEach(([n,g],i)=>{el("circle",{cx:pad+8+i*110,cy:14,r:5,fill:css(EMB_COL[g])},svg);const tt=el("text",{x:pad+18+i*110,y:18},svg);tt.textContent=n;});
+  $("#embMsg").innerHTML=t<.15?"<b>Inizio del training:</b> le righe di E sono casuali, quindi i token sono sparsi a caso. «gatto» è vicino a «martedì» tanto quanto a «cane».":t<.8?"<b>Durante il training:</b> ogni volta che «gatto» e «cane» compaiono prima delle stesse parole («dorme», «mangia»), i loro vettori ricevono gradienti simili e si avvicinano.":"<b>Dopo il training:</b> i token si raggruppano per ruolo e significato. Nessuno ha etichettato le categorie: la struttura emerge solo dal prevedere il token successivo. (Proiezione 2D illustrativa: i vettori veri hanno migliaia di dimensioni.)";}
+$("#embT").addEventListener("input",drawEmbChart);
+/* ---------- algebra, vocab, strati ---------- */
+function bpeVocabList(){const base=[...new Set(bpe.words.flatMap(o=>[...o.w]))].sort();return ["<eos>",...base,...bpe.merges.map(([a,b])=>a+b)];}
+function drawVocab(){const box=$("#bpeVocab");if(!box)return;const v=bpeVocabList();const nb=v.length-bpe.merges.length;$("#bpeVocN").textContent=v.length;
+  box.innerHTML=v.map((t,i)=>`<span class="tok ${i===0?"spec":i<nb?"base":i===v.length-1&&bpe.merges.length?"resp":"merged"}">${esc(t)}<small>${i}</small></span>`).join("");drawEInit();}
+let eiSeed=1;
+function drawEInit(){const t=$("#eiTable");if(!t||!bpe.words)return;const v=bpeVocabList();
+  let h="<tr><th>ID</th><th>token</th><th>dim 1</th><th>dim 2</th><th>dim 3</th><th>dim 4</th></tr>";
+  v.forEach((tok,i)=>{const r=rng(eiSeed*1000+i*17);const g=()=>{const u=Math.max(1e-9,r()),w=r();return 0.02*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*w);};h+=`<tr><td class="mono">${i}</td><td class="mono">${esc(tok)}</td>${[0,1,2,3].map(()=>{const x=g();return `<td class="mono">${x>=0?"+":""}${x.toFixed(4)}</td>`;}).join("")}</tr>`;});
+  t.innerHTML=h;$("#eiInfo").textContent=`E ha ${v.length} righe × 4 colonne = ${v.length*4} pesi, seme ${eiSeed}`;}
+$("#eiSeed").onclick=()=>{eiSeed++;drawEInit();};
+/* dot product */
+function drawDP(){const aA=+$("#dpA").value*Math.PI/180,aB=+$("#dpB").value*Math.PI/180,lB=+$("#dpL").value,lA=1.2;
+  $("#dpAo").textContent=$("#dpA").value+"°";$("#dpBo").textContent=$("#dpB").value+"°";$("#dpLo").textContent=lB.toFixed(2);
+  const a=[lA*Math.cos(aA),lA*Math.sin(aA)],b=[lB*Math.cos(aB),lB*Math.sin(aB)];const dot=a[0]*b[0]+a[1]*b[1],cos=dot/(lA*lB);
+  const svg=$("#dpChart");clear(svg);const C=150,S=95;
+  [-1,0,1].forEach(k=>{el("line",{x1:C+k*S,x2:C+k*S,y1:10,y2:290,class:"gl"},svg);el("line",{y1:C+k*S,y2:C+k*S,x1:10,x2:290,class:"gl"},svg);});
+  el("line",{x1:10,x2:290,y1:C,y2:C,class:"ax"},svg);el("line",{y1:10,y2:290,x1:C,x2:C,class:"ax"},svg);
+  [[a,"--accent","a"],[b,"--warn","b"]].forEach(([v,c,n])=>{const x=C+v[0]*S,y=C-v[1]*S;el("line",{x1:C,y1:C,x2:x,y2:y,stroke:css(c),"stroke-width":3,"stroke-linecap":"round"},svg);el("circle",{cx:x,cy:y,r:5,fill:css(c)},svg);const t=el("text",{x:x+(v[0]>=0?8:-18),y:y+(v[1]>=0?-6:16)},svg);t.textContent=n;t.style.fill=css(c);t.style.fontSize="14px";t.style.fontWeight="600";});
+  $("#dpF").innerHTML=`a = [${a[0].toFixed(2)} ; ${a[1].toFixed(2)}]   b = [${b[0].toFixed(2)} ; ${b[1].toFixed(2)}]<br>a · b = ${a[0].toFixed(2)}×${b[0].toFixed(2)} + ${a[1].toFixed(2)}×${b[1].toFixed(2)} = <b>${dot.toFixed(2)}</b>   coseno = <b>${cos.toFixed(2)}</b>`;
+  $("#dpMsg").innerHTML=cos>.8?"<b>Molto simili:</b> puntano quasi nella stessa direzione. Due embedding così rappresentano token usati in modo simile.":cos>.2?"<b>Abbastanza simili:</b> direzioni vicine, prodotto scalare positivo.":cos>-.2?"<b>Non correlati:</b> quasi perpendicolari, il prodotto scalare è vicino a 0.":"<b>Opposti:</b> il prodotto scalare è negativo.";}
+["#dpA","#dpB","#dpL"].forEach(s=>$(s).addEventListener("input",drawDP));
+/* one-hot */
+const OH_T=["<eos>","il","·gatto","·cane","·dorme"],OH_E=[[0.1,-0.4,0.3],[0.7,0.2,-0.1],[-0.3,0.9,0.5],[-0.2,0.8,0.6],[0.4,-0.6,0.2]];let ohId=2;
+(function(){const g=$("#ohSel");g.innerHTML=OH_T.map((t,i)=>`<button aria-pressed="${i===ohId}" data-v="${i}">${esc(t)} (ID ${i})</button>`).join("");})();
+seg("#ohSel",v=>{ohId=+v;drawOH();});
+function drawOH(){const f=v=>(v>=0?"+":"")+v.toFixed(1);
+  const x=`<table class="mt"><caption>vettore one-hot x (1 × 5)</caption><tr>${OH_T.map(t=>`<th>${esc(t)}</th>`).join("")}</tr><tr>${OH_T.map((_,i)=>`<td class="${i===ohId?"hot":""}">${i===ohId?1:0}</td>`).join("")}</tr></table>`;
+  const E=`<table class="mt"><caption>matrice E (5 × 3)</caption><tr><th></th><th>d1</th><th>d2</th><th>d3</th></tr>${OH_E.map((r,i)=>`<tr class="${i===ohId?"hot":"dim"}"><th>${esc(OH_T[i])}</th>${r.map(v=>`<td>${f(v)}</td>`).join("")}</tr>`).join("")}</table>`;
+  const R=`<table class="mt"><caption>risultato (1 × 3)</caption><tr><th>d1</th><th>d2</th><th>d3</th></tr><tr class="hot">${OH_E[ohId].map(v=>`<td>${f(v)}</td>`).join("")}</tr></table>`;
+  $("#ohOut").innerHTML=x+'<span class="op">×</span>'+E+'<span class="op">=</span>'+R;
+  $("#ohF").innerHTML=`d1 = ${OH_E.map((r,i)=>`${i===ohId?1:0}×(${f(r[0])})`).join(" + ")} = <b>${f(OH_E[ohId][0])}</b>`;}
+/* attention */
+const ATT_T=["il","gatto","nero","ieri","dormiva","sul","divano"];
+const ATT_W=[[1],[.35,.65],[.1,.6,.3],[.15,.1,.05,.7],[.05,.5,.1,.25,.1],[.05,.1,.02,.03,.5,.3],[.03,.1,.02,.05,.25,.45,.1]];
+const ATT_M=["«il» è il primo token: può guardare solo sé stesso.","«gatto» guarda l'articolo «il»: impara che è un nome maschile singolare.","«nero» guarda soprattutto «gatto»: un aggettivo deve sapere a quale nome si riferisce.","«ieri» ha poco da raccogliere dai token precedenti e guarda soprattutto sé stesso.","«dormiva» guarda soprattutto «gatto» (chi dorme?) e «ieri» (quando? da qui il tempo passato).","«sul» guarda il verbo «dormiva»: la preposizione dipende dall'azione.","«divano» guarda «sul» e «dormiva»: è il posto in cui si dorme. Il suo nuovo vettore contiene un po' di tutto questo contesto."];
+let attSel=4;
+function drawAtt(){const s=$("#attSent");s.innerHTML="";ATT_T.forEach((t,i)=>{const b=document.createElement("button");b.className="tok"+(i===attSel?" sel resp":"");b.textContent=t;b.onclick=()=>{attSel=i;drawAtt();};s.appendChild(b);});
+  $("#attBars").innerHTML=ATT_W[attSel].map((w,j)=>`<div class="barrow"><span>«${ATT_T[attSel]}» → «${ATT_T[j]}»${j===attSel?" (sé stesso)":""}</span><div class="track"><div class="fill" style="width:${w*100}%"></div></div><span class="v">${Math.round(w*100)}%</span></div>`).join("")+(attSel<ATT_T.length-1?`<p class="muted" style="font-size:.82rem">I token successivi (${ATT_T.slice(attSel+1).map(t=>"«"+t+"»").join(", ")}) sono esclusi dalla causal mask.</p>`:"");
+  $("#attMsg").innerHTML=ATT_M[attSel];}
+function drawBase(){drawDP();drawOH();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+
+/* init */
+function all(){drawBase();drawLR();drawSFT();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
+all();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",all);
+new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+})();
+</script>
