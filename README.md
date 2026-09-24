@@ -16,9 +16,17 @@ Guide interattive in italiano: ogni guida è un unico file HTML autonomo, con la
 explorables/
 ├── docs.json              manifest: titolo, descrizione, tag, versione e cronologia di ogni guida
 ├── docs/<slug>.html       sorgente di ogni guida (frammento HTML, identico a quello pubblicato come artifact)
-├── templates/index.html   modello della pagina iniziale
+├── templates/
+│   ├── index.html         modello della pagina iniziale
+│   └── guide.html         modello di partenza per ogni nuova guida (tema, struttura, navigazione)
+├── shared/                componenti condivisi inseriti in ogni guida
+│   ├── toc.html           pannello «Indice» con tutti i capitoli
+│   └── xref.html          riferimenti incrociati con anteprima
+├── AUTHORING.md           regole per scrivere una guida
 ├── scripts/
 │   ├── build.mjs          genera dist/: una pagina per guida + la pagina iniziale
+│   ├── new-guide.mjs      crea docs/<slug>.html dal template
+│   ├── sync-shared.mjs    ricopia shared/ dentro le guide e il template
 │   ├── release.mjs        registra una nuova versione in docs.json e CHANGELOG.md
 │   └── serve.mjs          anteprima locale di dist/
 ├── CHANGELOG.md
@@ -58,7 +66,7 @@ Nota: un sito GitHub Pages è pubblico. Con un repository privato serve un piano
 
 ## Aggiungere una guida
 
-Salva il file come `docs/<slug>.html` (slug in minuscolo con trattini), poi:
+Segui [AUTHORING.md](AUTHORING.md). In breve: `node scripts/new-guide.mjs <slug> "Titolo"` crea il file dal template; quando è pronto:
 
 ```bash
 node scripts/release.mjs kafka-internals 1.0 "Prima versione" \

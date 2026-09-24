@@ -1,0 +1,61 @@
+<style>
+/* xpl:toc — indice completo della guida (pannello laterale) */
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);margin-left:auto;flex-shrink:0;position:sticky;right:0}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc{position:fixed;top:0;right:0;bottom:0;width:340px;max-width:88vw;z-index:950;background:var(--surface);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);visibility:hidden}
+.xpl-toc.open{transform:none;visibility:visible}
+.xpl-toc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid var(--line)}
+.xpl-toc-head span{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-close{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:2px 9px;color:var(--muted);font-family:var(--mono)}
+.xpl-toc-close:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-nav{overflow-y:auto;padding:8px 0 30px;flex:1}
+.xpl-toc-nav a{display:block;text-decoration:none;color:var(--muted);padding:5px 16px 5px 18px;border-left:2px solid transparent;font-size:.86rem;line-height:1.4}
+.xpl-toc-nav a:hover{background:var(--surface-2);color:var(--ink)}
+.xpl-toc-nav a.l2{font-family:var(--serif);font-weight:650;color:var(--ink);font-size:.95rem;margin-top:10px}
+.xpl-toc-nav a.l2 small{display:block;font-family:var(--mono);font-weight:400;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-nav a.l3{padding-left:30px;font-size:.82rem}
+.xpl-toc-nav a.here{border-left-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.xpl-toc-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:940;opacity:0;pointer-events:none;transition:opacity .25s}
+.xpl-toc-back.open{opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion: reduce){.xpl-toc,.xpl-toc-back{transition:none}}
+</style>
+<script>
+/* xpl:toc — costruisce l'indice da <section class="st"> (h2) e dagli h3 fuori dai laboratori */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const bar=document.querySelector("nav.toc .in")||document.querySelector("nav.toc");if(!bar)return;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  const entries=[];
+  document.querySelectorAll("section.st, main section").forEach(sec=>{
+    const h2=sec.querySelector("h2");if(!h2)return;
+    const eb=sec.querySelector(".sec-head .eyebrow");
+    const target=sec.id?sec:h2;if(!target.id)target.id=slug(txt(h2))||"sez";
+    entries.push({el:target,lvl:2,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():""});
+    sec.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn"))return;
+      if(!h3.id)h3.id=(sec.id||"s")+"-"+slug(txt(h3));entries.push({el:h3,lvl:3,t:txt(h3)});});
+  });
+  if(!entries.length)return;
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.textContent="Indice";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  bar.appendChild(btn);
+  const panel=document.createElement("nav");panel.className="xpl-toc";panel.id="xpl-toc";panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><span>Indice</span><button type="button" class="xpl-toc-close" aria-label="Chiudi indice">✕</button></div><div class="xpl-toc-nav"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";
+  document.body.append(back,panel);
+  const nav=panel.querySelector(".xpl-toc-nav");
+  const links=entries.map(e=>{const a=document.createElement("a");a.href="#"+e.el.id;a.className="l"+e.lvl;
+    a.innerHTML=(e.k?`<small>${e.k.replace(/</g,"&lt;")}</small>`:"")+e.t.replace(/</g,"&lt;");nav.appendChild(a);return{a,el:e.el};});
+  const open=o=>{panel.classList.toggle("open",o);back.classList.toggle("open",o);btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=nav.querySelector("a.here")||nav.querySelector("a");h&&h.focus({preventScroll:true});h&&h.scrollIntoView({block:"center"});}else btn.focus({preventScroll:true});};
+  btn.addEventListener("click",()=>open(!panel.classList.contains("open")));
+  panel.querySelector(".xpl-toc-close").addEventListener("click",()=>open(false));
+  back.addEventListener("click",()=>open(false));
+  nav.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("open"))open(false);});
+  let cur=null;
+  function spy(){let act=null;for(const l of links){if(l.el.getBoundingClientRect().top<=110)act=l;else break;}
+    if(act===cur)return;cur&&cur.a.classList.remove("here");cur=act;cur&&cur.a.classList.add("here");}
+  addEventListener("scroll",spy,{passive:true});spy();
+})();
+</script>

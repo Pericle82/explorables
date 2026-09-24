@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.6",
+      "version": "1.7",
       "updated": "2026-09-24",
       "history": [
+        {
+          "version": "1.7",
+          "date": "2026-09-24",
+          "notes": "Pannello Indice con tutti i capitoli e le sottosezioni, come in transazioni"
+        },
         {
           "version": "1.6",
           "date": "2026-09-24",
@@ -66,9 +71,14 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.1",
+      "version": "1.2",
       "updated": "2026-09-24",
       "history": [
+        {
+          "version": "1.2",
+          "date": "2026-09-24",
+          "notes": "Pannello Indice con tutte le sezioni, come in transazioni"
+        },
         {
           "version": "1.1",
           "date": "2026-09-24",

@@ -27,6 +27,18 @@ for (const d of docs) {
 }
 if (errors.length) { console.error("Manifest non valido:\n  " + errors.join("\n  ")); process.exit(1); }
 
+// avviso se i blocchi condivisi delle guide non sono allineati a shared/
+{
+  const RE = /<!-- xpl:shared ([a-z0-9-]+):start[^>]*-->\n([\s\S]*?)\n<!-- xpl:shared \1:end -->/g;
+  for (const d of docs) {
+    const src = readFileSync(join(ROOT, "docs", `${d.slug}.html`), "utf8");
+    for (const m of src.matchAll(RE)) {
+      const sp = join(ROOT, "shared", `${m[1]}.html`);
+      if (existsSync(sp) && readFileSync(sp, "utf8").trim() !== m[2].trim()) console.warn(`Attenzione: ${d.slug} · blocco «${m[1]}» non allineato (node scripts/sync-shared.mjs)`);
+    }
+  }
+}
+
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
 
