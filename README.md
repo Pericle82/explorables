@@ -79,7 +79,7 @@ La pagina iniziale si aggiorna da sola alla build successiva.
 
 ## Esame a risposta aperta
 
-La pagina `/esame/` propone domande aperte (da `exams/*.json`) con tempo e caratteri limitati. Le risposte le valuta Claude tramite l'API di Anthropic, chiamata direttamente dal browser con la chiave che l'utente inserisce nella pagina (salvata solo nel suo browser); il materiale di riferimento è estratto dalle guide a ogni build (`dist/esame/context/`). Senza chiave è disponibile l'autovalutazione sui criteri. Dettagli in AUTHORING.md, §10.
+La pagina `/esame/` propone domande aperte (da `exams/*.json`) con tempo e caratteri limitati. Le risposte le valuta Claude tramite l'API di Anthropic, chiamata direttamente dal browser con la chiave che l'utente inserisce nella pagina (salvata solo nel suo browser); il materiale di riferimento è estratto dalle guide a ogni build (`dist/esame/context/`). Senza chiave si può usare «Copia per Claude»: copia istruzioni, capitoli della guida collegati alla domanda, criteri e risposta, da incollare in una chat di claude.ai (valutazione con l'abbonamento, senza API); oppure l'autovalutazione sui criteri. Dettagli in AUTHORING.md, §10.
 
 ## Convenzioni di versione
 

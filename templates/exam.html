@@ -96,7 +96,7 @@ details.model p{margin:10px 0 0}
 <section class="st" id="setup">
   <div class="sec-head"><span class="eyebrow">Impostazioni</span><h2>L'esaminatore</h2></div>
   <div class="prose stack">
-    <p>La valutazione usa l'API (Application Programming Interface) di Anthropic con la <b>tua chiave</b>. La chiave resta solo in questo browser: la pagina la manda direttamente ad Anthropic, senza passare da altri server. Senza chiave puoi comunque rispondere e fare un'autovalutazione sui criteri.</p>
+    <p>La valutazione usa l'API (Application Programming Interface) di Anthropic con la <b>tua chiave</b>. La chiave resta solo in questo browser: la pagina la manda direttamente ad Anthropic, senza passare da altri server. Senza chiave puoi usare <b>«Copia per Claude»</b>: copia domanda, criteri, i capitoli della guida e la tua risposta, da incollare in una chat di claude.ai; la valutazione rientra così nel tuo abbonamento. Oppure puoi fare un'autovalutazione sui criteri.</p>
   </div>
   <div class="lab">
     <div class="setup">
@@ -172,7 +172,7 @@ function open(id){stop();const E=exam();const q=E.questions.find(x=>x.id===id);i
       <div class="row" id="acts"><button class="btn" id="startBtn">Inizia</button></div>
     </div>
     <div id="res"></div>
-    ${h.length?`<div class="stack"><span class="diag-title">Tentativi precedenti</span><div class="hist">${h.slice().reverse().map((x,i)=>`<button data-i="${h.length-1-i}"><span>${new Date(x.date).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"})}</span><span>${x.score!=null?x.score.toFixed(1)+"/10":"autovalutazione"}${x.selfScore!=null?" · auto "+x.selfScore.toFixed(1):""}</span></button>`).join("")}</div></div>`:""}
+    ${h.length?`<div class="stack"><span class="diag-title">Tentativi precedenti</span><div class="hist">${h.slice().reverse().map((x,i)=>`<button data-i="${h.length-1-i}"><span>${new Date(x.date).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"})}</span><span>${x.score!=null?x.score.toFixed(1)+"/10"+(x.via==="chat"?" (chat)":""):x.via==="chat"?"copiata per Claude":"autovalutazione"}${x.selfScore!=null?" · auto "+x.selfScore.toFixed(1):""}</span></button>`).join("")}</div></div>`:""}
   </div>`;
   $("#back").onclick=list;
   const ta=$("#ans");ta.value=att.text;count();
@@ -191,8 +191,8 @@ function acts(){const A=$("#acts");if(!A)return;const running=att.start!=null&&!
   if(att.start==null){A.innerHTML=`<button class="btn" id="startBtn">Inizia</button>`;$("#startBtn").onclick=start;return;}
   if(att.done){A.innerHTML=`<button class="btn ghost" id="again">Riprova la domanda</button><button class="btn ghost" id="back2">← Tutte le domande</button>`;$("#again").onclick=()=>{store.del("draft."+cur.id);open(cur.id);};$("#back2").onclick=list;return;}
   const n=$("#ans").value.trim().length;
-  A.innerHTML=`<button class="btn" id="send" ${n?"":"disabled"}>Invia all'esaminatore</button><button class="btn ghost" id="reset">Ricomincia</button>`;
-  $("#send").onclick=submit;$("#reset").onclick=()=>{store.del("draft."+cur.id);open(cur.id);};}
+  A.innerHTML=`<button class="btn" id="send" ${n?"":"disabled"}>Invia all'esaminatore</button><button class="btn ghost" id="copyBtn" ${n?"":"disabled"} title="Copia domanda, criteri, materiale della guida e risposta, da incollare in una chat di claude.ai">Copia per Claude</button><button class="btn ghost" id="reset">Ricomincia</button>`;
+  $("#send").onclick=submit;$("#copyBtn").onclick=copyForClaude;$("#reset").onclick=()=>{store.del("draft."+cur.id);open(cur.id);};}
 
 /* ---------- valutazione ---------- */
 const ctxCache={};
@@ -219,6 +219,59 @@ function scoreOf(q,v){const W=q.criteria.reduce((s,c)=>s+c.weight,0);let got=0;
   const grav=(v.errori||[]).filter(e=>e.gravita==="grave").length,min=(v.errori||[]).filter(e=>e.gravita!=="grave").length;
   const raw=got/W*10,pen=grav*1+min*0.25;return{score:Math.max(0,Math.round((raw-pen)*10)/10),raw:Math.round(raw*10)/10,pen};}
 const label=s=>s>=8.5?"eccellente":s>=6.5?"buona":s>=4?"parziale":"insufficiente";
+/* ---------- «Copia per Claude»: valutazione in una chat di claude.ai, con l'abbonamento ---------- */
+async function copyForClaude(){stop();const q=cur,E=exam();const text=$("#ans").value.trim();if(!text)return;att.done=true;$("#ans").readOnly=true;acts();
+  const rec={date:Date.now(),answer:text,elapsed:Math.round(att.elapsed),score:null,via:"chat"};const R=$("#res");
+  R.innerHTML=`<div class="callout"><span class="spinner"></span>Preparo il testo da copiare…</div>`;
+  let prompt;
+  try{const ctx=await context(E.slug);
+    const mat=q.chapters.map(n=>{const c=ctx.chapters[n];return c?`### Capitolo ${n} · ${c.title}\n${c.text}`:"";}).join("\n\n");
+    const crit=q.criteria.map(c=>`- [${c.id}] (peso ${c.weight}) ${c.text}`).join("\n");
+    prompt=`Fai da esaminatore per una domanda a risposta aperta della guida «${E.title}» (Explorables).
+
+ISTRUZIONI
+${SYSTEM.split("\n").filter(l=>!/strumento valuta_risposta/.test(l)).slice(1).join("\n")}
+- Non usare memorie o conversazioni precedenti: basati solo su questo messaggio.
+
+FORMATO DELLA RISPOSTA (in italiano, in quest'ordine)
+1. Tabella dei criteri: id, esito (pieno / parziale / assente), commento di una o due frasi.
+2. Errori: ogni affermazione sbagliata della risposta, con correzione e gravità (grave / minore). Scrivi «nessuno» se non ce ne sono.
+3. Voto: calcolalo così e mostra il conto. Punteggio criteri = somma(peso × valore) / somma dei pesi × 10, con pieno = 1, parziale = 0,5, assente = 0. Poi togli 1 punto per ogni errore grave e 0,25 per ogni errore minore (minimo 0). Arrotonda a un decimale.
+4. Punti di forza e cose da migliorare (elenchi brevi).
+5. Una risposta di riferimento eccellente, entro ${q.maxChars} caratteri.
+6. I capitoli del materiale da ripassare.
+
+<materiale guida="${E.title}" versione="${ctx.version||""}">
+${mat}
+</materiale>
+
+<domanda>
+${q.prompt}
+</domanda>
+
+<criteri>
+${crit}
+</criteri>
+
+<vincoli>tempo massimo ${fmt(q.time)} min, usato ${fmt(rec.elapsed)}; caratteri massimi ${q.maxChars}, usati ${text.length}</vincoli>
+
+<risposta>
+${text}
+</risposta>`;
+  }catch(e){R.innerHTML=`<div class="callout" style="background:var(--bad-soft)"><b>Non riesco a preparare il testo.</b> ${esc(e.message||e)}</div>`;return;}
+  let copied=false;try{await navigator.clipboard.writeText(prompt);copied=true;}catch(e){}
+  const kt=Math.round(prompt.length/3.6/1000);
+  R.innerHTML=`<div class="lab"><div class="lab-head"><h3>${copied?"Copiato: ora incollalo in Claude":"Copia il testo qui sotto"}</h3><span class="tag">valutazione in chat</span></div>
+    <p>${copied?"Negli appunti c'è":"Il browser non mi permette di copiare da solo: seleziona il testo qui sotto e copialo. Contiene"} tutto ciò che serve all'esaminatore: istruzioni, <b>il testo dei capitoli ${q.chapters.join(", ")} della guida</b>, domanda, criteri pesati e la tua risposta (${prompt.length.toLocaleString("it-IT")} caratteri, circa ${kt}.000 token).</p>
+    <ol class="steps"><li>Apri una <b>nuova chat</b> su <a href="https://claude.ai/new" target="_blank" rel="noopener">claude.ai</a> (fuori da progetti con istruzioni proprie, così nulla interferisce).</li><li>Incolla e invia: un testo così lungo compare come allegato «Pasted text», Claude lo legge tutto.</li><li>Se vuoi tenerne traccia qui, riporta il voto nel campo sotto.</li></ol>
+    <textarea class="answer" id="promptBox" readonly style="min-height:140px;font-family:var(--mono);font-size:.78rem">${esc(prompt)}</textarea>
+    <div class="row"><button class="btn" id="copyAgain">Copia di nuovo</button><a class="btn ghost" href="https://claude.ai/new" target="_blank" rel="noopener" style="text-decoration:none">Apri claude.ai ↗</a></div>
+    <div class="row"><label for="chatScore" class="muted" style="font-size:.86rem">Voto dato da Claude</label><input id="chatScore" class="inp" type="number" min="0" max="10" step="0.1" style="max-width:110px"><button class="btn ghost" id="chatSave">Registra</button><span class="mono muted" id="chatOut"></span></div>
+  </div>`;
+  const box=$("#promptBox");if(!copied){box.focus();box.select();}
+  $("#copyAgain").onclick=async()=>{try{await navigator.clipboard.writeText(prompt);$("#copyAgain").textContent="Copiato";}catch(e){box.focus();box.select();}};
+  $("#chatSave").onclick=()=>{const v=parseFloat($("#chatScore").value);if(isNaN(v)||v<0||v>10){$("#chatOut").textContent="voto da 0 a 10";return;}rec.score=Math.round(v*10)/10;rec.model="claude.ai (chat)";save(q,rec);$("#chatSave").disabled=true;$("#chatOut").textContent="registrato";};
+}
 async function submit(){stop();const q=cur,E=exam();const text=$("#ans").value.trim();if(!text)return;att.done=true;$("#ans").readOnly=true;acts();
   const rec={date:Date.now(),answer:text,elapsed:Math.round(att.elapsed),score:null};
   const key=store.get("apiKey","");const R=$("#res");
@@ -262,7 +315,7 @@ function selfCheck(q,rec){const R=$("#res");
   const upd=()=>{const W=q.criteria.reduce((s,c)=>s+c.weight,0);let g=0;R.querySelectorAll("input:checked").forEach(i=>g+=+i.dataset.w);const s=Math.round(g/W*100)/10;$("#selfOut").textContent=s.toFixed(1)+" / 10";return s;};
   R.querySelectorAll("input").forEach(i=>i.onchange=upd);upd();
   $("#selfSave").onclick=()=>{rec.selfScore=upd();save(q,rec);$("#selfSave").disabled=true;$("#selfSave").textContent="Registrata";};}
-function showPast(x){att.done=true;$("#ans").value=x.answer;$("#ans").disabled=false;$("#ans").readOnly=true;count();acts();if(x.result)renderResult(cur,x);else $("#res").innerHTML=`<p class="callout">Autovalutazione: ${x.selfScore!=null?x.selfScore.toFixed(1)+" / 10":"—"}</p>`;}
+function showPast(x){att.done=true;$("#ans").value=x.answer;$("#ans").disabled=false;$("#ans").readOnly=true;count();acts();if(x.result)renderResult(cur,x);else $("#res").innerHTML=`<p class="callout">${x.via==="chat"?"Valutata in una chat di claude.ai: "+(x.score!=null?x.score.toFixed(1)+" / 10":"voto non registrato"):"Autovalutazione: "+(x.selfScore!=null?x.selfScore.toFixed(1)+" / 10":"—")}</p>`;}
 
 /* ---------- avvio ---------- */
 const links=[...document.querySelectorAll("nav.toc a")];
