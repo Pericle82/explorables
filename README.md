@@ -75,4 +75,4 @@ La pagina iniziale si aggiorna da sola alla build successiva.
 
 ## Formato dei file in `docs/`
 
-Sono frammenti HTML senza `<!doctype>`, `<html>`, `<head>` e `<body>`: iniziano con `<title>`, `<link>` e `<style>`, seguiti dal contenuto. È lo stesso formato degli artifact di Claude, quindi una guida aggiornata lì si copia qui senza modifiche. `build.mjs` aggiunge lo scheletro della pagina e un piccolo link «← Explorables · vX.Y» per tornare all'indice.
+Sono frammenti HTML senza `<!doctype>`, `<html>`, `<head>` e `<body>`: iniziano con `<title>`, `<link>` e `<style>`, seguiti dal contenuto. È lo stesso formato degli artifact di Claude, quindi una guida aggiornata lì si copia qui senza modifiche. `build.mjs` aggiunge lo scheletro della pagina e il menu di navigazione tra le guide: il pulsante «☰ Explorables» in basso a sinistra apre l'elenco delle guide (con quella corrente evidenziata), il link alla pagina iniziale e i collegamenti a guida precedente e successiva.
