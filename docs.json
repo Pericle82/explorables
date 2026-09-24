@@ -81,9 +81,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.1",
+      "version": "2.2",
       "updated": "2026-09-24",
       "history": [
+        {
+          "version": "2.2",
+          "date": "2026-09-24",
+          "notes": "Riferimenti incrociati con anteprima: capitoli, parti, casi, passi, scenari e termini del glossario diventano link; al passaggio del mouse (o al primo tocco) un popup mostra il contenuto collegato"
+        },
         {
           "version": "2.1",
           "date": "2026-09-24",

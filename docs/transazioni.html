@@ -3645,3 +3645,122 @@ drawL1();drawL2();l3cfgs();drawL3();drawL5();drawL6();
 })();
 
 </script>
+
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+</style>
+<script>
+/* Riferimenti incrociati: trasforma «capitolo 7», «Parte IV», «caso 3», «passo 6», «scenario A»
+   e i termini del glossario in link con anteprima al passaggio del mouse (o al primo tocco su touch). */
+(function(){
+  const main=document.querySelector("main");if(!main)return;
+  const ROMAN={I:"i",II:"ii",III:"iii",IV:"iv",V:"v",VI:"vi"};
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const T={}; // id -> {el, kind, title, html()}
+  const reg=(id,el,o)=>{el.id=el.id||id;el.classList.add("xref-target");T[el.id]=Object.assign({el},o);return el.id;};
+
+  /* --- bersagli --- */
+  const chap={};
+  main.querySelectorAll("section h2").forEach(h=>{const m=txt(h).match(/^(\d+)\s·\s(.+)$/);if(!m)return;
+    const sec=h.closest("section"),sub=sec&&sec.querySelector(".sub");
+    chap[m[1]]=reg("cap-"+m[1],h,{k:"Capitolo "+m[1],t:m[2],body:()=>sub?`<p>${sub.innerHTML}</p>`:""});});
+  const part={};
+  main.querySelectorAll(".part").forEach(p=>{const l=txt(p.querySelector(".part-label")).replace(/parte/i,"").trim();const h=p.querySelector("h2");if(!ROMAN[l]||!h)return;
+    const note=p.querySelector(".part-note");part[l]=reg("toc-"+ROMAN[l],h,{k:"Parte "+l,t:txt(h),body:()=>note?`<p>${note.innerHTML}</p>`:""});});
+  const block=(re,prefix,label)=>{const out={};main.querySelectorAll("pre").forEach(pre=>{const s=pre.textContent;let m;const r=new RegExp(re.source,"g");const hits=[];
+      while((m=r.exec(s)))hits.push({key:m[1],at:m.index});
+      hits.forEach((h,i)=>{const piece=s.slice(h.at,i+1<hits.length?hits[i+1].at:s.length).replace(/\s+$/,"");
+        const id=reg(prefix+h.key.toLowerCase(),pre,{});out[h.key]={id:id,info:{k:label+" "+h.key,t:"",body:()=>`<pre>${piece.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</pre>`}};});});return out;};
+  const caso=block(/CASO ([1-4]) ·/,"casi-","Caso");
+  const scen=block(/SCENARIO ([A-D]) ·/,"scenari-","Scenario");
+  const steps=[];
+  main.querySelectorAll("p > strong:first-child").forEach(st=>{const m=txt(st).match(/^Pass(?:o|i) (\d)(?: e (\d))? ·\s*(.*)$/);if(!m)return;
+    const p=st.parentElement;let h=p;while(h&&!/^H[34]$/.test(h.tagName))h=h.previousElementSibling;
+    const group=txt(h);const next=p.nextElementSibling;
+    const nums=[m[1],m[2]].filter(Boolean);
+    const id=reg("passo-"+(group.toLowerCase().includes("checkpoint")?"cp":"tr")+"-"+nums.join("-"),p,{});
+    const info={k:(group?group.replace(/,.*$/,"")+" · ":"")+"passo "+nums.join(" e "),t:"",body:()=>`<p>${p.innerHTML}</p>`+(next&&next.tagName==="PRE"?next.outerHTML.replace(/\sid="[^"]*"/g,"").replace(/\sclass="[^"]*"/g,""):"")};
+    T[id]=Object.assign({el:p},info);nums.forEach(n=>steps.push({n,id,el:p}));});
+  const gloss=[];const SKIP=new Set(["Indice","Lock","Trigger","SELECT … FOR UPDATE","@Version"]);
+  const gh=[...main.querySelectorAll("h3")].find(h=>txt(h)==="Glossario");
+  const gtable=gh&&gh.nextElementSibling&&gh.nextElementSibling.querySelector("table");
+  if(gtable)gtable.querySelectorAll("tr").forEach(tr=>{const td=tr.querySelectorAll("td");if(td.length<2)return;const s=td[0].querySelector("strong");if(!s)return;
+    const name=txt(s);const id=reg("gloss-"+name.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),tr,{k:"Glossario",t:txt(td[0]),body:()=>`<p>${td[1].innerHTML}</p>`});
+    name.split(/\s*\/\s*/).forEach(a=>{a=a.trim();if(!a||SKIP.has(a)||a.length<3)return;gloss.push({a,id,acr:/^[A-Z0-9@]{2,}$/.test(a)||/^[a-z]+$/.test(a)&&a.length<=6});});});
+  gloss.sort((x,y)=>y.a.length-x.a.length);
+
+  /* --- scansione del testo --- */
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const gAlt=gloss.map(g=>esc(g.a).replace(/\s+/g,"\\s+")).join("|");
+  const RE=new RegExp("\\b(?:(capitol[oi]) (\\d+)(?:( e | o |, )(\\d+))?|(Parte) (VI|IV|V|III|II|I)\\b|(caso) ([1-4])\\b|(passo) (\\d)\\b|(scenario) ([A-D])\\b"+(gAlt?"|("+gAlt+")":"")+")","g");
+  const SKIPSEL="pre,code,a,button,h1,h2,h3,h4,th,nav,.lab,#quiz,.recap-title,.recap-sub,.part-label,.eyebrow,script,style,.xref-pop,.anom-out,.machine,.lanes,.ledger,.tl-y";
+  const seenGloss=new Map(); // section -> Set(id)
+  const inGloss=el=>gtable&&gtable.contains(el);
+  function stepFor(n,node){let best=null;for(const s of steps){if(s.n!==n)continue;const pos=s.el.compareDocumentPosition(node);if(pos&Node.DOCUMENT_POSITION_FOLLOWING)best=s;}return best||steps.find(s=>s.n===n);}
+  function mk(id,text,cls){const a=document.createElement("a");a.href="#"+id;a.className="xref"+(cls?" "+cls:"");a.dataset.xref=id;a.textContent=text;return a;}
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL)||inGloss(p))return NodeFilter.FILTER_REJECT;return RE.test(n.nodeValue)?(RE.lastIndex=0,NodeFilter.FILTER_ACCEPT):NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{const s=node.nodeValue;RE.lastIndex=0;let m,last=0;const frag=document.createDocumentFragment();let changed=false;
+    const sec=node.parentElement.closest("section")||main;if(!seenGloss.has(sec))seenGloss.set(sec,new Set());const seen=seenGloss.get(sec);
+    while((m=RE.exec(s))){let out=null;const w=m[0];
+      if(m[1]&&chap[m[2]]){out=document.createDocumentFragment();out.append(mk(chap[m[2]],m[1]+" "+m[2]));if(m[4]){out.append(m[3]);out.append(chap[m[4]]?mk(chap[m[4]],m[4]):m[4]);}}
+      else if(m[5]&&part[m[6]])out=mk(part[m[6]],w);
+      else if(m[7]&&caso[m[8]])out=mk(caso[m[8]].id,w);
+      else if(m[9]){const st=stepFor(m[10],node);if(st)out=mk(st.id,w);}
+      else if(m[11]&&scen[m[12]])out=mk(scen[m[12]].id,w);
+      else if(m[13]){const g=gloss.find(g=>new RegExp("^"+esc(g.a).replace(/\s+/g,"\\s+")+"$").test(w));
+        const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+        const boundary=!/[\wÀ-ÿ]/.test(before)&&!/[\wÀ-ÿ-]/.test(after);
+        const caseOk=g&&(g.acr?w===g.a:w.toLowerCase()===g.a.toLowerCase());
+        if(g&&boundary&&caseOk&&!seen.has(g.id)&&!T[g.id].el.contains(node)){seen.add(g.id);out=mk(g.id,w,"term");}}
+      if(out){frag.append(s.slice(last,m.index));frag.append(out);last=m.index+w.length;changed=true;}}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+  Object.values(caso).forEach(c=>T[c.id]=Object.assign(T[c.id]||{},{multi:true}));
+  // i blocchi con più casi/scenari: l'anteprima dipende dalla chiave, non dall'id
+  const blockInfo={};Object.entries(caso).forEach(([k,v])=>blockInfo["caso "+k]=v.info);Object.entries(scen).forEach(([k,v])=>blockInfo["scenario "+k]=v.info);
+
+  /* --- popup --- */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.setAttribute("role","tooltip");pop.id="xref-pop";document.body.appendChild(pop);
+  const touch=matchMedia("(hover: none)").matches;let cur=null,tShow=0,tHide=0;
+  function info(a){const key=a.textContent.toLowerCase().trim();if(blockInfo[key])return blockInfo[key];return T[a.dataset.xref];}
+  function show(a){const I=info(a);if(!I)return;cur=a;
+    pop.innerHTML=`<span class="xp-k">${I.k||""}</span>${I.t?`<p class="xp-t">${I.t}</p>`:""}${I.body?I.body():""}<a class="xp-go" href="#${a.dataset.xref}">Vai alla sezione →</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(id){const el=document.getElementById(id);if(!el)return;el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"","#"+id);}
+  let ptr="mouse";addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();
+    if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.dataset.xref);});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const id=g.getAttribute("href").slice(1);hide();go(id);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=main.querySelectorAll("a.xref").length;
+})();
+</script>

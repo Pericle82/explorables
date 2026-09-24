@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-24
+- **Quando il COMMIT non basta più** (`transazioni`) v2.2: Riferimenti incrociati con anteprima: capitoli, parti, casi, passi, scenari e termini del glossario diventano link; al passaggio del mouse (o al primo tocco) un popup mostra il contenuto collegato
 - **Quando il COMMIT non basta più** (`transazioni`) v2.1: Indice di navigazione interna sempre visibile: la barra delle parti resta fissa in alto durante lo scorrimento, con il pulsante Indice per l'elenco completo dei capitoli
 - **Quando il COMMIT non basta più** (`transazioni`) v2.0: revisione dei contenuti (circa 75 correzioni), nuovo stile, cinque nuovi laboratori (lock e MVCC, crash recovery, anomalie per motore e livello, 2PC, quorum).
 - **Da Assistente ad Agente** (`assistente-agente`) v1.0: prima versione.
