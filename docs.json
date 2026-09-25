@@ -150,6 +150,25 @@
           "notes": "Versione originale."
         }
       ]
+    },
+    {
+      "slug": "architetture-llm",
+      "title": "Encoder, decoder, esperti",
+      "description": "BERT contro GPT, le famiglie di architetture dei modelli linguistici, modelli densi e sparsi a esperti (MoE) e come sceglie il router.",
+      "tags": [
+        "LLM",
+        "architetture",
+        "MoE"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-09-25",
+          "notes": "Prima versione: BERT contro GPT, famiglie di architetture, modelli densi e a esperti (MoE), come sceglie il router. Laboratori su maschera di attenzione, calcolatore denso/sparso e router a 8 esperti."
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-09-25"
     }
   ]
 }

@@ -1,0 +1,1225 @@
+<title>Encoder, decoder, esperti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============ TEMA EXPLORABLES ============
+   Token di colore: stessi nomi in tutte le guide. Ogni guida sceglie SOLO il proprio accento
+   (--accent, --accent-soft) dalla palette in AUTHORING.md; tutto il resto resta identico. */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E7EAEF; --ink:#161B24; --muted:#565E6C;
+  --line:#CDD2DA; --grid:#E0E4EA; --accent:#8A5A0B; --accent-soft:#F2E4C8;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+    --line:#2C3441; --grid:#232A35; --accent:#E2AA4E; --accent-soft:#3A2D14;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+  --line:#2C3441; --grid:#232A35; --accent:#E2AA4E; --accent-soft:#3A2D14;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+
+/* nav */
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-inline:-20px;padding:10px 20px;overflow-x:auto;white-space:nowrap}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+
+/* sections */
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+
+/* token strip */
+.tokens{display:flex;flex-wrap:wrap;gap:4px}
+.tok{font-family:var(--mono);font-size:.85rem;padding:4px 7px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.tok.prompt{color:var(--muted);background:var(--surface-2);border-style:dashed}
+.tok.resp{border-color:var(--accent);background:var(--accent-soft)}
+button.tok{cursor:pointer;color:var(--ink)}
+button.tok.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr 52px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .25s}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.sample{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;white-space:pre-wrap}
+
+/* diagram boxes */
+.diag{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.box.hot{border-color:var(--accent);background:var(--accent-soft)}
+.box.dead{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.arr{color:var(--muted);font-family:var(--mono)}
+.diag-title{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* grpo table */
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.scroll-x{overflow-x:auto}
+
+/* summary */
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* concetti base */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.loop .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.loop .box b{font-family:var(--serif);font-size:1rem}
+.loop .box span{color:var(--muted);font-size:.82rem}
+.loop .box em{font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+@media (max-width:760px){.loop{grid-template-columns:1fr 1fr}}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+
+/* componenti comuni */
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif)}
+.grid3 .box span{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s}
+.cards a:hover{border-color:var(--accent)}
+.cards a b{font-family:var(--serif);font-size:1.05rem}
+.cards a span{font-size:.84rem;color:var(--muted)}
+.cards a small{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+</style>
+
+<style>
+/* ============ componenti di questa guida ============ */
+.mask{display:grid;gap:3px;font-family:var(--mono);font-size:.72rem}
+.mask .h{color:var(--muted);text-align:center;padding:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mask .rh{all:unset;cursor:pointer;color:var(--ink);text-align:right;padding:4px 6px;border-radius:4px;white-space:nowrap}
+.mask .rh.sel{background:var(--accent);color:var(--bg)}
+.mask .rh:focus-visible{outline:2px solid var(--accent)}
+.mask .c{border-radius:3px;background:var(--surface-2);min-height:26px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.mask .c.on{background:var(--accent-soft);color:var(--accent)}
+.mask .c.on.row{background:var(--accent);color:var(--bg)}
+.mask .c.self{outline:1px solid var(--accent)}
+.tgt{display:flex;flex-wrap:wrap;gap:6px}
+.tgt .tt{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--mono);font-size:.74rem}
+.tgt .tt b{font-weight:400;padding:4px 7px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.tgt .tt b.m{border-color:var(--warn);background:var(--warn-soft)}
+.tgt .tt span{font-size:.66rem;color:var(--muted);min-height:1.2em}
+.tgt .tt span.l{color:var(--good)}
+.fam{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fam .vx-card svg{width:100%;height:auto;display:block}
+.fam .vx-card svg text{font-family:var(--mono);fill:var(--ink)}
+.fam .vx-card svg .mut{fill:var(--muted)}
+.fam .vx-card svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.fam .vx-card svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.fam .vx-card svg .ac{stroke:var(--accent);fill:none}
+.fam .vx-card svg .acf{fill:var(--accent)}
+@media (max-width:760px){.fam{grid-template-columns:1fr}}
+.rgrid{display:grid;gap:2px;font-family:var(--mono);font-size:.7rem;align-items:center}
+.rgrid .th{color:var(--muted);text-align:center}
+.rgrid .tk{all:unset;cursor:pointer;text-align:right;padding:3px 6px;border-radius:4px;white-space:nowrap;color:var(--ink)}
+.rgrid .tk.sel{background:var(--accent);color:var(--bg)}
+.rgrid .tk:focus-visible{outline:2px solid var(--accent)}
+.rgrid .rc{height:22px;border-radius:3px;position:relative;background:var(--surface-2)}
+.rgrid .rc.pick::after{content:"";position:absolute;inset:4px;border-radius:2px;border:2px solid var(--ink)}
+.rload{display:grid;gap:4px}
+.rload .lr{display:grid;grid-template-columns:44px 1fr 46px;gap:8px;align-items:center;font-family:var(--mono);font-size:.72rem}
+.rload .tr{height:12px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.rload .fl{height:100%;background:var(--accent);transition:width .25s}
+.rload .fl.hot{background:var(--bad)}
+.rload .fl.cold{background:var(--muted)}
+.rcalc{font-family:var(--mono);font-size:.78rem;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px;text-align:center}
+.rcalc div{padding:4px 2px;border-radius:4px;background:var(--surface-2)}
+.rcalc .lab2{grid-column:1/-1;text-align:left;background:none;color:var(--muted);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:6px 0 0}
+.rcalc .top{background:var(--accent);color:var(--bg)}
+.ratio{display:flex;height:30px;border-radius:6px;overflow:hidden;border:1px solid var(--line);font-family:var(--mono);font-size:.72rem}
+.ratio span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.ratio .a{background:var(--accent);color:var(--bg)}
+.ratio .i{background:var(--surface-2);color:var(--muted);flex:1}
+@media (max-width:560px){.rcalc{font-size:.66rem}.mask{font-size:.64rem}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Architetture dei modelli linguistici · guida interattiva</span>
+  <h1>Stesso mattone, tre modi di guardare il testo, e un modo per accenderne solo una parte</h1>
+  <p class="lede">BERT, GPT, T5, Mixtral e DeepSeek sono costruiti con lo stesso blocco, il Transformer. Cambiano tre scelte: <b>quali parole può guardare ogni parola</b>, <b>che cosa impara a prevedere</b> e <b>quanta parte della rete lavora per ogni token</b>. Questa guida le separa una alla volta: prima BERT contro GPT, poi le famiglie di architetture, infine i modelli densi contro quelli sparsi a esperti (MoE, Mixture of Experts), con il router smontato pezzo per pezzo.</p>
+  <div class="cards">
+    <a href="#cap-1"><small>1</small><b>Il mattone comune</b><span>Attenzione e FFN: dove stanno i parametri</span></a>
+    <a href="#cap-2"><small>2</small><b>BERT</b><span>Un lettore che guarda a destra e a sinistra</span></a>
+    <a href="#cap-3"><small>3</small><b>BERT contro GPT</b><span>Maschera, obiettivo, uscita, inferenza</span></a>
+    <a href="#cap-4"><small>4</small><b>Le famiglie</b><span>Encoder, decoder, encoder-decoder</span></a>
+    <a href="#cap-5"><small>5</small><b>Denso e sparso</b><span>Parametri totali contro parametri attivi</span></a>
+    <a href="#cap-6"><small>6</small><b>Com'è fatto un MoE</b><span>Non è solo un router davanti</span></a>
+    <a href="#cap-7"><small>7</small><b>Come sceglie il router</b><span>Punteggi, top-k, bilanciamento</span></a>
+    <a href="#sum"><small>Riepilogo</small><b>A confronto</b><span>Le architetture in una tabella</span></a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#cap-1">1 · Mattone</a><a href="#cap-2">2 · BERT</a><a href="#cap-3">3 · BERT vs GPT</a><a href="#cap-4">4 · Famiglie</a><a href="#cap-5">5 · Denso/sparso</a><a href="#cap-6">6 · MoE</a><a href="#cap-7">7 · Router</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 1 ============ -->
+<section class="st" id="cap-1">
+  <div class="sec-head">
+    <span class="eyebrow">1 · Il mattone comune</span>
+    <h2>Tutti i modelli di questa guida impilano lo stesso blocco</h2>
+  </div>
+  <div class="prose stack">
+    <p>Un modello linguistico moderno trasforma il testo in token, ogni token in un vettore (l'embedding, vedi la guida sul training), e poi fa passare quei vettori attraverso una pila di blocchi identici. Ogni blocco ha due stadi, sempre nello stesso ordine.</p>
+    <p><b>L'attenzione</b> è il momento in cui i token si parlano: ogni token guarda gli altri, decide quali contano per lui e ne mescola le informazioni nel proprio vettore. <b>La rete feed-forward</b> (FFN, Feed-Forward Network) è il momento in cui ogni token lavora da solo: il suo vettore passa in due o tre moltiplicazioni per matrice, che applicano ciò che il modello ha imparato. Attorno a entrambi ci sono una normalizzazione e una connessione residua, che somma l'ingresso all'uscita, così ogni blocco aggiunge qualcosa invece di riscrivere tutto.</p>
+  </div>
+
+  <div class="vx"><div class="vx-stack">
+    <div class="vx-layer app">token → embedding</div><div class="vx-note">un vettore per token, per esempio 4.096 numeri</div>
+    <div class="vx-layer first">attenzione</div><div class="vx-note hot"><span><b>i token si parlano.</b> Qui si decide chi può guardare chi: è la differenza tra BERT e GPT</span></div>
+    <div class="vx-layer vol cont">FFN (rete feed-forward)</div><div class="vx-note hot"><span><b>ogni token da solo.</b> Qui sta la maggior parte dei parametri: è la parte che un MoE sostituisce con gli esperti</span></div>
+    <div class="vx-layer cont last">× N blocchi (12 in BERT-base, 94 in Qwen3-235B)</div><div class="vx-note">stesso blocco ripetuto, pesi diversi in ogni copia</div>
+    <div class="vx-layer dur solo">testa di uscita</div><div class="vx-note" style="margin-top:10px">cambia con il compito: probabilità del token successivo, etichetta, vettore</div>
+  </div></div>
+
+  <h3 id="dove-parametri" class="anchor">Dove stanno i parametri</h3>
+  <div class="prose stack">
+    <p>Con un vettore di dimensione <i>d</i>, l'attenzione di un blocco ha quattro matrici quadrate (query, key, value, output): circa <code>4·d²</code> parametri. La FFN classica allarga il vettore a <code>4·d</code> e lo riporta a <i>d</i>: due matrici da <code>d × 4d</code>, cioè <code>8·d²</code>. Quindi <b>circa due terzi dei parametri di un blocco stanno nella FFN</b>. Tenete a mente questo numero: è il motivo per cui i modelli a esperti del capitolo 6 intervengono proprio lì.</p>
+  </div>
+  <div class="vx"><p class="vx-cap">Un blocco con d = 4.096, FFN classica</p>
+    <div class="ratio" role="img" aria-label="Attenzione 67 milioni di parametri, FFN 134 milioni"><span class="a" style="flex:1">attenzione · 4d² ≈ 67 M</span><span class="i" style="flex:2">FFN · 8d² ≈ 134 M</span></div>
+    <p class="vx-foot">Le varianti moderne (SwiGLU, Swish-Gated Linear Unit; attenzione a gruppi) spostano un po' le proporzioni, non l'ordine di grandezza.</p>
+  </div>
+  <p class="callout"><b>La mappa della guida in una frase.</b> BERT e GPT differiscono nell'<b>attenzione</b> (chi vede chi) e nell'<b>obiettivo</b>; i modelli densi e quelli sparsi differiscono nella <b>FFN</b> (una per tutti, o tante tra cui scegliere).</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="st" id="cap-2">
+  <div class="sec-head">
+    <span class="eyebrow">2 · BERT</span>
+    <h2>Un lettore che guarda a destra e a sinistra, e non scrive</h2>
+  </div>
+  <p class="sub prose">BERT (Bidirectional Encoder Representations from Transformers) è un modello di Google del 2018 che produce una rappresentazione del testo, non del testo nuovo.</p>
+  <div class="prose stack">
+    <p>Immaginate un lettore esperto a cui date una frase con una parola cancellata: «il gatto ___ sul divano». Per indovinarla usa quello che viene <em>prima</em> e quello che viene <em>dopo</em>. È esattamente ciò che fa BERT: ogni token guarda tutti gli altri, in entrambe le direzioni. Il nome lo dice: <i>bidirectional encoder</i>, un codificatore che legge in due direzioni.</p>
+    <p>Il risultato non è una frase ma <b>un vettore per ogni token</b> (768 numeri nella versione base), che ne descrive il significato nel contesto: la parola «pesca» in «vado a pesca» e in «mangio una pesca» esce con due vettori diversi. Su quei vettori si costruisce poi il compito che serve.</p>
+  </div>
+
+  <h3 id="bert-training" class="anchor">Come si allena: due esercizi</h3>
+  <div class="vx vx-cards">
+    <div class="vx-card"><h5><small>MLM · Masked Language Modeling</small>Indovina la parola coperta</h5>
+      <p style="margin:0;font-size:.9rem">Si sceglie a caso il <b>15%</b> dei token. Di questi, l'80% diventa <code>[MASK]</code>, il 10% un token casuale, il 10% resta uguale. Il modello deve ricostruire l'originale.</p>
+      <div class="vx-out acc"><b>perché 80/10/10</b> · in uso reale <code>[MASK]</code> non compare mai: se il modello lo vedesse sempre, imparerebbe a lavorare solo quando c'è.</div></div>
+    <div class="vx-card"><h5><small>NSP · Next Sentence Prediction</small>La seconda frase segue la prima?</h5>
+      <p style="margin:0;font-size:.9rem">Metà delle volte la frase B segue davvero la A, metà è presa a caso. Il modello risponde sì o no usando il token speciale <code>[CLS]</code> messo all'inizio.</p>
+      <div class="vx-out wait"><b>poi abbandonato</b> · RoBERTa (Facebook AI, 2019) ha mostrato che togliendo l'NSP e allenando di più con più dati si ottiene di meglio.</div></div>
+  </div>
+
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Versione</th><th>Blocchi</th><th>Dimensione d</th><th>Teste di attenzione</th><th>Parametri</th></tr></thead>
+    <tbody>
+      <tr><td>BERT-base</td><td class="m">12</td><td class="m">768</td><td class="m">12</td><td class="m">110 M</td></tr>
+      <tr><td>BERT-large</td><td class="m">24</td><td class="m">1.024</td><td class="m">16</td><td class="m">340 M</td></tr>
+    </tbody></table></div>
+    <p class="vx-foot">Addestrato su BooksCorpus (800 milioni di parole) e Wikipedia in inglese (2,5 miliardi), con un vocabolario WordPiece di circa 30.000 token.</p>
+  </div>
+
+  <h3 id="bert-uso" class="anchor">Come si usa: si aggiunge una testa piccola</h3>
+  <div class="prose stack">
+    <p>BERT pre-addestrato non sa fare nulla di utile da solo: sa rappresentare. Per un compito si aggiunge sopra uno strato piccolo e si fa un breve fine-tuning (addestramento di rifinitura) su esempi etichettati.</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Compito</th><th>Che cosa si legge dall'uscita</th><th>Esempio</th></tr></thead>
+    <tbody>
+      <tr><td>Classificazione</td><td>il vettore di <code>[CLS]</code> → una probabilità per classe</td><td>recensione positiva o negativa, email spam</td></tr>
+      <tr><td>Etichette per token (NER, Named Entity Recognition)</td><td>ogni vettore → una classe</td><td>«Mario» = persona, «Roma» = luogo</td></tr>
+      <tr><td>Domande su un testo</td><td>ogni vettore → «inizio risposta?», «fine risposta?»</td><td>la risposta è il tratto tra i due</td></tr>
+      <tr><td>Ricerca per significato</td><td>media dei vettori → un vettore per frase</td><td>embedding per la ricerca nei documenti (RAG, Retrieval-Augmented Generation)</td></tr>
+    </tbody></table></div></div>
+  <p class="callout"><b>Dove si trova BERT oggi.</b> Non come chatbot ma dietro le quinte: modelli di embedding per la ricerca, <i>reranker</i> che riordinano i risultati, classificatori veloci ed economici. I discendenti (RoBERTa, DistilBERT, DeBERTa, ModernBERT) mantengono l'idea: encoder bidirezionale, uscita come rappresentazione.</p>
+
+  <dl class="gloss">
+    <div><dt>Encoder</dt><dd>La pila di blocchi in cui ogni token può guardare tutti gli altri. Produce rappresentazioni.</dd><span class="ex">BERT, RoBERTa</span></div>
+    <div><dt>[CLS]</dt><dd>Token speciale messo all'inizio: il suo vettore finale riassume la sequenza ed è quello usato per classificare.</dd><span class="ex">[CLS] il film è bello [SEP]</span></div>
+    <div><dt>Fine-tuning</dt><dd>Addestramento breve su un compito specifico, partendo dai pesi già pre-addestrati.</dd><span class="ex">poche migliaia di esempi etichettati</span></div>
+  </dl>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="st" id="cap-3">
+  <div class="sec-head">
+    <span class="eyebrow">3 · BERT contro GPT</span>
+    <h2>La differenza tecnica sta in una matrice triangolare</h2>
+  </div>
+  <div class="prose stack">
+    <p>GPT (Generative Pre-trained Transformer) usa lo stesso blocco di BERT. Le differenze sono quattro, e discendono tutte dalla prima.</p>
+  </div>
+  <div class="vx"><ol class="vx-steps">
+    <li class="hot"><span><b>La maschera di attenzione.</b> In BERT ogni token guarda tutti; in GPT ogni token guarda solo sé stesso e i token <em>precedenti</em>. È una maschera causale: la matrice «chi vede chi» è un triangolo.</span></li>
+    <li><span><b>L'obiettivo.</b> BERT indovina il 15% di token coperti; GPT prevede il token successivo in <em>ogni</em> posizione. Con la stessa frase, GPT riceve un segnale di errore da quasi tutti i token, BERT da circa uno su sette.</span></li>
+    <li><span><b>L'uscita.</b> BERT restituisce vettori su cui si monta una testa per il compito; GPT restituisce una distribuzione di probabilità sul vocabolario per il token successivo.</span></li>
+    <li><span><b>L'inferenza.</b> BERT fa una passata sola sulla frase intera; GPT genera un token, lo aggiunge all'ingresso e ripete, riusando i calcoli già fatti per i token precedenti (la cache KV, key-value).</span></li>
+  </ol></div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: chi vede chi</h3><span class="tag">comportamento reale</span></div>
+    <p>Scegli il modello e tocca una parola a sinistra: la riga mostra quali token può guardare mentre calcola il proprio vettore. Sotto, che cosa deve prevedere ogni posizione durante l'addestramento.</p>
+    <div class="row"><div class="seg" id="mkMode"><button aria-pressed="true" data-m="bert">BERT · bidirezionale</button><button aria-pressed="false" data-m="gpt">GPT · causale</button></div></div>
+    <div class="scroll-x"><div class="mask" id="mkGrid"></div></div>
+    <p class="vx-cap" style="margin:0">Che cosa impara ogni posizione</p>
+    <div class="tgt" id="mkTgt"></div>
+    <div class="readout"><div><small>Posizioni che producono errore</small><strong id="mkLoss">–</strong></div><div><small>Il token scelto vede</small><strong id="mkSees">–</strong></div></div>
+    <p class="callout" id="mkMsg"></p>
+    <p class="note">Nella realtà BERT copre il 15% dei token di ogni esempio; qui, con sei parole, ne copriamo una. Le frasi di BERT hanno anche <code>[CLS]</code> e <code>[SEP]</code>, omessi per chiarezza.</p>
+  </div>
+
+  <h3 id="perche-non-genera" class="anchor">Perché BERT non scrive e GPT non «legge» a ritroso</h3>
+  <div class="prose stack">
+    <p>BERT è stato allenato a riempire buchi <em>avendo il contesto da entrambi i lati</em>. Per scrivere un testo nuovo da sinistra a destra, il contesto di destra non esiste ancora: il modello lavora fuori dalle condizioni in cui ha imparato. Si può forzare (riempire più maschere a turni), ma il risultato è scadente.</p>
+    <p>GPT, al contrario, è nato per scrivere: l'obiettivo di addestramento e l'uso coincidono, token dopo token. Il prezzo è che, a parità di dimensione, ogni token ha un contesto solo a metà, e per compiti di pura comprensione su frasi brevi un encoder piccolo resta competitivo e molto più economico. Con la scala, però, i modelli decoder hanno imparato anche a capire: basta formulare il compito come testo da continuare.</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th></th><th>BERT (encoder)</th><th>GPT (decoder)</th></tr></thead>
+    <tbody>
+      <tr><td>Chi vede chi</td><td>tutti vedono tutti</td><td>ogni token vede solo quelli precedenti</td></tr>
+      <tr><td>Obiettivo</td><td>token coperti (MLM), 15%</td><td>token successivo, ogni posizione</td></tr>
+      <tr><td>Uscita</td><td>un vettore per token</td><td>probabilità del token successivo</td></tr>
+      <tr><td>Inferenza</td><td>una passata</td><td>un ciclo per ogni token generato, con cache KV</td></tr>
+      <tr><td>Adattamento a un compito</td><td>testa piccola + fine-tuning</td><td>istruzioni nel prompt, esempi, oppure fine-tuning</td></tr>
+      <tr><td>Punto forte</td><td>rappresentazioni, ricerca, classificazione a basso costo</td><td>generazione, conversazione, ragionamento</td></tr>
+    </tbody></table></div></div>
+
+  <dl class="gloss">
+    <div><dt>Maschera causale</dt><dd>Impedisce a ogni token di guardare quelli successivi: la matrice di attenzione diventa triangolare.</dd><span class="ex">«dorme» vede «il», «gatto», «dorme»</span></div>
+    <div><dt>Autoregressivo</dt><dd>Genera un token alla volta, e ogni token generato diventa ingresso per il successivo.</dd><span class="ex">il → gatto → dorme → …</span></div>
+    <div><dt>Cache KV</dt><dd>Chiavi e valori dell'attenzione dei token già elaborati, conservati per non ricalcolarli a ogni nuovo token.</dd><span class="ex">cresce con la lunghezza del contesto</span></div>
+  </dl>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="st" id="cap-4">
+  <div class="sec-head">
+    <span class="eyebrow">4 · Le famiglie di architetture</span>
+    <h2>Tre modi di montare il blocco, e perché ne ha vinto uno</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il Transformer originale (Vaswani e colleghi, 2017) era pensato per la traduzione e aveva due pile: una che legge la frase di partenza, una che scrive quella d'arrivo. BERT ha tenuto solo la prima, GPT solo la seconda. Ne escono tre famiglie.</p>
+  </div>
+  <div class="vx fam">
+    <div class="vx-card"><h5><small>encoder-only</small>Legge tutto, restituisce vettori</h5>
+      <svg viewBox="0 0 200 120" role="img" aria-label="Encoder: pila bidirezionale"><rect x="40" y="10" width="120" height="70" rx="8" class="bxa"/><text x="100" y="50" text-anchor="middle" font-size="12">encoder</text><text x="100" y="100" text-anchor="middle" font-size="10" class="mut">↔ tutti vedono tutti</text></svg>
+      <p style="margin:0;font-size:.86rem">BERT, RoBERTa, DeBERTa, ModernBERT. Embedding, classificazione, reranking.</p></div>
+    <div class="vx-card"><h5><small>decoder-only</small>Scrive un token alla volta</h5>
+      <svg viewBox="0 0 200 120" role="img" aria-label="Decoder: pila causale"><rect x="40" y="10" width="120" height="70" rx="8" class="bxa"/><text x="100" y="50" text-anchor="middle" font-size="12">decoder</text><text x="100" y="100" text-anchor="middle" font-size="10" class="mut">→ solo i precedenti</text></svg>
+      <p style="margin:0;font-size:.86rem">GPT, Llama, Qwen, Mistral, DeepSeek, gpt-oss. Quasi tutti i modelli conversazionali.</p></div>
+    <div class="vx-card"><h5><small>encoder-decoder</small>Legge una cosa, ne scrive un'altra</h5>
+      <svg viewBox="0 0 200 120" role="img" aria-label="Encoder-decoder con attenzione incrociata"><defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" class="acf"/></marker></defs><rect x="8" y="10" width="76" height="70" rx="8" class="bx"/><text x="46" y="50" text-anchor="middle" font-size="11">encoder</text><rect x="116" y="10" width="76" height="70" rx="8" class="bxa"/><text x="154" y="50" text-anchor="middle" font-size="11">decoder</text><line x1="84" y1="45" x2="113" y2="45" class="ac" stroke-width="1.6" marker-end="url(#fa)"/><text x="100" y="100" text-anchor="middle" font-size="10" class="mut">attenzione incrociata</text></svg>
+      <p style="margin:0;font-size:.86rem">Transformer originale, T5, BART, Whisper. Traduzione, riassunti, trascrizione.</p></div>
+  </div>
+  <div class="prose stack">
+    <p>Nell'encoder-decoder il decoder ha un terzo stadio in ogni blocco, l'<b>attenzione incrociata</b>: oltre a guardare i token che ha già scritto, guarda i vettori prodotti dall'encoder sulla frase di partenza. T5 (Google, 2019) lo allena coprendo interi tratti di testo e chiedendo al decoder di riscriverli.</p>
+  </div>
+
+  <h3 id="perche-decoder" class="anchor">Perché i grandi modelli sono quasi tutti decoder-only</h3>
+  <div class="vx"><ol class="vx-steps">
+    <li><span><b>Ogni token insegna qualcosa.</b> Prevedere il successivo produce un errore in ogni posizione: più segnale per ogni documento letto rispetto al 15% di BERT.</span></li>
+    <li><span><b>Un formato per tutto.</b> Traduzione, riassunto, codice, dialogo: sono tutti «dato questo testo, continua». Non serve una testa diversa per ogni compito.</span></li>
+    <li><span><b>Si scala in modo semplice.</b> Una sola pila, un solo obiettivo; le leggi di scala mostrano miglioramenti regolari aumentando dati, parametri e calcolo.</span></li>
+    <li><span><b>Imparare dal prompt.</b> A grande scala compare l'apprendimento in contesto: esempi e istruzioni nel prompt cambiano il comportamento senza toccare i pesi.</span></li>
+  </ol></div>
+
+  <h3 id="decoder-moderno" class="anchor">Dentro un decoder moderno</h3>
+  <div class="prose stack"><p>Il decoder del 2026 è ancora il blocco del 2017, con alcuni pezzi sostituiti da versioni più efficienti. Nessuno cambia l'idea di fondo; cambiano costo, stabilità e lunghezza del contesto.</p></div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Pezzo</th><th>Originale</th><th>Oggi, di solito</th><th>Perché</th></tr></thead>
+    <tbody>
+      <tr><td>Posizione dei token</td><td>vettori di posizione sommati</td><td>RoPE (Rotary Position Embedding): ruota query e key in base alla posizione</td><td>codifica la distanza relativa, si estende a contesti più lunghi</td></tr>
+      <tr><td>Normalizzazione</td><td>LayerNorm dopo ogni stadio</td><td>RMSNorm (Root Mean Square Normalization) prima di ogni stadio</td><td>più economica e più stabile con molti blocchi</td></tr>
+      <tr><td>FFN</td><td>due matrici, attivazione ReLU</td><td>SwiGLU (Swish-Gated Linear Unit): tre matrici, una fa da «cancello»</td><td>qualità migliore a parità di parametri</td></tr>
+      <tr><td>Teste di attenzione</td><td>ogni testa ha le sue key e value</td><td>GQA (Grouped-Query Attention): gruppi di teste condividono key e value</td><td>cache KV molto più piccola, inferenza più veloce</td></tr>
+      <tr><td>FFN, di nuovo</td><td>densa</td><td>spesso sostituita da esperti (MoE)</td><td>più parametri senza più calcolo per token (capitolo 5)</td></tr>
+    </tbody></table></div>
+    <p class="vx-foot">Esempio concreto: Qwen3-235B usa 64 teste per le query e solo 4 per key e value; gpt-oss-120b usa gruppi da 8 e RoPE.</p>
+  </div>
+  <p class="note">Esistono anche architetture che sostituiscono in parte l'attenzione, come i modelli a spazio di stati (SSM, State Space Model, per esempio Mamba) e gli ibridi che alternano i due tipi di strato. Riducono il costo sui contesti lunghi; sono fuori dal perimetro di questa guida.</p>
+
+  <dl class="gloss">
+    <div><dt>Decoder</dt><dd>La pila di blocchi con maschera causale, che genera testo un token alla volta.</dd><span class="ex">GPT, Llama, Qwen</span></div>
+    <div><dt>Attenzione incrociata</dt><dd>Stadio del decoder in cui i token in scrittura guardano i vettori prodotti dall'encoder.</dd><span class="ex">T5, Whisper</span></div>
+    <div><dt>GQA</dt><dd>Grouped-Query Attention: più teste di query condividono le stesse key e value, riducendo la cache.</dd><span class="ex">64 query, 4 key-value</span></div>
+  </dl>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="st" id="cap-5">
+  <div class="sec-head">
+    <span class="eyebrow">5 · Denso e sparso</span>
+    <h2>Quanti parametri ha un modello, e quanti ne usa per ogni token</h2>
+  </div>
+  <div class="prose stack">
+    <p>In un modello <b>denso</b> ogni token attraversa tutti i parametri: con 70 miliardi di pesi, ogni parola prodotta passa per 70 miliardi di pesi. Il costo di calcolo per token cresce quindi insieme alla dimensione del modello: circa <code>2 × parametri</code> operazioni in virgola mobile (FLOPs, floating point operations) per ogni token generato, una moltiplicazione e una somma per peso.</p>
+    <p>In un modello <b>sparso</b> a esperti la FFN di un blocco viene sostituita da tante FFN alternative, e ogni token ne usa solo alcune. Nascono così due numeri diversi: i <b>parametri totali</b>, che devono stare tutti in memoria, e i <b>parametri attivi</b>, quelli che un token usa davvero e che determinano il costo di calcolo. È come un ospedale con cento specialisti: sono tutti sul libro paga, ma ogni paziente ne vede due.</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Modello</th><th>Totali</th><th>Attivi per token</th><th>Esperti per strato</th><th>Scelti per token</th></tr></thead>
+    <tbody>
+      <tr><td>Mixtral 8x7B (Mistral AI, 2023)</td><td class="m">46,7 B</td><td class="m">12,9 B</td><td class="m">8</td><td class="m">2</td></tr>
+      <tr><td>DeepSeek-V3 (2024)</td><td class="m">671 B</td><td class="m">37 B</td><td class="m">256 + 1 condiviso</td><td class="m">8 + 1</td></tr>
+      <tr><td>Qwen3-235B-A22B (Alibaba, 2025)</td><td class="m">235 B</td><td class="m">22 B</td><td class="m">128</td><td class="m">8</td></tr>
+      <tr><td>Llama 4 Maverick (Meta, 2025)</td><td class="m">400 B</td><td class="m">17 B</td><td class="m">128 + 1 condiviso</td><td class="m">1 + 1</td></tr>
+      <tr><td>gpt-oss-120b (OpenAI, 2025)</td><td class="m">117 B</td><td class="m">5,1 B</td><td class="m">128</td><td class="m">4</td></tr>
+    </tbody></table></div>
+    <p class="vx-foot">«8x7B» non significa 56 miliardi: gli esperti sostituiscono solo le FFN, mentre attenzione ed embedding sono condivisi. Per questo i totali sono 46,7 B.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: calcolatore denso contro sparso</h3><span class="tag">matematica reale, modello semplificato</span></div>
+    <p>Parti da un preset e muovi il numero di esperti e quanti ne sceglie ogni token: guarda come si separano parametri totali (memoria) e attivi (calcolo).</p>
+    <div class="row" id="ccPre"><button class="btn ghost" data-p="dense">Denso ~ 70 B</button><button class="btn ghost" data-p="mixtral">Tipo Mixtral</button><button class="btn ghost" data-p="qwen">Tipo Qwen3-235B</button></div>
+    <div class="controls">
+      <div class="ctl"><label for="ccD">Dimensione d <output id="ccDo"></output></label><input id="ccD" type="range" min="1024" max="8192" step="512" value="4096"></div>
+      <div class="ctl"><label for="ccL">Blocchi <output id="ccLo"></output></label><input id="ccL" type="range" min="8" max="96" step="2" value="32"></div>
+      <div class="ctl"><label for="ccF">Larghezza di un esperto (× d) <output id="ccFo"></output></label><input id="ccF" type="range" min="0.125" max="4" step="0.125" value="3.5"></div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="ccE">Esperti per strato <output id="ccEo"></output></label><input id="ccE" type="range" min="1" max="256" step="1" value="8"></div>
+      <div class="ctl"><label for="ccK">Scelti per token (top-k) <output id="ccKo"></output></label><input id="ccK" type="range" min="1" max="8" step="1" value="2"></div>
+      <div class="ctl"><label>Esperto condiviso</label><div class="seg" id="ccS"><button aria-pressed="true" data-s="0">no</button><button aria-pressed="false" data-s="1">sì</button></div></div>
+    </div>
+    <div class="readout">
+      <div><small>Parametri totali</small><strong id="ccTot">–</strong></div>
+      <div><small>Parametri attivi per token</small><strong id="ccAct">–</strong></div>
+      <div><small>Calcolo per token</small><strong id="ccFl">–</strong></div>
+      <div><small>Memoria dei pesi (bf16, bfloat16)</small><strong id="ccMem">–</strong></div>
+    </div>
+    <div class="ratio" id="ccBar"><span class="a">attivi</span><span class="i">inattivi</span></div>
+    <p class="callout" id="ccMsg"></p>
+    <p class="note">Semplificazioni: attenzione standard da 4·d² per blocco (senza GQA, quindi un po' sovrastimata), FFN SwiGLU da 3 matrici per esperto, vocabolario di 128.000 token con embedding d'ingresso e di uscita separati, tutti i blocchi a esperti. I preset si avvicinano ai modelli reali: i totali entro pochi punti percentuali, gli attivi un po' più alti perché l'attenzione è sovrastimata. bf16 = 2 byte per peso.</p>
+  </div>
+
+  <h3 id="costi-sparso" class="anchor">Che cosa si guadagna e che cosa si paga</h3>
+  <div class="vx"><div class="vx-pair">
+    <div class="vx-box"><h5>Si guadagna</h5>
+      <div class="vx-rec"><span>più conoscenza a parità di calcolo<small>più parametri totali = più capacità di memorizzare</small></span></div>
+      <div class="vx-rec"><span>addestramento più economico<small>a parità di qualità servono meno FLOPs di un denso</small></span></div>
+      <div class="vx-rec"><span>generazione più veloce<small>per token si calcolano solo gli esperti scelti</small></span></div></div>
+    <div class="vx-arrow"><span>⇄</span></div>
+    <div class="vx-box"><h5>Si paga</h5>
+      <div class="vx-rec"><span>memoria<small>tutti gli esperti devono stare nelle GPU (Graphics Processing Unit), anche se lavorano a turno</small></span></div>
+      <div class="vx-rec"><span>comunicazione<small>i token viaggiano tra le GPU che ospitano esperti diversi</small></span></div>
+      <div class="vx-rec"><span>addestramento più delicato<small>bilanciamento del carico, stabilità del router</small></span></div></div>
+  </div></div>
+
+  <dl class="gloss">
+    <div><dt>Parametri totali</dt><dd>Tutti i pesi del modello: determinano la memoria necessaria.</dd><span class="ex">DeepSeek-V3: 671 B</span></div>
+    <div><dt>Parametri attivi</dt><dd>I pesi effettivamente usati per elaborare un token: determinano il calcolo.</dd><span class="ex">DeepSeek-V3: 37 B</span></div>
+    <div><dt>Modello denso</dt><dd>Modello in cui ogni token usa tutti i parametri.</dd><span class="ex">Llama 3 70B</span></div>
+  </dl>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="st" id="cap-6">
+  <div class="sec-head">
+    <span class="eyebrow">6 · Com'è fatto un modello a esperti</span>
+    <h2>Non è un router davanti a un modello: è una FFN moltiplicata in ogni blocco</h2>
+  </div>
+  <div class="prose stack">
+    <p>L'idea intuitiva è: un modello, un router all'ingresso che smista la domanda all'esperto giusto. <b>Non funziona così.</b> Non c'è un router davanti e non ci sono esperti interi, ciascuno un modello completo. Il cambio avviene dentro ogni blocco, e riguarda solo la FFN.</p>
+  </div>
+  <div class="vx"><div class="vx-pair">
+    <div class="vx-box"><h5>Blocco denso</h5>
+      <div class="vx-rec"><span>attenzione</span></div>
+      <div class="vx-rec new"><span>FFN · una sola, per tutti i token</span></div>
+      <div class="vx-rec old"><span>+ residuo, normalizzazione</span></div></div>
+    <div class="vx-arrow"><span>→</span>diventa</div>
+    <div class="vx-box acc"><h5>Blocco MoE</h5>
+      <div class="vx-rec"><span>attenzione<small>identica: resta densa e condivisa</small></span></div>
+      <div class="vx-rec new"><span>router<small>un piccolo strato lineare: d → numero di esperti</small></span></div>
+      <div class="vx-cells"><span class="vx-cell hl">E1</span><span class="vx-cell">E2</span><span class="vx-cell">E3</span><span class="vx-cell hl">E4</span><span class="vx-cell">…</span><span class="vx-cell">E128</span><span class="vx-cell ok">condiviso</span></div>
+      <div class="vx-rec old"><span>somma pesata delle uscite scelte, + residuo</span></div></div>
+  </div></div>
+
+  <h3 id="cosa-cambia" class="anchor">Che cosa cambia davvero, pezzo per pezzo</h3>
+  <div class="vx"><ol class="vx-steps">
+    <li><span><b>La FFN diventa N esperti.</b> Ogni esperto è una FFN completa con i suoi pesi. Nei progetti recenti gli esperti sono tanti e stretti (a grana fine): Qwen3-235B ne ha 128 per strato, ognuno largo meno di mezzo <i>d</i>, invece di pochi esperti grandi.</span></li>
+    <li><span><b>C'è un router in ogni blocco a esperti, non uno solo.</b> Con 94 blocchi ci sono 94 router, e ognuno decide per ogni token, in modo indipendente dagli altri. Lo stesso token può andare agli esperti 3 e 17 nel blocco 5 e agli esperti 88 e 102 nel blocco 6.</span></li>
+    <li><span><b>Non tutti i blocchi sono per forza a esperti.</b> DeepSeek-V3 tiene densi i primi tre blocchi; Llama 4 alterna blocchi densi e blocchi a esperti.</span></li>
+    <li><span><b>Esperti condivisi.</b> Alcuni modelli aggiungono uno o più esperti che lavorano per <em>ogni</em> token, per la conoscenza comune, lasciando agli esperti scelti le specializzazioni (DeepSeek-V3, Llama 4).</span></li>
+    <li><span><b>Attenzione, embedding e testa restano densi.</b> Sono condivisi da tutti i token: per questo i parametri attivi non sono semplicemente «totali ÷ esperti».</span></li>
+    <li class="hot"><span><b>L'addestramento cambia.</b> Il router si allena insieme a tutto il resto, ma va tenuto in equilibrio (capitolo 7): una perdita di bilanciamento, una capacità massima per esperto, a volte una penalità che tiene piccoli i punteggi del router (<i>z-loss</i>) per evitare instabilità.</span></li>
+    <li><span><b>L'infrastruttura cambia.</b> Gli esperti sono distribuiti su GPU (Graphics Processing Unit) diverse (parallelismo per esperti): a ogni blocco i token vengono spediti alle GPU dei propri esperti e poi rimandati indietro, una comunicazione «tutti con tutti». DeepSeek-V3 limita ogni token a esperti su al massimo 4 nodi per contenere il traffico.</span></li>
+  </ol></div>
+
+  <h3 id="moe-codice" class="anchor">Lo stesso, in codice</h3>
+  <div class="prose"><p>Uno strato MoE ridotto all'osso, per un solo token. Tutto il resto del blocco resta come nel modello denso.</p></div>
+  <div class="vx vx-code"><div class="vx-code-h"><span>Python · uno strato MoE, token singolo</span><button class="vx-copy" type="button">Copia</button></div>
+<pre><code><span class="ln"><span class="tk-kw">def</span> moe_ffn(h, W_router, esperti, k=<span class="tk-num">2</span>, condiviso=<span class="tk-kw">None</span>):
+</span><span class="ln">    punteggi = h @ W_router                    <span class="tk-cm"># un numero per esperto</span>
+</span><span class="ln">    prob = softmax(punteggi)
+</span><span class="ln hl">    scelti = argsort(prob)[-k:]                <span class="tk-an"># ← top-k: gli altri esperti non vengono calcolati</span>
+</span><span class="ln">    pesi = prob[scelti] / prob[scelti].sum()    <span class="tk-cm"># rinormalizza tra i soli scelti</span>
+</span><span class="ln">    y = sum(p * esperti[i](h) <span class="tk-kw">for</span> p, i <span class="tk-kw">in</span> zip(pesi, scelti))
+</span><span class="ln">    <span class="tk-kw">if</span> condiviso <span class="tk-kw">is not None</span>:
+</span><span class="ln">        y = y + condiviso(h)                   <span class="tk-cm"># lavora per ogni token</span>
+</span><span class="ln">    <span class="tk-kw">return</span> y
+</span></code></pre></div>
+  <p class="callout"><b>Risposta breve alla domanda «cambia solo il router?».</b> No. Il router è la parte visibile, ma per averlo bisogna moltiplicare le FFN in ogni blocco, allenare il router insieme al resto tenendolo in equilibrio, e distribuire gli esperti su più GPU. Attenzione ed embedding restano invece quelli di un modello denso.</p>
+
+  <dl class="gloss">
+    <div><dt>Esperto</dt><dd>Una delle FFN alternative di un blocco MoE. Non è un modello a sé e non ha un argomento assegnato.</dd><span class="ex">una delle 128 FFN di Qwen3</span></div>
+    <div><dt>Esperto condiviso</dt><dd>Esperto usato da tutti i token, in aggiunta a quelli scelti dal router.</dd><span class="ex">DeepSeek-V3, Llama 4</span></div>
+    <div><dt>Parallelismo per esperti</dt><dd>Distribuzione degli esperti su GPU diverse: i token vengono spediti dove sta il loro esperto.</dd><span class="ex">comunicazione all-to-all</span></div>
+  </dl>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="st" id="cap-7">
+  <div class="sec-head">
+    <span class="eyebrow">7 · Come sceglie il router</span>
+    <h2>Un prodotto scalare, i k punteggi più alti e una forza che tiene tutti al lavoro</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il router non legge la domanda e non conosce argomenti. Lavora su un vettore alla volta: il vettore <i>h</i> di un token, così com'è dopo l'attenzione di quel blocco. I passi sono sempre gli stessi.</p>
+  </div>
+  <div class="vx"><ol class="vx-steps">
+    <li><span class="vx-li"><span><b>Punteggi.</b> Moltiplica <i>h</i> per la matrice del router <i>W</i> (d righe, una colonna per esperto): esce un punteggio per esperto.</span><em>s = h · W</em></span></li>
+    <li><span class="vx-li"><span><b>Probabilità.</b> Trasforma i punteggi in numeri positivi che sommano a 1 (softmax). DeepSeek-V3 usa una sigmoide per ogni esperto, indipendente dagli altri.</span><em>p = softmax(s)</em></span></li>
+    <li class="hot"><span class="vx-li"><span><b>Top-k.</b> Tiene i k esperti con la probabilità più alta; gli altri, per questo token, non vengono calcolati affatto.</span><em>k = 1, 2, 4, 8…</em></span></li>
+    <li><span class="vx-li"><span><b>Pesi.</b> Rinormalizza le probabilità dei soli scelti perché sommino a 1.</span><em>g = p / Σ p</em></span></li>
+    <li><span class="vx-li"><span><b>Combinazione.</b> L'uscita è la somma delle uscite degli esperti scelti, ciascuna moltiplicata per il suo peso.</span><em>y = Σ gᵢ · Eᵢ(h)</em></span></li>
+  </ol></div>
+  <div class="prose stack">
+    <p><b>Come impara a scegliere.</b> Nessuno etichetta i token con «questo va all'esperto 5». La matrice del router si allena come ogni altro peso: l'errore sul token successivo torna indietro anche attraverso i pesi <i>g</i>, e sposta <i>W</i> in modo che gli esperti che hanno aiutato ricevano punteggi più alti in casi simili.</p>
+    <p><b>Che cosa finiscono per rappresentare gli esperti.</b> Non «aree» tematiche. Gli autori di Mixtral hanno misurato come vengono assegnati i token di testi di matematica, biologia, filosofia e articoli scientifici: la distribuzione sugli esperti è quasi la stessa per tutti gli argomenti. Le regolarità sono sintattiche: in Python la parola <code>self</code> e i caratteri di indentazione vanno di solito allo stesso esperto, e token consecutivi tendono a scegliere gli stessi esperti.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: un router con 8 esperti</h3><span class="tag">simulazione</span></div>
+    <p>Tocca un token per vedere il calcolo del router. Poi premi «Passo di addestramento» più volte, prima senza bilanciamento e poi con: guarda il carico degli esperti.</p>
+    <div class="row">
+      <div class="seg" id="rtK"><button aria-pressed="false" data-k="1">top-1</button><button aria-pressed="true" data-k="2">top-2</button><button aria-pressed="false" data-k="4">top-4</button></div>
+      <div class="seg" id="rtMode"><button aria-pressed="true" data-m="none">senza bilanciamento</button><button aria-pressed="false" data-m="aux">perdita ausiliaria</button><button aria-pressed="false" data-m="bias">bias (DeepSeek-V3)</button></div>
+    </div>
+    <div class="row"><button class="btn" id="rtStep">Passo di addestramento</button><button class="btn ghost" id="rtRun">10 passi</button><button class="btn ghost" id="rtReset">Ricomincia</button><span class="muted mono" id="rtIt" style="font-size:.8rem"></span></div>
+    <div class="grid2">
+      <div><p class="vx-cap">Token × esperti · colore = probabilità, riquadro = scelto</p><div class="scroll-x"><div class="rgrid" id="rtGrid"></div></div></div>
+      <div><p class="vx-cap">Carico: quota dei token assegnati a ciascun esperto</p><div class="rload" id="rtLoad"></div>
+        <div class="readout" style="margin-top:12px"><div><small>Esperti inutilizzati</small><strong id="rtIdle">–</strong></div><div><small>Carico massimo / medio</small><strong id="rtMax">–</strong></div></div></div>
+    </div>
+    <div id="rtCalc" class="rcalc"></div>
+    <p class="callout" id="rtMsg"></p>
+    <p class="note">Valori illustrativi: vettori dei token e matrice del router sono numeri casuali fissi, e l'«addestramento» è ridotto alla sola dinamica del carico. In un modello vero <i>h</i> dipende dal contesto, per cui lo stesso token può andare a esperti diversi in frasi diverse; qui due token uguali hanno lo stesso vettore.</p>
+  </div>
+
+  <h3 id="bilanciamento" class="anchor">Il problema del bilanciamento</h3>
+  <div class="prose stack">
+    <p>Lasciato a sé, il router tende al <b>collasso</b>: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile, riceve ancora più token. Dopo un po' pochi esperti fanno tutto il lavoro e gli altri sono pesi sprecati, e nel frattempo le GPU che ospitano gli esperti più scelti fanno da collo di bottiglia. Le contromisure principali:</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Tecnica</th><th>Come funziona</th><th>Dove</th></tr></thead>
+    <tbody>
+      <tr><td>Perdita ausiliaria di bilanciamento</td><td>si aggiunge all'errore un termine <code>α · N · Σ fᵢ · Pᵢ</code> (fᵢ = quota di token che l'esperto riceve, Pᵢ = probabilità media che il router gli assegna): è minimo quando il carico è uniforme</td><td>Switch Transformer (α = 0,01), molti modelli successivi</td></tr>
+      <tr><td>Capacità per esperto</td><td>ogni esperto accetta al massimo <code>(token del batch / esperti) × fattore di capacità</code>; i token in eccesso saltano l'esperto e passano avanti solo con la connessione residua</td><td>Switch Transformer, GShard</td></tr>
+      <tr><td>Bias senza perdita ausiliaria</td><td>a ogni esperto si somma un bias usato <em>solo per scegliere</em>, non per pesare: si abbassa per chi è sovraccarico e si alza per chi è scarico. Non tocca il gradiente, quindi non peggiora la qualità</td><td>DeepSeek-V3, che così non scarta nessun token</td></tr>
+      <tr><td>Rumore sui punteggi</td><td>rumore casuale aggiunto ai punteggi durante l'addestramento, per far provare anche gli esperti meno scelti</td><td>Shazeer e colleghi, 2017 (top-k con rumore)</td></tr>
+      <tr><td>Scelta da parte dell'esperto</td><td>invertire la domanda: ogni esperto sceglie i suoi k token migliori, così il carico è uniforme per costruzione</td><td>Expert Choice (Google, 2022)</td></tr>
+    </tbody></table></div></div>
+
+  <dl class="gloss">
+    <div><dt>Router</dt><dd>Strato lineare che, in ogni blocco MoE, dà un punteggio a ogni esperto per il token corrente.</dd><span class="ex">s = h · W</span></div>
+    <div><dt>Top-k</dt><dd>La regola che tiene solo i k esperti con il punteggio più alto.</dd><span class="ex">Mixtral: k = 2 su 8</span></div>
+    <div><dt>Collasso degli esperti</dt><dd>Situazione in cui il router manda quasi tutti i token a pochi esperti.</dd><span class="ex">2 esperti su 8 fanno il 90% del lavoro</span></div>
+    <div><dt>Fattore di capacità</dt><dd>Moltiplicatore del carico medio che fissa quanti token un esperto può ricevere in un batch.</dd><span class="ex">1,25 = 25% di margine</span></div>
+  </dl>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Le scelte che distinguono le architetture</h2></div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Architettura</th><th>Chi vede chi</th><th>Obiettivo</th><th>FFN</th><th>Esempi</th><th>Usata per</th></tr></thead>
+    <tbody>
+      <tr><td>Encoder-only</td><td>tutti vedono tutti</td><td>token coperti (MLM)</td><td>densa</td><td>BERT, RoBERTa, ModernBERT</td><td>embedding, ricerca, classificazione</td></tr>
+      <tr><td>Decoder-only denso</td><td>solo i precedenti</td><td>token successivo</td><td>densa</td><td>GPT-3, Llama 3</td><td>generazione, chat, codice</td></tr>
+      <tr><td>Decoder-only MoE</td><td>solo i precedenti</td><td>token successivo</td><td>k esperti su N per token, in ogni blocco MoE</td><td>Mixtral, DeepSeek-V3, Qwen3-235B, gpt-oss</td><td>come il denso, con più parametri allo stesso costo per token</td></tr>
+      <tr><td>Encoder-decoder</td><td>encoder: tutti; decoder: precedenti + attenzione incrociata</td><td>ricostruire o tradurre un testo</td><td>densa (o MoE)</td><td>T5, BART, Whisper</td><td>traduzione, riassunti, trascrizione</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <p><b>Fonti principali.</b> Devlin e colleghi, <i>BERT: Pre-training of Deep Bidirectional Transformers</i> (2018); Liu e colleghi, <i>RoBERTa</i> (2019); Vaswani e colleghi, <i>Attention Is All You Need</i> (2017); Raffel e colleghi, <i>T5</i> (2019); Shazeer e colleghi, <i>Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer</i> (2017); Fedus, Zoph, Shazeer, <i>Switch Transformers</i> (2021); Jiang e colleghi, <i>Mixtral of Experts</i> (2024); DeepSeek-AI, <i>DeepSeek-V3 Technical Report</i> (2024); schede di Qwen3-235B-A22B, gpt-oss-120b e Llama 4.</p>
+  <p style="margin-top:8px">Il calcolatore del capitolo 5 usa formule semplificate; il router del capitolo 7 è una simulazione con valori illustrativi.</p>
+</footer>
+</div>
+
+<script>
+/* Script della guida: scroll spy e laboratori */
+(function(){
+  const $=s=>document.querySelector(s);
+  const links=[...document.querySelectorAll("nav.toc a")],secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+  function spy(){let c=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)c=i;});links.forEach((a,i)=>a.classList.toggle("on",i===c));}
+  addEventListener("scroll",spy,{passive:true});spy();
+  function seg(el,cb){el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));cb(b);}));}
+  const fmt=n=>n>=1e9?(n/1e9).toLocaleString("it-IT",{maximumFractionDigits:n>=1e11?0:1})+" B":(n/1e6).toLocaleString("it-IT",{maximumFractionDigits:0})+" M";
+
+  /* ---------- cap. 3 · maschera di attenzione ---------- */
+  const TOK=["Il","gatto","dorme","sul","divano","."],MASKED=2;
+  let mode="bert",sel=2;
+  function drawMask(){
+    const n=TOK.length,g=$("#mkGrid");
+    g.style.gridTemplateColumns=`72px repeat(${n},minmax(40px,1fr))`;
+    let h='<div></div>'+TOK.map((t,j)=>`<div class="h">${mode==="bert"&&j===MASKED?"[MASK]":t}</div>`).join("");
+    for(let i=0;i<n;i++){
+      h+=`<button class="rh${i===sel?" sel":""}" data-i="${i}" aria-pressed="${i===sel}">${mode==="bert"&&i===MASKED?"[MASK]":TOK[i]}</button>`;
+      for(let j=0;j<n;j++){const on=mode==="bert"||j<=i;h+=`<div class="c${on?" on":""}${on&&i===sel?" row":""}${i===j?" self":""}" aria-label="${on?"visibile":"nascosto"}">${on?"●":"·"}</div>`;}
+    }
+    g.innerHTML=h;
+    g.querySelectorAll(".rh").forEach(b=>b.addEventListener("click",()=>{sel=+b.dataset.i;drawMask();}));
+    // obiettivi
+    let t="";
+    for(let i=0;i<n;i++){
+      const shown=mode==="bert"&&i===MASKED?"[MASK]":TOK[i];
+      let target="";
+      if(mode==="bert")target=i===MASKED?"→ "+TOK[i]:"";
+      else target=i<n-1?"→ "+TOK[i+1]:"(fine)";
+      t+=`<div class="tt"><b class="${mode==="bert"&&i===MASKED?"m":""}">${shown}</b><span class="${target&&target!=="(fine)"?"l":""}">${target||"nessun errore"}</span></div>`;
+    }
+    $("#mkTgt").innerHTML=t;
+    const loss=mode==="bert"?1:n-1;
+    $("#mkLoss").textContent=loss+" su "+n;
+    const seen=mode==="bert"?n:sel+1;
+    $("#mkSees").textContent=seen+" token";
+    const w=mode==="bert"&&sel===MASKED?"[MASK]":TOK[sel];
+    $("#mkMsg").innerHTML=mode==="bert"
+      ?`<b>BERT.</b> «${w}» guarda tutti i ${n} token, anche quelli che vengono dopo. Per indovinare la parola coperta usa «Il gatto» a sinistra e «sul divano» a destra. Ma impara solo da quella posizione: le altre non producono errore.`
+      :`<b>GPT.</b> «${w}» guarda solo ${seen===1?"sé stesso":"sé stesso e i "+(seen-1)+" token precedenti"}. Non può sbirciare avanti, ed è proprio questo che gli permette di generare: ogni posizione impara a prevedere la parola successiva, quindi ${n-1} posizioni su ${n} producono errore.`;
+  }
+  seg($("#mkMode"),b=>{mode=b.dataset.m;drawMask();});drawMask();
+
+  /* ---------- cap. 5 · calcolatore ---------- */
+  const V=128000;
+  const cc={D:$("#ccD"),L:$("#ccL"),F:$("#ccF"),E:$("#ccE"),K:$("#ccK")};let shared=0;
+  function calc(){
+    const d=+cc.D.value,L=+cc.L.value,f=+cc.F.value,E=+cc.E.value;
+    cc.K.max=Math.min(8,E);if(+cc.K.value>E)cc.K.value=E;const k=+cc.K.value;
+    $("#ccDo").textContent=d.toLocaleString("it-IT");$("#ccLo").textContent=L;$("#ccFo").textContent=f.toLocaleString("it-IT")+" × d = "+Math.round(f*d).toLocaleString("it-IT");
+    $("#ccEo").textContent=E===1?"1 (denso)":E;$("#ccKo").textContent=k;
+    const attn=4*d*d,exp=3*d*f*d,router=E>1?d*E:0,emb=2*V*d;
+    const tot=emb+L*(attn+E*exp+shared*exp+router);
+    const act=emb+L*(attn+k*exp+shared*exp+router);
+    $("#ccTot").textContent=fmt(tot);$("#ccAct").textContent=fmt(act);
+    const fl=2*(act-V*d); // l'embedding d'ingresso è una lettura, non una moltiplicazione
+    $("#ccFl").textContent=(fl/1e9).toLocaleString("it-IT",{maximumFractionDigits:0})+" GFLOPs";
+    $("#ccMem").textContent=(tot*2/1e9).toLocaleString("it-IT",{maximumFractionDigits:0})+" GB";
+    const pct=act/tot*100;
+    $("#ccBar").innerHTML=`<span class="a" style="flex:0 0 ${Math.max(pct,4)}%">${pct.toLocaleString("it-IT",{maximumFractionDigits:pct<10?1:0})}% attivi</span><span class="i">${pct>99?"":"inattivi per questo token"}</span>`;
+    let m;
+    if(E===1)m=`<b>Modello denso.</b> Ogni token usa tutti i ${fmt(tot)} parametri: memoria e calcolo crescono insieme. Per avere più capacità bisogna pagare più calcolo per ogni token.`;
+    else m=`<b>${E} esperti, ${k} per token${shared?" più uno condiviso":""}.</b> In memoria servono ${fmt(tot)} di parametri, ma ogni token ne attraversa ${fmt(act)}: il ${pct.toLocaleString("it-IT",{maximumFractionDigits:1})}%. Il costo di generazione è quello di un modello denso da ${fmt(act)}; la capacità di memorizzare è più vicina a quella di uno da ${fmt(tot)}.`;
+    $("#ccMsg").innerHTML=m;
+  }
+  const PRE={dense:{D:8192,L:80,F:3.5,E:1,K:1,S:0},mixtral:{D:4096,L:32,F:3.5,E:8,K:2,S:0},qwen:{D:4096,L:94,F:0.375,E:128,K:8,S:0}};
+  function setShared(v){shared=v;$("#ccS").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.s===v));}
+  $("#ccPre").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const p=PRE[b.dataset.p];cc.D.value=p.D;cc.L.value=p.L;cc.F.value=p.F;cc.E.value=p.E;cc.K.max=Math.min(8,p.E);cc.K.value=p.K;setShared(p.S);calc();}));
+  Object.values(cc).forEach(x=>x.addEventListener("input",calc));
+  seg($("#ccS"),b=>{shared=+b.dataset.s;calc();});calc();
+
+  /* ---------- cap. 7 · router ---------- */
+  const RT=["Il","gatto","dorme",".","def","area","(","self",")",":","return","self",".","r","*","self",".","r"];
+  const NE=8,DIM=12;
+  let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+  const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+  const vec={};RT.forEach(t=>{if(!vec[t])vec[t]=Array.from({length:DIM},gauss);});
+  const W=Array.from({length:DIM},()=>Array.from({length:NE},()=>gauss()*0.5));
+  let K=2,rmode="none",drift=new Array(NE).fill(0),corr=new Array(NE).fill(0),it=0,rsel=7;
+  const softmax=a=>{const m=Math.max(...a);const e=a.map(x=>Math.exp(x-m));const s=e.reduce((p,c)=>p+c,0);return e.map(x=>x/s);};
+  function route(t){
+    const h=vec[t];const s=Array.from({length:NE},(_,e)=>h.reduce((acc,x,i)=>acc+x*W[i][e],0)+drift[e]);
+    // perdita ausiliaria: la correzione entra nei punteggi (scelta e pesi); bias DeepSeek-V3: solo nella scelta
+    const sc=rmode==="aux"?s.map((x,e)=>x+corr[e]):s;
+    const p=softmax(sc);
+    const selScore=rmode==="bias"?s.map((x,e)=>x+corr[e]):sc;
+    const order=[...selScore.keys()].sort((a,b)=>selScore[b]-selScore[a]);
+    const chosen=order.slice(0,K);const sum=chosen.reduce((a,e)=>a+p[e],0);
+    return {sc,p,chosen,g:chosen.map(e=>p[e]/sum)};
+  }
+  function loads(){const l=new Array(NE).fill(0);RT.forEach(t=>route(t).chosen.forEach(e=>l[e]++));const tot=RT.length*K;return l.map(x=>x/tot);}
+  function drawRouter(){
+    const g=$("#rtGrid");g.style.gridTemplateColumns=`64px repeat(${NE},minmax(22px,1fr))`;
+    let h='<div></div>'+Array.from({length:NE},(_,e)=>`<div class="th">E${e+1}</div>`).join("");
+    RT.forEach((t,i)=>{const r=route(t);
+      h+=`<button class="tk${i===rsel?" sel":""}" data-i="${i}" aria-pressed="${i===rsel}">${t}</button>`;
+      r.p.forEach((p,e)=>{h+=`<div class="rc${r.chosen.includes(e)?" pick":""}" style="background:color-mix(in srgb,var(--accent) ${Math.round(p*100)}%,var(--surface-2))" title="E${e+1}: ${(p*100).toFixed(0)}%"></div>`;});});
+    g.innerHTML=h;g.querySelectorAll(".tk").forEach(b=>b.addEventListener("click",()=>{rsel=+b.dataset.i;drawRouter();}));
+    const l=loads(),mean=1/NE,mx=Math.max(...l);
+    $("#rtLoad").innerHTML=l.map((x,e)=>`<div class="lr"><span>E${e+1}</span><div class="tr"><div class="fl${x>=mean*2?" hot":x===0?" cold":""}" style="width:${Math.min(100,x/(mean*3)*100)}%"></div></div><span>${(x*100).toFixed(0)}%</span></div>`).join("");
+    const idle=l.filter(x=>x===0).length;
+    $("#rtIdle").textContent=idle+" su "+NE;$("#rtMax").textContent=(mx/mean).toLocaleString("it-IT",{maximumFractionDigits:1})+"×";
+    $("#rtIt").textContent="passi: "+it;
+    const r=route(RT[rsel]);
+    const cell=(v,e,top)=>`<div class="${top?"top":""}">${v}</div>`;
+    $("#rtCalc").innerHTML=`<div class="lab2">«${RT[rsel]}» · punteggi s = h · W${rmode==="aux"?" (con correzione di bilanciamento)":""}</div>`+r.sc.map((v,e)=>cell(v.toFixed(2),e,false)).join("")
+      +`<div class="lab2">probabilità (softmax)</div>`+r.p.map((v,e)=>cell((v*100).toFixed(0)+"%",e,r.chosen.includes(e))).join("")
+      +`<div class="lab2">pesi dopo top-${K}: ${r.chosen.map((e,i)=>"E"+(e+1)+" × "+r.g[i].toFixed(2)).join(" + ")}</div>`;
+    let m;
+    if(it===0)m=`<b>Prima dell'addestramento.</b> Con top-${K} ogni token accende ${K} esperti su ${NE}. Nota che i tre «self» e i due «r» scelgono gli stessi esperti: stesso vettore, stessi punteggi. Il carico è già un po' sbilanciato solo per caso.`;
+    else if(rmode==="none")m=idle>=NE/2?`<b>Collasso.</b> Dopo ${it} passi ${idle} esperti su ${NE} non ricevono più token: chi era un po' più scelto è stato allenato di più ed è diventato ancora più scelto. I loro parametri occupano memoria senza lavorare.`:`<b>Il ricco diventa più ricco.</b> Gli esperti più scelti guadagnano punteggio a ogni passo. Continua: il carico si concentra.`;
+    else if(rmode==="aux")m=`<b>Perdita ausiliaria.</b> Il termine di bilanciamento spinge giù i punteggi degli esperti sovraccarichi e su quelli scarichi: il carico massimo è ${(mx/mean).toFixed(1)}× la media. Il prezzo: questa spinta entra nel gradiente e nei pesi <i>g</i>, e se troppo forte peggiora la qualità.`;
+    else m=`<b>Bias solo per la scelta.</b> Come in DeepSeek-V3, il bias sposta quali esperti vengono scelti ma non i pesi con cui le loro uscite vengono sommate (la riga delle probabilità non contiene il bias). Il carico si livella (massimo ${(mx/mean).toFixed(1)}× la media) senza toccare la funzione che il modello impara.`;
+    $("#rtMsg").innerHTML=m;
+  }
+  function train(){const l=loads(),mean=1/NE;
+    for(let e=0;e<NE;e++){const dev=l[e]/mean-1;
+      drift[e]+=0.35*dev;                                            // chi lavora di più migliora ed è scelto di più
+      if(rmode==="aux")corr[e]-=0.7*dev;                             // gradiente della perdita di bilanciamento
+      if(rmode==="bias")corr[e]-=0.5*Math.sign(dev)*Math.min(1,Math.abs(dev)); // bias: su se scarico, giù se sovraccarico
+    }it++;}
+  $("#rtStep").addEventListener("click",()=>{train();drawRouter();});
+  $("#rtRun").addEventListener("click",()=>{for(let i=0;i<10;i++)train();drawRouter();});
+  $("#rtReset").addEventListener("click",()=>{drift.fill(0);corr.fill(0);it=0;drawRouter();});
+  seg($("#rtK"),b=>{K=+b.dataset.k;drawRouter();});
+  seg($("#rtMode"),b=>{rmode=b.dataset.m;drift.fill(0);corr.fill(0);it=0;drawRouter();});
+  drawRouter();
+})();
+</script>
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,",
+  ids:[],
+  rules:[
+    {re:"capitolo 1",to:"#cap-1",flags:"i",first:false},
+    {re:"capitolo 2",to:"#cap-2",flags:"i",first:false},
+    {re:"capitolo 3",to:"#cap-3",flags:"i",first:false},
+    {re:"capitolo 4",to:"#cap-4",flags:"i",first:false},
+    {re:"capitolo 5",to:"#cap-5",flags:"i",first:false},
+    {re:"capitolo 6",to:"#cap-6",flags:"i",first:false},
+    {re:"capitolo 7",to:"#cap-7",flags:"i",first:false},
+    {re:"MLM",to:"#bert-training"},
+    {re:"NSP",to:"#bert-training"},
+    {re:"GQA",to:"#decoder-moderno"},
+    {re:"RoPE",to:"#decoder-moderno"},
+    {re:"top-k",to:"#cap-7",flags:"i"},
+    {re:"parametri attivi",to:"#cap-5",flags:"i"},
+    {re:"guida sul training",to:"https://pericle82.github.io/explorables/training-llm/#c-emb",k:"Altra guida",t:"Anatomia del Training LLM",body:"<p>Come un token diventa un vettore: vocabolario, one-hot, matrice degli embedding.</p>",flags:"i",first:false}
+  ],
+  gloss:{selector:"dl.gloss",skip:["Encoder","Decoder","Esperto"],extra:{"Cache KV":["cache KV"],"Maschera causale":["maschera causale"]}}
+};
+</script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->
+<!-- xpl:shared xref:start (non modificare: generato da shared/xref.html con scripts/sync-shared.mjs) -->
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+.xref-pop .xp-ex{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+a.xref.ext::after{content:" ↗";font-size:.8em}
+</style>
+<script>
+/* Riferimenti incrociati con anteprima (motore generico).
+   Configurazione in window.XREF_CONFIG = {
+     rules:    [{re:"regex", to:"#id" | "https://…", k:"etichetta", t:"titolo", body:"html", first:true, flags:"g" | "gi"}],
+     gloss:    {selector:"dl.gloss", skip:["Termine", …], extra:{"Termine":["alias", …]}},
+     ids:      [{sel:"css", text:"testo contenuto", id:"id-da-assegnare"}]
+   } */
+(function(){
+  const C=window.XREF_CONFIG||{};const main=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // id aggiuntivi su elementi senza id
+  (C.ids||[]).forEach(r=>{const el=[...document.querySelectorAll(r.sel)].find(e=>txt(e).includes(r.text));if(el&&!el.id)el.id=r.id;});
+
+  /* anteprima automatica di un elemento del documento */
+  function preview(el){
+    if(!el)return null;
+    if(el.tagName==="DIV"&&el.parentElement&&el.parentElement.tagName==="DL"){const dt=el.querySelector("dt"),dd=el.querySelector("dd"),ex=el.querySelector(".ex");
+      return{k:"Definizione",t:txt(dt),body:(dd?`<p>${dd.innerHTML}</p>`:"")+(ex?`<p class="xp-ex">${ex.innerHTML}</p>`:"")};}
+    if(el.tagName==="SECTION"){const eb=el.querySelector(".sec-head .eyebrow"),h=el.querySelector("h2"),p=el.querySelector(".prose p, p");
+      return{k:txt(eb),t:txt(h),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(/^H[2-4]$/.test(el.tagName)){let n=el.nextElementSibling;while(n&&!/^(P|DIV)$/.test(n.tagName))n=n.nextElementSibling;
+      const p=n&&(n.tagName==="P"?n:n.querySelector("p"));const sec=el.closest("section");
+      return{k:sec?txt(sec.querySelector(".sec-head .eyebrow")):"",t:txt(el),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(el.tagName==="TR"){const c=[...el.children];return{k:"",t:txt(c[0]),body:c.slice(1).map(x=>`<p>${x.innerHTML}</p>`).join("")};}
+    const b=el.querySelector("b,h3,h4"),rest=el.cloneNode(true);if(b){const bb=rest.querySelector("b,h3,h4");bb&&bb.remove();}
+    return{k:"",t:txt(b),body:`<p>${rest.innerHTML}</p>`};
+  }
+
+  /* regole: espressioni → bersaglio */
+  const rules=[];
+  (C.rules||[]).forEach(r=>rules.push({re:new RegExp("^(?:"+r.re+")$",r.flags&&r.flags.includes("i")?"i":""),src:r.re,to:r.to,k:r.k,t:r.t,body:r.body,first:r.first!==false,flags:r.flags||""}));
+  // glossario automatico da <dl class="gloss">
+  const G=C.gloss;
+  if(G){const skip=new Set(G.skip||[]);let gi=0;
+    document.querySelectorAll(G.selector||"dl.gloss").forEach(dl=>dl.querySelectorAll(":scope > div").forEach(div=>{const dt=div.querySelector("dt");if(!dt)return;
+      const name=txt(dt);if(skip.has(name))return;div.id=div.id||"def-"+(++gi);div.classList.add("xref-target");
+      let aliases=[];name.split(/\s*\/\s*|\s+vs\s+/).forEach(part=>{const m=part.match(/^(.*?)\s*\((.*?)\)\s*$/);if(m){aliases.push(m[1]);if(!/\s/.test(m[2])||m[2].length<22)aliases.push(m[2]);}else aliases.push(part);});
+      aliases=aliases.concat((G.extra||{})[name]||[]).map(a=>a.trim()).filter(a=>a.length>=3&&!skip.has(a));
+      aliases.forEach(a=>{const acr=/^[A-Z0-9][A-Za-z0-9-]*[A-Z0-9]$/.test(a)&&a!==a.toLowerCase()&&/[A-Z].*[A-Z]|\d/.test(a);
+        rules.push({re:new RegExp("^"+escRe(a).replace(/\s+/g,"\\s+")+"$",acr?"":"i"),src:escRe(a).replace(/\s+/g,"\\s+"),to:"#"+div.id,first:true,flags:acr?"":"i",gloss:true});});}));}
+  if(!rules.length)return;
+  rules.sort((a,b)=>b.src.length-a.src.length);
+
+  const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const seen=new Map();let count=0;
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const s=node.nodeValue;big.lastIndex=0;let m,last=0,changed=false;const frag=document.createDocumentFragment();
+    const sec=node.parentElement.closest("section")||main;if(!seen.has(sec))seen.set(sec,new Set());const S=seen.get(sec);
+    while((m=big.exec(s))){const w=m[0];
+      const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+      if(/[\wÀ-ÿ]/.test(before)||/[\wÀ-ÿ]/.test(after)){continue;}
+      const r=rules.find(r=>r.re.test(w));if(!r)continue;
+      if(r.to.startsWith("#")){const tgt=document.getElementById(r.to.slice(1));if(!tgt||tgt.contains(node))continue;}
+      const key=r.to+"|"+r.src;if(r.first&&S.has(key))continue;S.add(key);
+      const a=document.createElement("a");a.href=r.to;a.className="xref"+(r.gloss?" term":"")+(r.to.startsWith("#")?"":" ext");a.textContent=w;a._xr=r;
+      frag.append(s.slice(last,m.index),a);last=m.index+w.length;changed=true;count++;}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+
+  /* popup */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.id="xref-pop";pop.setAttribute("role","tooltip");document.body.appendChild(pop);
+  let cur=null,tShow=0,tHide=0,ptr="mouse";const touch=matchMedia("(hover: none)").matches;
+  addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  function info(a){const r=a._xr;if(!r.to.startsWith("#"))return{k:r.k||"Altra guida",t:r.t||"",body:r.body||"",ext:true};
+    const el=document.getElementById(r.to.slice(1));const p=preview(el)||{};return{k:r.k||p.k,t:r.t||p.t,body:r.body||p.body};}
+  function show(a){const I=info(a);cur=a;
+    pop.innerHTML=`${I.k?`<span class="xp-k">${escH(I.k)}</span>`:""}${I.t?`<p class="xp-t">${escH(I.t)}</p>`:""}${I.body||""}<a class="xp-go" href="${a.getAttribute("href")}">${I.ext?"Apri la guida →":"Vai alla sezione →"}</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(href){if(!href.startsWith("#")){location.href=href;return;}const el=document.getElementById(href.slice(1));if(!el)return;
+    el.classList.add("xref-target");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"",href);}
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.getAttribute("href"));});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const h=g.getAttribute("href");hide();go(h);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=count;
+})();
+</script>
+<!-- xpl:shared xref:end -->

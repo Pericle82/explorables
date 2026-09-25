@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-25
+- **Encoder, decoder, esperti** (`architetture-llm`) v1.0: Prima versione: BERT contro GPT, famiglie di architetture, modelli densi e a esperti (MoE), come sceglie il router. Laboratori su maschera di attenzione, calcolatore denso/sparso e router a 8 esperti.
 - **Quando il COMMIT non basta più** (`transazioni`) v2.5: I 68 schemi in testo monospazio diventano componenti web: schede codice con Copia, linee temporali T1/T2, contenitori RAM/log/disco, tabelle con barre, schede dei casi, pile, catene di versioni e diagrammi SVG. Nuovo blocco condiviso vx per tutte le guide.
 - **Quando il COMMIT non basta più** (`transazioni`) v2.4: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente; sostituito l'indice precedente con il componente condiviso, come nelle altre guide
 - **Da Assistente ad Agente** (`assistente-agente`) v1.3: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente
