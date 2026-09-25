@@ -65,7 +65,7 @@ a.xref.ext::after{content:" ↗";font-size:.8em}
   rules.sort((a,b)=>b.src.length-a.src.length);
 
   const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
-  const SKIPSEL=(C.skip||"")+"pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
   const seen=new Map();let count=0;
   const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);

@@ -395,7 +395,7 @@ main .callout strong{font-weight:600}
 .mn-q b{color:var(--accent)}
 .mn-k{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:9px;margin-top:10px;display:block}
 
-main button:not(.btn):not(.opt):not(.tok):not(.seqrow){font-family:var(--sans);font-size:.85rem;font-weight:500;padding:7px 13px;border-radius:7px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+main button:not(.btn):not(.opt):not(.tok):not(.seqrow):not(.vx-copy){font-family:var(--sans);font-size:.85rem;font-weight:500;padding:7px 13px;border-radius:7px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 main button:not(.btn):not(.opt):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .machine{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
@@ -540,14 +540,7 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-si
   <p>Una <strong>tabella</strong> è un insieme di <strong>righe</strong> (o record) che hanno tutte le stesse colonne: la tabella <code>conti</code> ha le colonne <code>id</code> e <code>saldo</code>, e ogni riga è un conto. Fin qui è il modello logico, quello che vedi nelle query.</p>
   <p>Il database però non memorizza le righe una per una. Le raggruppa in <strong>pagine</strong>: blocchi di dimensione fissa (8 KB in PostgreSQL, 16 KB in InnoDB) che sono l'unità minima spostata tra disco e memoria. Quando leggi una riga, il database carica l'intera pagina che la contiene; quando ne modifichi una, è la pagina intera a diventare «sporca». Questa distinzione, riga logica contro pagina fisica, tornerà nel capitolo 3.</p>
 
-<pre><code>tabella conti (logica)          pagina 17 su disco (fisica, 8 KB)
-┌────┬───────┐                  ┌──────────────────────────────┐
-│ id │ saldo │                  │ header (LSN, spazio libero…) │
-├────┼───────┤                  │ riga id=1  saldo=100         │
-│  1 │   100 │   ──────────►    │ riga id=2  saldo=250         │
-│  2 │   250 │                  │ riga id=3  saldo=40          │
-│  3 │    40 │                  │ …                            │
-└────┴───────┘                  └──────────────────────────────┘</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>tabella conti <span>logica</span></h5><table class="vx-mini"><tr><th>id</th><th>saldo</th></tr><tr><td>1</td><td>100</td></tr><tr><td>2</td><td>250</td></tr><tr><td>3</td><td>40</td></tr></table></div><div class="vx-arrow"><span>→</span>sta in</div><div class="vx-box "><h5>pagina 17 su disco <span>fisica, 8 KB</span></h5><div class="vx-rec old"><span>header (LSN, spazio libero…)</span></div><div class="vx-rec new"><span>riga id=1 · saldo=100</span></div><div class="vx-rec "><span>riga id=2 · saldo=250</span></div><div class="vx-rec "><span>riga id=3 · saldo=40</span></div><div class="vx-rec old"><span>…</span></div></div></div></div>
 
   <h3>Le quattro operazioni sui dati</h3>
   <p>Tutto ciò che un'applicazione fa su una tabella si riduce a quattro istruzioni SQL (Structured Query Language), che insieme formano il <strong>DML</strong> (Data Manipulation Language). In gergo applicativo si chiamano <strong>CRUD</strong> (Create, Read, Update, Delete).</p>
@@ -576,22 +569,24 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-si
   </table>
   </div>
 
-<pre><code>BEGIN;
-UPDATE conti SET saldo = saldo - 100 WHERE id = 'anna';
-UPDATE conti SET saldo = saldo + 100 WHERE id = 'bruno';
-COMMIT;        -- oppure ROLLBACK, e nessuno dei due saldi cambia</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · bonifico</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">BEGIN</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo - <span class="tk-num">100</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;anna&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo + <span class="tk-num">100</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;bruno&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">COMMIT</span>;        <span class="tk-cm">-- oppure ROLLBACK, e nessuno dei due saldi cambia</span>
+</span></code></pre></div>
 
   <p>Il <code>ROLLBACK</code> può essere richiesto dall'applicazione, ma può anche essere deciso dal database da solo: se una <code>UPDATE</code> viola un vincolo (in PostgreSQL; InnoDB annulla solo l'istruzione fallita e lascia aperta la transazione) o se il processo si interrompe a metà, la transazione viene abortita e tutto ciò che aveva fatto scompare. È questo il senso in cui il confine è una <em>garanzia</em>, non una convenzione.</p>
 
   <h3>Autocommit: non esiste SQL fuori da una transazione</h3>
   <p>Domanda che vale la pena porsi esplicitamente: se non scrivo mai <code>BEGIN</code>, che cosa succede? Il database ne apre una implicita attorno alla singola istruzione e la committa appena finisce. È l'<em>autocommit</em>, il comportamento di default di JDBC e di molti driver (non di tutti: psycopg in Python, per esempio, apre una transazione implicita e aspetta il commit). Quindi <strong>non esiste SQL fuori da una transazione</strong>: quello che varia è solo se l'hai dichiarata tu.</p>
 
-<pre><code>UPDATE conto SET saldo = saldo - 10 WHERE id = 1;
-
--- il database esegue in realtà:
-BEGIN;
-UPDATE conto SET saldo = saldo - 10 WHERE id = 1;
-COMMIT;</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · autocommit</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">UPDATE</span> conto <span class="tk-kw">SET</span> saldo = saldo - <span class="tk-num">10</span> <span class="tk-kw">WHERE</span> id = <span class="tk-num">1</span>;
+</span><span class="ln">
+</span><span class="ln"><span class="tk-cm">-- il database esegue in realtà:</span>
+</span><span class="ln hl"><span class="tk-kw">BEGIN</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conto <span class="tk-kw">SET</span> saldo = saldo - <span class="tk-num">10</span> <span class="tk-kw">WHERE</span> id = <span class="tk-num">1</span>;
+</span><span class="ln hl"><span class="tk-kw">COMMIT</span>;
+</span></code></pre></div>
 
   <h3>Ogni transazione ha un numero</h3>
   <p>Quando una transazione inizia a scrivere, il database le assegna un <strong>identificativo progressivo</strong> (in PostgreSQL lo leggi con <code>SELECT pg_current_xact_id()</code>, <code>txid_current()</code> prima della versione 13). Nei diagrammi di questo documento le transazioni si chiamano <code>T1</code>, <code>T2</code>, <code>T88</code>, <code>T90</code>: il numero non è decorativo. È ciò che il database scrive dentro le righe per sapere <em>chi</em> ha creato o cancellato ogni versione, e ciò che confronta per decidere che cosa una transazione può vedere. Il meccanismo è nel capitolo 7.</p>
@@ -606,17 +601,7 @@ COMMIT;</code></pre>
 
   <p>Il <strong>lock</strong> è la soluzione più antica ai due problemi. L'idea: prima di toccare una riga, la transazione deve ottenere dal database un <em>permesso</em> su quella riga; il database tiene un registro (il <em>lock manager</em>) con scritto, per ogni riga in uso, chi ha il permesso e di che tipo; e se il permesso che chiedi è incompatibile con uno già concesso a qualcun altro, <strong>la tua istruzione si ferma e aspetta</strong>, senza errori, finché quell'altro non finisce e lo restituisce. Non sei tu a chiederlo: lo fa il database per conto tuo quando esegui l'istruzione.</p>
 
-<pre><code>  la tua istruzione tocca la riga 1
-        │
-        ▼
-  il database chiede il permesso al lock manager
-        │
-        ├── nessuno ha un permesso incompatibile ──► CONCESSO ──► l'istruzione prosegue;
-        │                                                      il permesso resta tuo fino a COMMIT / ROLLBACK
-        │
-        └── qualcuno ne ha uno incompatibile ──► ATTESA: l'istruzione resta ferma
-                                                   finché quel qualcuno non committa o annulla,
-                                                   poi il permesso passa a te e l'istruzione riparte</code></pre>
+<div class="vx"><div class="vx-flow"><div class="vx-node">la tua istruzione tocca la riga 1</div><div class="vx-down">↓</div><div class="vx-node acc">il database chiede il permesso al <b>lock manager</b></div><div class="vx-down">↓</div><div class="vx-branch"><div class="vx-card"><h5><small>nessuno ha un permesso incompatibile</small> Concesso</h5><div class="vx-out go"><b>prosegue</b> · l'istruzione prosegue; il permesso resta tuo fino a <code>COMMIT</code> / <code>ROLLBACK</code></div></div><div class="vx-card"><h5><small>qualcuno ne ha uno incompatibile</small> Attesa</h5><div class="vx-out wait"><b>ferma</b> · l'istruzione resta ferma finché quel qualcuno non committa o annulla, poi il permesso passa a te e l'istruzione riparte</div></div></div></div></div>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">Perché servono due tipi di permesso</h4>
   <p>Se esistesse un solo tipo di permesso, «la riga è mia», anche due lettori si farebbero aspettare a vicenda, e abbiamo appena visto che non ce n'è motivo. Per questo il permesso ha due forme, che corrispondono alle due cose che puoi voler fare:</p>
@@ -631,28 +616,7 @@ COMMIT;</code></pre>
 
   <p>Da queste due definizioni discendono da sole le quattro situazioni possibili quando una seconda transazione arriva su una riga che la prima sta già usando. Vediamole una per una, sempre con T1 arrivata prima e T2 dopo.</p>
 
-<pre><code>CASO 1 · T1 legge, T2 vuole leggere
-T1: SELECT saldo … WHERE id=1      → lock condiviso su riga 1 ✔
-T2: SELECT saldo … WHERE id=1      → chiede un condiviso; T1 ne tiene uno condiviso: compatibili ✔
-                                     T2 legge subito. Nessuno aspetta.
-
-CASO 2 · T1 legge, T2 vuole scrivere
-T1: SELECT saldo … WHERE id=1      → lock condiviso su riga 1 ✔
-T2: UPDATE conti … WHERE id=1      → chiede un esclusivo; T1 tiene un condiviso: incompatibili ✘
-                                     T2 ASPETTA che T1 committi. (Non si può cambiare una riga
-                                     mentre qualcuno la sta leggendo: leggerebbe metà vecchia e metà nuova.)
-
-CASO 3 · T1 scrive, T2 vuole leggere
-T1: UPDATE conti … WHERE id=1      → lock esclusivo su riga 1 ✔
-T2: SELECT saldo … WHERE id=1      → chiede un condiviso; T1 tiene un esclusivo: incompatibili ✘
-                                     T2 ASPETTA. (Altrimenti leggerebbe un valore provvisorio,
-                                     che T1 potrebbe ancora annullare.)
-
-CASO 4 · T1 scrive, T2 vuole scrivere
-T1: UPDATE conti … WHERE id=1      → lock esclusivo su riga 1 ✔
-T2: UPDATE conti … WHERE id=1      → chiede un esclusivo; T1 tiene un esclusivo: incompatibili ✘
-                                     T2 ASPETTA, poi riparte sul valore che T1 ha committato.
-                                     (Le due scritture non si intrecciano mai.)</code></pre>
+<div class="vx vx-cards"><div class="vx-card" data-xcase="1"><h5><small>Caso 1</small> T1 legge, T2 vuole leggere</h5><div class="vx-line"><b>T1</b> <span><code>SELECT saldo … WHERE id=1</code> → lock condiviso su riga 1 ✔</span></div><div class="vx-line"><b>T2</b> <span><code>SELECT saldo … WHERE id=1</code> → chiede un condiviso; T1 ne tiene uno condiviso: <b>compatibili ✔</b></span></div><div class="vx-out go"><b>procede</b> · T2 legge subito. Nessuno aspetta.</div></div><div class="vx-card" data-xcase="2"><h5><small>Caso 2</small> T1 legge, T2 vuole scrivere</h5><div class="vx-line"><b>T1</b> <span><code>SELECT saldo … WHERE id=1</code> → lock condiviso su riga 1 ✔</span></div><div class="vx-line"><b>T2</b> <span><code>UPDATE conti … WHERE id=1</code> → chiede un esclusivo; T1 tiene un condiviso: <b>incompatibili ✘</b></span></div><div class="vx-out wait"><b>aspetta</b> · T2 aspetta che T1 committi. Non si può cambiare una riga mentre qualcuno la sta leggendo: leggerebbe metà vecchia e metà nuova.</div></div><div class="vx-card" data-xcase="3"><h5><small>Caso 3</small> T1 scrive, T2 vuole leggere</h5><div class="vx-line"><b>T1</b> <span><code>UPDATE conti … WHERE id=1</code> → lock esclusivo su riga 1 ✔</span></div><div class="vx-line"><b>T2</b> <span><code>SELECT saldo … WHERE id=1</code> → chiede un condiviso; T1 tiene un esclusivo: <b>incompatibili ✘</b></span></div><div class="vx-out wait"><b>aspetta</b> · Altrimenti leggerebbe un valore provvisorio, che T1 potrebbe ancora annullare.</div></div><div class="vx-card" data-xcase="4"><h5><small>Caso 4</small> T1 scrive, T2 vuole scrivere</h5><div class="vx-line"><b>T1</b> <span><code>UPDATE conti … WHERE id=1</code> → lock esclusivo su riga 1 ✔</span></div><div class="vx-line"><b>T2</b> <span><code>UPDATE conti … WHERE id=1</code> → chiede un esclusivo; T1 tiene un esclusivo: <b>incompatibili ✘</b></span></div><div class="vx-out wait"><b>aspetta</b> · Poi riparte sul valore che T1 ha committato. Le due scritture non si intrecciano mai.</div></div></div>
 
   <p>Riassunto in una frase: <strong>l'unica combinazione in cui nessuno aspetta è lettura con lettura</strong>. Appena c'è uno scrittore in gioco, chi arriva dopo si mette in coda, qualunque cosa voglia fare. E questo risolve entrambi i problemi di partenza: le scritture non si intrecciano (caso 4) e nessuno legge un valore provvisorio (caso 3).</p>
 
@@ -666,14 +630,7 @@ T2: UPDATE conti … WHERE id=1      → chiede un esclusivo; T1 tiene un esclus
   <h3>Il deadlock</h3>
   <p>Se T1 tiene il lock su A e aspetta B, mentre T2 tiene B e aspetta A, nessuna delle due potrà mai proseguire: è un <strong>deadlock</strong>, un'attesa circolare.</p>
 
-<pre><code>T1                                T2
-─────────────────────             ─────────────────────
-UPDATE conti WHERE id='anna'      UPDATE conti WHERE id='bruno'
-  (lock su anna ✔)                  (lock su bruno ✔)
-UPDATE conti WHERE id='bruno'     UPDATE conti WHERE id='anna'
-  → aspetta T2 …                    → aspetta T1 …
-
-nessuna delle due finirà mai da sola</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-race-g"><div class="hd"></div><div class="hd">T1</div><div class="hd">T2</div><div class="t">1</div><div class="c"><span class="vx-step ok">UPDATE conti WHERE id='anna' <small>lock su anna ✔</small></span></div><div class="c"><span class="vx-step ok">UPDATE conti WHERE id='bruno' <small>lock su bruno ✔</small></span></div><div class="t">2</div><div class="c"><span class="vx-step wait">UPDATE conti WHERE id='bruno' <small>→ aspetta T2 …</small></span></div><div class="c"><span class="vx-step wait">UPDATE conti WHERE id='anna' <small>→ aspetta T1 …</small></span></div></div><div class="vx-verdict bad"><b>Deadlock</b> <span>Nessuna delle due finirà mai da sola.</span></div></div></div>
 
   <p>Il database non lo previene: lo <strong>rileva</strong>. Chi resta in attesa controlla se si è formato un ciclo nel grafo delle attese (PostgreSQL dopo <code>deadlock_timeout</code>, 1 secondo di default; InnoDB subito) e, se lo trova, il database abortisce una delle transazioni coinvolte (in PostgreSQL con l'errore <code>40P01 deadlock_detected</code>), liberando l'altra. L'applicazione riceve un'eccezione e deve riprovare. La contromisura di progetto è una sola, e la vedremo nel capitolo 9: far acquisire a tutti i lock nello stesso ordine.</p>
 
@@ -682,14 +639,7 @@ nessuna delle due finirà mai da sola</code></pre>
 
   <p>La soluzione dei database moderni cambia domanda. Invece di «come faccio aspettare il lettore finché il valore non è definitivo?», chiede: «<strong>e se al lettore dessi il valore <em>precedente</em>, quello già committato, senza farlo aspettare?</strong>». Per farlo, il database non sovrascrive la riga quando la modifica: <em>conserva la versione vecchia accanto a quella nuova</em>, finché serve a qualcuno.</p>
 
-<pre><code>riga 1, mentre T1 sta scrivendo e non ha ancora committato:
-
-   versione committata      saldo = 100     ← ciò che T2 e tutti i lettori vedono
-   versione di T1           saldo =  70     ← visibile solo a T1, finché non committa
-
-T2: SELECT saldo … WHERE id=1  → 100, subito, senza aspettare T1 e senza chiedere lock
-T1: COMMIT                     → da ora la versione 70 è quella committata; la 100 resta
-                                 finché qualche transazione ancora aperta ha bisogno di vederla</code></pre>
+<div class="vx"><div class="vx-box "><h5>riga 1 <span>T1 scrive, non ha ancora committato</span></h5><div class="vx-rec "><span>saldo = 100 <small>versione committata · ciò che T2 e tutti i lettori vedono</small></span> <span class="vx-badge ok">tutti</span></div><div class="vx-rec new"><span>saldo = 70 <small>versione di T1 · visibile solo a T1, finché non committa</small></span> <span class="vx-badge dirty">solo T1</span></div></div><div class="vx-tl" style="margin-top:10px"><div class="vx-tl-r"><b>T2</b> <span class="vx-step ok">SELECT saldo … WHERE id=1 → 100 <small>subito, senza aspettare T1 e senza chiedere lock</small></span></div><div class="vx-tl-r"><b>T1</b> <span class="vx-step info">COMMIT <small>da ora la versione 70 è quella committata; la 100 resta finché qualche transazione ancora aperta ha bisogno di vederla</small></span></div></div></div>
 
   <p>Lo <strong>snapshot</strong> è il nome di ciò che T2 vede: una <em>fotografia</em> dello stato del database fatta di sole versioni committate, scattata a un certo istante. Chi lavora su uno snapshot non vede le modifiche non ancora committate degli altri (quindi il caso 3 non ha più bisogno di attesa) e non viene disturbato da ciò che gli altri committano dopo lo scatto. Questa tecnica si chiama <strong>MVCC</strong> (multiversion concurrency control, «controllo della concorrenza a più versioni») ed è quella di PostgreSQL, Oracle e MySQL/InnoDB.</p>
 
@@ -786,17 +736,7 @@ T1: COMMIT                     → da ora la versione 70 è quella committata; l
   <h3>Istruzione SQL ≠ operazione di business</h3>
   <p>Qui sta il malinteso che genera più bug, ed è il ponte verso tutto il resto del documento. Le due cose coincidono quasi mai.</p>
 
-<pre><code>      UNA istruzione                 UNA operazione di business
-      ══════════════                 ══════════════════════════
-
-  UPDATE saldo = saldo - 10       SELECT saldo             ──┐
-            │                     if (saldo &gt;= 10) { … }     │ tre pezzi
-            ▼                     UPDATE saldo = 90        ──┘
-        atomica                             │
-                                            ▼
-                                 ogni pezzo è atomico e isolato,
-                                 l'INSIEME non lo è,
-                                 a meno di racchiuderlo in BEGIN … COMMIT</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>Una istruzione </h5><div class="vx-rec "><span>UPDATE saldo = saldo - 10</span></div><div class="vx-down">↓</div><div class="vx-out go"><b>atomica</b> · da sola, sempre</div></div><div class="vx-arrow"><span>≠</span></div><div class="vx-box "><h5>Una operazione di business <span>tre pezzi</span></h5><div class="vx-rec "><span>SELECT saldo</span></div><div class="vx-rec "><span>if (saldo &gt;= 10) { … }</span></div><div class="vx-rec "><span>UPDATE saldo = 90</span></div><div class="vx-out wait"><b>attenzione</b> · ogni pezzo è atomico e isolato, l'<b>insieme</b> non lo è, a meno di racchiuderlo in <code>BEGIN … COMMIT</code></div></div></div></div>
 
   <p>Prendiamo il prelievo di 10 € dalla colonna di destra e guardiamo dove finiscono le garanzie:</p>
   <ul>
@@ -806,16 +746,7 @@ T1: COMMIT                     → da ora la versione 70 è quella committata; l
 
   <p>Che cosa succede, concretamente, se qualcuno scrive in quella finestra? Saldo 100, due prelievi in parallelo:</p>
 
-<pre><code>T1 (preleva 10)                      T2 (preleva 30)
-──────────────────────────           ──────────────────────────
-SELECT saldo → 100
-if (100 >= 10) ok
-                                     SELECT saldo → 100
-                                     if (100 >= 30) ok
-                                     UPDATE saldo = 70 ; COMMIT ✔
-UPDATE saldo = 90 ; COMMIT ✔         ← calcolato su 100, che non è più vero
-
-saldo finale: 90.  Corretto: 60.  Il prelievo di 30 è sparito.</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-race-g"><div class="hd"></div><div class="hd">T1 · preleva 10</div><div class="hd">T2 · preleva 30</div><div class="t">1</div><div class="c"><span class="vx-step info">SELECT saldo → 100</span></div><div class="c"></div><div class="t">2</div><div class="c"><span class="vx-step ">if (100 &gt;= 10) ok</span></div><div class="c"></div><div class="t">3</div><div class="c"></div><div class="c"><span class="vx-step info">SELECT saldo → 100</span></div><div class="t">4</div><div class="c"></div><div class="c"><span class="vx-step ">if (100 &gt;= 30) ok</span></div><div class="t">5</div><div class="c"></div><div class="c"><span class="vx-step ok">UPDATE saldo = 70 ; COMMIT ✔</span></div><div class="t">6</div><div class="c"><span class="vx-step err">UPDATE saldo = 90 ; COMMIT ✔ <small>← calcolato su 100, che non è più vero</small></span></div><div class="c"></div></div><div class="vx-verdict bad"><b>Lost update</b> <span>Saldo finale <strong>90</strong>. Corretto: <strong>60</strong>. Il prelievo di 30 è sparito.</span></div></div></div>
 
   <p>La decisione di T1 («posso prelevare, e il nuovo saldo è 90») è stata presa su un valore che, al momento della scrittura, aveva smesso di essere attuale; e la scrittura, non sapendolo, ha <strong>coperto</strong> quella di T2. Questa anomalia ha un nome, <em>lost update</em> (aggiornamento perso), e il capitolo 10 la mette in laboratorio con le tre protezioni possibili. Nota la relazione con il punto precedente: la finestra scoperta è la <em>condizione</em> che rende possibile l'anomalia; il lost update è ciò che <em>accade</em> quando qualcuno la attraversa davvero. Senza concorrenza, la finestra resta scoperta ma non fa danni. E in autocommit è peggio, perché ogni istruzione committa e rilascia i lock subito: la finestra è spalancata per definizione.</p>
 
@@ -879,25 +810,13 @@ saldo finale: 90.  Corretto: 60.  Il prelievo di 30 è sparito.</code></pre>
   <h3>Perché al database importa la differenza tra sparso e in fila</h3>
   <p>La terza riga della tabella non è una curiosità sull'hardware: è il cuore del problema. Guarda che cosa fa un database in un secondo qualunque di lavoro. Arrivano tre transazioni: una aggiorna il conto 1, una il conto 8.204, una il conto 51.377. Le tre righe vivono in tre pagine diverse, che sul disco stanno in tre punti lontani tra loro, perché i file dati sono ordinati per come le righe sono state inserite nel tempo, non per come verranno modificate.</p>
 
-<pre><code>tre UPDATE in un secondo                    dove finirebbero sul disco, se scrivessi "al loro posto"
-
-UPDATE conti … WHERE id = 1        ──►     pagina 17         ┐
-UPDATE conti … WHERE id = 8204     ──►     pagina 4.913      │  tre punti lontani del file dati:
-UPDATE conti … WHERE id = 51377    ──►     pagina 30.201     ┘  tre scritture SPARSE, per forza
-
-il database non sceglie dove cadono le modifiche: lo decidono le query degli utenti</code></pre>
+<div class="vx"><p class="vx-cap">tre UPDATE in un secondo · dove finirebbero sul disco, se scrivessi «al loro posto»</p><div class="vx-map"><code>UPDATE conti … WHERE id = 1</code><span class="to">→</span><span class="vx-cell bad">pagina 17</span><code>UPDATE conti … WHERE id = 8204</code><span class="to">→</span><span class="vx-cell bad">pagina 4.913</span><code>UPDATE conti … WHERE id = 51377</code><span class="to">→</span><span class="vx-cell bad">pagina 30.201</span></div><p class="vx-foot">Tre punti lontani del file dati: tre scritture <b>sparse</b>, per forza. Il database non sceglie dove cadono le modifiche: lo decidono le query degli utenti.</p></div>
 
   <p>Ecco il punto: <strong>le modifiche di un database sono sparse per natura</strong>. Non c'è modo di ordinare le richieste degli utenti perché tocchino pagine vicine. Se il database scrivesse ogni modifica nel punto del disco in cui la riga vive, farebbe per forza una scrittura sparsa a ogni <code>UPDATE</code>, cioè l'operazione più costosa che il disco conosca: su un disco rotante, un centinaio di transazioni al secondo e non una di più.</p>
 
   <p>La distinzione sparso/in fila conta perché è <strong>la via d'uscita</strong>. Se invece di scrivere le tre pagine al loro posto il database annota le tre modifiche una dopo l'altra in fondo a un unico file, le tre scritture sparse diventano tre righe consecutive: in fila. Le pagine, al loro posto, le scriverà più tardi, quando potrà accorparne molte. Questo file è il log di cui parla tutto il resto del capitolo, e il motivo per cui esiste è esattamente la terza riga della tabella. Per capire quanto sia grande il guadagno, però, bisogna vedere da vicino perché il disco fa pagare tanto le scritture sparse.</p>
 
-<pre><code>SENZA LOG: scrivo al posto giusto              CON LOG: annoto in fondo, sistemo dopo
-
-pagina 17      ◄── seek                        log: …│ nota: id 1 → 70    │ nota: id 8204 → …  │ nota: id 51377 → … │
-pagina 4.913   ◄── seek                                 ▲ una dietro l'altra, in fila: un solo posizionamento
-pagina 30.201  ◄── seek
-                                               le tre pagine verranno scritte più tardi, tutte insieme
-3 scritture sparse ≈ 3 × (5–15 ms)             3 scritture in fila ≈ 5 ms + 3 × 0,05 ms</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>Senza log <span>scrivo al posto giusto</span></h5><div class="vx-rec "><span>pagina 17</span> <span class="vx-badge stale">seek</span></div><div class="vx-rec "><span>pagina 4.913</span> <span class="vx-badge stale">seek</span></div><div class="vx-rec "><span>pagina 30.201</span> <span class="vx-badge stale">seek</span></div><div class="vx-out bad"><b>costo</b> · 3 scritture sparse ≈ 3 × (5–15 ms)</div></div><div class="vx-arrow"><span>vs</span></div><div class="vx-box "><h5>Con log <span>annoto in fondo, sistemo dopo</span></h5><div class="vx-cells"><span class="vx-cell gap">log: …</span><span class="vx-cell hl">nota: id 1 → 70</span><span class="vx-cell hl">nota: id 8204 → …</span><span class="vx-cell hl">nota: id 51377 → …</span></div><p class="note" style="margin:0">una dietro l'altra, in fila: un solo posizionamento. Le tre pagine verranno scritte più tardi, tutte insieme.</p><div class="vx-out go"><b>costo</b> · 3 scritture in fila ≈ 5 ms + 3 × 0,05 ms</div></div></div></div>
 
   <h3>Le memorie da vicino</h3>
   <p>La tabella usa tre parole che vanno chiarite prima di proseguire: che cosa rende la RAM volatile, che cosa rende il disco lento, e che cosa significhi scrivere «in fila» oppure «in ordine sparso». Sono dettagli fisici, ma tutto il progetto di un database è una risposta a questi dettagli.</p>
@@ -906,13 +825,7 @@ pagina 30.201  ◄── seek
     <p><strong>Prima un chiarimento: «in fila» e «sparso» descrivono l'uso, non il dispositivo</strong><br>Non esistono memorie «sequenziali» e memorie «casuali». <em>In fila</em> (sequenziale) e <em>in ordine sparso</em> (casuale) descrivono <strong>l'ordine in cui tu chiedi le posizioni</strong>: in fila significa «la posizione 42, poi la 43, poi la 44»; sparso significa «la 42, poi la 9.317, poi la 1.204». Qualunque memoria, RAM, SSD o disco rotante, può essere usata in entrambi i modi. Ciò che cambia da un dispositivo all'altro è <strong>quanto costa in più il modo sparso rispetto a quello in fila</strong>: nella RAM quasi nulla, nell'SSD un po' (soprattutto in scrittura), nel disco rotante cento o mille volte. È per questo che il database si sforza di scrivere il log in fila: non perché il disco «sia sequenziale», ma perché è l'unico modo di usarlo senza pagare la penalità.</p>
   </div>
 
-<pre><code>stesso schema di accesso, tre dispositivi diversi
-
-                          in fila (42,43,44,45,46)     sparso (42, 9.317, 1.204, 77.560, 500)
-RAM                       ~ 0,5 µs                     ~ 0,5 µs          → penalità ≈ nessuna
-SSD (scrittura)           ~ 50 µs                      ~ 100–250 µs (sotto carico)      → penalità ≈ 2–5×
-disco rotante             ~ 5 ms                       ~ 25–75 ms        → penalità ≈ 5–15× su 5 pagine,
-                                                                            e cresce con il numero di pagine</code></pre>
+<div class="vx"><p class="vx-cap">Stesso schema di accesso, tre dispositivi diversi</p><div class="scroll-x"><table class="vx-table"><thead><tr><th>Dispositivo</th><th>In fila<br>42, 43, 44, 45, 46</th><th>Sparso<br>42, 9.317, 1.204, 77.560, 500</th><th>Confronto</th><th>Penalità</th></tr></thead><tbody><tr><td>RAM</td><td class="m">~ 0,5 µs</td><td class="m">~ 0,5 µs</td><td><div class="vx-bars"><span><i class="vx-bar" style="width:120px"></i>fila</span><span><i class="vx-bar b" style="width:120px"></i>sparso</span></div></td><td>≈ nessuna</td></tr><tr><td>SSD (scrittura)</td><td class="m">~ 50 µs</td><td class="m">~ 100–250 µs<br><small>sotto carico</small></td><td><div class="vx-bars"><span><i class="vx-bar" style="width:24px"></i>fila</span><span><i class="vx-bar b" style="width:120px"></i>sparso</span></div></td><td>≈ 2–5×</td></tr><tr><td>Disco rotante</td><td class="m">~ 5 ms</td><td class="m">~ 25–75 ms</td><td><div class="vx-bars"><span><i class="vx-bar" style="width:8px"></i>fila</span><span><i class="vx-bar b" style="width:120px"></i>sparso</span></div></td><td>≈ 5–15× su 5 pagine, e cresce con il numero di pagine</td></tr></tbody></table></div></div>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">RAM: nessuna penalità per l'accesso sparso, ma volatile</h4>
   <p>La RAM (Random Access Memory) è fatta di miliardi di celle che tengono un bit come <em>carica elettrica</em> in un minuscolo condensatore. Si legge e si scrive per indirizzo, direttamente: chiedere il byte 4.000.000 costa quanto chiedere il byte 7, decine di nanosecondi in entrambi i casi (è il senso di <em>random access</em>: qualunque posizione, stesso costo; in fila o sparso, per la RAM non fa differenza). Il rovescio è nel meccanismo: la carica si disperde in decine di millisecondi e va rinfrescata continuamente (ogni 64 ms); senza corrente, sparisce. Quindi tutto ciò che sta solo in RAM <strong>non esiste più dopo un blackout</strong>.</p>
@@ -920,26 +833,11 @@ disco rotante             ~ 5 ms                       ~ 25–75 ms        → p
   <h4 style="font-size:15.5px;margin:22px 0 6px">Disco rotante (HDD): la penalità massima, per via della testina</h4>
   <p>Un disco rigido (HDD, Hard Disk Drive) memorizza i bit come <em>magnetizzazione</em> di piccole aree su piatti metallici che ruotano a 5.400–15.000 giri al minuto. Una <strong>testina</strong> montata su un braccio si sposta radialmente per raggiungere la traccia giusta e aspetta che il settore giusto le passi sotto. La magnetizzazione resta senza corrente: è durevole. Ma ogni accesso paga due attese meccaniche:</p>
 
-<pre><code>   ┌───────────────────────────┐
-   │   ╭───────────────────╮   │   1. SEEK: il braccio si sposta sulla traccia      ~ 3–10 ms
-   │   │  ╭─────────────╮  │   │   2. ROTAZIONE: aspetta che il settore arrivi     ~ 2–4 ms
-   │   │  │  ╭───────╮  │  │   │   3. TRASFERIMENTO: legge/scrive i byte in fila   ~ 0,05 ms per 8 KB
-   │   │  │  │  ●    │  │  │   │
-   │   │  │  ╰───────╯  │  │   │   → un accesso "sparso" costa ~ 5–15 ms, quasi tutto in 1 e 2
-   │   │  ╰─────────────╯  │   │   → un accesso "in fila" (il settore successivo) costa solo il 3
-   │   ╰───────────────────╯   │
-   └──────────╲────────────────┘
-            testina sul braccio</code></pre>
+<div class="vx"><div class="vx vx-svg s" style="margin:0"><div class="vx-side"><svg viewBox="0 0 170 170" role="img" aria-label="Disco rotante con testina sul braccio"><circle cx="80" cy="80" r="72" class="bx"/><circle cx="80" cy="80" r="54" class="bx"/><circle cx="80" cy="80" r="36" class="bxa"/><circle cx="80" cy="80" r="18" class="bx"/><circle cx="80" cy="80" r="4" class="acf"/><path d="M158 160 L112 70" class="ac" stroke-width="4" stroke-linecap="round"/><circle cx="112" cy="70" r="6" class="acf"/><path d="M80 26 A54 54 0 0 1 128 56" class="gd" fill="none" stroke-width="3"/></svg><div><p class="vx-sr">Disco rotante: piatti concentrici e testina sul braccio.</p><ol class="vx-steps"><li><span class="vx-li"><span><b>Seek</b>: il braccio si sposta sulla traccia</span><em>~ 3–10 ms</em></span></li><li><span class="vx-li"><span><b>Rotazione</b>: aspetta che il settore arrivi</span><em>~ 2–4 ms</em></span></li><li><span class="vx-li"><span><b>Trasferimento</b>: legge/scrive i byte in fila</span><em>~ 0,05 ms per 8 KB</em></span></li></ol><div class="vx-out bad"><b>sparso</b> · un accesso «sparso» costa ~ 5–15 ms, quasi tutto in 1 e 2</div><div style="height:6px"></div><div class="vx-out go"><b>in fila</b> · un accesso «in fila» (il settore successivo) costa solo il 3</div></div></div></div></div>
 
   <p>Ecco l'origine della distinzione che il capitolo usa di continuo. Scrivere <strong>in fila</strong> (in sequenza, <em>sequenziale</em>) significa scrivere nel settore immediatamente successivo a quello appena scritto: la testina è già lì, il piatto sta già passando, si paga solo il trasferimento. Scrivere <strong>in ordine sparso</strong> (<em>casuale</em>, random) significa che ogni scrittura è in un punto diverso del disco: ogni volta si paga seek e rotazione. La differenza è di <strong>due o tre ordini di grandezza</strong>: un disco rotante fa circa 100–200 scritture sparse al secondo, ma trasferisce 100–200 MB al secondo se scrive in fila, cioè decine di migliaia di pagine da 8 KB.</p>
 
-<pre><code>IN FILA (sequenziale)                       IN ORDINE SPARSO (casuale)
-
-settori:  [42][43][44][45][46]              settori:  [42] … [9.317] … [1.204] … [77.560]
-           ▲   ▲   ▲   ▲   ▲                           ▲          ▲           ▲          ▲
-           un solo seek, poi scorre                    seek + rotazione a OGNI scrittura
-
-5 pagine ≈ 5 ms + 5 × 0,05 ms ≈ 5 ms         5 pagine ≈ 5 × (5–15 ms) ≈ 25–75 ms</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>In fila <span>sequenziale</span></h5><div class="vx-cells"><span class="vx-cell ok">42</span><span class="vx-cell ok">43</span><span class="vx-cell ok">44</span><span class="vx-cell ok">45</span><span class="vx-cell ok">46</span></div><p class="note" style="margin:0">un solo seek, poi scorre</p><div class="vx-out go"><b>5 pagine</b> · ≈ 5 ms + 5 × 0,05 ms ≈ 5 ms</div></div><div class="vx-arrow"><span>vs</span></div><div class="vx-box "><h5>In ordine sparso <span>casuale</span></h5><div class="vx-cells"><span class="vx-cell bad">42</span><span class="vx-cell gap">…</span><span class="vx-cell bad">9.317</span><span class="vx-cell gap">…</span><span class="vx-cell bad">1.204</span><span class="vx-cell gap">…</span><span class="vx-cell bad">77.560</span></div><p class="note" style="margin:0">seek + rotazione a <b>ogni</b> scrittura</p><div class="vx-out bad"><b>5 pagine</b> · ≈ 5 × (5–15 ms) ≈ 25–75 ms</div></div></div></div>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">SSD: penalità piccola in lettura, non trascurabile in scrittura</h4>
   <p>Un SSD (Solid State Drive) memorizza i bit come <em>carica intrappolata</em> in celle di memoria flash NAND, che la conservano senza corrente: è durevole come il disco rotante, e senza testine da spostare un accesso sparso costa decine di microsecondi invece di millisecondi, cento volte meglio. Sembrerebbe che la distinzione fila/sparso non conti più. Conta meno, ma non sparisce, per una peculiarità fisica della flash:</p>
@@ -949,20 +847,7 @@ settori:  [42][43][44][45][46]              settori:  [42] … [9.317] … [1.20
   </ul>
   <p>Quindi il controller non riscrive la pagina al suo posto: scrive la nuova versione in una pagina libera altrove e marca la vecchia come non valida; più tardi, per liberare un blocco (<em>garbage collection</em>), dovrà copiare altrove le pagine ancora valide. Nei casi peggiori, per modificare 8 KB in mezzo a un blocco già pieno, deve copiare altrove le pagine ancora valide del blocco, cancellare l'intero blocco e riscrivere. Una piccola scrittura sparsa può costare fisicamente la riscrittura di megabyte (<em>write amplification</em>), e ogni blocco sopporta un numero limitato di cancellazioni prima di usurarsi. I controller mascherano tutto questo scrivendo sempre in blocchi «freschi» e riordinando in background (<em>garbage collection</em>, <em>wear leveling</em>), ma il risultato è che anche su SSD <strong>molte piccole scritture sparse costano più di una scrittura lunga in fila</strong>, e degradano il dispositivo più in fretta.</p>
 
-<pre><code>blocco NAND (es. 128 pagine da 8 KB = 1 MB)
-┌────┬────┬────┬────┬────┬────┬─────┬────┐
-│ p0 │ p1 │ p2 │ p3 │ p4 │ p5 │  …  │p127│
-└────┴────┴────┴────┴────┴────┴─────┴────┘
-       ▲
- voglio modificare solo p1, ma p1 non è sovrascrivibile.
- caso tipico: scrivo la nuova p1 in una pagina libera di un altro blocco
-              e marco la vecchia come non valida (costo: 8 KB)
- caso peggiore, quando i blocchi liberi finiscono (garbage collection):
-   1. copio le pagine ancora valide in un blocco libero
-   2. cancello TUTTO il blocco (unica operazione di cancellazione possibile)
- → in media si scrivono fisicamente da 1 a qualche byte per ogni byte logico
-   (write amplification). Con scritture in fila, invece, riempio blocchi
-   nuovi pagina dopo pagina e la pulizia costa pochissimo.</code></pre>
+<div class="vx"><div class="vx-box "><h5>blocco NAND <span>es. 128 pagine da 8 KB = 1 MB</span></h5><div class="vx-cells"><span class="vx-cell">p0</span><span class="vx-cell bad">p1</span><span class="vx-cell">p2</span><span class="vx-cell">p3</span><span class="vx-cell">p4</span><span class="vx-cell">p5</span><span class="vx-cell gap">…</span><span class="vx-cell">p127</span></div><p style="margin:0;font-size:.9rem">Voglio modificare solo <b>p1</b>, ma p1 non è sovrascrivibile.</p></div><div class="vx-cards" style="margin-top:10px"><div class="vx-card"><h5><small>caso tipico</small> Scrivo altrove</h5><p style="margin:0;font-size:.88rem">Scrivo la nuova p1 in una pagina libera di un altro blocco e marco la vecchia come non valida.</p><div class="vx-out go"><b>costo</b> · 8 KB</div></div><div class="vx-card"><h5><small>caso peggiore · quando i blocchi liberi finiscono</small> Garbage collection</h5><div class="vx-line"><b>1</b> <span>copio le pagine ancora valide in un blocco libero</span></div><div class="vx-line"><b>2</b> <span>cancello <b>tutto</b> il blocco (unica operazione di cancellazione possibile)</span></div></div></div><p class="vx-foot">In media si scrivono fisicamente da 1 a qualche byte per ogni byte logico (<em>write amplification</em>). Con scritture in fila, invece, riempio blocchi nuovi pagina dopo pagina e la pulizia costa pochissimo.</p></div>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">I numeri, fianco a fianco</h4>
   <div class="tbl-scroll">
@@ -1003,17 +888,7 @@ settori:  [42][43][44][45][46]              settori:  [42] … [9.317] … [1.20
 
   <p>Con il log in mano, il progetto diventa: le pagine si modificano in RAM (come nel progetto 2, veloce), ma una pagina sporca non può mai arrivare sul file dati <strong>prima</strong> che le note che la riguardano siano già sul disco nel log (write-ahead, «prima il log, poi i dati»). Al <code>COMMIT</code> non si scrivono le pagine: si forza sul disco <strong>il log</strong>. Da quel momento, qualunque cosa succeda, le note ci sono, e da esse le pagine si possono ricostruire.</p>
 
-<pre><code>                 RAM (veloce, volatile)          DISCO (lento, durevole)
-
-  UPDATE  ──►  1. nota nel log ─────────────────►  log: «riga 1: 100 → 70»   ← sequenziale
-               2. modifica la pagina in RAM
-                  (la pagina è ora «sporca»)
-
-  COMMIT  ──►  3. fsync del log ────────────────►  la nota è DAVVERO su disco
-               ─► rispondi «fatto» all'applicazione
-
-  più tardi     4. la pagina sporca viene scritta ►  file dati, pagina 17     ← sparsa, ma
-  (background)     al suo posto                                                  rimandabile</code></pre>
+<div class="vx"><div class="scroll-x"><table class="vx-table"><thead><tr><th>Momento</th><th>RAM · veloce, volatile</th><th>Disco · lento, durevole</th></tr></thead><tbody><tr><td><code>UPDATE</code></td><td>1. nota nel log<br>2. modifica la pagina in RAM <span class="vx-badge dirty">sporca</span></td><td>log: «riga 1: 100 → 70» <span class="vx-badge ok">sequenziale</span></td></tr><tr><td><code>COMMIT</code></td><td>3. <code>fsync</code> del log, poi risponde «fatto» all'applicazione</td><td>la nota è <b>davvero</b> su disco <span class="vx-badge ok">durevole</span></td></tr><tr><td>più tardi<br><small>in background</small></td><td>4. la pagina sporca viene scritta al suo posto</td><td>file dati, pagina 17 <span class="vx-badge stale">sparsa, ma rimandabile</span></td></tr></tbody></table></div></div>
 
   <p>Da questo schema discendono direttamente i componenti che si trovano in ogni database relazionale. Ora hanno un nome perché hanno già un motivo.</p>
 
@@ -1030,19 +905,7 @@ settori:  [42][43][44][45][46]              settori:  [42] … [9.317] … [1.20
   </table>
   </div>
 
-<pre><code>   applicazione
-        │  BEGIN / UPDATE / COMMIT
-        ▼
-   ┌─────────────────────────────────────────┐
-   │  LOCK MANAGER    chi può toccare cosa   │
-   ├─────────────────────────────────────────┤
-   │  BUFFER POOL     pagine in RAM (sporche)│
-   ├─────────────────────────────────────────┤
-   │  WAL             log append-only        │──► fsync su disco
-   └─────────────────────────────────────────┘
-                    │
-                    ▼  in background, con calma
-              file dati su disco</code></pre>
+<div class="vx"><div class="vx-stack"><div class="vx-layer app">applicazione</div><div class="vx-note">BEGIN / UPDATE / COMMIT</div><div class="vx-layer first">LOCK MANAGER</div><div class="vx-note">chi può toccare cosa</div><div class="vx-layer vol cont">BUFFER POOL</div><div class="vx-note">pagine in RAM (sporche)</div><div class="vx-layer dur cont last">WAL</div><div class="vx-note hot"><span>log append-only → <b>fsync</b> su disco</span></div><div class="vx-layer dur solo">file dati su disco</div><div class="vx-note" style="margin-top:10px">in background, con calma</div></div></div>
 
   <div class="callout">
     <p><strong>Il commit è un <code>fsync</code> del log, non delle pagine dati</strong><br>È la conseguenza più importante di tutto lo schema, e spiega una cosa che altrimenti sembra magia: perché committare è economico anche su una transazione che ha modificato diecimila righe. Le diecimila pagine restano sporche in RAM; su disco va solo il log, in un'unica scrittura sequenziale. Hai reso durevole l'<em>intenzione</em>, non ancora il <em>risultato</em>. Il risultato arriverà, ma può aspettare.</p>
@@ -1051,60 +914,33 @@ settori:  [42][43][44][45][46]              settori:  [42] … [9.317] … [1.20
   <h3>La traccia completa di una UPDATE, passo per passo</h3>
   <p>Seguiamo l'esempio del capitolo 1: <code>UPDATE conti SET saldo = 70 WHERE id = 1</code>, e la riga 1 vive nella pagina 17. A ogni passo guardiamo lo stato dei <strong>tre posti</strong> in cui un dato può trovarsi: la RAM del buffer pool, il file di log su disco e il file dati su disco. Prima dell'<code>UPDATE</code> la situazione è questa:</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-(la pagina 17 non c'è)         … ultima nota: LSN 4179       pagina 17: id=1 saldo=100</code></pre>
+<div class="vx"><p class="vx-cap">Prima dell'UPDATE</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec old"><span>(la pagina 17 non c'è)</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec "><span>… ultima nota: LSN 4179</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec "><span>pag. 17: id=1 saldo=100</span></div></div></div></div>
 
   <p><strong>Passi 1 e 2 · lock e caricamento.</strong> Il database carica la pagina, trova la riga 1 e verifica che nessun'altra transazione la stia modificando, poi la blocca per noi (in PostgreSQL il lock di riga è scritto nell'intestazione della riga stessa; InnoDB lo tiene in una struttura in memoria). Poi il database cerca la pagina 17 nel buffer pool: non c'è, quindi la <em>legge dal file dati</em> e ne mette una copia in RAM. Ora esistono due copie identiche della pagina.</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-pagina 17: saldo=100           … LSN 4179                    pagina 17: saldo=100
-(copia identica al disco)</code></pre>
+<div class="vx"><p class="vx-cap">Passi 1–2 · copia identica al disco</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span> <span class="vx-badge clean">= disco</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec "><span>… LSN 4179</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span></div></div></div></div>
 
   <p><strong>Passo 3 · la nota nel log.</strong> Prima di toccare la pagina, il database scrive la nota «riga 1: saldo era 100, diventa 70». La nota riceve il numero progressivo successivo, 4180. Per ora sta in un piccolo buffer di RAM riservato al log: sul disco non è ancora arrivata.</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-pagina 17: saldo=100           … LSN 4179                    pagina 17: saldo=100
-nota 4180 «100 → 70»           (la 4180 non c'è ancora)
-(in attesa di andare su disco)</code></pre>
+<div class="vx"><p class="vx-cap">Passo 3 · la nota nel buffer del log</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span></div><div class="vx-rec new"><span>nota 4180 «100 → 70» <small>in attesa di andare su disco</small></span> <span class="vx-badge dirty">buffer log</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec "><span>… LSN 4179</span></div><div class="vx-rec old"><span>la 4180 non c'è ancora</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span></div></div></div></div>
 
   <p><strong>Passo 4 · la modifica, solo in RAM.</strong> La copia della pagina 17 in RAM viene cambiata: saldo 70. La copia sul file dati resta 100. Da questo momento le due copie sono <em>diverse</em>, ed è esattamente questo che si intende con pagina <strong>sporca</strong>: una pagina in RAM che non coincide più con la sua versione su disco. Il database la segna come tale per ricordarsi che prima o poi andrà riscritta.</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-pagina 17: saldo=70  SPORCA    … LSN 4179                    pagina 17: saldo=100
-nota 4180 «100 → 70»                                         (ancora il valore vecchio)</code></pre>
+<div class="vx"><p class="vx-cap">Passo 4 · la modifica, solo in RAM</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec new"><span>pag. 17: saldo=70</span> <span class="vx-badge dirty">sporca</span></div><div class="vx-rec "><span>nota 4180 «100 → 70»</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec "><span>… LSN 4179</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span> <span class="vx-badge stale">vecchio</span></div></div></div></div>
 
   <p><strong>Passo 5 · COMMIT = la nota va su disco.</strong> L'applicazione chiede il commit. Il database <em>non</em> scrive la pagina 17: chiama <code>fsync</code> <strong>sul file di log</strong>, e aspetta che il disco confermi di aver ricevuto fisicamente la nota 4180. Solo allora risponde «fatto». È il momento in cui la modifica diventa durevole: non perché il saldo 70 sia nel file dati (non lo è), ma perché sul disco esiste una nota che dice come ottenerlo.</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-pagina 17: saldo=70  SPORCA    … LSN 4179, LSN 4180 ✔        pagina 17: saldo=100
-                               «riga 1: 100 → 70, COMMIT»    (ANCORA il valore vecchio!)
-
-                                            → l'applicazione riceve «fatto»</code></pre>
+<div class="vx"><p class="vx-cap">Passo 5 · COMMIT</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec "><span>pag. 17: saldo=70</span> <span class="vx-badge dirty">sporca</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec old"><span>… LSN 4179</span></div><div class="vx-rec new"><span>LSN 4180 · «riga 1: 100 → 70, COMMIT»</span> <span class="vx-badge ok">fsync ✔</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec "><span>pag. 17: saldo=100</span> <span class="vx-badge stale">ancora vecchio!</span></div></div></div><p class="vx-foot">L'applicazione riceve «fatto».</p></div>
 
   <p>Questo è lo stato che sorprende: l'utente ha ricevuto conferma, eppure nel file dati c'è ancora 100. Non è un errore, è il progetto: il file dati è indietro <em>di proposito</em>, perché aggiornarlo ora costerebbe una scrittura sparsa, e il log basta a garantire che il 70 non si perda.</p>
 
   <p><strong>Passo 6 · più tardi, la pagina raggiunge il disco.</strong> Secondi o minuti dopo, un processo separato del database (in PostgreSQL soprattutto il <em>checkpointer</em>, aiutato dal <em>background writer</em>, che lavorano mentre le transazioni continuano) prende le pagine sporche accumulate nel buffer pool e le scrive al loro posto nel file dati. Ora le due copie coincidono di nuovo: la pagina è <em>pulita</em>. Quel «più tardi» è la ragione di tutto ciò che segue.</p>
 
-<pre><code>RAM · buffer pool              DISCO · log (WAL)             DISCO · file dati
-────────────────────────       ──────────────────────        ──────────────────────
-pagina 17: saldo=70  pulita    … LSN 4179, LSN 4180          pagina 17: saldo=70</code></pre>
+<div class="vx"><p class="vx-cap">Passo 6 · la pagina raggiunge il disco</p><div class="vx-state "><div class="vx-box ram"><h5>RAM · buffer pool <span>volatile</span></h5><div class="vx-rec "><span>pag. 17: saldo=70</span> <span class="vx-badge clean">pulita</span></div></div><div class="vx-box "><h5>Disco · log (WAL) <span>durevole</span></h5><div class="vx-rec "><span>… LSN 4179, LSN 4180</span></div></div><div class="vx-box "><h5>Disco · file dati <span>durevole</span></h5><div class="vx-rec new"><span>pag. 17: saldo=70</span> <span class="vx-badge ok">aggiornata</span></div></div></div></div>
 
   <p><strong>Passo 7 · il checkpoint</strong>, di cui parliamo tra poco, è ciò che ogni tanto forza il passo 6 per <em>tutte</em> le pagine sporche e lo annota nel log. Ecco la traccia completa in forma compatta, la stessa che si trova in ogni manuale:</p>
 
-<pre><code>1  il lock manager verifica che nessun altro tenga la riga 1
-2  la pagina che contiene la riga 1 viene cercata nel buffer pool
-   → se non c'è, viene letta da disco e messa in RAM
-3  nel log viene scritto: «riga 1: saldo era 100, diventa 70»
-4  la pagina in RAM viene modificata e marcata «sporca»
-5  al COMMIT il log viene forzato su disco (fsync)
-6  la pagina sporca finirà su disco più tardi, in background
-7  periodicamente un checkpoint garantisce che tutto ciò che
-   precede un certo punto del log sia davvero nei file dati</code></pre>
+<div class="vx"><p class="vx-cap">La traccia completa</p><ol class="vx-steps"><li><span>il lock manager verifica che nessun altro tenga la riga 1</span></li><li><span>la pagina che contiene la riga 1 viene cercata nel buffer pool <small>se non c'è, viene letta da disco e messa in RAM</small></span></li><li><span>nel log viene scritto: «riga 1: saldo era 100, diventa 70»</span></li><li><span>la pagina in RAM viene modificata e marcata «sporca»</span></li><li class="hot"><span>al <code>COMMIT</code> il log viene forzato su disco (<code>fsync</code>)</span></li><li><span>la pagina sporca finirà su disco più tardi, in background</span></li><li><span>periodicamente un checkpoint garantisce che tutto ciò che precede un certo punto del log sia davvero nei file dati</span></li></ol></div>
 
   <p>Due dettagli ricorrono in tutto il documento. Al <strong>punto 3</strong> il database scrive <em>cosa sta per fare</em> prima di farlo. Al <strong>punto 5</strong> rende durevole il log, non i dati. Sono le due scelte che rendono possibili le transazioni — e il punto 7 è ciò che impedisce loro di far esplodere il disco.</p>
 
@@ -1141,22 +977,11 @@ pagina 17: saldo=70  pulita    … LSN 4179, LSN 4180          pagina 17: saldo=
 
   <p>Costruiamo il caso. Sul conto 1 avvengono tre transazioni committate in sequenza, ognuna con la sua nota nel log:</p>
 
-<pre><code>log (tutte committate, tutte su disco grazie all'fsync del commit)
-
-  LSN 4180   riga 1: saldo 100 → 70      (prelievo di 30)
-  LSN 4195   riga 1: saldo  70 → 40      (prelievo di 30)
-  LSN 4200   riga 1: saldo  40 → 100     (accredito di 60)
-
-poi: crash</code></pre>
+<div class="vx"><p class="vx-cap">Log · tutte committate, tutte su disco grazie all'fsync del commit</p><div class="scroll-x"><table class="vx-table"><thead><tr><th>LSN</th><th>Modifica sulla riga 1</th><th>Causa</th></tr></thead><tbody><tr><td class="m">4180</td><td>saldo 100 → 70</td><td>prelievo di 30</td></tr><tr><td class="m">4195</td><td>saldo 70 → 40</td><td>prelievo di 30</td></tr><tr><td class="m">4200</td><td>saldo 40 → 100</td><td>accredito di 60</td></tr></tbody></table></div><div class="vx-out bad"><b>poi</b> · crash</div></div>
 
   <p>La pagina 17 è stata scritta sul disco «più tardi, in background», ma <em>quando</em>? Non lo sappiamo: dipende da quando il processo di scrittura è passato. Sul disco possiamo trovare uno qualunque di questi quattro stati:</p>
 
-<pre><code>  pagina 17 su disco contiene…      significa che il background writer l'ha scritta…
-  ─────────────────────────────     ──────────────────────────────────────────────────
-  saldo = 100                       (a) prima di tutte e tre le note, oppure
-                                    (b) dopo tutte e tre (40 → 100 l'ha riportata a 100!)
-  saldo =  70                       dopo la 4180, prima della 4195
-  saldo =  40                       dopo la 4195, prima della 4200</code></pre>
+<div class="vx"><div class="scroll-x"><table class="vx-table"><thead><tr><th>Pagina 17 su disco contiene…</th><th>Significa che il background writer l'ha scritta…</th></tr></thead><tbody><tr><td class="m">saldo = 100</td><td>(a) prima di tutte e tre le note, oppure<br>(b) dopo tutte e tre (40 → 100 l'ha riportata a 100!)</td></tr><tr><td class="m">saldo = 70</td><td>dopo la 4180, prima della 4195</td></tr><tr><td class="m">saldo = 40</td><td>dopo la 4195, prima della 4200</td></tr></tbody></table></div></div>
 
   <p>Guarda la prima riga: <strong>il valore 100 è compatibile con due storie opposte</strong>. Nel caso (a) la pagina è indietro di tre note e il redo deve applicarle tutte; nel caso (b) la pagina è già aggiornata e il redo non deve toccare nulla. Se il redo ragionasse sui valori («la nota 4180 dice 100 → 70, la pagina contiene 100, quindi la 4180 non è ancora applicata: applico»), nel caso (b) porterebbe il saldo a 70, poi a 40, poi di nuovo a 100: per fortuna qui torna giusto, ma solo per coincidenza. Basta che la sequenza sia diversa (per esempio una nota <em>«saldo = saldo + 30»</em>, che PostgreSQL non scrive ma altri sistemi sì, o una nota su un'altra colonna della stessa riga) e riapplicare a una pagina già aggiornata produce un valore che non è mai esistito.</p>
 
@@ -1167,35 +992,7 @@ poi: crash</code></pre>
 
   <p>Riprendiamo i quattro stati possibili della pagina 17. Sono <strong>quattro scenari alternativi</strong>, non quattro passi: al momento del crash il disco contiene <em>uno solo</em> di questi stati, a seconda di quando il background writer è passato l'ultima volta. In ogni scenario il redo parte dal valore e dall'LSN che trova nell'header, scorre le tre note del log in ordine e per ciascuna applica la stessa regola: <strong>applica se il numero della nota è maggiore di quello nell'header, altrimenti salta</strong>. Ogni nota applicata aggiorna anche l'header.</p>
 
-<pre><code>le tre note nel log:   4180 (100→70)   4195 (70→40)   4200 (40→100)
-
-SCENARIO A · la pagina non era mai stata scritta dopo le tre note
-  trovo su disco:  saldo=100, header.LSN=4150
-  nota 4180: 4180 &gt; 4150 → applica  → saldo=70,  header=4180
-  nota 4195: 4195 &gt; 4180 → applica  → saldo=40,  header=4195
-  nota 4200: 4200 &gt; 4195 → applica  → saldo=100, header=4200
-  risultato: saldo=100 ✔
-
-SCENARIO B · la pagina era stata scritta dopo la prima nota
-  trovo su disco:  saldo=70, header.LSN=4180
-  nota 4180: 4180 &gt; 4180 ? no → salta   (già dentro)
-  nota 4195: 4195 &gt; 4180 → applica  → saldo=40,  header=4195
-  nota 4200: 4200 &gt; 4195 → applica  → saldo=100, header=4200
-  risultato: saldo=100 ✔
-
-SCENARIO C · la pagina era stata scritta dopo la seconda nota
-  trovo su disco:  saldo=40, header.LSN=4195
-  nota 4180: 4180 &gt; 4195 ? no → salta
-  nota 4195: 4195 &gt; 4195 ? no → salta
-  nota 4200: 4200 &gt; 4195 → applica  → saldo=100, header=4200
-  risultato: saldo=100 ✔
-
-SCENARIO D · la pagina era stata scritta dopo tutte e tre le note
-  trovo su disco:  saldo=100, header.LSN=4200
-  nota 4180: 4180 &gt; 4200 ? no → salta
-  nota 4195: 4195 &gt; 4200 ? no → salta
-  nota 4200: 4200 &gt; 4200 ? no → salta
-  risultato: saldo=100 ✔  (non ha toccato nulla, e aveva ragione)</code></pre>
+<div class="vx"><p class="vx-cap">le tre note nel log</p><div class="vx-cells" style="margin-bottom:12px"><span class="vx-cell hl">4180 · 100→70</span><span class="vx-cell hl">4195 · 70→40</span><span class="vx-cell hl">4200 · 40→100</span></div><div class="vx-cards"><div class="vx-card" data-xscen="A"><h5><small>Scenario A</small> la pagina non era mai stata scritta dopo le tre note</h5><div class="vx-line"><b>▸</b> <span>trovo su disco: <code>saldo=100, header.LSN=4150</code></span></div><div class="vx-rw"><b>4180</b> <span>4180 &gt; 4150</span> <span class="vx-badge ok">applica</span><small>→ saldo=70, header=4180</small></div><div class="vx-rw"><b>4195</b> <span>4195 &gt; 4180</span> <span class="vx-badge ok">applica</span><small>→ saldo=40, header=4195</small></div><div class="vx-rw"><b>4200</b> <span>4200 &gt; 4195</span> <span class="vx-badge ok">applica</span><small>→ saldo=100, header=4200</small></div><div class="vx-out go"><b>risultato</b> · saldo=100 ✔</div></div><div class="vx-card" data-xscen="B"><h5><small>Scenario B</small> la pagina era stata scritta dopo la prima nota</h5><div class="vx-line"><b>▸</b> <span>trovo su disco: <code>saldo=70, header.LSN=4180</code></span></div><div class="vx-rw"><b>4180</b> <span>4180 &gt; 4180 ? no</span> <span class="vx-badge clean">salta</span><small>→ già dentro</small></div><div class="vx-rw"><b>4195</b> <span>4195 &gt; 4180</span> <span class="vx-badge ok">applica</span><small>→ saldo=40, header=4195</small></div><div class="vx-rw"><b>4200</b> <span>4200 &gt; 4195</span> <span class="vx-badge ok">applica</span><small>→ saldo=100, header=4200</small></div><div class="vx-out go"><b>risultato</b> · saldo=100 ✔</div></div><div class="vx-card" data-xscen="C"><h5><small>Scenario C</small> la pagina era stata scritta dopo la seconda nota</h5><div class="vx-line"><b>▸</b> <span>trovo su disco: <code>saldo=40, header.LSN=4195</code></span></div><div class="vx-rw"><b>4180</b> <span>4180 &gt; 4195 ? no</span> <span class="vx-badge clean">salta</span></div><div class="vx-rw"><b>4195</b> <span>4195 &gt; 4195 ? no</span> <span class="vx-badge clean">salta</span></div><div class="vx-rw"><b>4200</b> <span>4200 &gt; 4195</span> <span class="vx-badge ok">applica</span><small>→ saldo=100, header=4200</small></div><div class="vx-out go"><b>risultato</b> · saldo=100 ✔</div></div><div class="vx-card" data-xscen="D"><h5><small>Scenario D</small> la pagina era stata scritta dopo tutte e tre le note</h5><div class="vx-line"><b>▸</b> <span>trovo su disco: <code>saldo=100, header.LSN=4200</code></span></div><div class="vx-rw"><b>4180</b> <span>4180 &gt; 4200 ? no</span> <span class="vx-badge clean">salta</span></div><div class="vx-rw"><b>4195</b> <span>4195 &gt; 4200 ? no</span> <span class="vx-badge clean">salta</span></div><div class="vx-rw"><b>4200</b> <span>4200 &gt; 4200 ? no</span> <span class="vx-badge clean">salta</span></div><div class="vx-out go"><b>risultato</b> · saldo=100 ✔ (non ha toccato nulla, e aveva ragione)</div></div></div></div>
 
   <p>Confronta lo scenario A con lo scenario D: entrambi partono da <code>saldo=100</code>, ma l'header dice 4150 in un caso e 4200 nell'altro, e il redo si comporta in modo opposto, applicando tutto oppure niente. Senza l'LSN i due scenari sarebbero stati indistinguibili. Con l'LSN, in tutti e quattro il file dati finisce nello stato corretto, quello che le transazioni committate avevano promesso.</p>
 
@@ -1216,18 +1013,7 @@ SCENARIO D · la pagina era stata scritta dopo tutte e tre le note
   <h4 style="font-size:15.5px;margin:22px 0 6px">Lo scenario: tre pagine, sei note, nessun checkpoint ancora</h4>
   <p>In un minuto di lavoro sono arrivate sei transazioni committate su tre conti diversi, che vivono nelle pagine 17, 4.913 e 30.201. Il log le ha registrate in ordine; il background writer non è ancora passato su nessuna pagina. Ecco lo stato dei tre posti:</p>
 
-<pre><code>DISCO · log (WAL)                            RAM · buffer pool (sporche)        DISCO · file dati
-────────────────────────────────────         ──────────────────────────         ────────────────────────────
-LSN 4180  pagina 17:     saldo 100 → 70      pagina 17      saldo=40  hdr=4195  pagina 17      saldo=100 hdr=4150
-LSN 4185  pagina 4.913:  saldo 500 → 450     pagina 4.913   saldo=450 hdr=4185  pagina 4.913   saldo=500 hdr=4100
-LSN 4195  pagina 17:     saldo  70 → 40      pagina 30.201  saldo=20  hdr=4210  pagina 30.201  saldo=90  hdr=3980
-LSN 4203  pagina 30.201: saldo  90 → 60
-LSN 4210  pagina 30.201: saldo  60 → 20
-LSN 4215  pagina 17:     saldo  40 → 100     ← attenzione: la RAM qui sopra è fotografata
-                                               PRIMA che la 4215 venga applicata
-
-se il crash arrivasse ora: il redo deve rileggere dalla 4180 (o da prima) e riapplicare
-tutto; e nessuna di queste sei note può essere cancellata dal log</code></pre>
+<div class="vx"><p class="vx-cap">Sei note, nessun checkpoint ancora</p><div class="vx-state "><div class="vx-box "><h5>Disco · log (WAL) </h5><div class="vx-rec "><span>4180 · pag. 17: 100 → 70</span></div><div class="vx-rec "><span>4185 · pag. 4.913: 500 → 450</span></div><div class="vx-rec "><span>4195 · pag. 17: 70 → 40</span></div><div class="vx-rec "><span>4203 · pag. 30.201: 90 → 60</span></div><div class="vx-rec "><span>4210 · pag. 30.201: 60 → 20</span></div><div class="vx-rec new"><span>4215 · pag. 17: 40 → 100 <small>la RAM qui accanto è fotografata PRIMA che la 4215 venga applicata</small></span> <span class="vx-badge dirty">attenzione</span></div></div><div class="vx-box ram"><h5>RAM · buffer pool <span>sporche</span></h5><div class="vx-rec "><span>pag. 17 · saldo=40 <small>hdr=4195</small></span> <span class="vx-badge dirty">sporca</span></div><div class="vx-rec "><span>pag. 4.913 · saldo=450 <small>hdr=4185</small></span> <span class="vx-badge dirty">sporca</span></div><div class="vx-rec "><span>pag. 30.201 · saldo=20 <small>hdr=4210</small></span> <span class="vx-badge dirty">sporca</span></div></div><div class="vx-box "><h5>Disco · file dati </h5><div class="vx-rec "><span>pag. 17 · saldo=100 <small>hdr=4150</small></span> <span class="vx-badge stale">vecchia</span></div><div class="vx-rec "><span>pag. 4.913 · saldo=500 <small>hdr=4100</small></span> <span class="vx-badge stale">vecchia</span></div><div class="vx-rec "><span>pag. 30.201 · saldo=90 <small>hdr=3980</small></span> <span class="vx-badge stale">vecchia</span></div></div></div><p class="vx-foot">Se il crash arrivasse ora, il redo dovrebbe rileggere dalla 4180 (o da prima) e riapplicare tutto; e nessuna di queste sei note può essere cancellata dal log.</p></div>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">Il checkpoint, passo per passo</h4>
   <p>Poniamo che il checkpoint scatti subito dopo la nota 4210 (prima che la 4215 sia scritta). Esegue tre operazioni in sequenza:</p>
@@ -1236,42 +1022,18 @@ tutto; e nessuna di queste sei note può essere cancellata dal log</code></pre>
 
   <p><strong>Passo 2 · forza sul file dati tutte le pagine sporche.</strong> È il passo 6 della traccia, eseguito per tutte le pagine insieme: le tre pagine in RAM vengono scritte al loro posto nel file dati, ognuna con l'header aggiornato. Costa tre scritture sparse, ma sono <em>tre</em>, non cinque: la pagina 17 aveva assorbito due modifiche e la 30.201 altre due, e ciascuna viene scritta una volta sola (è il guadagno spiegato nel callout più sotto).</p>
 
-<pre><code>durante il passo 2                            DISCO · file dati, dopo il passo 2
-                                              ────────────────────────────────
-pagina 17     (RAM: saldo=40, hdr=4195)  ──►  pagina 17      saldo=40  hdr=4195
-pagina 4.913  (RAM: saldo=450, hdr=4185) ──►  pagina 4.913   saldo=450 hdr=4185
-pagina 30.201 (RAM: saldo=20, hdr=4210)  ──►  pagina 30.201  saldo=20  hdr=4210
-
-ora ogni pagina su disco è aggiornata almeno fino alla 4210:
-tutto ciò che il log dice prima della 4210 è DENTRO i file dati</code></pre>
+<div class="vx"><div class="scroll-x"><table class="vx-table"><thead><tr><th>Pagina</th><th>In RAM (durante il passo 2)</th><th></th><th>File dati, dopo il passo 2</th></tr></thead><tbody><tr><td class="m">17</td><td class="m">saldo=40 · hdr=4195</td><td>→</td><td class="m">saldo=40 · hdr=4195 <span class="vx-badge ok">✔</span></td></tr><tr><td class="m">4.913</td><td class="m">saldo=450 · hdr=4185</td><td>→</td><td class="m">saldo=450 · hdr=4185 <span class="vx-badge ok">✔</span></td></tr><tr><td class="m">30.201</td><td class="m">saldo=20 · hdr=4210</td><td>→</td><td class="m">saldo=20 · hdr=4210 <span class="vx-badge ok">✔</span></td></tr></tbody></table></div><p class="vx-foot">Ora ogni pagina su disco è aggiornata almeno fino alla 4210: tutto ciò che il log dice prima della 4210 è <b>dentro</b> i file dati.</p></div>
 
   <p><strong>Passo 3 · scrive nel log il record di checkpoint.</strong> Una nota speciale che dice: «tutto ciò che precede l'LSN 4210 è nei file dati». Da questo momento il database sa due cose che prima non sapeva.</p>
 
-<pre><code>DISCO · log (WAL), dopo il checkpoint
-
-LSN 4180  pagina 17:     100 → 70    ┐
-LSN 4185  pagina 4.913:  500 → 450   │
-LSN 4195  pagina 17:      70 → 40    │  RICICLABILI: il loro contenuto è già nei file dati,
-LSN 4203  pagina 30.201:  90 → 60    │  nessun redo avrà mai bisogno di rileggerle
-LSN 4210  pagina 30.201:  60 → 20    ┘
-LSN 4211  ★ CHECKPOINT: tutto prima di 4210 è nei file dati
-LSN 4215  pagina 17:      40 → 100   ← arrivata dopo: NON coperta, va tenuta</code></pre>
+<div class="vx"><div class="vx-box "><h5>Disco · log (WAL), dopo il checkpoint </h5><div class="vx-rec old"><span>4180 · pag. 17: 100 → 70</span> <span class="vx-badge clean">riciclabile</span></div><div class="vx-rec old"><span>4185 · pag. 4.913: 500 → 450</span> <span class="vx-badge clean">riciclabile</span></div><div class="vx-rec old"><span>4195 · pag. 17: 70 → 40</span> <span class="vx-badge clean">riciclabile</span></div><div class="vx-rec old"><span>4203 · pag. 30.201: 90 → 60</span> <span class="vx-badge clean">riciclabile</span></div><div class="vx-rec old"><span>4210 · pag. 30.201: 60 → 20</span> <span class="vx-badge clean">riciclabile</span></div><div class="vx-rec new"><span>4211 · ★ CHECKPOINT <small>tutto prima di 4210 è nei file dati</small></span> <span class="vx-badge ok">checkpoint</span></div><div class="vx-rec "><span>4215 · pag. 17: 40 → 100 <small>arrivata dopo: NON coperta</small></span> <span class="vx-badge dirty">va tenuta</span></div></div><p class="vx-foot">Riciclabili: il loro contenuto è già nei file dati, nessun redo avrà mai bisogno di rileggerle.</p></div>
 
   <p>Prima cosa: il log <strong>fino alla 4210 può essere riciclato</strong> (salvo che serva a repliche o all'archiviazione per i backup), perché non serve più a nessun recovery. Nella realtà le transazioni continuano mentre il checkpoint lavora, quindi il recovery riparte dalla posizione annotata all'inizio del checkpoint (il <em>redo point</em>), non dal record di fine. Il WAL smette di crescere all'infinito: contiene solo ciò che è successo dall'ultimo checkpoint in qua. Seconda cosa: <strong>il prossimo recovery partirà dalla 4211</strong>, non dall'inizio dei tempi.</p>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">Ora il crash: che cosa fa il recovery</h4>
   <p>Dopo il checkpoint arriva la nota 4215 (pagina 17: 40 → 100), committata e quindi su disco nel log. La pagina 17 in RAM diventa di nuovo sporca (saldo=100, header=4215), ma il background writer non ha ancora avuto tempo di scriverla. Salta la corrente.</p>
 
-<pre><code>al riavvio, sul disco:
-
-log:        … 4211 ★ CHECKPOINT (fino a 4210) │ 4215 pagina 17: 40 → 100 │
-file dati:  pagina 17 saldo=40 hdr=4195 · pagina 4.913 saldo=450 hdr=4185 · pagina 30.201 saldo=20 hdr=4210
-
-il recovery:
-  1. cerca l'ultimo record di checkpoint → 4211, che dice «tutto prima di 4210 è a posto»
-  2. ignora tutto ciò che precede: non lo legge nemmeno
-  3. riparte dalla 4215:  4215 &gt; 4195 (header della pagina 17) → applica → saldo=100, hdr=4215
-  4. fine. Una nota letta invece di sei.</code></pre>
+<div class="vx"><p class="vx-cap">Al riavvio, sul disco</p><div class="vx-state two"><div class="vx-box "><h5>Log <span>al riavvio</span></h5><div class="vx-rec "><span>… 4211 ★ CHECKPOINT (fino a 4210)</span> <span class="vx-badge ok">checkpoint</span></div><div class="vx-rec new"><span>4215 · pag. 17: 40 → 100</span> <span class="vx-badge dirty">dopo</span></div></div><div class="vx-box "><h5>File dati <span>al riavvio</span></h5><div class="vx-rec "><span>pag. 17 · saldo=40 <small>hdr=4195</small></span></div><div class="vx-rec "><span>pag. 4.913 · saldo=450 <small>hdr=4185</small></span></div><div class="vx-rec "><span>pag. 30.201 · saldo=20 <small>hdr=4210</small></span></div></div></div></div><div class="vx"><p class="vx-cap">Il recovery</p><ol class="vx-steps"><li><span>cerca l'ultimo record di checkpoint → 4211, che dice «tutto prima di 4210 è a posto»</span></li><li><span>ignora tutto ciò che precede: non lo legge nemmeno</span></li><li class="hot"><span>riparte dalla 4215: 4215 &gt; 4195 (header della pagina 17) → applica → saldo=100, hdr=4215</span></li><li class="good"><span>fine. <b>Una nota letta invece di sei.</b></span></li></ol></div>
 
   <p>Senza il checkpoint il recovery avrebbe dovuto rileggere dalla 4180 e confrontare sei note con gli header (saltandone cinque grazie all'LSN, ma leggendole tutte); e il log avrebbe dovuto conservarle tutte per sempre. Con il checkpoint entrambi i problemi si chiudono nello stesso istante. Nella metafora del cameriere: ogni tanto controlla che la cucina abbia eseguito tutto fino a una certa riga del blocchetto, e strappa le pagine precedenti.</p>
 
@@ -1371,11 +1133,12 @@ il recovery:
 
   <p>Un bonifico di 100 € da Anna a Bruno, scritto come lo scriveresti davvero:</p>
 
-<pre><code>BEGIN;
-UPDATE conti SET saldo = saldo - 100 WHERE id = 'anna';
-UPDATE conti SET saldo = saldo + 100 WHERE id = 'bruno';
-INSERT INTO movimenti (da, a, importo) VALUES ('anna','bruno',100);
-COMMIT;</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · bonifico con movimento</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">BEGIN</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo - <span class="tk-num">100</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;anna&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo + <span class="tk-num">100</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;bruno&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">INSERT</span> <span class="tk-kw">INTO</span> movimenti (da, a, importo) <span class="tk-kw">VALUES</span> (<span class="tk-str">&#x27;anna&#x27;</span>,<span class="tk-str">&#x27;bruno&#x27;</span>,<span class="tk-num">100</span>);
+</span><span class="ln"><span class="tk-kw">COMMIT</span>;
+</span></code></pre></div>
 
   <p>Se il processo muore dopo la prima <code>UPDATE</code>, i 100 € sono usciti da un conto e non sono entrati in nessun altro: sono <em>scomparsi</em>. L'atomicità è la promessa che questo stato non possa sopravvivere.</p>
 
@@ -1395,40 +1158,32 @@ COMMIT;</code></pre>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">Aggiornamento degli indici</h4>
   <p>Un <strong>indice</strong> è una struttura dati separata dalla tabella — tipicamente un B-tree — che tiene i valori di una colonna ordinati, così una ricerca non deve scorrere l'intera tabella. Se modifichi una colonna indicizzata, il DB deve aggiornare <em>due</em> strutture.</p>
-<pre><code>UPDATE clienti SET email = 'nuova@x.it' WHERE id = 7;
-
-  tabella          → riga 7, colonna email riscritta
-  indice su email  → rimuovi 'vecchia@x.it', inserisci 'nuova@x.it'</code></pre>
+<div class="vx"><div class="vx-code flat"><div class="vx-code-h"><span>SQL</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">UPDATE</span> clienti <span class="tk-kw">SET</span> email = <span class="tk-str">&#x27;nuova@x.it&#x27;</span> <span class="tk-kw">WHERE</span> id = <span class="tk-num">7</span>;
+</span></code></pre></div><div class="vx-map" style="margin-top:10px"><b>tabella</b> <span class="to">→</span><span>riga 7, colonna <code>email</code> riscritta</span><b>indice su email</b> <span class="to">→</span><span>rimuovi <code>'vecchia@x.it'</code>, inserisci <code>'nuova@x.it'</code></span></div></div>
   <p>Se un crash cadesse tra le due, l'indice punterebbe a un valore che nella tabella non esiste più: una ricerca per email darebbe risultati sbagliati o nessun risultato. Non succede, perché l'aggiornamento dell'indice è nella stessa transazione.</p>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px"><code>ON DELETE CASCADE</code></h4>
   <p>È un'opzione della <strong>foreign key</strong> (chiave esterna, il vincolo che dice «questa colonna deve corrispondere alla chiave primaria di un'altra tabella»): quando cancelli la riga padre, il database cancella automaticamente le righe figlie che la referenziano.</p>
-<pre><code>CREATE TABLE ordini (
-  id         INT PRIMARY KEY,
-  cliente_id INT REFERENCES clienti(id) ON DELETE CASCADE
-);
-
-DELETE FROM clienti WHERE id = 7;
--- una istruzione, ma cancella anche i 40 ordini del cliente 7</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · ON DELETE CASCADE</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">CREATE</span> <span class="tk-kw">TABLE</span> ordini (
+</span><span class="ln">  id         <span class="tk-kw">INT</span> <span class="tk-kw">PRIMARY</span> <span class="tk-kw">KEY</span>,
+</span><span class="ln hl">  cliente_id <span class="tk-kw">INT</span> <span class="tk-kw">REFERENCES</span> clienti(id) <span class="tk-kw">ON</span> <span class="tk-kw">DELETE</span> <span class="tk-kw">CASCADE</span>
+</span><span class="ln">);
+</span><span class="ln">
+</span><span class="ln"><span class="tk-kw">DELETE</span> <span class="tk-kw">FROM</span> clienti <span class="tk-kw">WHERE</span> id = <span class="tk-num">7</span>;
+</span><span class="ln"><span class="tk-cm">-- una istruzione, ma cancella anche i 40 ordini del cliente 7</span>
+</span></code></pre></div>
   <p>Quaranta righe cancellate da un'istruzione che ne nominava una — e la cascata può propagarsi su più livelli (cliente → ordini → righe d'ordine). Tutto dentro lo stesso confine: se qualcosa fallisce a metà, non resta un ordine orfano che punta a un cliente inesistente.</p>
 
   <h4 style="font-size:15.5px;margin:22px 0 6px">Trigger</h4>
   <p>Un <strong>trigger</strong> è codice che il database esegue automaticamente al verificarsi di un evento su una tabella. Lo registri una volta, e da quel momento scatta da solo.</p>
-<pre><code>CREATE TRIGGER log_variazioni
-AFTER UPDATE ON conti
-FOR EACH ROW
-EXECUTE FUNCTION scrivi_audit();</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · trigger</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">CREATE</span> <span class="tk-kw">TRIGGER</span> log_variazioni
+</span><span class="ln"><span class="tk-kw">AFTER</span> <span class="tk-kw">UPDATE</span> <span class="tk-kw">ON</span> conti
+</span><span class="ln"><span class="tk-kw">FOR</span> <span class="tk-kw">EACH</span> <span class="tk-kw">ROW</span>
+</span><span class="ln"><span class="tk-kw">EXECUTE</span> <span class="tk-kw">FUNCTION</span> scrivi_audit();
+</span></code></pre></div>
   <p>Da lì in poi, ogni <code>UPDATE</code> su <code>conti</code> fa girare anche <code>scrivi_audit()</code>, che tipicamente scrive su un'altra tabella. Chi lancia l'<code>UPDATE</code> non sa che sta succedendo. Su 10.000 righe il trigger scatta 10.000 volte. E anche queste scritture sono nel confine: un rollback annulla sia le modifiche ai conti sia le righe di audit — non ti ritrovi un log che documenta un evento mai avvenuto.</p>
 
-<pre><code>       UPDATE conti SET saldo = saldo * 1.02;     ← tu scrivi questo
-  ┌───────────────────────────────────────────┐
-  │  10.000 righe riscritte                   │
-  │  + indice su saldo aggiornato             │   ← il DB fa questo
-  │  + 10.000 trigger di audit eseguiti       │
-  │  + cascate sulle tabelle collegate        │
-  │  + verifica di tutti i CHECK e le FK      │
-  └───────────────────────────────────────────┘
-                tutto o niente</code></pre>
+<div class="vx"><div class="vx-flow"><div class="vx-node code acc">UPDATE conti SET saldo = saldo * 1.02;</div><div class="vx-down">↓ <small>tu scrivi questo, il DB fa questo:</small></div><div class="vx-box "><h5>dentro il confine </h5><div class="vx-rec "><span>10.000 righe riscritte</span></div><div class="vx-rec "><span>+ indice su saldo aggiornato</span></div><div class="vx-rec "><span>+ 10.000 trigger di audit eseguiti</span></div><div class="vx-rec "><span>+ cascate sulle tabelle collegate</span></div><div class="vx-rec "><span>+ verifica di tutti i CHECK e le FK</span></div></div><div class="vx-down">↓</div><div class="vx-out acc"><b>tutto o niente</b> · o tutte queste scritture, o nessuna</div></div></div>
 
   <div class="callout">
     <p><strong>La conseguenza che si vede in produzione</strong><br>Il confine transazionale non è «l'istruzione che ho scritto», è <em>tutto ciò che il database ha fatto per causa mia</em>. È una garanzia forte e comoda — ed è anche il motivo per cui una <code>DELETE</code> su una singola riga può impiegare venti secondi e bloccare mezzo database: non stava cancellando una riga, stava cancellando in cascata quarantamila righe figlie, ognuna coi suoi trigger e i suoi indici, tenendo i lock su tutte fino al commit.</p>
@@ -1447,14 +1202,7 @@ EXECUTE FUNCTION scrivi_audit();</code></pre>
   </table>
   </div>
 
-<pre><code>tempo ──────────────────────────────────────────────►
-
-T1  BEGIN ── UPDATE A ── UPDATE B ── COMMIT ✔
-T2  BEGIN ── UPDATE C ──────────────────────── 💥 crash
-
-al riavvio:
-   redo → riapplica A e B   (T1 aveva committato: promessa da mantenere)
-   undo → ripristina C      (T2 non aveva committato: non deve esistere)</code></pre>
+<div class="vx"><div class="vx-tl"><div class="vx-axis"><span>tempo</span><span>→</span></div><div class="vx-tl-r"><b>T1</b><div class="vx-seq"><span class="vx-step ">BEGIN</span><i>—</i><span class="vx-step ">UPDATE A</span><i>—</i><span class="vx-step ">UPDATE B</span><i>—</i><span class="vx-step ok">COMMIT ✔</span></div></div><div class="vx-tl-r"><b>T2</b><div class="vx-seq"><span class="vx-step ">BEGIN</span><i>—</i><span class="vx-step ">UPDATE C</span><i>—</i><span class="vx-step err">💥 crash</span></div></div></div><p class="vx-cap" style="margin-top:14px">al riavvio</p><div class="vx-out go"><b>redo</b> · riapplica A e B (T1 aveva committato: promessa da mantenere)</div><div style="height:6px"></div><div class="vx-out bad"><b>undo</b> · ripristina C (T2 non aveva committato: non deve esistere)</div></div>
 
   <div class="callout">
     <p><strong>L'atomicità non è «non scrivere finché non sei sicuro»</strong><br>È <strong>«sapere sempre come tornare indietro»</strong>. La scrittura può avvenire in qualunque momento; ciò che conta è che l'informazione per disfarla sia già nel log <em>prima</em> che la pagina tocchi il disco. Questa è letteralmente la regola del write-ahead logging del capitolo 3, ed è il motivo per cui lo stato invalido non sopravvive a un crash: non perché non ci sia mai arrivato, ma perché al riavvio viene disfatto (undo, in InnoDB) o reso invisibile (in PostgreSQL la transazione risulta abortita e le sue versioni le rimuove poi il VACUUM).</p>
@@ -1488,10 +1236,11 @@ al riavvio:
 
   <p>Riprendiamo il bonifico del capitolo precedente. L'atomicità garantisce che le due <code>UPDATE</code> avvengano entrambe o nessuna. Ma non ha alcuna opinione su questo:</p>
 
-<pre><code>BEGIN;
-UPDATE conti SET saldo = saldo - 100 WHERE id = 'anna';
-UPDATE conti SET saldo = saldo +  50 WHERE id = 'bruno';   -- ← 50, non 100
-COMMIT;</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · bonifico sbagliato</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">BEGIN</span>;
+</span><span class="ln"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo - <span class="tk-num">100</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;anna&#x27;</span>;
+</span><span class="ln hl"><span class="tk-kw">UPDATE</span> conti <span class="tk-kw">SET</span> saldo = saldo +  <span class="tk-num">50</span> <span class="tk-kw">WHERE</span> id = <span class="tk-str">&#x27;bruno&#x27;</span>;   <span class="tk-an">-- ← 50, non 100</span>
+</span><span class="ln"><span class="tk-kw">COMMIT</span>;
+</span></code></pre></div>
 
   <p>Atomica. Isolata. Durevole. E <strong>sbagliata</strong>: cinquanta euro sono stati distrutti. Nessun meccanismo del database si è accorto di nulla, perché «in un bonifico la somma dei saldi non cambia» è una regola che vive nel tuo dominio, non nel motore.</p>
 
@@ -1501,10 +1250,7 @@ COMMIT;</code></pre>
   <p>A, I e D sono proprietà del <strong>meccanismo</strong>. Il database le garantisce senza sapere nulla di cosa contiene: può darti atomicità su una tabella di gattini o su un libro mastro, gli è indifferente.</p>
   <p>La C è una proprietà del <strong>contenuto</strong>. Nessun database può sapere che «la somma dei dare deve uguagliare la somma degli avere» se non gliel'hai detto tu. Non è qualcosa che il DB ti dà: è qualcosa che tu definisci e che il DB ti aiuta a difendere.</p>
 
-<pre><code>   stato valido S1 ──────[ T ]──────► stato valido S2
-                            │
-                     stato intermedio NON valido
-                     (esiste davvero, ma nessuno lo vede)</code></pre>
+<div class="vx"><div class="vx-chain"><div class="vx-ver"><b>stato valido S1</b></div><div class="vx-arrow"><span>→</span>T</div><div class="vx-ver" style="border-style:dashed;background:var(--warn-soft)"><b>stato intermedio</b> <span style="font-size:.84rem">NON valido: esiste davvero, ma nessuno lo vede</span></div><div class="vx-arrow"><span>→</span></div><div class="vx-ver cur"><b>stato valido S2</b></div></div></div>
 
   <p>È un'implicazione condizionata: <em>se</em> il DB parte da uno stato valido <em>e</em> la transazione è scritta correttamente, <em>allora</em> finisce in uno stato valido. Nessuna delle due premesse è garantita dal database.</p>
   <p>Durante la transazione l'invariante <strong>è violata</strong>. Un bonifico ha un istante in cui i 100 € sono usciti dal conto A e non sono ancora entrati in B: la somma totale è sbagliata, e quello stato esiste. Da qui la cosa più utile da capire:</p>
@@ -1542,24 +1288,22 @@ COMMIT;</code></pre>
   <h3>Caso pratico · l'indice parziale</h3>
   <p>Un indice normale (capitolo 5) copre tutte le righe della tabella. Un <strong>indice parziale</strong> ha una <code>WHERE</code>, e il database ci mette dentro solo le righe che la soddisfano.</p>
 
-<pre><code>CREATE INDEX idx_entry_athlete_occurred
-    ON medical_record_entry (athlete_id, occurred_on DESC, created_at DESC)
-    WHERE deleted_at IS NULL;        -- ← questa riga lo rende parziale</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · indice parziale</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">CREATE</span> <span class="tk-kw">INDEX</span> idx_entry_athlete_occurred
+</span><span class="ln">    <span class="tk-kw">ON</span> medical_record_entry (athlete_id, occurred_on <span class="tk-kw">DESC</span>, created_at <span class="tk-kw">DESC</span>)
+</span><span class="ln hl">    <span class="tk-kw">WHERE</span> deleted_at <span class="tk-kw">IS</span> <span class="tk-kw">NULL</span>;        <span class="tk-an">-- ← questa riga lo rende parziale</span>
+</span></code></pre></div>
 
-<pre><code>tabella: 100.000 righe        indice parziale: 70.000 voci
-┌────────────────────────┐    ┌────────────────────────┐
-│ 70.000 vive            │───►│ 70.000 vive            │
-│ 30.000 cancellate      │    │                        │  ← non entrano
-└────────────────────────┘    └────────────────────────┘</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>tabella <span>100.000 righe</span></h5><div class="vx-split"><span class="a" style="flex:70">70.000 vive</span><span class="x" style="flex:30">30.000 cancellate</span></div></div><div class="vx-arrow"><span>→</span></div><div class="vx-box "><h5>indice parziale <span>70.000 voci</span></h5><div class="vx-split" style="width:70%"><span class="a" style="flex:1">70.000 vive</span></div><p class="note" style="margin:0">le cancellate non entrano</p></div></div></div>
 
   <p>Il guadagno è doppio e vale la pena distinguerlo: l'indice è <strong>più piccolo</strong> (meno pagine da leggere, più cache utile) e le scritture sulle righe escluse <strong>non lo toccano affatto</strong>. Se l'unica lettura che esiste chiede le voci vive di un atleta, le voci cancellate nell'indice sarebbero peso che nessuno legge mai. (C'è una trappola nell'uso degli indici parziali che non riguarda la consistenza ma il planner: la trovi nel capitolo 11, insieme all'altro caso in cui un predicato «messo dove serve» rompe qualcosa.)</p>
 
   <h3>L'indice parziale unico: un invariante dichiarato</h3>
   <p>Qui la cosa diventa interessante. Quando l'indice parziale è <code>UNIQUE</code>, il vincolo di unicità vale <strong>solo dentro quel sottoinsieme</strong>. È il modo di scrivere nel database un invariante che una <code>UNIQUE</code> normale non sa esprimere: al più uno attivo. Attenzione: MySQL non supporta indici parziali; lì si ottiene lo stesso effetto con una colonna generata che vale <code>NULL</code> per le righe revocate e un indice <code>UNIQUE</code> su di essa.</p>
 
-<pre><code>CREATE UNIQUE INDEX uq_user_consent_active
-    ON user_consents (user_id, consent_type)
-    WHERE revoked_at IS NULL;</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · al più un consenso attivo</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">CREATE</span> <span class="tk-kw">UNIQUE</span> <span class="tk-kw">INDEX</span> uq_user_consent_active
+</span><span class="ln">    <span class="tk-kw">ON</span> user_consents (user_id, consent_type)
+</span><span class="ln">    <span class="tk-kw">WHERE</span> revoked_at <span class="tk-kw">IS</span> <span class="tk-kw">NULL</span>;
+</span></code></pre></div>
 
   <div class="tbl-scroll">
   <table>
@@ -1608,14 +1352,7 @@ COMMIT;</code></pre>
 
   <p>Due casse dello stesso negozio, un solo pezzo in magazzino:</p>
 
-<pre><code>Cassa A                           Cassa B
-─────────────────────             ─────────────────────
-SELECT giacenza → 1               SELECT giacenza → 1
-"c'è, posso vendere"              "c'è, posso vendere"
-UPDATE giacenza = 0               UPDATE giacenza = 0
-COMMIT ✔                          COMMIT ✔
-
-→ due clienti hanno comprato lo stesso pezzo</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-race-g"><div class="hd"></div><div class="hd">Cassa A</div><div class="hd">Cassa B</div><div class="t">1</div><div class="c"><span class="vx-step info">SELECT giacenza → 1</span></div><div class="c"><span class="vx-step info">SELECT giacenza → 1</span></div><div class="t">2</div><div class="c"><span class="vx-step ">«c'è, posso vendere»</span></div><div class="c"><span class="vx-step ">«c'è, posso vendere»</span></div><div class="t">3</div><div class="c"><span class="vx-step ">UPDATE giacenza = 0</span></div><div class="c"><span class="vx-step ">UPDATE giacenza = 0</span></div><div class="t">4</div><div class="c"><span class="vx-step ok">COMMIT ✔</span></div><div class="c"><span class="vx-step ok">COMMIT ✔</span></div></div><div class="vx-verdict bad"><b>Venduto due volte</b> <span>Due clienti hanno comprato lo stesso pezzo.</span></div></div></div>
 
   <p>Entrambe le transazioni sono atomiche, entrambe rispettano i propri constraint, entrambe sono durevoli. Il problema non sta <em>dentro</em> nessuna delle due: sta nel fatto che sono girate insieme. È il territorio dell'isolamento — e il resto del capitolo è, in buona parte, un catalogo di quanto isolamento sei disposto a pagare.</p>
 
@@ -1626,15 +1363,7 @@ COMMIT ✔                          COMMIT ✔
   <p>Se nel database c'è una transazione sola, l'isolamento è gratis e non c'è nulla da discutere: nessuno può disturbarti perché non c'è nessuno. Tutte le anomalie — dirty read, non-repeatable read, phantom, write skew — richiedono <strong>almeno due</strong> transazioni. Non a caso ogni diagramma di questo capitolo ha due righe.</p>
   <p>La domanda a cui l'isolamento risponde è: <em>quando N transazioni girano insieme e le loro operazioni si mescolano, il risultato è accettabile?</em> E «accettabile» ha bisogno di un metro di paragone. Il metro scelto è l'esecuzione seriale.</p>
 
-<pre><code>esecuzione REALE (concorrente, operazioni mescolate)
-
-T1  ──read──┐            ┌──write──┐
-T2       ┌──┴──read──────┴──┐   ┌──┴──write──┐
-
-deve produrre lo stesso risultato di UNA di queste:
-
-   T1 completa → poi T2 completa       (ordine seriale 1)
-   T2 completa → poi T1 completa       (ordine seriale 2)</code></pre>
+<div class="vx"><div class="vx-box "><h5>esecuzione reale <span>concorrente, operazioni mescolate</span></h5><div class="vx-slots"><b>T1</b> <span class="vx-step info">read</span><span></span><span class="vx-step info">write</span><span></span><b>T2</b> <span></span><span class="vx-step ">read</span><span></span><span class="vx-step ">write</span></div></div><div class="vx-down">↓ <small>deve produrre lo stesso risultato di UNA di queste:</small></div><div class="vx-tl"><div class="vx-tl-r"><b>seriale 1</b><div class="vx-seq"><span class="vx-step info">T1 completa</span><i>—</i><span class="vx-step ">poi T2 completa</span></div></div><div class="vx-tl-r"><b>seriale 2</b><div class="vx-seq"><span class="vx-step ">T2 completa</span><i>—</i><span class="vx-step info">poi T1 completa</span></div></div></div></div>
 
   <ul>
     <li><strong>Non «in serie» davvero.</strong> Nessuno esegue le transazioni una alla volta: sarebbe corretto e inutilizzabile. Il DB le fa girare in parallelo e garantisce solo l'<em>equivalenza</em> a un risultato seriale. È un criterio di correttezza, non un piano di esecuzione.</li>
@@ -1720,38 +1449,20 @@ deve produrre lo stesso risultato di UNA di queste:
 
   <p>Lo snapshot non è una copia dei dati: è la lista delle transazioni committate al momento dello scatto. Leggere significa scorrere la catena e prendere la versione il cui <code>xmin</code> è nello snapshot e il cui <code>xmax</code> non lo è.</p>
 
-<pre><code>riga id=1, catena di versioni:
-
-  ┌──────────────────────┐
-  │ saldo=100  xmin=50   │  xmax=90 ← sostituita da T90
-  └──────────────────────┘
-             ↓
-  ┌──────────────────────┐
-  │ saldo= 70  xmin=90   │  xmax=—  ← versione corrente
-  └──────────────────────┘
-
-la mia transazione T88 ha scattato prima che T90 committasse
-→ nel mio snapshot vedo ancora saldo=100</code></pre>
+<div class="vx"><p class="vx-cap">riga id=1 · catena di versioni</p><div class="vx-chain"><div class="vx-ver"><b>saldo = 100</b><div class="vx-chips"><span class="vx-chip">xmin 50</span><span class="vx-chip">xmax 90</span></div><span style="font-size:.8rem;color:var(--muted)">sostituita da T90</span></div><div class="vx-arrow"><span>→</span></div><div class="vx-ver cur"><b>saldo = 70</b><div class="vx-chips"><span class="vx-chip">xmin 90</span><span class="vx-chip">xmax —</span></div><span style="font-size:.8rem;color:var(--muted)">versione corrente</span></div></div><p class="vx-foot">La mia transazione T88 ha scattato lo snapshot prima che T90 committasse: nel mio snapshot vedo ancora saldo = 100.</p></div>
 
   <h3>Quando si scatta lo snapshot: per istruzione o per transazione</h3>
   <p>Resta una domanda che decide la differenza fra i due livelli più usati: lo snapshot si prende <em>quando</em>? In <code>READ_COMMITTED</code> ogni <em>istruzione</em> prende il proprio snapshot nell'istante in cui parte — e la garanzia è più stretta di quanto sembri: non è «T1 ignora T2 per sempre», ma <strong>mentre l'istruzione scorre la tabella, il mondo non cambia sotto i suoi piedi</strong>.</p>
 
   <p>Ecco cosa succederebbe senza quella garanzia:</p>
 
-<pre><code>COUNT(*) sta scorrendo:   riga 1, 2, 3 … 50   [contate: 50]
-   T2 nel frattempo:      INSERT alla posizione 12 ; COMMIT
-COUNT(*) prosegue:        51, 52 … 100
-
-risultato: 100? 101?  dipende da dove si trovava il cursore</code></pre>
+<div class="vx"><div class="vx-tl"><div class="vx-tl-r"><b>COUNT(*) <small>sta scorrendo</small></b><div class="vx-seq"><span class="vx-step ">riga 1, 2, 3 … 50</span><i>—</i><span class="vx-step info">contate: 50</span></div></div><div class="vx-tl-r"><b>T2 <small>nel frattempo</small></b> <span class="vx-step wait">INSERT alla posizione 12 ; COMMIT</span></div><div class="vx-tl-r"><b>COUNT(*) <small>prosegue</small></b><div class="vx-seq"><span class="vx-step ">51, 52 … 100</span></div></div></div><div style="height:10px"></div><div class="vx-out bad"><b>risultato</b> · 100? 101? Dipende da dove si trovava il cursore.</div></div>
 
   <p>Un numero così non corrisponderebbe a <strong>nessuno stato reale del database</strong>: né a quello prima dell'<code>INSERT</code>, né a quello dopo. Sarebbe un miscuglio di due momenti diversi. Questo intendiamo con «mai un numero sporco a metà», ed è ciò che il capitolo 2 chiamava «isolamento a livello di istruzione».</p>
 
   <p>Rifare però la stessa query un istante dopo è un'altra storia, perché lo snapshot è nuovo:</p>
 
-<pre><code>T1   BEGIN
-     SELECT COUNT(*) FROM ordini;  → 100   ← snapshot A
-T2                  INSERT … ; COMMIT;     ← crea la riga 101
-T1   SELECT COUNT(*) FROM ordini;  → 101   ← snapshot B, diverso!</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-race-g"><div class="hd"></div><div class="hd">T1</div><div class="hd">T2</div><div class="t">1</div><div class="c"><span class="vx-step ">BEGIN</span></div><div class="c"></div><div class="t">2</div><div class="c"><span class="vx-step info">SELECT COUNT(*) FROM ordini; → 100 <small>snapshot A</small></span></div><div class="c"></div><div class="t">3</div><div class="c"></div><div class="c"><span class="vx-step ok">INSERT … ; COMMIT; <small>crea la riga 101</small></span></div><div class="t">4</div><div class="c"><span class="vx-step wait">SELECT COUNT(*) FROM ordini; → 101 <small>snapshot B, diverso!</small></span></div><div class="c"></div></div></div></div>
 
   <p>È la phantom read: stessa query, stessa transazione, insieme di risultati diverso. Ed è la differenza fra i due livelli più usati.</p>
 
@@ -1793,10 +1504,7 @@ T1   SELECT COUNT(*) FROM ordini;  → 101   ← snapshot B, diverso!</code></pr
   <div class="card">
     <p class="eyebrow">READ_UNCOMMITTED · «leggo anche il non-committato»</p>
     <p>In pratica <strong>quasi non esiste</strong>. PostgreSQL lo accetta nella sintassi ma lo tratta come <code>READ_COMMITTED</code>: con MVCC leggere dati non committati richiederebbe lavoro <em>in più</em>, non in meno. Resta reale su MySQL e SQL Server.</p>
-<pre><code>T2  UPDATE conti SET saldo = 5000 WHERE id = 1;   -- non committata
-T1  SELECT SUM(saldo) FROM conti;   → include i 5000
-T2  ROLLBACK;
-    il totale di T1 non è mai esistito</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-race-g"><div class="hd"></div><div class="hd">T1</div><div class="hd">T2</div><div class="t">1</div><div class="c"></div><div class="c"><span class="vx-step wait">UPDATE conti SET saldo = 5000 WHERE id = 1; <small>non committata</small></span></div><div class="t">2</div><div class="c"><span class="vx-step err">SELECT SUM(saldo) FROM conti; → include i 5000</span></div><div class="c"></div><div class="t">3</div><div class="c"></div><div class="c"><span class="vx-step info">ROLLBACK;</span></div></div><div class="vx-verdict bad"><b>Dirty read</b> <span>Il totale di T1 non è mai esistito.</span></div></div></div>
     <p><strong>Quando ha senso:</strong> il caso citato in letteratura è la stima approssimativa su tabelle enormi — «quante righe circa ci sono» per una progress bar o un cruscotto interno, dove sbagliare non ha conseguenze e la scansione senza vincoli è più veloce.</p>
     <p><strong>Quando no:</strong> ovunque il numero venga mostrato a un utente, salvato, o usato per decidere qualcosa. Un report finanziario prodotto in <code>READ_UNCOMMITTED</code> può contenere cifre che non sono mai state vere, e non lo scopri mai perché non lascia traccia.</p>
   </div>
@@ -1804,11 +1512,12 @@ T2  ROLLBACK;
   <div class="card">
     <p class="eyebrow">READ_COMMITTED · «leggo solo il committato»</p>
     <p>Il default di PostgreSQL, Oracle e SQL Server, e il livello su cui gira la stragrande maggioranza delle applicazioni. Ogni istruzione vede lo stato confermato al proprio istante di partenza.</p>
-<pre><code>-- caso tipico: una richiesta HTTP che legge e mostra
-BEGIN;
-SELECT * FROM ordini WHERE id = 42;      -- dati reali, confermati
-SELECT * FROM righe_ordine WHERE ordine_id = 42;
-COMMIT;</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · READ_COMMITTED</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm">-- caso tipico: una richiesta HTTP che legge e mostra</span>
+</span><span class="ln"><span class="tk-kw">BEGIN</span>;
+</span><span class="ln"><span class="tk-kw">SELECT</span> * <span class="tk-kw">FROM</span> ordini <span class="tk-kw">WHERE</span> id = <span class="tk-num">42</span>;      <span class="tk-cm">-- dati reali, confermati</span>
+</span><span class="ln"><span class="tk-kw">SELECT</span> * <span class="tk-kw">FROM</span> righe_ordine <span class="tk-kw">WHERE</span> ordine_id = <span class="tk-num">42</span>;
+</span><span class="ln"><span class="tk-kw">COMMIT</span>;
+</span></code></pre></div>
     <p><strong>Quando ha senso:</strong> praticamente sempre nel CRUD e nelle API di lettura. Ha il costo di concorrenza più basso, i lettori non bloccano nessuno, e per il 95% delle operazioni la garanzia «il dato esiste davvero» è tutto ciò che serve.</p>
     <p><strong>Attenzione al caso sopra:</strong> le due <code>SELECT</code> prendono snapshot <em>diversi</em>. Se qualcuno aggiunge una riga d'ordine tra la prima e la seconda, ottieni una testata e un dettaglio che non corrispondono. Sui report multi-query è un problema reale, ed è il motivo principale per cui si sale di livello.</p>
     <p><strong>Quando no:</strong> quando più letture devono raccontare lo <em>stesso</em> momento — report, esportazioni, riconciliazioni contabili.</p>
@@ -1817,13 +1526,14 @@ COMMIT;</code></pre>
   <div class="card">
     <p class="eyebrow">REPEATABLE_READ · «la lettura è ripetibile»</p>
     <p>Snapshot preso una volta, alla prima istruzione della transazione (non al <code>BEGIN</code>), e valido fino al commit. Il default di MySQL/InnoDB.</p>
-<pre><code>-- report finanziario: tutte le query devono vedere lo stesso istante
-BEGIN ISOLATION LEVEL REPEATABLE READ;
-SELECT SUM(importo) FROM movimenti WHERE tipo='ENTRATA';
-SELECT SUM(importo) FROM movimenti WHERE tipo='USCITA';
-SELECT COUNT(*)     FROM movimenti;
-COMMIT;
--- entrate, uscite e conteggio sono coerenti tra loro</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · REPEATABLE_READ</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm">-- report finanziario: tutte le query devono vedere lo stesso istante</span>
+</span><span class="ln hl"><span class="tk-kw">BEGIN</span> <span class="tk-kw">ISOLATION</span> <span class="tk-kw">LEVEL</span> <span class="tk-kw">REPEATABLE</span> <span class="tk-kw">READ</span>;
+</span><span class="ln"><span class="tk-kw">SELECT</span> SUM(importo) <span class="tk-kw">FROM</span> movimenti <span class="tk-kw">WHERE</span> tipo=<span class="tk-str">&#x27;ENTRATA&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">SELECT</span> SUM(importo) <span class="tk-kw">FROM</span> movimenti <span class="tk-kw">WHERE</span> tipo=<span class="tk-str">&#x27;USCITA&#x27;</span>;
+</span><span class="ln"><span class="tk-kw">SELECT</span> COUNT(*)     <span class="tk-kw">FROM</span> movimenti;
+</span><span class="ln"><span class="tk-kw">COMMIT</span>;
+</span><span class="ln"><span class="tk-cm">-- entrate, uscite e conteggio sono coerenti tra loro</span>
+</span></code></pre></div>
     <p><strong>Quando ha senso:</strong> è il livello dei <strong>report e delle esportazioni</strong>. Ogni volta che produci un documento composto da più query e le cifre devono quadrare tra loro, questo livello è la risposta — non un lock. Vale anche per i backup logici e le migrazioni che leggono molto.</p>
     <p><strong>Il costo nascosto:</strong> lo snapshot va mantenuto. In PostgreSQL una transazione aperta a lungo impedisce al <code>VACUUM</code> di rimuovere le versioni vecchie delle righe — il fenomeno del <em>bloat</em>, tabelle che crescono senza motivo apparente. Una transazione <code>REPEATABLE_READ</code> dimenticata aperta è una delle cause più comuni di degrado in produzione.</p>
     <p><strong>Quando no:</strong> nelle transazioni di scrittura brevi che non fanno read-modify-write, dove non aggiunge nulla e (in PostgreSQL) ti espone a errori 40001 da gestire.</p>
@@ -1838,10 +1548,7 @@ COMMIT;
 
   <p><code>REPEATABLE_READ</code> ti consegna una <strong>fotografia</strong> del database scattata all'inizio della transazione. Da lì in avanti guardi la foto, qualunque cosa accada fuori.</p>
 
-<pre><code>       stato reale del DB ─────────────────────────►
-                           │
-  T1   📷 scatta ────── guarda la foto ────── COMMIT
-  T2        ✏️ modifica ; COMMIT           (T1 non lo vede)</code></pre>
+<div class="vx"><div class="vx-tl"><div class="vx-axis"><span>stato reale del DB</span><span>→</span></div><div class="vx-tl-r"><b>T1</b><div class="vx-seq"><span class="vx-step info">📷 scatta</span><i>—</i><span class="vx-step ">guarda la foto</span><i>—</i><span class="vx-step ok">COMMIT</span></div></div><div class="vx-tl-r"><b>T2</b><div class="vx-seq"><span class="vx-step wait">✏️ modifica ; COMMIT</span><i>—</i><span style="font-size:.84rem;color:var(--muted)">T1 non lo vede</span></div></div></div></div>
 
   <p>Il vantaggio è la coerenza interna: tutte le tue query raccontano lo stesso istante. Il limite è già nella metafora — <strong>la foto invecchia mentre la guardi</strong>, e tu non te ne accorgi. Finché leggi soltanto non è un problema: stai producendo un report di com'era il mondo alle 14:32, ed è quello che volevi. Il problema nasce quando <em>scrivi</em> basandoti sulla foto, perché la scrittura avviene nel presente mentre la decisione l'hai presa guardando il passato.</p>
 
@@ -1880,19 +1587,7 @@ COMMIT;
   <h3>Dove REPEATABLE_READ non arriva: il write skew</h3>
   <p>Il buco si apre quando due transazioni <strong>leggono le stesse righe ma ne scrivono di diverse</strong>. Nessuna tocca la riga dell'altra, quindi il meccanismo appena descritto non ha nulla da rilevare: non c'è nessun <code>xmax</code> contestato. È l'esempio dei medici reperibili anticipato nel capitolo 6, e questa è la sua sede.</p>
 
-<pre><code>stato iniziale:  medico A reperibile ✔  ·  medico B reperibile ✔
-invariante:      almeno uno deve restare reperibile
-
-T1 (medico A)                   T2 (medico B)
-─────────────────────           ─────────────────────
-📷 scatta                        📷 scatta
-COUNT reperibili → 2             COUNT reperibili → 2
-"2 > 1, posso togliermi"         "2 > 1, posso togliermi"
-UPDATE riga A → false            UPDATE riga B → false
-COMMIT ✔                         COMMIT ✔
-                                 ↑ righe DIVERSE: nessun conflitto
-
-risultato:  ZERO medici reperibili</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-head">stato iniziale: medico A reperibile ✔ · medico B reperibile ✔<br>invariante: almeno uno deve restare reperibile</div><div class="vx-race-g"><div class="hd"></div><div class="hd">T1 · medico A</div><div class="hd">T2 · medico B</div><div class="t">1</div><div class="c"><span class="vx-step info">📷 scatta</span></div><div class="c"><span class="vx-step info">📷 scatta</span></div><div class="t">2</div><div class="c"><span class="vx-step ">COUNT reperibili → 2</span></div><div class="c"><span class="vx-step ">COUNT reperibili → 2</span></div><div class="t">3</div><div class="c"><span class="vx-step ">«2 &gt; 1, posso togliermi»</span></div><div class="c"><span class="vx-step ">«2 &gt; 1, posso togliermi»</span></div><div class="t">4</div><div class="c"><span class="vx-step ">UPDATE riga A → false</span></div><div class="c"><span class="vx-step ">UPDATE riga B → false</span></div><div class="t">5</div><div class="c"><span class="vx-step ok">COMMIT ✔</span></div><div class="c"><span class="vx-step ok">COMMIT ✔</span></div><div class="t"></div><div class="c span"><span style="font-size:.84rem;color:var(--muted)">righe DIVERSE: nessun conflitto</span></div></div><div class="vx-verdict bad"><b>Write skew</b> <span>Risultato: ZERO medici reperibili.</span></div></div></div>
 
   <p>Ognuna delle due, presa da sola, è ineccepibile. Insieme violano l'invariante. E non è servito a nulla che la foto fosse coerente: era <strong>vera al momento dello scatto e falsa al momento della scrittura</strong>, e nessuno l'ha riverificata. Da notare: non si è verificata nessuna anomalia di lettura — niente dirty read, niente non-repeatable read, niente phantom. È un'anomalia di <em>decisione</em>, non di lettura. È il <strong>write skew</strong>.</p>
 
@@ -1901,21 +1596,15 @@ risultato:  ZERO medici reperibili</code></pre>
   <div class="card">
     <p class="eyebrow">SERIALIZABLE · «riconducibile a una serie»</p>
     <p>Aggiunge una cosa sola, ma decisiva: tiene traccia anche di <strong>su quali dati ciascuna transazione ha basato le proprie scritture</strong>. Non solo cosa hai scritto — cosa hai <em>letto per decidere</em> di scriverlo.</p>
-<pre><code>-- invariante d'insieme: almeno un medico deve restare reperibile
-BEGIN ISOLATION LEVEL SERIALIZABLE;
-SELECT COUNT(*) FROM turni WHERE reperibile = true;   -- 2
--- l'applicazione verifica: 2 > 1, posso togliermi
-UPDATE turni SET reperibile = false WHERE medico_id = 7;
-COMMIT;   -- se le due transazioni hanno letto ciò che l'altra ha scritto: 40001</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>SQL · SERIALIZABLE</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm">-- invariante d&#x27;insieme: almeno un medico deve restare reperibile</span>
+</span><span class="ln"><span class="tk-kw">BEGIN</span> <span class="tk-kw">ISOLATION</span> <span class="tk-kw">LEVEL</span> <span class="tk-kw">SERIALIZABLE</span>;
+</span><span class="ln"><span class="tk-kw">SELECT</span> COUNT(*) <span class="tk-kw">FROM</span> turni <span class="tk-kw">WHERE</span> reperibile = <span class="tk-kw">true</span>;   <span class="tk-cm">-- 2</span>
+</span><span class="ln"><span class="tk-cm">-- l&#x27;applicazione verifica: 2 &gt; 1, posso togliermi</span>
+</span><span class="ln"><span class="tk-kw">UPDATE</span> turni <span class="tk-kw">SET</span> reperibile = <span class="tk-kw">false</span> <span class="tk-kw">WHERE</span> medico_id = <span class="tk-num">7</span>;
+</span><span class="ln hl"><span class="tk-kw">COMMIT</span>;   <span class="tk-cm">-- se le due transazioni hanno letto ciò che l&#x27;altra ha scritto: 40001</span>
+</span></code></pre></div>
     <p>Al commit la domanda che si pone è: <em>questo risultato sarebbe stato possibile eseguendo le due transazioni una dopo l'altra?</em></p>
-<pre><code>se fossero andate davvero in fila:
-
-   T1 completa        →  resta 1 reperibile
-   T2 parte, legge    →  COUNT = 1
-   "1 non è > 1"      →  T2 si ferma  ✋
-
-lo stato «zero reperibili» non è raggiungibile in NESSUN
-ordine seriale  →  una delle due viene abortita</code></pre>
+<div class="vx"><p class="vx-cap">Se fossero andate davvero in fila</p><ol class="vx-steps"><li><span><span class="vx-li"><span>T1 completa</span><em>→ resta 1 reperibile</em></span></span></li><li><span><span class="vx-li"><span>T2 parte, legge</span><em>→ COUNT = 1</em></span></span></li><li class="bad"><span><span class="vx-li"><span>«1 non è &gt; 1»</span><em>→ T2 si ferma ✋</em></span></span></li></ol><p class="vx-foot">Lo stato «zero reperibili» non è raggiungibile in NESSUN ordine seriale: una delle due viene abortita.</p></div>
     <p>Ecco perché <em>serializable</em>: non promette di eseguirle in fila, promette che il risultato sia <strong>indistinguibile</strong> da un'esecuzione in fila. In PostgreSQL il meccanismo si chiama SSI (Serializable Snapshot Isolation) ed è ottimistico: non blocca nessuno, lascia correre tutti e, quando rileva una struttura di dipendenze pericolosa (anche con qualche falso positivo), aborta una delle transazioni, al commit o già a un'istruzione precedente — tracciando le dipendenze di lettura tramite <em>predicate lock</em>: lock «su un predicato», cioè su una condizione come <code>reperibile = true</code>, che in SSI non bloccano nessuno ma registrano chi ha letto cosa.</p>
     <p><strong>Quando ha senso:</strong> invarianti che riguardano un <em>insieme</em> di righe e non una riga sola, dove nessun <code>CHECK</code> e nessun <code>@Version</code> possono aiutarti. Turni di reperibilità, capienza di una sala, limiti di posizione in un sistema di trading, «massimo N iscritti al corso».</p>
     <p><strong>Il prezzo:</strong> la retry è <strong>obbligatoria</strong>. Se non intercetti il <code>40001</code> e non riprovi, hai solo convertito un dato corrotto in un errore in faccia all'utente. In MySQL invece <code>SERIALIZABLE</code> si traduce in lock di range (lock sull'intervallo di valori letto, che blocca anche gli inserimenti futuri in quell'intervallo): paghi in contesa e possibili deadlock.</p>
@@ -2026,16 +1715,7 @@ ordine seriale  →  una delle due viene abortita</code></pre>
 
   <p>Serve perché tra la tua scrittura e il supporto fisico ci sono almeno tre livelli di cache.</p>
 
-<pre><code>   applicazione
-        │  write()
-        ▼
-   ┌──────────────────────────┐
-   │ PAGE CACHE del kernel    │  ← write() ritorna QUI. Veloce, e bugiarda.
-   ├──────────────────────────┤
-   │ cache del disco / SSD    │  ← fsync() forza il flush anche di questa
-   ├──────────────────────────┤
-   │ NAND / piatti magnetici  │  ← durabilità vera
-   └──────────────────────────┘</code></pre>
+<div class="vx"><div class="vx-stack"><div class="vx-layer app">applicazione · write()</div><div class="vx-note">la chiamata scende verso il disco</div><div class="vx-layer vol first">PAGE CACHE del kernel</div><div class="vx-note hot"><span><b>write() ritorna QUI.</b> Veloce, e bugiarda.</span></div><div class="vx-layer vol cont">cache del disco / SSD</div><div class="vx-note"><span><b>fsync()</b> forza il flush anche di questa</span></div><div class="vx-layer dur cont last">NAND / piatti magnetici</div><div class="vx-note"><span>durabilità vera</span></div></div><p class="note" style="margin-top:10px">Giallo: volatile, si perde se manca la corrente. Verde: durevole.</p></div>
 
   <h3>La page cache del kernel</h3>
   <p>Il kernel non fa passare le scritture direttamente al disco: tiene in RAM una copia delle pagine di file su cui si sta lavorando. Quella copia è la <strong>page cache</strong>, e ha due compiti.</p>
@@ -2112,14 +1792,16 @@ ordine seriale  →  una delle due viene abortita</code></pre>
     <div class="card">
       <p class="eyebrow">Pessimistico · «succederà»</p>
       <p>Prevengo: prendo il lock <strong>prima</strong> di leggere e lo rilascio al commit. Paga sempre, che ci sia contesa o no.</p>
-<pre><code>SELECT ... FOR UPDATE
-LockModeType.PESSIMISTIC_WRITE</code></pre>
+<div class="vx vx-code flat"><div class="vx-code-h"><span>SQL · JPA</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">SELECT</span> ... <span class="tk-kw">FOR</span> <span class="tk-kw">UPDATE</span>
+</span><span class="ln">LockModeType.PESSIMISTIC_WRITE
+</span></code></pre></div>
     </div>
     <div class="card">
       <p class="eyebrow">Ottimistico · «non succederà»</p>
       <p>Procedo, e al momento di scrivere <strong>verifico</strong> che nessuno mi abbia preceduto. Paga solo quando il conflitto avviene davvero, ma paga di più.</p>
-<pre><code>UPDATE conto SET saldo=?, version=version+1
-WHERE id=? AND version=7</code></pre>
+<div class="vx vx-code flat"><div class="vx-code-h"><span>SQL · versione</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">UPDATE</span> conto <span class="tk-kw">SET</span> saldo=?, version=version+<span class="tk-num">1</span>
+</span><span class="ln hl"><span class="tk-kw">WHERE</span> id=? <span class="tk-kw">AND</span> version=<span class="tk-num">7</span>
+</span></code></pre></div>
     </div>
   </div>
 
@@ -2160,9 +1842,7 @@ WHERE id=? AND version=7</code></pre>
   </div>
 
   <h3>Il criterio di scelta</h3>
-<pre><code>conviene il pessimistico quando:
-
-   P(conflitto) × costo_retry   &gt;   costo_attesa_lock</code></pre>
+<div class="vx"><div class="vx-formula"><small>conviene il pessimistico quando</small> P(conflitto) × costo_retry<span class="op">&gt;</span>costo_attesa_lock</div></div>
 
   <div class="tbl-scroll">
   <table>
@@ -2273,17 +1953,18 @@ WHERE id=? AND version=7</code></pre>
   <h3>Caso 1 · Il filtro che disattiva il lock</h3>
   <p>Due finder che cercano la stessa entità per id, deliberatamente diversi. Il codice è Kotlin con Spring Data JPA: <code>@Lock</code> chiede il lock pessimistico del capitolo 9, <code>@Query</code> fissa la query JPQL, <code>takeIf</code> restituisce l'oggetto solo se la condizione è vera (altrimenti <code>null</code>), e <code>.left()</code> incapsula un errore di dominio.</p>
 
-<pre><code>// A · lettura semplice, nessun lock — il filtro sta DENTRO
-fun findByIdAndDeletedAtIsNull(id: UUID): MedicalRecordEntry?
-
-// B · lettura per aggiornamento, con lock — il filtro sta FUORI
-@Lock(LockModeType.PESSIMISTIC_WRITE)
-@Query("SELECT e FROM MedicalRecordEntry e WHERE e.id = :id")
-fun findByIdForUpdate(@Param("id") id: UUID): MedicalRecordEntry?
-
-// il chiamante di B filtra dopo, a mano:
-val entry = entries.findByIdForUpdate(entryId)?.takeIf { it.deletedAt == null }
-    ?: return MedicalRecordErrors.entryNotFound().left()</code></pre>
+<div class="vx vx-code"><div class="vx-code-h"><span>Kotlin · Spring Data JPA</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm">// A · lettura semplice, nessun lock — il filtro sta DENTRO</span>
+</span><span class="ln"><span class="tk-kw">fun</span> findByIdAndDeletedAtIsNull(id: UUID): MedicalRecordEntry?
+</span><span class="ln">
+</span><span class="ln"><span class="tk-cm">// B · lettura per aggiornamento, con lock — il filtro sta FUORI</span>
+</span><span class="ln"><span class="tk-ty">@Lock</span>(LockModeType.PESSIMISTIC_WRITE)
+</span><span class="ln"><span class="tk-ty">@Query</span>(<span class="tk-str">&quot;SELECT e FROM MedicalRecordEntry e WHERE e.id = :id&quot;</span>)
+</span><span class="ln"><span class="tk-kw">fun</span> findByIdForUpdate(<span class="tk-ty">@Param</span>(<span class="tk-str">&quot;id&quot;</span>) id: UUID): MedicalRecordEntry?
+</span><span class="ln">
+</span><span class="ln"><span class="tk-cm">// il chiamante di B filtra dopo, a mano:</span>
+</span><span class="ln hl"><span class="tk-kw">val</span> entry = entries.findByIdForUpdate(entryId)?.takeIf { it.deletedAt == <span class="tk-kw">null</span> }
+</span><span class="ln">    ?: <span class="tk-kw">return</span> MedicalRecordErrors.entryNotFound().left()
+</span></code></pre></div>
 
   <p>La ragione sta in una frase che vale la pena imparare a memoria:</p>
 
@@ -2294,27 +1975,9 @@ val entry = entries.findByIdForUpdate(entryId)?.takeIf { it.deletedAt == null }
   <h4 style="font-size:15.5px;margin:22px 0 6px">Il meccanismo, passo per passo</h4>
   <p>È la rivalutazione della <code>WHERE</code> (<em>EvalPlanQual</em>) del capitolo 7, vista sul campo. Anna ha due schede aperte: nella prima cancella la voce, nella seconda la chiude.</p>
 
-<pre><code>filtro DENTRO:  SELECT … WHERE id = :id AND deleted_at IS NULL FOR UPDATE
+<div class="vx"><div class="vx-race"><div class="vx-head">filtro DENTRO: SELECT … WHERE id = :id AND deleted_at IS NULL FOR UPDATE</div><div class="vx-race-g"><div class="hd"></div><div class="hd">T1 · cancella</div><div class="hd">T2 · chiude</div><div class="t">1</div><div class="c"><span class="vx-step ok">UPDATE … deleted_at = now() <small>lock sulla riga</small></span></div><div class="c"><span class="vx-step info">SELECT … FOR UPDATE <small>riga visibile nello snapshot ✔</small></span></div><div class="t">2</div><div class="c"></div><div class="c"><span class="vx-step wait">prova a bloccarla → IN ATTESA</span></div><div class="t">3</div><div class="c"><span class="vx-step ok">COMMIT ✔</span></div><div class="c"></div><div class="t">4</div><div class="c"></div><div class="c"><span class="vx-step info">PostgreSQL rivaluta il predicato sulla versione NUOVA <small>deleted_at non è più NULL → la riga esce dal risultato</small></span></div><div class="t">5</div><div class="c"></div><div class="c"><span class="vx-step err">ZERO righe, NESSUN lock</span></div></div></div></div>
 
-T1 (cancella)                    T2 (chiude)
-──────────────────────           ──────────────────────────────────
-UPDATE … deleted_at = now()      SELECT … FOR UPDATE
-  (lock sulla riga)                riga visibile nello snapshot ✔
-                                   prova a bloccarla → IN ATTESA
-COMMIT ✔
-                                 PostgreSQL rivaluta il predicato
-                                 sulla versione NUOVA:
-                                   deleted_at non è più NULL
-                                   → la riga esce dal risultato
-                                 → ZERO righe, NESSUN lock</code></pre>
-
-<pre><code>filtro FUORI:   SELECT … WHERE id = :id FOR UPDATE
-
-                                 il predicato è sulla CHIAVE PRIMARIA,
-                                 che nessuno modifica mai
-                                 → la rivalutazione riesce sempre
-                                 → LOCK PRESO, sulla versione fresca
-                                 → poi il codice chiede: è cancellata?</code></pre>
+<div class="vx"><div class="vx-race"><div class="vx-head">filtro FUORI: SELECT … WHERE id = :id FOR UPDATE</div><div style="padding:12px"><div class="vx-flow"><div class="vx-node">il predicato è sulla CHIAVE PRIMARIA, che nessuno modifica mai</div><div class="vx-down">↓</div><div class="vx-node">la rivalutazione riesce sempre</div><div class="vx-down">↓</div><span class="vx-step ok">LOCK PRESO, sulla versione fresca</span><div class="vx-down">↓</div><div class="vx-node acc">poi il codice chiede: è cancellata?</div></div></div></div></div>
 
   <div class="tbl-scroll">
   <table>
@@ -2345,10 +2008,7 @@ COMMIT ✔
   <h3>Caso 2 · La trappola dell'indice parziale: «parziale» non è automaticamente meglio</h3>
   <p>L'indice parziale del capitolo 6 ha una controindicazione che non riguarda la consistenza ma il <em>planner</em>, il componente che decide come eseguire una query. PostgreSQL può usare un indice parziale <strong>solo se dimostra, al momento di pianificare la query, che il predicato della query implica quello dell'indice</strong>. È una dimostrazione simbolica sul testo, non una verifica sui dati.</p>
 
-<pre><code>indice:  ... WHERE status = 'PENDING'
-
-query A:  WHERE status = 'PENDING'   → 'PENDING' implica 'PENDING'   ✔ usa l'indice
-query B:  WHERE status = $1          → $1 implica 'PENDING' ?  boh   ✘ indice inerte</code></pre>
+<div class="vx"><p class="vx-cap">indice: … WHERE status = 'PENDING'</p><div class="scroll-x"><table class="vx-table"><thead><tr><th>Query</th><th>Il planner deve dimostrare</th><th>Esito</th></tr></thead><tbody><tr><td class="m">A · WHERE status = 'PENDING'</td><td>'PENDING' implica 'PENDING'</td><td><span class="pill ok">✔ usa l'indice</span></td></tr><tr><td class="m">B · WHERE status = $1</td><td>$1 implica 'PENDING'? boh</td><td><span class="pill ko">✘ indice inerte</span></td></tr></tbody></table></div></div>
 
   <p>Nel caso B il valore arriva come parametro <em>bind</em>. Finché PostgreSQL usa un piano custom (le prime esecuzioni, o quando il piano generico non conviene) il valore è noto e l'indice può servire; ma quando passa al piano generico il valore non c'è al momento del piano, e l'indice parziale resta inerte. Con un piano generico, riutilizzato per qualunque valore, l'implicazione non è dimostrabile e l'indice resta inutilizzato <em>proprio nel caso per cui l'avevi costruito</em>. Il costo non sparisce: l'indice va comunque mantenuto a ogni scrittura.</p>
 
@@ -2427,10 +2087,7 @@ query B:  WHERE status = $1          → $1 implica 'PENDING' ?  boh   ✘ indic
   <h3>2PC (two-phase commit) e XA (eXtended Architecture) · che cosa sono</h3>
   <p>Il two-phase commit è descritto da <strong>Jim Gray nel 1978</strong> (<em>Notes on Data Base Operating Systems</em>). Un coordinatore chiede a tutti i partecipanti se possono committare (fase di <em>prepare</em>, in cui ciascuno vota sì o no); se tutti votano sì, ordina il commit (fase di <em>commit</em>).</p>
 
-<pre><code>        prepare?                  commit!
-Coord ──────────► A       Coord ──────────► A
-      ──────────► B             ──────────► B
-        (vote yes/no)</code></pre>
+<div class="vx vx-svg"><p class="vx-sr">Two-phase commit: il coordinatore chiede prepare? ad A e B, ciascuno vota sì o no; se tutti votano sì, il coordinatore scrive la decisione e ordina commit! ad A e B.</p><svg viewBox="0 0 640 300" role="img" aria-label="Two-phase commit"><defs><marker id="vxma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="acf"/></marker><marker id="vxmg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="gdf"/></marker></defs><rect x="30" y="10" width="120" height="34" rx="6" class="bxa"/><text x="90" y="32" text-anchor="middle" font-size="13">Coordinatore</text><rect x="300" y="10" width="80" height="34" rx="6" class="bx"/><text x="340" y="32" text-anchor="middle" font-size="13">A</text><rect x="520" y="10" width="80" height="34" rx="6" class="bx"/><text x="560" y="32" text-anchor="middle" font-size="13">B</text><g class="ln" stroke-dasharray="3 4"><line x1="90" y1="44" x2="90" y2="290"/><line x1="340" y1="44" x2="340" y2="290"/><line x1="560" y1="44" x2="560" y2="290"/></g><text x="8" y="78" font-size="10" class="mut">FASE 1</text><line x1="90" y1="72" x2="336" y2="72" class="ac" stroke-width="1.6" marker-end="url(#vxma)"/><text x="200" y="66" font-size="12" text-anchor="middle">prepare?</text><line x1="90" y1="96" x2="556" y2="96" class="ac" stroke-width="1.6" marker-end="url(#vxma)"/><text x="450" y="90" font-size="12" text-anchor="middle">prepare?</text><line x1="340" y1="130" x2="94" y2="130" class="gd" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#vxmg)"/><text x="215" y="124" font-size="12" text-anchor="middle">vota sì / no</text><line x1="560" y1="154" x2="94" y2="154" class="gd" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#vxmg)"/><text x="450" y="148" font-size="12" text-anchor="middle">vota sì / no</text><rect x="34" y="176" width="112" height="30" rx="5" class="bxa"/><text x="90" y="195" text-anchor="middle" font-size="11">tutti sì: COMMIT</text><text x="160" y="195" font-size="11" class="mut">← decisione presa</text><text x="8" y="240" font-size="10" class="mut">FASE 2</text><line x1="90" y1="234" x2="336" y2="234" class="ac" stroke-width="1.6" marker-end="url(#vxma)"/><text x="200" y="228" font-size="12" text-anchor="middle">commit!</text><line x1="90" y1="262" x2="556" y2="262" class="ac" stroke-width="1.6" marker-end="url(#vxma)"/><text x="450" y="256" font-size="12" text-anchor="middle">commit!</text></svg></div>
 
   <p>Il punto sottile è cosa promette un partecipante quando risponde «sì»: promette di poter committare <em>comunque</em>, anche dopo un crash. Per mantenerla deve rendere durevole il proprio lavoro (scrivere il proprio WAL, capitolo 3) e tenere i lock aperti fino all'ordine finale.</p>
   <p><strong>XA</strong> è lo standard che nel 1991 il consorzio X/Open pubblica dentro il modello <em>DTP</em> (Distributed Transaction Processing): definisce l'interfaccia tra un <em>transaction manager</em> (il coordinatore) e i <em>resource manager</em> (DB, code di messaggi). In Java lo vedi come <strong>JTA</strong> (Java Transaction API), <code>UserTransaction</code> e <code>XAResource</code>. Funziona bene tra un DB e una coda JMS (Java Message Service) nello stesso datacenter; non esiste per una chiamata REST (Representational State Transfer).</p>
@@ -2531,11 +2188,7 @@ Coord ──────────► A       Coord ────────�
 
   <h3>Coreografia vs orchestrazione</h3>
   <p>Resta da decidere <em>chi</em> conosce la sequenza dei passi e chi lancia le compensazioni. Le due risposte possibili:</p>
-<pre><code>COREOGRAFIA                    ORCHESTRAZIONE
-
-Ordini ──evt──► Pagamenti          ┌──► Ordini
-   ▲                │        Orchestratore ──► Pagamenti
-   └──evt── Magazzino ◄─┘          └──► Magazzino</code></pre>
+<div class="vx"><p class="vx-sr">Coreografia: Ordini manda un evento a Pagamenti, Pagamenti a Magazzino, Magazzino di nuovo a Ordini; nessuno conosce la sequenza intera. Orchestrazione: un Orchestratore chiama Ordini, Pagamenti e Magazzino e conosce la sequenza.</p><div class="vx-cards"><div class="vx-card"><h5><small>ognuno reagisce agli eventi</small> Coreografia</h5><div class="vx-svg s" style="border:0;padding:0"><svg viewBox="0 0 300 190" role="img" aria-label="Coreografia"><defs><marker id="vxmc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="acf"/></marker></defs><rect x="10" y="20" width="100" height="34" rx="6" class="bx"/><text x="60" y="42" text-anchor="middle" font-size="12">Ordini</text><rect x="190" y="20" width="100" height="34" rx="6" class="bx"/><text x="240" y="42" text-anchor="middle" font-size="12">Pagamenti</text><rect x="100" y="140" width="100" height="34" rx="6" class="bx"/><text x="150" y="162" text-anchor="middle" font-size="12">Magazzino</text><line x1="110" y1="37" x2="186" y2="37" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/><text x="150" y="30" text-anchor="middle" font-size="10" class="mut">evt</text><line x1="235" y1="54" x2="190" y2="138" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/><text x="228" y="102" font-size="10" class="mut">evt</text><line x1="110" y1="140" x2="65" y2="58" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/><text x="60" y="102" font-size="10" class="mut">evt</text></svg></div></div><div class="vx-card"><h5><small>uno conosce la sequenza</small> Orchestrazione</h5><div class="vx-svg s" style="border:0;padding:0"><svg viewBox="0 0 300 190" role="img" aria-label="Orchestrazione"><rect x="10" y="78" width="120" height="34" rx="6" class="bxa"/><text x="70" y="100" text-anchor="middle" font-size="12">Orchestratore</text><rect x="190" y="14" width="100" height="34" rx="6" class="bx"/><text x="240" y="36" text-anchor="middle" font-size="12">Ordini</text><rect x="190" y="78" width="100" height="34" rx="6" class="bx"/><text x="240" y="100" text-anchor="middle" font-size="12">Pagamenti</text><rect x="190" y="142" width="100" height="34" rx="6" class="bx"/><text x="240" y="164" text-anchor="middle" font-size="12">Magazzino</text><line x1="130" y1="88" x2="186" y2="34" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/><line x1="130" y1="95" x2="186" y2="95" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/><line x1="130" y1="102" x2="186" y2="156" class="ac" stroke-width="1.5" marker-end="url(#vxmc)"/></svg></div></div></div></div>
 
   <div class="two">
     <div class="card">
@@ -2721,12 +2374,7 @@ Ordini ──evt──► Pagamenti          ┌──► Ordini
   <h3>Focus 1 · Redis: il database in memoria</h3>
   <p>Redis (REmote DIctionary Server) tiene tutti i dati in RAM e li serve con latenze di poche decine di microsecondi. Non è una cache e basta: è un <strong>server di strutture dati</strong>. Una chiave può contenere una stringa, ma anche una lista, un insieme, un insieme ordinato per punteggio, una hash, uno stream di eventi, e su ognuna esistono comandi specifici (<code>INCR</code>, <code>LPUSH</code>, <code>ZADD</code>, <code>HSET</code>…). È il motivo per cui con Redis si costruiscono contatori, classifiche, code, rate limiter e lock distribuiti con una riga di codice ciascuno.</p>
 
-<pre><code>chiave                       tipo           valore
-──────────────────────────   ────────────   ─────────────────────────────────
-session:8f3a                 hash           { user: 42, role: "admin", … }   TTL 30 min
-rate:api:42:2026-09-07T10    string         "187"                             TTL 60 s
-leaderboard:weekly           sorted set     { anna: 1200, bruno: 980, … }
-orders:events                stream         [ id-1 {created…}, id-2 {paid…} ]</code></pre>
+<div class="vx"><div class="scroll-x"><table class="vx-table"><thead><tr><th>Chiave</th><th>Tipo</th><th>Valore</th><th>TTL</th></tr></thead><tbody><tr><td class="m">session:8f3a</td><td>hash</td><td class="m">{ user: 42, role: "admin", … }</td><td class="m">30 min</td></tr><tr><td class="m">rate:api:42:2026-09-07T10</td><td>string</td><td class="m">"187"</td><td class="m">60 s</td></tr><tr><td class="m">leaderboard:weekly</td><td>sorted set</td><td class="m">{ anna: 1200, bruno: 980, … }</td><td class="m">—</td></tr><tr><td class="m">orders:events</td><td>stream</td><td class="m">[ id-1 {created…}, id-2 {paid…} ]</td><td class="m">—</td></tr></tbody></table></div></div>
 
   <p>Il legame con il filo del documento è duplice. <strong>Atomicità:</strong> Redis esegue i comandi uno alla volta su un singolo thread, quindi ogni comando è atomico per costruzione (<code>INCR</code> non ha lost update, mai) e <code>MULTI</code>/<code>EXEC</code> raggruppa più comandi in un blocco che nessun altro può interrompere, ma senza rollback, come anticipato nel capitolo 2. <strong>Durabilità:</strong> è la lettera che Redis ti chiede di negoziare. Con la persistenza a snapshot (RDB) puoi perdere gli ultimi minuti; con il log append-only (AOF) puoi scegliere quanto spesso fare <code>fsync</code>, e la scelta ti riporta esattamente al capitolo 8: più sicurezza, meno velocità. Il lock distribuito con TTL del capitolo 9 vive proprio qui, e il fencing token è la sua correzione.</p>
 
@@ -2739,13 +2387,12 @@ orders:events                stream         [ id-1 {created…}, id-2 {paid…} 
   <h3>Focus 2 · I database non relazionali orientati agli aggregati</h3>
   <p>Documentali e wide-column condividono un'idea che Martin Fowler ha chiamato <strong>aggregate-oriented</strong>: invece di spezzare un ordine in tre tabelle (<code>ordini</code>, <code>righe_ordine</code>, <code>indirizzi</code>) da ricomporre con le <code>JOIN</code>, memorizzi l'ordine <em>intero</em>, con le sue righe annidate dentro, e lo leggi e scrivi in un colpo solo. È letteralmente l'aggregato del DDD (Domain-Driven Design) del capitolo 6, reso unità fisica di memorizzazione.</p>
 
-<pre><code>RELAZIONALE (normalizzato)                    DOCUMENTALE (aggregato)
-ordini        righe_ordine     indirizzi      {
-┌────┬─────┐  ┌────┬─────┬───┐ ┌────┬────┐      "id": 42,
-│ 42 │ … │  │ 42 │ pen │ 2 │ │ 42 │ …  │      "righe": [ {"sku":"pen","q":2},
-└────┴─────┘  │ 42 │ ink │ 1 │ └────┴────┘                 {"sku":"ink","q":1} ],
-              └────┴─────┴───┘                  "indirizzo": { "via": "…" }
-      3 letture + 2 JOIN                      }      1 lettura, 1 scrittura atomica</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-box "><h5>Relazionale <span>normalizzato</span></h5><div class="vx-minis"><table class="vx-mini"><caption>ordini</caption><tr><td>42</td><td>…</td></tr></table><table class="vx-mini"><caption>righe_ordine</caption><tr><td>42</td><td>pen</td><td>2</td></tr><tr><td>42</td><td>ink</td><td>1</td></tr></table><table class="vx-mini"><caption>indirizzi</caption><tr><td>42</td><td>…</td></tr></table></div><div class="vx-out wait"><b>costo</b> · 3 letture + 2 JOIN</div></div><div class="vx-arrow"><span>vs</span></div><div class="vx-box "><h5>Documentale <span>aggregato</span></h5><pre style="margin:0;font-size:.74rem">{
+  "id": 42,
+  "righe": [ {"sku":"pen","q":2},
+             {"sku":"ink","q":1} ],
+  "indirizzo": { "via": "…" }
+}</pre><div class="vx-out go"><b>costo</b> · 1 lettura, 1 scrittura atomica</div></div></div></div>
 
   <p>La conseguenza sul confine transazionale è immediata e spiega la tabella sopra: <strong>l'atomicità arriva fin dove arriva l'aggregato</strong>. Un documento in MongoDB, una partizione in Cassandra. Dentro quel confine hai tutto-o-niente gratis; fuori, devi coordinare, e ricadi nei problemi della Parte IV. Per questo questi database spingono a <em>denormalizzare</em>: duplicare il nome del cliente dentro l'ordine, invece di puntare alla riga cliente, così che leggere l'ordine non richieda una seconda lettura. Il prezzo è che aggiornare il nome del cliente significa aggiornare mille ordini, e quel «mille ordini» non è atomico.</p>
 
@@ -2772,12 +2419,7 @@ ordini        righe_ordine     indirizzi      {
   <h3>Focus 3 · I database vettoriali</h3>
   <p>Un modello di machine learning può trasformare un testo, un'immagine o un prodotto in un <strong>embedding</strong>: un vettore di alcune centinaia o migliaia di numeri, costruito in modo che oggetti <em>simili nel significato</em> abbiano vettori <em>vicini nello spazio</em>. «Scarpe da corsa leggere» e «running shoes ultralight» finiscono a pochi gradi di distanza anche se non condividono una parola. La query non è più «trova dove <code>id = 7</code>» ma «trova i dieci vettori più vicini a questo».</p>
 
-<pre><code>testo                              embedding (768 dimensioni, qui 3 per disegnarlo)
-"scarpe da corsa leggere"    ──►   [ 0.81, -0.12, 0.44 ]  ●
-"running shoes ultralight"   ──►   [ 0.79, -0.10, 0.47 ]  ● vicini
-"contratto di locazione"     ──►   [-0.35,  0.62, 0.08 ]         ● lontano
-
-query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, euclidea, prodotto scalare)</code></pre>
+<div class="vx"><p class="vx-cap">Embedding · 768 dimensioni, qui 3 per disegnarlo</p><div class="scroll-x"><table class="vx-table"><thead><tr><th>Testo</th><th>Embedding</th><th></th></tr></thead><tbody><tr><td>«scarpe da corsa leggere»</td><td class="m">[ 0.81, -0.12, 0.44 ]</td><td><span class="vx-badge ok">vicini</span></td></tr><tr><td>«running shoes ultralight»</td><td class="m">[ 0.79, -0.10, 0.47 ]</td><td><span class="vx-badge ok">vicini</span></td></tr><tr><td>«contratto di locazione»</td><td class="m">[-0.35,  0.62, 0.08 ]</td><td><span class="vx-badge stale">lontano</span></td></tr></tbody></table></div><p class="vx-foot">Query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, euclidea, prodotto scalare).</p></div>
 
   <p>Il problema che rende necessaria una famiglia a sé è che <strong>nessun indice tradizionale funziona</strong>: un B-tree ordina valori su una dimensione, qui le dimensioni sono centinaia e la domanda è una distanza. Confrontare la query con ogni vettore (scansione esatta) costa linearmente e su milioni di righe non regge. I database vettoriali usano indici <strong>approssimati</strong> (ANN, Approximate Nearest Neighbour: HNSW, IVF) che trovano quasi sempre i vicini giusti in tempo sublineare (circa logaritmico per HNSW), accettando di sbagliarne qualcuno. È un compromesso nuovo rispetto a tutto il documento: <em>correttezza approssimata in cambio di velocità</em>, misurata come <em>recall</em>.</p>
 
@@ -2792,11 +2434,7 @@ query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, eucl
   <h3>Il filo comune: la persistenza poliglotta</h3>
   <p>Un sistema reale usa quasi sempre più di una famiglia: PostgreSQL per gli ordini, Redis per le sessioni, Elasticsearch per la ricerca, un vettoriale per le raccomandazioni. Si chiama <strong>persistenza poliglotta</strong>, ed è la regola, non l'eccezione. Ha però una conseguenza che tutto il documento ti ha preparato a riconoscere: <strong>ogni coppia di datastore è un confine transazionale spezzato</strong>. Scrivere l'ordine su PostgreSQL e invalidare la cache su Redis, oppure indicizzarlo su Elasticsearch, è lo stesso problema del capitolo 14 (scrivere sul DB e pubblicare su Kafka): due risorse, nessuna transazione che le abbracci. Le soluzioni sono le stesse: una sola fonte di verità dichiarata, outbox o CDC (Change Data Capture) per propagare, idempotenza a valle, e l'accettazione esplicita che i datastore secondari siano <em>eventualmente</em> allineati.</p>
 
-<pre><code>                 ┌──────────────┐  outbox / CDC   ┌──────────────┐
-  scrittura ──►  │  PostgreSQL  │ ──────────────► │ Elasticsearch│  (indice, eventuale)
-                 │ fonte di     │ ──────────────► │ Redis        │  (cache, eventuale)
-                 │ verità, ACID │ ──────────────► │ vettoriale   │  (embedding, eventuale)
-                 └──────────────┘                 └──────────────┘</code></pre>
+<div class="vx"><div class="vx-pair"><div class="vx-col"><span class="vx-cap" style="margin:0">scrittura →</span><div class="vx-box acc"><h5>PostgreSQL </h5><p style="margin:0;font-size:.88rem">fonte di verità, ACID</p></div></div><div class="vx-arrow"><span>→</span>outbox / CDC</div><div class="vx-col"><div class="vx-rec "><span>Elasticsearch <small>indice</small></span> <span class="vx-badge dirty">eventuale</span></div><div class="vx-rec "><span>Redis <small>cache</small></span> <span class="vx-badge dirty">eventuale</span></div><div class="vx-rec "><span>vettoriale <small>embedding</small></span> <span class="vx-badge dirty">eventuale</span></div></div></div></div>
 
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 16</p>
@@ -3565,19 +3203,17 @@ a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var
   const part={};
   main.querySelectorAll(".part").forEach(p=>{const l=txt(p.querySelector(".part-label")).replace(/parte/i,"").trim();const h=p.querySelector("h2");if(!ROMAN[l]||!h)return;
     const note=p.querySelector(".part-note");part[l]=reg("toc-"+ROMAN[l],h,{k:"Parte "+l,t:txt(h),body:()=>note?`<p>${note.innerHTML}</p>`:""});});
-  const block=(re,prefix,label)=>{const out={};main.querySelectorAll("pre").forEach(pre=>{const s=pre.textContent;let m;const r=new RegExp(re.source,"g");const hits=[];
-      while((m=r.exec(s)))hits.push({key:m[1],at:m.index});
-      hits.forEach((h,i)=>{const piece=s.slice(h.at,i+1<hits.length?hits[i+1].at:s.length).replace(/\s+$/,"");
-        const id=reg(prefix+h.key.toLowerCase(),pre,{});out[h.key]={id:id,info:{k:label+" "+h.key,t:"",body:()=>`<pre>${piece.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</pre>`}};});});return out;};
-  const caso=block(/CASO ([1-4]) ·/,"casi-","Caso");
-  const scen=block(/SCENARIO ([A-D]) ·/,"scenari-","Scenario");
+  const block=(attr,prefix,label)=>{const out={};main.querySelectorAll("["+attr+"]").forEach(el=>{const k=el.getAttribute(attr);
+      const id=reg(prefix+k.toLowerCase(),el,{});out[k]={id:id,info:{k:label+" "+k,t:"",body:()=>el.outerHTML.replace(/\sid="[^"]*"/g,"")}};});return out;};
+  const caso=block("data-xcase","casi-","Caso");
+  const scen=block("data-xscen","scenari-","Scenario");
   const steps=[];
   main.querySelectorAll("p > strong:first-child").forEach(st=>{const m=txt(st).match(/^Pass(?:o|i) (\d)(?: e (\d))? ·\s*(.*)$/);if(!m)return;
     const p=st.parentElement;let h=p;while(h&&!/^H[34]$/.test(h.tagName))h=h.previousElementSibling;
     const group=txt(h);const next=p.nextElementSibling;
     const nums=[m[1],m[2]].filter(Boolean);
     const id=reg("passo-"+(group.toLowerCase().includes("checkpoint")?"cp":"tr")+"-"+nums.join("-"),p,{});
-    const info={k:(group?group.replace(/,.*$/,"")+" · ":"")+"passo "+nums.join(" e "),t:"",body:()=>`<p>${p.innerHTML}</p>`+(next&&next.tagName==="PRE"?next.outerHTML.replace(/\sid="[^"]*"/g,"").replace(/\sclass="[^"]*"/g,""):"")};
+    const info={k:(group?group.replace(/,.*$/,"")+" · ":"")+"passo "+nums.join(" e "),t:"",body:()=>`<p>${p.innerHTML}</p>`+(next&&next.classList.contains("vx")?next.outerHTML.replace(/\sid="[^"]*"/g,""):"")};
     T[id]=Object.assign({el:p},info);nums.forEach(n=>steps.push({n,id,el:p}));});
   const gloss=[];const SKIP=new Set(["Indice","Lock","Trigger","SELECT … FOR UPDATE","@Version"]);
   const gh=[...main.querySelectorAll("h3")].find(h=>txt(h)==="Glossario");
@@ -3591,7 +3227,7 @@ a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
   const gAlt=gloss.map(g=>esc(g.a).replace(/\s+/g,"\\s+")).join("|");
   const RE=new RegExp("\\b(?:(capitol[oi]) (\\d+)(?:( e | o |, )(\\d+))?|(Parte) (VI|IV|V|III|II|I)\\b|(caso) ([1-4])\\b|(passo) (\\d)\\b|(scenario) ([A-D])\\b"+(gAlt?"|("+gAlt+")":"")+")","g");
-  const SKIPSEL="pre,code,a,button,h1,h2,h3,h4,th,nav,.lab,#quiz,.recap-title,.recap-sub,.part-label,.eyebrow,script,style,.xref-pop,.anom-out,.machine,.lanes,.ledger,.tl-y";
+  const SKIPSEL=".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,.lab,#quiz,.recap-title,.recap-sub,.part-label,.eyebrow,script,style,.xref-pop,.anom-out,.machine,.lanes,.ledger,.tl-y";
   const seenGloss=new Map(); // section -> Set(id)
   const inGloss=el=>gtable&&gtable.contains(el);
   function stepFor(n,node){let best=null;for(const s of steps){if(s.n!==n)continue;const pos=s.el.compareDocumentPosition(node);if(pos&Node.DOCUMENT_POSITION_FOLLOWING)best=s;}return best||steps.find(s=>s.n===n);}
@@ -3646,6 +3282,200 @@ a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var
   window.__xrefCount=main.querySelectorAll("a.xref").length;
 })();
 </script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
 <!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
 <style>
 /* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */

@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-25
+- **Quando il COMMIT non basta più** (`transazioni`) v2.5: I 68 schemi in testo monospazio diventano componenti web: schede codice con Copia, linee temporali T1/T2, contenitori RAM/log/disco, tabelle con barre, schede dei casi, pile, catene di versioni e diagrammi SVG. Nuovo blocco condiviso vx per tutte le guide.
 - **Quando il COMMIT non basta più** (`transazioni`) v2.4: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente; sostituito l'indice precedente con il componente condiviso, come nelle altre guide
 - **Da Assistente ad Agente** (`assistente-agente`) v1.3: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente
 - **Anatomia del Training LLM** (`training-llm`) v1.8: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente

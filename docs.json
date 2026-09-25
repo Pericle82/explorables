@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.4",
+      "version": "2.5",
       "updated": "2026-09-25",
       "history": [
+        {
+          "version": "2.5",
+          "date": "2026-09-25",
+          "notes": "I 68 schemi in testo monospazio diventano componenti web: schede codice con Copia, linee temporali T1/T2, contenitori RAM/log/disco, tabelle con barre, schede dei casi, pile, catene di versioni e diagrammi SVG. Nuovo blocco condiviso vx per tutte le guide."
+        },
         {
           "version": "2.4",
           "date": "2026-09-25",

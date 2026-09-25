@@ -86,12 +86,12 @@ window.XREF_CONFIG = {
 
 - In italiano. **Ogni acronimo ha il significato esteso tra parentesi** alla prima occorrenza nella sezione.
 - Prima l'intuizione, con un'analogia o un esempio reale; poi il meccanismo; poi i dettagli e le eccezioni.
-- Diagrammi dove servono: schemi a box (`.diag`, `.box`), grafici SVG disegnati in JS con i token, tabelle di confronto.
+- Diagrammi dove servono: i componenti `.vx-*` (§11), grafici SVG disegnati in JS con i token, tabelle di confronto. **Mai schemi disegnati con caratteri dentro `<pre>`** (┌─┐, frecce, colonne allineate a spazi): su telefono non si leggono e gli screen reader li leggono carattere per carattere.
 - Ogni affermazione tecnica verificabile va controllata (documentazione ufficiale, paper originali) prima del rilascio; quando un laboratorio semplifica, lo si dice.
 
 ## 8. Blocchi condivisi
 
-`shared/toc.html` e `shared/xref.html` sono inseriti in ogni guida tra i marcatori:
+`shared/vx.html`, `shared/toc.html` e `shared/xref.html` sono inseriti in ogni guida tra i marcatori:
 
 ```html
 <!-- xpl:shared toc:start … -->  …  <!-- xpl:shared toc:end -->
@@ -112,3 +112,30 @@ La pagina `/esame/` raccoglie domande aperte sulle guide, valutate da un esamina
 - Il materiale che l'esaminatore riceve è estratto dalla guida a ogni build: servono sezioni con id stabili `<section class="st" id="cap-N">` (o `<section id="cap-N">`), e `chapters` elenca i numeri N rilevanti per la domanda. Tieni il materiale per domanda sotto i 60.000 caratteri circa.
 - Domande sfidanti: un caso concreto da ragionare, non una definizione da ripetere. I criteri descrivono i concetti attesi, verificabili nel materiale; pesi da 1 a 3.
 - Il voto è calcolato dalla pagina: criteri pesati (pieno 1, parziale ½), meno 1 per ogni errore grave e ¼ per ogni imprecisione.
+
+## 11. Componenti visivi (`.vx-*`)
+
+Il blocco condiviso `vx` (`shared/vx.html`) porta in ogni guida i componenti per codice, schemi e diagrammi. Usano solo i token del tema, quindi funzionano in chiaro e scuro, e sotto i 640 px vanno in colonna. Esempi completi di tutti i tipi: `docs/transazioni.html`.
+
+| Serve per | Componente | Markup essenziale |
+|---|---|---|
+| Codice vero (SQL, Kotlin…) | Scheda codice | `.vx.vx-code` > `.vx-code-h` (titolo + `button.vx-copy`) + `pre > code > span.ln` per riga (`.ln.hl` per la riga da evidenziare). Colori: `.tk-kw` `.tk-str` `.tk-num` `.tk-cm`, `.tk-an` per i commenti con «←», `.tk-ty` per le annotazioni. Ogni `.ln` finisce con un a capo |
+| Due transazioni nel tempo | Linea temporale | `.vx-race` > `.vx-head` (facoltativo) + `.vx-race-g` (celle `.hd`, `.t`, `.c`; `.c.span` su due colonne) + `.vx-verdict.bad/.good` |
+| Passo singolo | Blocco | `.vx-step` con `.ok` `.err` `.wait` `.info`, dettaglio in `<small>` |
+| Dove sta un dato (RAM, log, disco) | Contenitori | `.vx-state` (`.two`, `.one`) > `.vx-box` (`.ram` tratteggiato, `.acc`) > `h5` + `.vx-rec` (`.new`, `.old`) + `.vx-badge` (`.dirty` `.clean` `.stale` `.ok`) |
+| Tabelle, anche con grandezze | Tabella | `.vx-table` dentro `.scroll-x`; `td.m` per numeri; `.vx-bars` con `.vx-bar` (`.b` in rosso) |
+| Casi o scenari da confrontare | Schede | `.vx-cards` > `.vx-card` > `h5 > small` + `.vx-line` + `.vx-out.go/.wait/.bad/.acc` |
+| Livelli (cache, strati) | Pila | `.vx-stack`: coppie `.vx-layer` (`.first` `.cont` `.last` `.solo`; `.vol` `.dur` `.app`) + `.vx-note` (`.hot`) |
+| Versioni o stati in sequenza | Catena | `.vx-chain` > `.vx-ver` (`.cur`) + `.vx-arrow` + `.vx-chips` |
+| Passi numerati | Lista | `ol.vx-steps` (`li.hot/.good/.bad`; `.vx-li` per testo + valore a destra) |
+| A contro B, prima e dopo | Coppia | `.vx-pair` con `.vx-arrow` al centro (su telefono la freccia ruota); `.vx-col` per una colonna di elementi |
+| Flusso con decisione | Flusso | `.vx-flow` > `.vx-node` (`.code`, `.acc`) + `.vx-down` + `.vx-branch` |
+| Sequenze nel tempo su righe | Tempo | `.vx-tl` > `.vx-axis` + `.vx-tl-r` (etichetta + `.vx-seq` di `.vx-step`) |
+| Messaggi tra nodi, grafi | SVG | `.vx.vx-svg` (`.s` se piccolo) con classi `.bx` `.bxa` `.ac` `.acf` `.gd` `.gdf` `.mut` `.ln`, e una `p.vx-sr` con la descrizione in parole |
+| Altro | Varie | `.vx-cells`/`.vx-cell` (settori, pagine), `.vx-split` (barra divisa), `.vx-map` (A → B), `.vx-formula`, `.vx-cap` (etichetta sopra), `.vx-foot` (conclusione sotto) |
+
+Regole:
+
+- Il testo resta testo: niente immagini di schemi. L'esame estrae il testo della guida e scarta gli `<svg>`, quindi ogni SVG ha la sua `p.vx-sr` in parole.
+- Tra pezzi affiancati lascia uno spazio nel markup (`</b> <span>`, `testo <small>`): non si vede, ma tiene separate le parole nel testo estratto.
+- I riferimenti incrociati non entrano nei componenti (`.vx` è escluso). Una scheda che deve essere un bersaglio («il caso 2») prende un attributo e la guida la registra: in transazioni `data-xcase="2"` e `data-xscen="B"` diventano `#casi-2` e `#scenari-b`, e l'anteprima mostra la scheda.
