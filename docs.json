@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.7",
-      "updated": "2026-09-24",
+      "version": "1.8",
+      "updated": "2026-09-25",
       "history": [
+        {
+          "version": "1.8",
+          "date": "2026-09-25",
+          "notes": "Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente"
+        },
         {
           "version": "1.7",
           "date": "2026-09-24",
@@ -71,9 +76,14 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.2",
-      "updated": "2026-09-24",
+      "version": "1.3",
+      "updated": "2026-09-25",
       "history": [
+        {
+          "version": "1.3",
+          "date": "2026-09-25",
+          "notes": "Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente"
+        },
         {
           "version": "1.2",
           "date": "2026-09-24",
@@ -101,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.3",
-      "updated": "2026-09-24",
+      "version": "2.4",
+      "updated": "2026-09-25",
       "history": [
+        {
+          "version": "2.4",
+          "date": "2026-09-25",
+          "notes": "Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente; sostituito l'indice precedente con il componente condiviso, come nelle altre guide"
+        },
         {
           "version": "2.3",
           "date": "2026-09-24",

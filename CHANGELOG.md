@@ -2,6 +2,11 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-09-25
+- **Quando il COMMIT non basta più** (`transazioni`) v2.4: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente; sostituito l'indice precedente con il componente condiviso, come nelle altre guide
+- **Da Assistente ad Agente** (`assistente-agente`) v1.3: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente
+- **Anatomia del Training LLM** (`training-llm`) v1.8: Indice rivisto: pulsante fuori dalla barra (nessuna sovrapposizione), pannello sotto la barra, sezioni comprimibili, ricerca e posizione corrente
+
 ## 2026-09-24
 - **Quando il COMMIT non basta più** (`transazioni`) v2.3: Id stabili per i capitoli (cap-1 … cap-17), usati dall'esame a risposta aperta e dai link esterni
 - **Da Assistente ad Agente** (`assistente-agente`) v1.2: Pannello Indice con tutte le sezioni, come in transazioni

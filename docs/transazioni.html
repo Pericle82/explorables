@@ -325,7 +325,6 @@ table.mt tr.dim td{color:var(--muted)}
 
 /* ===== transazioni: adattamento dei componenti originali al sistema visivo ===== */
 html{scroll-behavior:smooth}
-#progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:60;transition:width .1s linear}
 header.hero .map{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 header.hero .map a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s,transform .15s}
 header.hero .map a:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -336,25 +335,6 @@ header.hero .map a:hover{border-color:var(--accent);transform:translateY(-2px)}
 @media (max-width:460px){header.hero .map{grid-template-columns:1fr}}
 
 nav.toc .in{align-items:center}
-#tocBtn{all:unset;box-sizing:border-box;cursor:pointer;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);margin-left:auto;flex-shrink:0}
-#tocBtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#toc{position:fixed;top:0;right:0;bottom:0;width:320px;max-width:88vw;z-index:80;background:var(--surface);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
-#toc.open{transform:translateX(0)}
-#tocHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid var(--line)}
-#tocHead .eyebrow{margin:0}
-#tocClose{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:2px 9px;color:var(--muted);font-family:var(--mono)}
-#tocNav{overflow-y:auto;padding:8px 0 30px;flex:1}
-#tocNav a{display:block;text-decoration:none;color:var(--muted);padding:5px 16px 5px 18px;border-left:2px solid transparent;font-size:.86rem;line-height:1.4}
-#tocNav a:hover{background:var(--surface-2);color:var(--ink)}
-#tocNav a.lvl1{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-#tocNav a.lvl1:first-child{margin-top:0;border-top:none}
-#tocNav a.lvl2{font-family:var(--serif);font-weight:650;color:var(--ink);font-size:.95rem;margin-top:6px}
-#tocNav a.lvl3{padding-left:30px;font-size:.82rem}
-#tocNav a.here{border-left-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
-#tocBack{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:75;opacity:0;pointer-events:none;transition:opacity .25s}
-#tocBack.open{opacity:1;pointer-events:auto}
-#toTop{all:unset;cursor:pointer;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;font-family:var(--mono);font-size:.76rem;padding:8px 12px;border-radius:999px;background:var(--ink);color:var(--bg);opacity:0;pointer-events:none;transition:opacity .2s}
-#toTop.show{opacity:1;pointer-events:auto}
 
 main{display:block}
 .part{margin-top:72px;padding-top:28px;border-top:2px solid var(--ink);display:flex;flex-direction:column;gap:8px}
@@ -522,20 +502,6 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-si
 </style>
 
 
-<div id="progress"></div>
-
-<div id="tocBack"></div>
-
-<nav id="toc" aria-label="Indice del documento">
-  <div id="tocHead">
-    <p class="eyebrow">Indice</p>
-    <button id="tocClose" aria-label="Chiudi indice">✕</button>
-  </div>
-  <div id="tocNav"></div>
-</nav>
-
-<button id="toTop">↑ inizio</button>
-
 <div class="wrap">
 <header class="hero">
   <span class="eyebrow">Guida interattiva · dal singolo commit alle architetture a servizi</span>
@@ -553,14 +519,13 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-si
 </div>
 <nav class="toc" aria-label="Parti"><div class="in">
   <a href="#toc-i">I · Fondamenta</a><a href="#toc-ii">II · ACID</a><a href="#toc-iii">III · Concorrenza</a><a href="#toc-iv">IV · Servizi</a><a href="#toc-v">V · NoSQL</a><a href="#toc-vi">VI · Riferimenti</a><a href="#quiz">Test</a>
-  <button id="tocBtn" aria-expanded="false" aria-controls="toc">Indice</button>
 </div></nav>
 
 <main class="wrap">
 
 <div class="part">
   <p class="part-label">Parte I</p>
-  <h2 class="part-title">Le fondamenta</h2>
+  <h2 class="part-title" id="toc-i">Le fondamenta</h2>
   <p class="part-note">Il vocabolario minimo, che cosa sia esattamente una transazione, e dove finiscono i byte quando premi «salva». Tutto il resto è conseguenza di queste tre cose.</p>
 </div>
 
@@ -1361,7 +1326,7 @@ il recovery:
 
 <div class="part">
   <p class="part-label">Parte II</p>
-  <h2 class="part-title">ACID, una lettera per volta</h2>
+  <h2 class="part-title" id="toc-ii">ACID, una lettera per volta</h2>
   <p class="part-note">Ogni lettera con il suo scenario concreto, il meccanismo che la realizza e il modo tipico in cui viene fraintesa.</p>
 </div>
 
@@ -2120,7 +2085,7 @@ ordine seriale  →  una delle due viene abortita</code></pre>
 
 <div class="part">
   <p class="part-label">Parte III</p>
-  <h2 class="part-title">Concorrenza, nella pratica</h2>
+  <h2 class="part-title" id="toc-iii">Concorrenza, nella pratica</h2>
   <p class="part-note">Le decisioni che prendi scrivendo codice: quale strategia di lock, dove metterlo, e come non perdere un aggiornamento.</p>
 </div>
 
@@ -2417,7 +2382,7 @@ query B:  WHERE status = $1          → $1 implica 'PENDING' ?  boh   ✘ indic
 
 <div class="part">
   <p class="part-label">Parte IV</p>
-  <h2 class="part-title">Oltre il singolo database</h2>
+  <h2 class="part-title" id="toc-iv">Oltre il singolo database</h2>
   <p class="part-note">Quando l'operazione attraversa due datasource, il confine ACID si rompe e l'atomicità diventa un problema di protocollo.</p>
 </div>
 
@@ -2713,7 +2678,7 @@ Ordini ──evt──► Pagamenti          ┌──► Ordini
 
 <div class="part">
   <p class="part-label">Parte V</p>
-  <h2 class="part-title">Oltre il modello relazionale</h2>
+  <h2 class="part-title" id="toc-v">Oltre il modello relazionale</h2>
   <p class="part-note">Tutto il documento finora parlava di database relazionali. Esistono altre famiglie, nate da esigenze che il modello relazionale serve male, e ognuna ridisegna il confine transazionale a modo suo.</p>
 </div>
 
@@ -2858,7 +2823,7 @@ query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, eucl
 </section>
 <div class="part">
   <p class="part-label">Parte VI</p>
-  <h2 class="part-title">Riferimenti e verifica</h2>
+  <h2 class="part-title" id="toc-vi">Riferimenti e verifica</h2>
   <p class="part-note">La cronologia delle idee, il glossario completo e il test di autovalutazione.</p>
 </div>
 
@@ -2960,89 +2925,6 @@ query: k-NN (k nearest neighbours) = i k vettori a distanza minima (coseno, eucl
 
 <script>
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ============ INDICE + SCROLL SPY ============ */
-(function(){
-  const heads = [...document.querySelectorAll('main .part h2, main section h2, main section h3')];
-  const nav = document.getElementById('tocNav');
-  const panel = document.getElementById('toc');
-  const back = document.getElementById('tocBack');
-  const btn = document.getElementById('tocBtn');
-  const closeBtn = document.getElementById('tocClose');
-  const bar = document.getElementById('progress');
-  const top = document.getElementById('toTop');
-
-  const slug = t => t.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);
-
-  const links = [];
-  heads.forEach((h,i)=>{
-    const txt = h.textContent.trim();
-    const isPart = !!h.closest('.part');
-    if(isPart){
-      const lbl = h.parentElement.querySelector('.part-label');
-      const roman = (lbl ? lbl.textContent : '').replace(/parte/i,'').trim().toLowerCase();
-      h.id = 'toc-' + (roman || i);
-    } else {
-      h.id = h.id || (slug(txt) || 'h') + '-' + i;
-    }
-    const a = document.createElement('a');
-    a.href = '#' + h.id;
-    a.className = isPart ? 'lvl1' : (h.tagName === 'H2' ? 'lvl2' : 'lvl3');
-    a.textContent = txt;
-    a.onclick = ()=>{ if(!pinned()) closePanel(); };
-    nav.appendChild(a);
-    links.push({a, h});
-  });
-
-  const pinned = ()=> window.matchMedia('(min-width:1500px)').matches;
-  function openPanel(){
-    panel.classList.add('open'); back.classList.add('open');
-    btn.setAttribute('aria-expanded','true');
-  }
-  function closePanel(){
-    panel.classList.remove('open'); back.classList.remove('open');
-    btn.setAttribute('aria-expanded','false');
-  }
-  btn.onclick = ()=> panel.classList.contains('open') ? closePanel() : openPanel();
-  closeBtn.onclick = closePanel;
-  back.onclick = closePanel;
-  document.addEventListener('keydown', e=>{
-    if(e.key === 'Escape' && !pinned()) closePanel();
-  });
-
-  top.onclick = ()=> window.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'});
-
-  let cur = null, queued = false;
-  function spy(){
-    queued = false;
-    const doc = document.documentElement;
-    const max = doc.scrollHeight - doc.clientHeight;
-    bar.style.width = (max > 0 ? (doc.scrollTop / max * 100) : 0) + '%';
-    top.classList.toggle('show', doc.scrollTop > 700);
-
-    let active = null;
-    for(const l of links){
-      if(l.h.getBoundingClientRect().top <= 90) active = l; else break;
-    }
-    if(active === cur) return;
-    if(cur) cur.a.classList.remove('here');
-    cur = active;
-    if(cur){
-      cur.a.classList.add('here');
-      const r = cur.a.getBoundingClientRect(), n = nav.getBoundingClientRect();
-      if(r.top < n.top + 10 || r.bottom > n.bottom - 10){
-        nav.scrollTop += r.top - n.top - n.height/3;
-      }
-    }
-  }
-  window.addEventListener('scroll', ()=>{
-    if(!queued){ queued = true; requestAnimationFrame(spy); }
-  }, {passive:true});
-  window.addEventListener('resize', spy, {passive:true});
-  spy();
-})();
 
 /* ============ SAGA MACHINE ============ */
 const SAGA = [
@@ -3679,7 +3561,7 @@ a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var
   const chap={};
   main.querySelectorAll("section h2").forEach(h=>{const m=txt(h).match(/^(\d+)\s·\s(.+)$/);if(!m)return;
     const sec=h.closest("section"),sub=sec&&sec.querySelector(".sub");
-    chap[m[1]]=reg("cap-"+m[1],h,{k:"Capitolo "+m[1],t:m[2],body:()=>sub?`<p>${sub.innerHTML}</p>`:""});});
+    chap[m[1]]=reg("cap-"+m[1],sec||h,{k:"Capitolo "+m[1],t:m[2],body:()=>sub?`<p>${sub.innerHTML}</p>`:""});});
   const part={};
   main.querySelectorAll(".part").forEach(p=>{const l=txt(p.querySelector(".part-label")).replace(/parte/i,"").trim();const h=p.querySelector("h2");if(!ROMAN[l]||!h)return;
     const note=p.querySelector(".part-note");part[l]=reg("toc-"+ROMAN[l],h,{k:"Parte "+l,t:txt(h),body:()=>note?`<p>${note.innerHTML}</p>`:""});});
@@ -3764,3 +3646,134 @@ a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var
   window.__xrefCount=main.querySelectorAll("a.xref").length;
 })();
 </script>
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->

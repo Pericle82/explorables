@@ -32,7 +32,7 @@ Nell'ordine, sempre:
 ## 3. Navigazione: tre livelli, tutti obbligatori
 
 1. **Tra le guide** — il pulsante «☰ Explorables» in basso a sinistra. Lo aggiunge `scripts/build.mjs` a ogni pagina: non va scritto nella guida.
-2. **Dentro la guida** — la barra fissa delle sezioni (scritta a mano) e il pannello **Indice** con tutti gli h2 e h3 (blocco condiviso `toc`: si costruisce da solo).
+2. **Dentro la guida** — la barra fissa delle sezioni (scritta a mano: solo link `<a>` dentro `.in`, niente pulsanti) e il pannello **Indice** (blocco condiviso `toc`: si costruisce da solo). Il componente mette i link della barra in una striscia scorrevole e il pulsante «☰ Indice n/N» accanto, senza sovrapporsi; il pannello si apre sotto la barra, raggruppa per parte (`.part`, se presenti) e sezione, mostra le sottosezioni (h3) solo della sezione aperta e ha una ricerca.
 3. **Tra i concetti** — i riferimenti incrociati con anteprima (blocco condiviso `xref`, configurato da `window.XREF_CONFIG`, §4).
 
 ## 4. Riferimenti incrociati
