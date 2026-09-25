@@ -22,7 +22,9 @@ for (const rel of targets) {
     const fresh = readFileSync(sp, "utf8").trim();
     if (fresh === body.trim()) return all;
     stale++; console.log(`${check ? "da aggiornare" : "aggiornato"}: ${rel} · ${name}`);
-    return all.replace(body, () => fresh);
+    // ricostruisce il blocco per posizione: marcatore di apertura (una riga) + contenuto + marcatore di chiusura
+    const open = all.slice(0, all.indexOf("\n") + 1);
+    return open + fresh + `\n<!-- xpl:shared ${name}:end -->`;
   });
   if (!check && out !== src) { writeFileSync(path, out); updated++; }
 }
