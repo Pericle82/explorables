@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-09-26
+- **Quando il COMMIT non basta più** (`transazioni`) v2.6: Autocommit: un'istruzione, una transazione, e i tre casi in cui più istruzioni condividono il confine (trigger e cascate, funzioni, driver senza autocommit); lock in MVCC: la SELECT prima dell'UPDATE non prende il lock esclusivo, salvo FOR UPDATE
+
 ## 2026-09-25
 - **Encoder, decoder, esperti** (`architetture-llm`) v1.0: Prima versione: BERT contro GPT, famiglie di architetture, modelli densi e a esperti (MoE), come sceglie il router. Laboratori su maschera di attenzione, calcolatore denso/sparso e router a 8 esperti.
 - **Quando il COMMIT non basta più** (`transazioni`) v2.5: I 68 schemi in testo monospazio diventano componenti web: schede codice con Copia, linee temporali T1/T2, contenitori RAM/log/disco, tabelle con barre, schede dei casi, pile, catene di versioni e diagrammi SVG. Nuovo blocco condiviso vx per tutte le guide.

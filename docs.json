@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.5",
-      "updated": "2026-09-25",
+      "version": "2.6",
+      "updated": "2026-09-26",
       "history": [
+        {
+          "version": "2.6",
+          "date": "2026-09-26",
+          "notes": "Autocommit: un'istruzione, una transazione, e i tre casi in cui più istruzioni condividono il confine (trigger e cascate, funzioni, driver senza autocommit); lock in MVCC: la SELECT prima dell'UPDATE non prende il lock esclusivo, salvo FOR UPDATE"
+        },
         {
           "version": "2.5",
           "date": "2026-09-25",
