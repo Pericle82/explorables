@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.9",
+      "version": "2.10",
       "updated": "2026-09-26",
       "history": [
+        {
+          "version": "2.10",
+          "date": "2026-09-26",
+          "notes": "Corretta la frase sull'autocommit nel capitolo 2: la finestra SELECT/UPDATE è identica con o senza BEGIN, perché solo l'UPDATE prende il lock"
+        },
         {
           "version": "2.9",
           "date": "2026-09-26",
