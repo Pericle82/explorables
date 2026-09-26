@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-26
+- **Quando il COMMIT non basta più** (`transazioni`) v2.9: Capitolo 2: separati i due problemi di SELECT+if+UPDATE — il crash a metà lo risolve la transazione, la finestra concorrente no perché la SELECT non prende lock; tabella riassuntiva
 - **Quando il COMMIT non basta più** (`transazioni`) v2.8: Chiarito che lo snapshot governa solo le letture: l'UPDATE lavora sulla versione corrente della riga, non sullo snapshot della SELECT; confronto READ_COMMITTED / REPEATABLE_READ
 - **Quando il COMMIT non basta più** (`transazioni`) v2.7: Relazione tra transazione e lock (il lock nasce dall'istruzione, la transazione ne decide la durata) e a che cosa serve una transazione per le sole letture
 - **Quando il COMMIT non basta più** (`transazioni`) v2.6: Autocommit: un'istruzione, una transazione, e i tre casi in cui più istruzioni condividono il confine (trigger e cascate, funzioni, driver senza autocommit); lock in MVCC: la SELECT prima dell'UPDATE non prende il lock esclusivo, salvo FOR UPDATE
