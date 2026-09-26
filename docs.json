@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.7",
+      "version": "2.8",
       "updated": "2026-09-26",
       "history": [
+        {
+          "version": "2.8",
+          "date": "2026-09-26",
+          "notes": "Chiarito che lo snapshot governa solo le letture: l'UPDATE lavora sulla versione corrente della riga, non sullo snapshot della SELECT; confronto READ_COMMITTED / REPEATABLE_READ"
+        },
         {
           "version": "2.7",
           "date": "2026-09-26",
