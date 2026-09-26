@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.6",
+      "version": "2.7",
       "updated": "2026-09-26",
       "history": [
+        {
+          "version": "2.7",
+          "date": "2026-09-26",
+          "notes": "Relazione tra transazione e lock (il lock nasce dall'istruzione, la transazione ne decide la durata) e a che cosa serve una transazione per le sole letture"
+        },
         {
           "version": "2.6",
           "date": "2026-09-26",

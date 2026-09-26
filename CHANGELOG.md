@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-26
+- **Quando il COMMIT non basta più** (`transazioni`) v2.7: Relazione tra transazione e lock (il lock nasce dall'istruzione, la transazione ne decide la durata) e a che cosa serve una transazione per le sole letture
 - **Quando il COMMIT non basta più** (`transazioni`) v2.6: Autocommit: un'istruzione, una transazione, e i tre casi in cui più istruzioni condividono il confine (trigger e cascate, funzioni, driver senza autocommit); lock in MVCC: la SELECT prima dell'UPDATE non prende il lock esclusivo, salvo FOR UPDATE
 
 ## 2026-09-25
