@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.10",
-      "updated": "2026-09-26",
+      "version": "2.11",
+      "updated": "2026-09-27",
       "history": [
+        {
+          "version": "2.11",
+          "date": "2026-09-27",
+          "notes": "Capitolo 3: come funziona il checksum (CRC) delle note del log, in scrittura e in lettura al riavvio; voce nel glossario"
+        },
         {
           "version": "2.10",
           "date": "2026-09-26",

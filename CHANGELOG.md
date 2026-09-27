@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-09-27
+- **Quando il COMMIT non basta più** (`transazioni`) v2.11: Capitolo 3: come funziona il checksum (CRC) delle note del log, in scrittura e in lettura al riavvio; voce nel glossario
+
 ## 2026-09-26
 - **Quando il COMMIT non basta più** (`transazioni`) v2.10: Corretta la frase sull'autocommit nel capitolo 2: la finestra SELECT/UPDATE è identica con o senza BEGIN, perché solo l'UPDATE prende il lock
 - **Quando il COMMIT non basta più** (`transazioni`) v2.9: Capitolo 2: separati i due problemi di SELECT+if+UPDATE — il crash a metà lo risolve la transazione, la finestra concorrente no perché la SELECT non prende lock; tabella riassuntiva
