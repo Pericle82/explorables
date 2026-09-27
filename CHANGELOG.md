@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-27
+- **Quando il COMMIT non basta più** (`transazioni`) v2.12: Capitolo 3: chi applica la modifica alla pagina (nessun processo in ascolto sul WAL); abort prima del commit: le note nel WAL restano, la pagina sporca in PostgreSQL vs InnoDB
 - **Quando il COMMIT non basta più** (`transazioni`) v2.11: Capitolo 3: come funziona il checksum (CRC) delle note del log, in scrittura e in lettura al riavvio; voce nel glossario
 
 ## 2026-09-26

@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.11",
+      "version": "2.12",
       "updated": "2026-09-27",
       "history": [
+        {
+          "version": "2.12",
+          "date": "2026-09-27",
+          "notes": "Capitolo 3: chi applica la modifica alla pagina (nessun processo in ascolto sul WAL); abort prima del commit: le note nel WAL restano, la pagina sporca in PostgreSQL vs InnoDB"
+        },
         {
           "version": "2.11",
           "date": "2026-09-27",
