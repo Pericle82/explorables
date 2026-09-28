@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-09-28
+- **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.0: Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail
+
 ## 2026-09-27
 - **Quando il COMMIT non basta più** (`transazioni`) v2.12: Capitolo 3: chi applica la modifica alla pagina (nessun processo in ascolto sul WAL); abort prima del commit: le note nel WAL restano, la pagina sporca in PostgreSQL vs InnoDB
 - **Quando il COMMIT non basta più** (`transazioni`) v2.11: Capitolo 3: come funziona il checksum (CRC) delle note del log, in scrittura e in lettura al riavvio; voce nel glossario

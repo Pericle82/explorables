@@ -204,6 +204,27 @@
       ],
       "version": "1.0",
       "updated": "2026-09-25"
+    },
+    {
+      "slug": "ai-engineering",
+      "title": "Ingegneria dei sistemi LLM",
+      "description": "Un modello non è un sistema: gateway con costi e cache, retrieval misurato, agenti come macchine a stati durevoli, memoria con budget, giudice calibrato e guardrail, fino al deploy con utenti reali. Sei strati, sei laboratori.",
+      "tags": [
+        "LLM",
+        "AI engineering",
+        "RAG",
+        "agenti",
+        "eval"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-09-28",
+          "notes": "Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail"
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-09-28"
     }
   ]
 }

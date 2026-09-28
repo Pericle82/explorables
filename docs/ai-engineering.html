@@ -1,0 +1,1305 @@
+<title>Ingegneria dei sistemi LLM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============ TEMA EXPLORABLES ============ accento: ambra */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E7EAEF; --ink:#161B24; --muted:#565E6C;
+  --line:#CDD2DA; --grid:#E0E4EA; --accent:#8A5A0B; --accent-soft:#F2E4C8;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+    --line:#2C3441; --grid:#232A35; --accent:#E2AA4E; --accent-soft:#3A2D14;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+  --line:#2C3441; --grid:#232A35; --accent:#E2AA4E; --accent-soft:#3A2D14;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-block:8px;margin-inline:-20px;padding-inline:20px}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=number]{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr 64px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .25s}
+.barrow .fill.bad{background:var(--bad)}
+.barrow .fill.good{background:var(--good)}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.gtable tr.sel td{background:var(--accent-soft)}
+.gtable tr.dim td{color:var(--muted)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.pill.wn{color:var(--warn);background:var(--warn-soft)}
+.scroll-x{overflow-x:auto}
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif)}
+.grid3 .box span{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.box.hot{border-color:var(--accent);background:var(--accent-soft)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s}
+.cards a:hover{border-color:var(--accent)}
+.cards a b{font-family:var(--serif);font-size:1.05rem}
+.cards a span{font-size:.84rem;color:var(--muted)}
+.cards a small{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+/* componenti di questa guida */
+.fsm{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fsm .st8{font-family:var(--mono);font-size:.8rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+.fsm .st8.cur{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);font-weight:600}
+.fsm .st8.done{color:var(--ink);border-color:var(--good)}
+.fsm .st8.dead{color:var(--bad);border-color:var(--bad)}
+.log{font-family:var(--mono);font-size:.8rem;background:var(--surface-2);border-radius:6px;padding:10px 12px;max-height:230px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+.log .e{color:var(--bad)} .log .g{color:var(--good)} .log .w{color:var(--warn)}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:center;max-width:440px;font-size:.86rem}
+.cm .h{font-family:var(--mono);font-size:.72rem;color:var(--muted);text-align:center}
+.cm .rh{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.rec{display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px 12px;font-size:.84rem;align-items:center}
+.rec .h{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rec .r{display:contents}
+.rec .r.in>*{background:var(--accent-soft);border-radius:4px;padding:3px 6px}
+.rec .r.out>*{color:var(--muted);padding:3px 6px}
+.rec .m{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+@media (max-width:640px){.rec{grid-template-columns:1fr auto auto}.rec .h:nth-child(3),.rec .h:nth-child(4),.rec .r>*:nth-child(3),.rec .r>*:nth-child(4){display:none}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Ingegneria dei sistemi LLM · guida interattiva</span>
+  <h1>Un modello non è un sistema: le sei cose che stanno intorno a una chiamata</h1>
+  <p class="lede">Chiamare un LLM (Large Language Model, modello linguistico di grandi dimensioni) sono tre righe di codice. Farlo in produzione, per utenti veri, con un costo che sai prevedere, una latenza che sai misurare, una memoria che non esplode e un modo per accorgerti quando peggiora, è ingegneria. Questa guida percorre i sei strati che il portfolio <em>ai-engineering-portfolio</em> costruisce uno alla volta, dal gateway di inferenza al deploy con utenti reali, e per ogni strato ti fa toccare con mano il meccanismo che conta: percentili e cache, fusione di ranking, macchina a stati di un agente, punteggio dei ricordi, accordo tra giudice e umano.</p>
+  <div class="cards">
+    <a href="#s0"><small>0</small><b>Concorrenza strutturata</b><span>Perché tre chiamate in parallelo costano quanto una, e quando no</span></a>
+    <a href="#s1"><small>1</small><b>Costo e latenza</b><span>Percentili, cache esatta e semantica, circuit breaker</span></a>
+    <a href="#s2"><small>2</small><b>Retrieval</b><span>Chunking, dense contro BM25, RRF, recall@k e MRR</span></a>
+    <a href="#s3"><small>3</small><b>Agenti</b><span>Una macchina a stati con budget, che sopravvive a un crash</span></a>
+    <a href="#s4"><small>4</small><b>Memoria</b><span>Tre memorie, un punteggio, un budget di token</span></a>
+    <a href="#s5"><small>5</small><b>Valutazione</b><span>Giudice calibrato con kappa, guardrail misurati sui falsi positivi</span></a>
+    <a href="#s6"><small>6</small><b>Composizione</b><span>Come sei repo diventano un prodotto, e il postmortem</span></a>
+    <a href="#sum"><small>Riepilogo</small><b>A confronto</b><span>Ogni strato: domanda, meccanismo, numero che lo dimostra</span></a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#s0">0 · Async</a><a href="#s1">1 · Gateway</a><a href="#s2">2 · RAG</a><a href="#s3">3 · Agenti</a><a href="#s4">4 · Memoria</a><a href="#s5">5 · Eval</a><a href="#s6">6 · Capstone</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 0 ============ -->
+<section class="st" id="s0">
+  <div class="sec-head">
+    <span class="eyebrow">0 · Concorrenza strutturata</span>
+    <h2>Un servizio LLM aspetta quasi sempre qualcun altro: la concorrenza è la prima competenza, non l'ultima</h2>
+  </div>
+  <div class="prose stack">
+    <p>Immagina di chiedere «com'è il tempo a Bologna?» a un servizio che deve prima trasformare «Bologna» in coordinate, poi chiedere meteo e fuso orario. Le ultime due chiamate non dipendono l'una dall'altra: farle una dopo l'altra costa il doppio, lanciarle insieme costa quanto la più lenta. Un sistema LLM è fatto quasi solo di attese di questo tipo: verso il provider del modello, verso il vector database, verso i tool di un agente. Il tempo di CPU è trascurabile; il tempo di attesa è tutto.</p>
+    <p>Per questo il percorso comincia da <code>asyncio</code>, e in particolare dalla <b>concorrenza strutturata</b>: un task figlio non sopravvive allo scope che lo ha creato, e se un figlio fallisce i fratelli vengono cancellati e l'errore risale al padre. In Python 3.11+ lo scope è <code>asyncio.TaskGroup</code>; chi arriva da Kotlin lo riconosce come <code>coroutineScope</code>. È la stessa idea, e le differenze sono di dettaglio: una coroutine Python è inerte finché non la si attende, <code>CancelledError</code> è una <code>BaseException</code> che un <code>except Exception</code> non cattura, e gli errori dei figli arrivano raggruppati in un <code>ExceptionGroup</code> da intercettare con <code>except*</code>.</p>
+  </div>
+
+  <div class="vx vx-code"><div class="vx-code-h"><span>Python · fan-out strutturato</span><button class="vx-copy" type="button">Copia</button></div>
+<pre><code><span class="ln"><span class="tk-kw">async def</span> city_report(name: str) -&gt; CityReport:
+</span><span class="ln">    loc = <span class="tk-kw">await</span> geocode(name)                 <span class="tk-an"># ← dipendenza: prima</span>
+</span><span class="ln hl">    <span class="tk-kw">async with</span> asyncio.timeout(<span class="tk-num">2.0</span>), asyncio.TaskGroup() <span class="tk-kw">as</span> tg:
+</span><span class="ln">        w = tg.create_task(weather(loc))       <span class="tk-an"># ← indipendenti: insieme</span>
+</span><span class="ln">        t = tg.create_task(timezone(loc))
+</span><span class="ln">    <span class="tk-kw">return</span> CityReport(location=loc, weather=w.result(), tz=t.result())
+</span></code></pre></div>
+
+  <h3 id="s0-semaforo" class="anchor">Il limite di concorrenza è una scelta, non un incidente</h3>
+  <div class="prose stack">
+    <p>Lanciare tutto insieme non è sempre possibile: un provider ha un limite di richieste al minuto, un vector database regge un certo numero di connessioni. <code>asyncio.Semaphore(n)</code> dice «al massimo n in volo»: le altre aspettano il loro turno. Il costo si calcola a mente prima di misurarlo, ed è proprio quello che il laboratorio vuole allenare: se sai prevedere il numero, sai anche spiegarlo a colloquio.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: sequenziale, parallelo, con semaforo</h3><span class="tag">matematica reale</span></div>
+    <p>Scegli quante chiamate esterne fa la richiesta e quanto dura ciascuna; muovi il semaforo e osserva come cambia il tempo totale rispetto al sequenziale.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s0n">Chiamate indipendenti <output id="s0no"></output></label><input id="s0n" type="range" min="1" max="12" value="3"></div>
+      <div class="ctl"><label for="s0l">Latenza di ciascuna (ms) <output id="s0lo"></output></label><input id="s0l" type="range" min="50" max="1500" step="50" value="300"></div>
+      <div class="ctl"><label for="s0s">Semaforo (max in volo) <output id="s0so"></output></label><input id="s0s" type="range" min="1" max="12" value="3"></div>
+    </div>
+    <div class="bars" id="s0bars"></div>
+    <p class="callout" id="s0msg"></p>
+    <p class="note">Modello ideale: latenze identiche e nessun overhead di rete o di event loop. Nella realtà il tempo del parallelo è quello della chiamata più lenta, non della media: è il motivo per cui il capitolo 1 ragiona in percentili.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Event loop</dt><dd>Il ciclo che, su un solo thread, alterna le coroutine quando ognuna si ferma ad aspettare. Una funzione bloccante (es. <code>time.sleep</code>) ferma tutto il servizio.</dd><span class="ex">await asyncio.to_thread(fn) per isolarla</span></div>
+    <div><dt>TaskGroup</dt><dd>Scope strutturato: i task creati dentro finiscono prima che lo scope esca; se uno fallisce gli altri vengono cancellati.</dd><span class="ex">async with asyncio.TaskGroup() as tg</span></div>
+    <div><dt>Semaphore</dt><dd>Limite al numero di task contemporaneamente in volo verso una risorsa.</dd><span class="ex">asyncio.Semaphore(8)</span></div>
+    <div><dt>SSE</dt><dd>Server-Sent Events: canale unidirezionale server→client su HTTP semplice, usato per lo streaming dei token.</dd><span class="ex">event: token · data: {…}</span></div>
+  </dl>
+</section>
+
+<!-- ============ 1 ============ -->
+<section class="st" id="s1">
+  <div class="sec-head">
+    <span class="eyebrow">1 · Costo e latenza · llm-gateway</span>
+    <h2>Tra la tua applicazione e il modello serve uno strato che conti, ricordi e protegga</h2>
+  </div>
+  <div class="prose stack">
+    <p>Ogni chiamata al modello costa denaro e tempo, e nessuno dei due è costante: dipende da quanti token entrano ed escono, dal provider, dall'ora, da quanto il provider è in salute. Un <b>gateway</b> è un proxy che tutte le chiamate attraversano, e che per questo può fare quattro cose che nessun singolo punto dell'applicazione potrebbe fare da solo: <b>contare</b> (token e costo per richiesta, per utente, per feature), <b>ricordare</b> (una cache per non ripagare la stessa domanda), <b>proteggere</b> (rate limiting, budget, circuit breaker verso un provider in errore, fallback su un altro) e <b>osservare</b> (una traccia per ogni richiesta con i tempi di ogni fase).</p>
+    <p>La sequenza di una richiesta è questa: verifica del limite e del budget della chiave; ricerca nella cache esatta; se manca, ricerca nella cache semantica; se manca ancora, scelta del provider, chiamata con retry e timeout, conteggio dei token, salvataggio in cache e una riga di contabilità. Il laboratorio più sotto fa vedere come le cache cambiano latenza e costo insieme.</p>
+  </div>
+
+  <div class="vx"><div class="vx-flow"><div class="vx-node code">POST /v1/chat · chiave, alias del modello, messaggi, tag</div><div class="vx-down">↓</div><div class="vx-node">rate limit e budget della chiave</div><div class="vx-down">↓</div><div class="vx-node">cache esatta <small>(hash della richiesta normalizzata)</small></div><div class="vx-down">↓ miss</div><div class="vx-node">cache semantica <small>(embedding dell'ultimo messaggio, similarità ≥ soglia)</small></div><div class="vx-down">↓ miss</div><div class="vx-node acc">router → circuit breaker → retry con backoff e jitter → provider</div><div class="vx-down">↓</div><div class="vx-branch"><div class="vx-card"><h5><small>ogni esito</small> Contabilità</h5><div class="vx-out go">token in/out × listino versionato → costo, per chiave, utente, tag</div></div><div class="vx-card"><h5><small>ogni esito</small> Osservabilità</h5><div class="vx-out go">uno span per fase (cache, router, provider), metriche, log correlati</div></div></div></div></div>
+
+  <h3 id="s1-percentili" class="anchor">La media mente: p50, p95, p99</h3>
+  <div class="prose stack">
+    <p>Se dieci richieste durano 200 ms e una dura 6 secondi, la media dice 730 ms e non descrive nessuna delle undici. I <b>percentili</b> descrivono tutte: il <b>p50</b> (mediana) è il tempo sotto cui cade metà delle richieste, il <b>p95</b> quello sotto cui ne cade il 95 %, il <b>p99</b> il 99 %. Il p50 racconta l'utente tipico; il p95 gli utenti sfortunati, che sono tanti se hai molto traffico; il p99 le code: retry, breaker che si apre, provider lento a partire. Per lo streaming si misura a parte il <b>TTFT</b> (Time To First Token): il tempo fino al primo token è ciò che l'utente percepisce come «sta rispondendo».</p>
+  </div>
+
+  <h3 id="s1-cache" class="anchor">Due cache, due promesse diverse</h3>
+  <div class="prose stack">
+    <p>La <b>cache esatta</b> riusa la risposta se la richiesta è identica byte per byte dopo normalizzazione (stesso modello, stessi messaggi, stessa temperatura): la chiave è un hash. È sicura solo con temperatura zero, perché altrimenti l'API prometteva una risposta diversa a ogni chiamata. La <b>cache semantica</b> riusa la risposta se la nuova domanda è <em>abbastanza simile</em> a una già vista: si calcola l'embedding dell'ultimo messaggio e si cerca il più vicino per similarità coseno sopra una soglia. È qui che sta il compromesso che vale un ADR (Architecture Decision Record): una soglia bassa aumenta gli hit ma riusa risposte non pertinenti (<b>falsi positivi</b>), una soglia alta riduce entrambi. I falsi positivi non compaiono in nessuna metrica automatica: si contano a mano su un campione di hit, e chi non li misura non sa quanto la cache sta sbagliando.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: percentili, cache e costo per 1000 richieste</h3><span class="tag">simulazione</span></div>
+    <p>Muovi l'hit rate della cache e il modello; osserva come p50 e p99 si muovono in modo diverso, e quanto costa il migliaio di richieste.</p>
+    <div class="controls">
+      <div class="ctl"><label>Modello</label><div class="seg" id="s1model"><button aria-pressed="false" data-v="large">grande</button><button aria-pressed="true" data-v="small">piccolo</button></div></div>
+      <div class="ctl"><label for="s1h">Hit rate cache <output id="s1ho"></output></label><input id="s1h" type="range" min="0" max="90" step="5" value="0"></div>
+      <div class="ctl"><label for="s1t">Soglia semantica <output id="s1to"></output></label><input id="s1t" type="range" min="80" max="99" step="1" value="92"></div>
+    </div>
+    <svg class="chart" id="s1chart" viewBox="0 0 640 170" role="img" aria-label="Distribuzione delle latenze con i percentili"></svg>
+    <div class="readout">
+      <div><small>p50</small><strong id="s1p50"></strong></div>
+      <div><small>p95</small><strong id="s1p95"></strong></div>
+      <div><small>p99</small><strong id="s1p99"></strong></div>
+      <div><small>costo / 1000 req</small><strong id="s1cost"></strong></div>
+      <div><small>falsi positivi stimati</small><strong id="s1fp"></strong></div>
+    </div>
+    <p class="callout" id="s1msg"></p>
+    <p class="note">Latenze generate da una distribuzione log-normale (un miss ≈ 900 ms di mediana con coda lunga; un hit ≈ 40 ms); prezzi indicativi per token e falsi positivi che crescono al calare della soglia. I numeri veri li produce il load test del gateway con k6; qui conta la forma delle curve, non il valore.</p>
+  </div>
+
+  <h3 id="s1-breaker" class="anchor">Resilienza: retry con jitter, timeout per fase, circuit breaker</h3>
+  <div class="prose stack">
+    <p>Un provider che risponde <code>500</code> tre volte di fila non va richiamato subito: si riprova con <b>backoff esponenziale e jitter</b> (attese crescenti e casuali, così mille client non ripartono insieme), solo su errori riprovabili, mai a metà di uno stream già iniziato. I <b>timeout</b> sono due: uno breve per il primo token, uno lungo per la risposta intera, perché un provider che non parte va abbandonato prima di uno che sta scrivendo. Il <b>circuit breaker</b> osserva gli errori in una finestra e, superata una soglia, si <em>apre</em>: le richieste vanno subito al fallback senza nemmeno tentare, finché dopo un tempo di raffreddamento una richiesta di prova (<em>half-open</em>) decide se richiuderlo.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il circuit breaker</h3><span class="tag">comportamento reale, semplificato</span></div>
+    <p>Manda chiamate al provider con i pulsanti e guarda lo stato del breaker: si apre dopo 3 errori in una finestra di 5 chiamate, resta aperto 4 «tick», poi prova una chiamata.</p>
+    <div class="row">
+      <button class="btn" id="s1ok">Chiamata riuscita</button>
+      <button class="btn ghost" id="s1ko">Chiamata in errore</button>
+      <button class="btn ghost" id="s1tick">Passa il tempo (tick)</button>
+      <button class="btn ghost" id="s1reset">Reset</button>
+    </div>
+    <div class="fsm" id="s1fsm"><span class="st8 cur" data-s="closed">closed</span><span class="muted mono">→</span><span class="st8" data-s="open">open</span><span class="muted mono">→</span><span class="st8" data-s="half">half-open</span></div>
+    <div class="log" id="s1log"></div>
+    <p class="callout" id="s1bmsg"></p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Percentile</dt><dd>Il valore sotto cui cade una data frazione delle misure. p95: il 95 % delle richieste è stato più veloce di così.</dd><span class="ex">p50 = mediana</span></div>
+    <div><dt>TTFT</dt><dd>Time To First Token: tempo fino al primo token in streaming. Si riporta separato dal tempo totale.</dd><span class="ex">timeout TTFT 5 s, totale 60 s</span></div>
+    <div><dt>Cache semantica</dt><dd>Riuso di una risposta quando la nuova domanda ha un embedding vicino a una già vista, sopra una soglia scelta misurando hit rate e falsi positivi.</dd><span class="ex">coseno ≥ 0.92</span></div>
+    <div><dt>Circuit breaker</dt><dd>Interruttore che smette di chiamare un provider in errore ripetuto e lo riprova dopo un tempo di raffreddamento.</dd><span class="ex">closed → open → half-open</span></div>
+    <div><dt>Backoff con jitter</dt><dd>Attesa crescente e casuale tra un tentativo e l'altro, per non far ripartire tutti i client nello stesso istante.</dd><span class="ex">sleep(random(0, base·2^n))</span></div>
+    <div><dt>Listino versionato</dt><dd>Tabella prezzi datata, salvata nel repo: ogni riga di contabilità registra quale versione ha usato, così i report restano ricostruibili quando i prezzi cambiano.</dd><span class="ex">pricing/2026-09.yaml</span></div>
+  </dl>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="st" id="s2">
+  <div class="sec-head">
+    <span class="eyebrow">2 · Retrieval · rag-bench</span>
+    <h2>Un RAG non si sceglie, si misura: chunking, retrieval e vector database sono tre variabili, non tre certezze</h2>
+  </div>
+  <div class="prose stack">
+    <p>RAG (Retrieval-Augmented Generation) significa: prima di far rispondere il modello, cerca nei tuoi documenti i passaggi pertinenti e mettiglieli nel prompt. Il sistema fa due lavori in due momenti diversi. <b>Prima</b>, una volta sola, l'<em>ingestion</em>: spezza i documenti in pezzi (<em>chunk</em>), trasforma ogni pezzo in un vettore che ne rappresenta il significato (<em>embedding</em>) e lo salva in un vector database insieme al testo; in parallelo costruisce un indice lessicale BM25 (Best Match 25) sulle parole. <b>Poi</b>, a ogni domanda, la <em>query</em>: trasforma la domanda in vettore, trova i chunk vicini per significato (dense) e quelli con le parole più simili (sparse), fonde le due liste (hybrid), eventualmente le riordina con un modello più preciso ma più lento (reranking), e passa i primi al modello, che risponde citando i chunk usati o dichiara di non aver trovato nulla.</p>
+    <p>Ogni scelta lungo questa strada cambia qualità, latenza e costo, e l'unico modo di sapere quale vince sul <em>tuo</em> corpus è un banco di misura che cambi una variabile alla volta. Per i fondamenti di embedding, distanze e indici approssimati vedi la guida sui database vettoriali; qui interessa ciò che sta sopra.</p>
+  </div>
+
+  <h3 id="s2-chunking" class="anchor">Il chunking è la scelta che nessuno misura e che cambia tutto il resto</h3>
+  <div class="prose stack">
+    <p>Tre strategie, stesso documento. <b>Fissa</b>: finestre di 512 token con sovrapposizione di 64, cieca alla struttura, prevedibile. <b>Ricorsiva</b>: prova a spezzare per paragrafo, se troppo lungo per frase, se ancora troppo lungo per token, così i confini cadono dove cade il senso. <b>Strutturale</b>: segue i titoli e le sezioni del documento, ottima se il corpus è pulito e pessima se non lo è. Un chunk troppo grande diluisce il significato nell'embedding e spreca contesto; troppo piccolo perde il filo. L'unica regola generale è che il chunk deve portare con sé il contesto (titolo del documento e della sezione nel testo che viene convertito).</p>
+  </div>
+
+  <div class="vx"><div class="vx-cards"><div class="vx-card"><h5><small>strategia</small> Fissa</h5><div class="vx-line">512 token, overlap 64</div><div class="vx-out wait">confini arbitrari: può tagliare una frase a metà; nessuna dipendenza dalla struttura</div></div><div class="vx-card"><h5><small>strategia</small> Ricorsiva</h5><div class="vx-line">paragrafo → frase → token</div><div class="vx-out go">confini dove cade il senso; buon default</div></div><div class="vx-card"><h5><small>strategia</small> Strutturale</h5><div class="vx-line">per heading e sezione</div><div class="vx-out acc">vince su corpus ben strutturati, perde su PDF sporchi</div></div></div></div>
+
+  <h3 id="s2-rrf" class="anchor">Hybrid: fondere due classifiche che parlano lingue diverse</h3>
+  <div class="prose stack">
+    <p>Il retrieval dense restituisce chunk ordinati per similarità coseno (numeri tra −1 e 1); BM25 li ordina per un punteggio lessicale (numeri arbitrari, dipendenti dal corpus). Sommare i punteggi non ha senso. La <b>RRF</b> (Reciprocal Rank Fusion) ignora i punteggi e usa solo le <em>posizioni</em>: ogni lista assegna a un chunk <code>1 / (k + rank)</code>, con <code>k</code> tipicamente 60, e i contributi si sommano. Un chunk primo in entrambe vince; uno primo in una e assente nell'altra prende un solo contributo. Non serve normalizzare nulla, ed è per questo che funziona tra sistemi eterogenei. Il <b>reranking</b> con un cross-encoder viene dopo: legge domanda e chunk <em>insieme</em> e produce un punteggio molto più preciso del coseno, ma costa un'inferenza per chunk, quindi si applica solo ai primi 20–50.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: RRF, recall@k e MRR su un caso minimo</h3><span class="tag">matematica reale</span></div>
+    <p>Sei chunk (A–F), due classifiche. Trascina le posizioni con i menu, segna quali chunk sono davvero pertinenti e guarda come cambiano la lista fusa e le metriche.</p>
+    <div class="grid2">
+      <div>
+        <div class="diag-title">Classifica dense (coseno)</div>
+        <div class="row" id="s2dense"></div>
+      </div>
+      <div>
+        <div class="diag-title">Classifica BM25 (lessicale)</div>
+        <div class="row" id="s2bm25"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label>Chunk pertinenti (verità)</label><div class="row" id="s2rel"></div></div>
+      <div class="ctl"><label for="s2k">k della RRF <output id="s2ko"></output></label><input id="s2k" type="range" min="1" max="100" value="60"></div>
+      <div class="ctl"><label for="s2top">recall@k con k = <output id="s2topo"></output></label><input id="s2top" type="range" min="1" max="6" value="3"></div>
+    </div>
+    <div class="scroll-x"><table class="gtable" id="s2table"></table></div>
+    <div class="readout">
+      <div><small>recall@k (dense)</small><strong id="s2rd"></strong></div>
+      <div><small>recall@k (BM25)</small><strong id="s2rb"></strong></div>
+      <div><small>recall@k (hybrid RRF)</small><strong id="s2rh"></strong></div>
+      <div><small>MRR (hybrid)</small><strong id="s2mrr"></strong></div>
+    </div>
+    <p class="callout" id="s2msg"></p>
+    <p class="note">recall@k = frazione dei chunk pertinenti che compaiono nei primi k; MRR (Mean Reciprocal Rank) = 1 / posizione del primo pertinente, mediato sulle domande (qui una sola domanda). Nel benchmark vero le metriche si calcolano su decine di domande e si accompagnano a nDCG (Normalized Discounted Cumulative Gain), latenza e costo per cella.</p>
+  </div>
+
+  <h3 id="s2-nontrovato" class="anchor">Citazioni verificate e «non ho trovato la risposta»</h3>
+  <div class="prose stack">
+    <p>Due dettagli separano un RAG dimostrativo da uno affidabile. Le <b>citazioni</b>: il modello risponde in structured output con l'elenco degli id dei chunk usati, e un passo deterministico controlla che ogni id esista nel contesto passato e che il testo citato sia contenuto nel chunk; una citazione inventata è un errore misurabile, non un dettaglio di presentazione. Il <b>«non trovato»</b>: due segnali combinati, il punteggio massimo di retrieval sotto una soglia calibrata e il campo <code>found: false</code> nello structured output; il benchmark include domande senza risposta nel corpus proprio per misurare quante volte il sistema inventa invece di ammettere.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Chunk</dt><dd>Frammento di documento convertito in un embedding a sé; la sua dimensione e i suoi confini sono la prima variabile del benchmark.</dd><span class="ex">fisso · ricorsivo · strutturale</span></div>
+    <div><dt>BM25</dt><dd>Best Match 25: punteggio lessicale basato su frequenza dei termini e lunghezza del documento; forte sui termini esatti (codici, sigle).</dd><span class="ex">sparse retrieval</span></div>
+    <div><dt>RRF</dt><dd>Reciprocal Rank Fusion: fusione di più classifiche sommando 1/(k+rank); non richiede di normalizzare i punteggi.</dd><span class="ex">k = 60</span></div>
+    <div><dt>Reranking</dt><dd>Riordino dei primi candidati con un cross-encoder che legge domanda e chunk insieme.</dd><span class="ex">top 20–50, poi top n</span></div>
+    <div><dt>HyDE</dt><dd>Hypothetical Document Embeddings: si cerca con l'embedding di una risposta ipotetica scritta dal modello, spesso più vicina ai documenti della domanda stessa.</dd><span class="ex">componente opzionale, da misurare in ablation</span></div>
+    <div><dt>Porta VectorStore</dt><dd>Interfaccia (<code>Protocol</code>) con upsert, search, delete, count; tre adapter (pgvector, Qdrant, FAISS) passano la stessa suite di test di contratto.</dd><span class="ex">architettura esagonale</span></div>
+  </dl>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="st" id="s3">
+  <div class="sec-head">
+    <span class="eyebrow">3 · Agenti · agent-runtime</span>
+    <h2>Un agente non è un <code>while True</code> con un prompt: è una macchina a stati con un budget, che deve poter morire e ripartire</h2>
+  </div>
+  <div class="prose stack">
+    <p>Un agente è un modello che, invece di rispondere subito, decide di usare un <em>tool</em> (una ricerca web, una query, l'esecuzione di codice), guarda il risultato e decide di nuovo, finché non ha abbastanza per rispondere. La versione minima è un ciclo di trenta righe che funziona finché non lo si rompe: un tool che va in timeout, un tool che non esiste, argomenti invalidi, un modello che chiede lo stesso tool all'infinito, un processo che muore al settimo passo. Ognuna di queste rotture insegna un requisito, e i requisiti messi insieme sono un <b>runtime</b>.</p>
+    <p>Il cuore è una <b>macchina a stati esplicita</b>: <code>plan</code> (il modello produce un piano in structured output), <code>act</code> (chiede il prossimo passo; il modello risponde con una o più chiamate a tool, che il runtime esegue in parallelo con un <code>TaskGroup</code>), <code>observe</code> (i risultati, o gli errori <em>strutturati</em>, vengono appesi alla conversazione e il budget aggiornato), <code>reflect</code> (ogni N passi il modello valuta se il piano regge), <code>stop</code> o <code>failed</code>. Ogni transizione è una funzione pura <code>(stato, evento) → nuovo stato</code>; i side effect, cioè chiamare il modello, eseguire i tool, scrivere sul database, stanno in un layer separato. È questa separazione a rendere il runtime testabile con tool finti e senza modello, e ripristinabile dopo un crash.</p>
+  </div>
+
+  <div class="vx"><div class="vx-flow"><div class="vx-node acc">plan <small>piano in structured output: sotto-domande e tool previsti</small></div><div class="vx-down">↓</div><div class="vx-node acc">act <small>il modello chiede tool; esecuzione parallela</small></div><div class="vx-down">↓</div><div class="vx-branch"><div class="vx-card"><h5><small>tool eseguiti</small> observe</h5><div class="vx-out go">risultati ed errori strutturati appesi ai messaggi; budget aggiornato → act, o reflect ogni N passi</div></div><div class="vx-card"><h5><small>tool che richiede approvazione</small> waiting_approval</h5><div class="vx-out wait">stato persistito, processo fermo; alla ripresa: approvato → act, rifiutato → stop</div></div><div class="vx-card"><h5><small>nessun tool richiesto</small> stop</h5><div class="vx-out go">report finale validato (schema + citazioni)</div></div><div class="vx-card"><h5><small>budget esaurito o errore non recuperabile</small> failed</h5><div class="vx-out bad">passi, token o tempo oltre il limite</div></div></div></div></div>
+
+  <h3 id="s3-errori" class="anchor">Gli errori dei tool sono dati, il budget è un contratto</h3>
+  <div class="prose stack">
+    <p>Quando <code>web_search</code> va in timeout, il runtime non si ferma: restituisce al modello un <code>ToolResult</code> con <code>ok: false</code>, <code>kind: "timeout"</code>, <code>retryable: true</code>, e il modello decide se riprovare, cambiare tool o proseguire senza. Il <b>budget</b> è in tre valute, passi, token e tempo, e quando una si esaurisce la run finisce in <code>failed</code> con un motivo leggibile, invece di girare per sempre. Le rotture sono la parte da testare per prima: la suite di traiettorie in CI (Continuous Integration) esegue l'agente con tool finti e verifica, senza chiamare alcun modello, che ogni rottura produca la transizione attesa.</p>
+  </div>
+
+  <h3 id="s3-durabile" class="anchor">Esecuzione durevole: <code>kill -9</code> al passo 7, ripresa dal passo 7</h3>
+  <div class="prose stack">
+    <p>Lo stato viene salvato a ogni passo (fase, piano, messaggi, budget, tool richiesti e risultati) su SQLite o Postgres. Se il processo muore, <code>agent resume &lt;run_id&gt;</code> ricarica l'ultimo stato e riparte da lì, non da zero. Perché la ripresa dia lo stesso risultato serve l'<b>idempotenza</b> dei tool o la registrazione dei loro esiti prima di proseguire: un tool eseguito prima del crash non va rieseguito. Lo stesso meccanismo dà il <b>human-in-the-loop</b> gratis: un tool che richiede approvazione (eseguire codice) porta la run in <code>waiting_approval</code>, persiste e si ferma; l'approvazione è un evento che la fa ripartire, anche giorni dopo. È il filo che collega questa guida a quella sulle transazioni: uno stato persistito a ogni passo e un log da cui ripartire sono la stessa idea del write-ahead log.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la macchina a stati, passo per passo</h3><span class="tag">simulazione</span></div>
+    <p>Avanza l'agente di ricerca un passo alla volta; fai fallire un tool, uccidi il processo e riprendi la run, e osserva stato, budget e traiettoria.</p>
+    <div class="row">
+      <button class="btn" id="s3step">Passo successivo</button>
+      <button class="btn ghost" id="s3fail">Prossimo tool in timeout</button>
+      <button class="btn ghost" id="s3crash">kill -9</button>
+      <button class="btn ghost" id="s3resume" disabled>resume &lt;run_id&gt;</button>
+      <button class="btn ghost" id="s3reset">Reset</button>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="s3b">Budget di passi <output id="s3bo"></output></label><input id="s3b" type="range" min="3" max="14" value="11"></div>
+    </div>
+    <div class="fsm" id="s3fsm"></div>
+    <div class="readout">
+      <div><small>passo</small><strong id="s3n"></strong></div>
+      <div><small>token usati</small><strong id="s3tok"></strong></div>
+      <div><small>tool ok / falliti</small><strong id="s3tools"></strong></div>
+      <div><small>stato persistito</small><strong id="s3db"></strong></div>
+    </div>
+    <div class="log" id="s3log"></div>
+    <p class="callout" id="s3msg"></p>
+    <p class="note">Le risposte del «modello» sono una sceneggiatura fissa (ricerca tecnica sull'autenticazione mobile); ciò che è reale è la logica di transizione, il budget e la ripresa dallo stato salvato. Nel runtime vero ogni passo è anche uno span OpenTelemetry.</p>
+  </div>
+
+  <h3 id="s3-framework" class="anchor">A mano prima del framework, poi il confronto</h3>
+  <div class="prose stack">
+    <p>Lo stesso agente viene poi riscritto con LangGraph (grafo esplicito con checkpointer e <code>interrupt</code> nativi) e con PydanticAI (controllo del flusso implicito, tracing nativo), e messo in una tabella: righe di codice del loop, task completati, costo e passi medi, testabilità con tool finti, persistenza, human-in-the-loop, tempo di implementazione. Il punto non è vincere: è saper dire, con numeri, quando un framework restituisce più di quanto costa e quando nasconde ciò che serve controllare. MCP (Model Context Protocol) entra come sorgente di tool: il runtime è client di server MCP esterni ed espone i propri tool come server.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Tool calling</dt><dd>Il modello risponde con una richiesta strutturata di eseguire una funzione con certi argomenti; il runtime la esegue e restituisce il risultato come messaggio.</dd><span class="ex">tool_calls: [web_search(q)]</span></div>
+    <div><dt>Structured output</dt><dd>Risposta del modello vincolata a uno schema JSON (generato da un modello pydantic) e validata; mattone di piano e riflessione.</dd><span class="ex">Plan(sub_questions, tools)</span></div>
+    <div><dt>Budget</dt><dd>Limiti di passi, token e tempo per run; esauriti, la run termina in <code>failed</code> con motivo.</dd><span class="ex">BudgetExceeded(kind="steps")</span></div>
+    <div><dt>Esecuzione durevole</dt><dd>Stato persistito a ogni passo e ripresa idempotente dopo crash o pausa per approvazione.</dd><span class="ex">agent resume run_42</span></div>
+    <div><dt>MCP</dt><dd>Model Context Protocol: standard per esporre tool e risorse a un agente; il runtime è client e server.</dd><span class="ex">tools/mcp_source.py</span></div>
+    <div><dt>Test di traiettoria</dt><dd>Esecuzione dell'agente con tool finti e asserzioni sulla sequenza di stati, senza chiamare un modello reale.</dd><span class="ex">gira in CI a costo zero</span></div>
+  </dl>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="st" id="s4">
+  <div class="sec-head">
+    <span class="eyebrow">4 · Memoria · companion-coach</span>
+    <h2>La finestra di contesto non è memoria: ricordare è estrarre, consolidare e scegliere dentro un budget</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il 3 marzo l'utente scrive al suo coach di allenamento: «mi fa male il ginocchio destro da ieri, ho saltato gli squat». Il 24 marzo chiede: «cosa metto nella sessione gambe di domani?». Nella conversazione il 3 marzo non c'è più, sono passate sei sessioni. Mettere tutto nel contesto non scala (costa a ogni turno e a un certo punto non entra) e non basta (il modello si perde nei dettagli). Serve una memoria che faccia quattro cose: aver <b>estratto</b> all'epoca un fatto («infortunio: ginocchio destro, dal 2 marzo, evita squat») con provenienza al turno originale; <b>recuperarlo</b> ora, perché «sessione gambe» è semanticamente vicino e l'infortunio ha importanza alta; <b>inserirlo</b> nel prompt dentro un budget di token; e, se il 15 marzo l'utente aveva detto «il ginocchio è a posto», aver <b>consolidato</b> il fatto come risolto, così il coach non chiede «come va il ginocchio?» per sempre.</p>
+  </div>
+
+  <div class="vx"><div class="vx-stack"><div class="vx-layer first vol"><b>Memoria di lavoro</b> <span>ultimi turni + riassunto rolling dei turni vecchi</span></div><div class="vx-note">sempre nel prompt; quando il budget è superato, i turni più vecchi vengono riassunti</div><div class="vx-layer cont dur"><b>Memoria episodica</b> <span>eventi datati con embedding e timestamp</span></div><div class="vx-note">scritta a fine turno; letta per ricerca semantica pesata per tempo</div><div class="vx-layer last app"><b>Profilo semantico</b> <span>fatti stabili: obiettivi, preferenze, infortuni, record, vincoli</span></div><div class="vx-note hot">estrazione con structured output e provenienza; consolidamento in background: unione, aggiornamento, contraddizione</div></div></div>
+
+  <h3 id="s4-consolidamento" class="anchor">Consolidare: duplicati, aggiornamenti, contraddizioni</h3>
+  <div class="prose stack">
+    <p>L'estrazione dei fatti è costosa (una chiamata al modello con schema) e non deve rallentare la risposta: il turno accoda un job «estrai e consolida» e una coda lo processa in background, serializzata per utente così due sessioni concorrenti non producono profili divergenti. Il consolidamento confronta ogni fatto nuovo con quelli esistenti: nessuno simile → inserisci con provenienza; duplicato → unisci e aggiorna importanza e ultimo accesso; aggiornamento → nuova versione, la vecchia diventa <em>superseded</em>; contraddizione → marca e chiedi conferma al prossimo turno. Prima di tutto questo, un classificatore scarta le categorie escluse (dati sanitari oltre l'infortunio sportivo dichiarato, terzi, finanze, identificativi): il fatto non viene mai scritto, e «dimentica che…» è un intent che cancella fatto, episodi collegati e riassunto.</p>
+  </div>
+
+  <h3 id="s4-selezione" class="anchor">Scegliere i ricordi: rilevanza, recency, importanza, budget</h3>
+  <div class="prose stack">
+    <p>A ogni turno i ricordi candidati sono più di quanti ne entrino nel prompt. Ognuno riceve un punteggio <code>α·rilevanza + β·recency + γ·importanza</code>, sul modello di «Generative Agents»: la rilevanza è la similarità coseno con la query, la recency un decadimento esponenziale sul tempo dall'ultimo accesso, l'importanza un valore da 1 a 10 assegnato in estrazione (un infortunio vale più di «preferisce allenarsi la mattina»). I ricordi entrano in ordine di punteggio finché il budget di token è pieno. I pesi sono configurabili e fanno parte delle eval: il numero che chiude la fase è l'accuratezza del richiamo a 1, 3, 5 e 10 sessioni di distanza per quattro configurazioni di memoria, a parità di budget.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: quali ricordi entrano nel prompt</h3><span class="tag">matematica reale</span></div>
+    <p>La domanda è «cosa metto nella sessione gambe di domani?». Muovi i pesi e il budget e osserva quali ricordi vengono selezionati e quale resta fuori.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s4a">α · rilevanza <output id="s4ao"></output></label><input id="s4a" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+      <div class="ctl"><label for="s4b">β · recency <output id="s4bo"></output></label><input id="s4b" type="range" min="0" max="1" step="0.05" value="0.2"></div>
+      <div class="ctl"><label for="s4g">γ · importanza <output id="s4go"></output></label><input id="s4g" type="range" min="0" max="1" step="0.05" value="0.3"></div>
+      <div class="ctl"><label for="s4t">Budget (token) <output id="s4to"></output></label><input id="s4t" type="range" min="60" max="400" step="10" value="120"></div>
+      <div class="ctl"><label for="s4h">Emivita recency (giorni) <output id="s4ho"></output></label><input id="s4h" type="range" min="1" max="60" value="14"></div>
+    </div>
+    <div class="rec" id="s4rec"></div>
+    <p class="callout" id="s4msg"></p>
+    <p class="note">Rilevanza e importanza dei sei ricordi sono valori assegnati a mano per l'esempio; recency = 0.5^(giorni / emivita). La selezione greedy per punteggio fino al budget è la stessa del sistema reale.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Memoria di lavoro</dt><dd>Gli ultimi turni più un riassunto rolling dei precedenti, dentro un budget di token esplicito.</dd><span class="ex">sempre nel prompt</span></div>
+    <div><dt>Memoria episodica</dt><dd>Eventi datati, con embedding e timestamp, recuperati per similarità e tempo.</dd><span class="ex">«il 3 marzo ha detto che…»</span></div>
+    <div><dt>Profilo semantico</dt><dd>Fatti stabili estratti con structured output, con provenienza al turno di origine, consolidati in background.</dd><span class="ex">infortunio · obiettivo · preferenza</span></div>
+    <div><dt>Provenienza</dt><dd>Ogni fatto punta al turno da cui viene: permette di spiegarlo, correggerlo e cancellarlo in cascata.</dd><span class="ex">source_turn_id</span></div>
+    <div><dt>Recency</dt><dd>Decadimento esponenziale sul tempo dall'ultimo accesso al ricordo.</dd><span class="ex">0.5^(giorni/emivita)</span></div>
+  </dl>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="st" id="s5">
+  <div class="sec-head">
+    <span class="eyebrow">5 · Valutazione e guardrail · llm-evals</span>
+    <h2>Se cambi una riga del prompt, come sai di non aver peggiorato il sistema? Con un giudice che hai prima verificato tu</h2>
+  </div>
+  <div class="prose stack">
+    <p>Un sistema LLM non ha test nel senso classico: la stessa domanda può avere molte risposte giuste, e «giusta» spesso è un giudizio. Un <b>harness di eval</b> risolve così: un <b>dataset versionato</b> di casi (input, atteso opzionale, tag), un <b>runner</b> asincrono che li esegue contro il sistema sotto test con concorrenza limitata e una cache (stesso input, stesso prompt, stesso modello → stessa risposta, non ripagata), e degli <b>scorer</b> di tre famiglie: assertion deterministiche (JSON valido? cita almeno una fonte?), metriche classiche (exact match, F1 sui token), e un <b>giudice LLM</b> con una rubrica che valuta ciò che una regex non può (la risposta è fedele al contesto?). In CI (Continuous Integration) il tutto diventa un cancello: la pull request che cambia il prompt fa girare i 200 casi, il report confronta la pass rate con la baseline del ramo principale, e se scende sotto soglia il check è rosso e il commento sulla PR mostra i casi peggiorati.</p>
+  </div>
+
+  <div class="vx"><div class="vx-flow"><div class="vx-node code">PR: cambia prompts/answer.md → l'hash del prompt cambia</div><div class="vx-down">↓</div><div class="vx-node">runner async · Semaphore · cache per (input, prompt, modello)</div><div class="vx-down">↓</div><div class="vx-branch"><div class="vx-card"><h5><small>scorer</small> Deterministici</h5><div class="vx-out go">schema, regex, citazioni presenti</div></div><div class="vx-card"><h5><small>scorer</small> Classici</h5><div class="vx-out go">exact match, F1, contenimento</div></div><div class="vx-card"><h5><small>scorer</small> Giudice LLM</h5><div class="vx-out acc">rubrica calibrata, verdetto strutturato con motivazione</div></div></div><div class="vx-down">↓</div><div class="vx-node acc">aggregazione con intervallo di confidenza (bootstrap) → pass rate vs baseline → soglia → check verde o rosso + report sulla PR</div></div></div>
+
+  <h3 id="s5-kappa" class="anchor">Un giudice sembra funzionare finché non lo confronti con un umano</h3>
+  <div class="prose stack">
+    <p>Il punto che distingue «ho usato un tool di eval» da «so valutare» è la <b>calibrazione</b>. Prima di mettere il giudice in CI, si etichettano a mano 150 risposte (e 50 due volte, per sapere quanto due umani concordano tra loro), si fa giudicare al modello e si confrontano i verdetti. L'<b>accordo percentuale</b> inganna: se il 90 % delle risposte è buono, un giudice che dice sempre «buona» concorda con l'umano il 90 % delle volte senza aver capito nulla. Il <b>kappa di Cohen</b> corregge per l'accordo che ci si aspetterebbe per caso: <code>κ = (p<sub>o</sub> − p<sub>e</sub>) / (1 − p<sub>e</sub>)</code>, dove <code>p<sub>o</sub></code> è l'accordo osservato e <code>p<sub>e</sub></code> quello atteso dalle frequenze marginali. Un κ vicino a 0 dice «tira a indovinare», sopra 0,6 «accordo sostanziale». Si itera sulla rubrica (criteri binari, esempi ancorati) finché il κ è accettabile, e lo si registra: da lì in poi il giudice ha un numero che dice quanto fidarsi.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: accordo percentuale contro kappa di Cohen</h3><span class="tag">matematica reale</span></div>
+    <p>Compila la matrice di confusione tra giudice e umano (quante risposte ciascuno ha detto «buona» o «cattiva») e osserva quanto l'accordo percentuale e il kappa raccontano storie diverse.</p>
+    <div class="grid2">
+      <div class="cm">
+        <div></div><div class="h">umano: buona</div><div class="h">umano: cattiva</div>
+        <div class="rh">giudice: buona</div><input type="number" id="s5a" min="0" value="120"><input type="number" id="s5b" min="0" value="12">
+        <div class="rh">giudice: cattiva</div><input type="number" id="s5c" min="0" value="6"><input type="number" id="s5d" min="0" value="12">
+      </div>
+      <div class="readout">
+        <div><small>casi</small><strong id="s5n"></strong></div>
+        <div><small>accordo osservato p<sub>o</sub></small><strong id="s5po"></strong></div>
+        <div><small>accordo atteso per caso p<sub>e</sub></small><strong id="s5pe"></strong></div>
+        <div><small>kappa di Cohen</small><strong id="s5k"></strong></div>
+      </div>
+    </div>
+    <div class="row"><button class="btn ghost" id="s5pre1">Esempio: giudice «dice sempre buona»</button><button class="btn ghost" id="s5pre2">Esempio: rubrica calibrata</button></div>
+    <p class="callout" id="s5msg"></p>
+    <p class="note">Interpretazione di riferimento (Landis e Koch): κ &lt; 0,2 scarso, 0,2–0,4 discreto, 0,4–0,6 moderato, 0,6–0,8 sostanziale, &gt; 0,8 quasi perfetto. Nel repo il kappa si accompagna a un intervallo di confidenza via bootstrap.</p>
+  </div>
+
+  <h3 id="s5-guardrail" class="anchor">Un guardrail che blocca troppo è un bug di prodotto</h3>
+  <div class="prose stack">
+    <p>I <b>guardrail</b> stanno prima e dopo il modello: in input rilevano prompt injection, dati personali (PII, Personally Identifiable Information) e argomenti sensibili; in output verificano lo schema, la tossicità e che le citazioni esistano davvero nelle fonti. Ognuno ha un dataset con esempi positivi e negativi, e si misura in due numeri, non uno: il <b>recall</b> (quanti attacchi blocca) e il <b>tasso di falsi positivi</b> (quanto traffico legittimo blocca). Un classificatore con soglia bassa ha recall alto e blocca conversazioni normali; con soglia alta lascia passare attacchi. La soglia si sceglie guardando entrambi, con un budget di latenza esplicito, e il <b>red teaming</b> (una suite di attacchi per categoria, provata prima e dopo) dice se i guardrail servono a qualcosa.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la soglia del guardrail</h3><span class="tag">simulazione</span></div>
+    <p>Muovi la soglia del classificatore: a sinistra il traffico legittimo, a destra gli attacchi. Osserva recall e falsi positivi muoversi in direzioni opposte.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s5th">Soglia di blocco <output id="s5tho"></output></label><input id="s5th" type="range" min="0" max="100" value="60"></div>
+      <div class="ctl"><label for="s5sep">Separazione tra le due popolazioni <output id="s5sepo"></output></label><input id="s5sep" type="range" min="10" max="60" value="35"></div>
+    </div>
+    <svg class="chart" id="s5chart" viewBox="0 0 640 150" role="img" aria-label="Due distribuzioni di punteggio, legittimo e attacco, con la soglia"></svg>
+    <div class="readout">
+      <div><small>recall (attacchi bloccati)</small><strong id="s5rec"></strong></div>
+      <div><small>falsi positivi (legittimi bloccati)</small><strong id="s5fp"></strong></div>
+    </div>
+    <p class="callout" id="s5gmsg"></p>
+    <p class="note">Due distribuzioni normali di punteggio, sintetiche. Nel repo i due numeri vengono dal dataset del guardrail, e i falsi positivi si verificano a mano su un campione.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Dataset versionato</dt><dd>File di casi con manifesto (hash, origine, data); non si modifica in place, si crea una versione nuova.</dd><span class="ex">datasets/rag-qa/v3.jsonl</span></div>
+    <div><dt>Pass rate</dt><dd>Frazione dei casi che superano gli scorer; si confronta con la baseline con un intervallo di confidenza via bootstrap.</dd><span class="ex">soglia in evals/threshold.yaml</span></div>
+    <div><dt>Giudice LLM</dt><dd>Modello che valuta una risposta con una rubrica e restituisce un verdetto strutturato; va calibrato contro etichette umane.</dd><span class="ex">kappa registrato in docs/calibration.md</span></div>
+    <div><dt>Kappa di Cohen</dt><dd>Accordo tra due valutatori corretto per l'accordo atteso per caso.</dd><span class="ex">κ = (p_o − p_e) / (1 − p_e)</span></div>
+    <div><dt>Prompt versionato</dt><dd>Prompt come artefatto con versione e hash; ogni run registra quale ha usato, così il diff tra versioni è misurabile.</dd><span class="ex">answer@v2 → answer@v3</span></div>
+    <div><dt>Falso positivo</dt><dd>Traffico legittimo bloccato da un guardrail (o risposta riusata a torto da una cache semantica): il costo nascosto di ogni filtro.</dd><span class="ex">si misura a mano su un campione</span></div>
+  </dl>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="st" id="s6">
+  <div class="sec-head">
+    <span class="eyebrow">6 · Composizione e capstone · coach-capstone</span>
+    <h2>Il capstone non aggiunge una competenza: compone le altre cinque in un sistema che sta in piedi da solo</h2>
+  </div>
+  <div class="prose stack">
+    <p>Una persona apre l'URL del coach dal telefono, fa login, scrive «oggi ho sentito tirare il polpaccio durante le ripetute». La richiesta passa dal browser al backend, che la autentica con Keycloak (OIDC, OpenID Connect), la fa passare dai guardrail di input, recupera dalla memoria che tre settimane fa l'utente aveva raccontato un problema allo stesso polpaccio, passa conversazione e ricordi selezionati al gateway, che sceglie il modello, applica la cache e contabilizza il costo per utente, e restituisce la risposta in streaming; i guardrail di output controllano schema, tono e affermazioni mediche; il turno viene salvato e un job in background estrae i fatti. Ogni salto è tracciato, ogni token è contato, ogni notte un job consolida la memoria. Niente di questo è nuovo: è il contenuto delle sezioni 1–5 assemblato.</p>
+  </div>
+
+  <div class="vx"><div class="vx-stack"><div class="vx-layer first app"><b>Livello 3 · prodotto</b> <span>companion-coach (memoria) + coach-capstone (deploy, auth, osservabilità)</span></div><div class="vx-note">usa il runtime dell'agente per i tool del coach; passa dal gateway per ogni chiamata</div><div class="vx-layer cont dur"><b>Livello 2 · capacità</b> <span>rag-bench (retrieval come tool e come libreria) · agent-runtime (loop durevole)</span></div><div class="vx-note">tutte le chiamate al modello attraversano il livello 1</div><div class="vx-layer last vol"><b>Livello 1 · infrastruttura di chiamata</b> <span>llm-gateway: routing, costi, cache, tracing</span></div><div class="vx-note hot">llm-evals non è un livello: è una lente applicata a tutti (eval regression in CI, guardrail a runtime)</div></div></div>
+
+  <div class="prose stack">
+    <p>Il diagramma si legge così: il <b>gateway</b> è l'unico punto da cui passano le chiamate ai modelli, quindi costo e latenza di agente e companion sono misurati con lo stesso strumento; <b>rag-bench</b> entra nell'agente come tool di retrieval e nel companion come adapter pgvector per la memoria episodica; <b>llm-evals</b> è una lente e non un livello; il <b>capstone</b> non aggiunge codice di dominio, deploya il companion e ne racconta il ciclo di vita. Tutti i repo nascono da uno stesso template (uv, ruff, pyright in modalità strict, pytest-asyncio, GitHub Actions, <code>docs/adr/</code>) creato nella fase 0: un pomeriggio che toglie attrito per cinque mesi.</p>
+  </div>
+
+  <h3 id="s6-design" class="anchor">Scritto prima, scritto dopo: DESIGN.md e POSTMORTEM.md</h3>
+  <div class="prose stack">
+    <p>La frase di partenza è vaga («voglio un coach che mi conosca»). Il <b>DESIGN.md</b> la trasforma, <em>prima</em> di scrivere codice, in requisiti verificabili, rischi con mitigazione, milestone datate e target numerici dichiarati (p95, costo per utente, uptime). Il <b>POSTMORTEM.md</b>, scritto <em>dopo</em> due settimane con 5–10 utenti reali, mette accanto ai target i numeri veri: costo del mese (modelli e infrastruttura), latenza, uptime, retention, il momento in cui la memoria ha ricordato qualcosa di sbagliato e se il cancello di eval lo avrebbe intercettato, l'incidente e il runbook, tre decisioni da rifare. La distanza tra i due documenti è il contenuto del capstone. Gli ADR (Architecture Decision Record) di tutti i repo sono la stessa idea a grana più fine: per ogni scelta non ovvia, contesto, opzioni, decisione, conseguenze, e un ADR non si modifica, si supera con uno nuovo.</p>
+  </div>
+
+  <div class="vx"><div class="vx-pair"><div class="vx-box "><h5>DESIGN.md <span>prima</span></h5><div class="vx-rec "><span>requisiti verificabili dalla frase vaga</span></div><div class="vx-rec "><span>rischi e mitigazioni</span></div><div class="vx-rec "><span>milestone datate</span></div><div class="vx-rec new"><span>target dichiarati: p95, €/utente, uptime, retention</span></div></div><div class="vx-arrow"><span>→</span>4 settimane, utenti reali</div><div class="vx-box "><h5>POSTMORTEM.md <span>dopo</span></h5><div class="vx-rec new"><span>numeri veri accanto ai target</span></div><div class="vx-rec "><span>rischi materializzati / previsti</span></div><div class="vx-rec "><span>l'incidente, il runbook, l'MTTR (Mean Time To Recovery)</span></div><div class="vx-rec old"><span>tre decisioni da rifare</span></div></div></div></div>
+
+  <h3 id="s6-etica" class="anchor">Un coach che ricorda è un coach da cui si può dipendere</h3>
+  <div class="prose stack">
+    <p>Un prodotto conversazionale «relazionale» ha implicazioni che un CRUD non ha, e il portfolio le tratta come requisiti, non come disclaimer: trasparenza sull'essere un'AI (intelligenza artificiale), categorie di informazioni mai memorizzate, cancellazione mirata ed export completo funzionanti prima del primo utente reale, un prompt di policy dedicato per gli argomenti sensibili, e una pagina <code>ethics.md</code> che spiega dipendenza e limiti. Il consenso informato fa parte dell'onboarding.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Persistenza poliglotta</dt><dd>Più datastore convivono (Postgres con pgvector, Redis, il vector store): ogni coppia è un confine transazionale spezzato, gestito con fonte di verità unica e code.</dd><span class="ex">vedi la guida sulle transazioni</span></div>
+    <div><dt>OIDC</dt><dd>OpenID Connect: login delegato a un provider (Keycloak); il backend verifica la firma del token con le chiavi pubbliche in cache.</dd><span class="ex">Authorization Code + PKCE</span></div>
+    <div><dt>ADR</dt><dd>Architecture Decision Record: contesto, opzioni, decisione, conseguenze; numerato; non si modifica, si supera.</dd><span class="ex">docs/adr/0002-soglia-cache-semantica.md</span></div>
+    <div><dt>Definition of Done</dt><dd>Lista di condizioni verificabili che chiude una fase; se manca un punto la fase resta aperta anche se il tempo è finito.</dd><span class="ex">nessun placeholder «da misurare» residuo</span></div>
+    <div><dt>Eval come cancello di deploy</dt><dd>Nessuna release se la pass rate di memoria o guardrail scende sotto soglia in CI.</dd><span class="ex">eval.yml commenta la PR</span></div>
+  </dl>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Sei strati, sei domande, sei numeri</h2></div>
+  <div class="prose stack"><p>Ogni strato del portfolio risponde a una domanda da colloquio con un meccanismo e con un numero riproducibile da un comando. La tabella è anche una lista di controllo: se di uno strato non sai enunciare la domanda, il meccanismo e il numero, è lì che conviene tornare.</p></div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Strato</th><th>La domanda</th><th>Il meccanismo che conta</th><th>Il numero che lo dimostra</th></tr></thead>
+    <tbody>
+      <tr><td>0 · Async</td><td>Scrivi Python come un senior backend?</td><td>Concorrenza strutturata: TaskGroup, Semaphore, timeout, cancellazione; porte e adapter</td><td>speedup sequenziale → concorrente (atteso ≈ 3× su tre chiamate), 0 errori pyright strict</td></tr>
+      <tr><td>1 · Gateway</td><td>Come gestisci costo e latenza in produzione?</td><td>Contabilità per token con listino versionato; cache esatta e semantica; breaker, retry con jitter, timeout per fase; tracing</td><td>p50/p95/p99 a 10/50/200 utenti con e senza cache; costo per 1000 richieste in 3 configurazioni; falsi positivi della cache</td></tr>
+      <tr><td>2 · RAG</td><td>Come scegli e valuti una pipeline di retrieval?</td><td>Chunking × retrieval × DB in un harness; RRF; reranking; citazioni verificate; «non trovato»</td><td>recall@5, MRR, nDCG@10, latenza e costo per cella; delta di ogni componente in ablation</td></tr>
+      <tr><td>3 · Agenti</td><td>Cosa c'è dentro un agente, oltre alla chiamata?</td><td>Macchina a stati pura + side effect separati; budget; errori dei tool come dati; stato persistito e ripresa; MCP</td><td>task completati su 20; run interrotte e riprese con esito identico; confronto a mano / LangGraph / PydanticAI</td></tr>
+      <tr><td>4 · Memoria</td><td>Come ricorda cosa ha detto l'utente tre settimane fa?</td><td>Tre memorie; estrazione con provenienza; consolidamento in coda; punteggio α·rilevanza + β·recency + γ·importanza entro budget</td><td>richiamo a 1/3/5/10 sessioni per 4 configurazioni; token e costo per turno</td></tr>
+      <tr><td>5 · Eval</td><td>Come sai che una modifica non ha peggiorato il sistema?</td><td>Dataset versionati, runner con cache, tre famiglie di scorer, giudice calibrato, soglia in CI; guardrail misurati su recall e falsi positivi</td><td>kappa giudice/umano prima e dopo la calibrazione; pass rate per versione del prompt con IC; falsi positivi dei guardrail</td></tr>
+      <tr><td>6 · Capstone</td><td>Raccontami un sistema portato in produzione da un obiettivo vago</td><td>Composizione dei cinque repo; OIDC; deploy con osservabilità; eval come cancello; DESIGN prima, POSTMORTEM dopo</td><td>costo reale del mese, uptime, retention alla settimana 2, incidenti e MTTR</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>Guida costruita sui piani di fase del repository <em>ai-engineering-portfolio</em> (README, roadmap, convenzioni e i sette documenti in <code>docs/phases/</code>). I laboratori etichettati «simulazione» usano distribuzioni sintetiche e sceneggiature fisse: mostrano la forma dei fenomeni, non i numeri del portfolio, che vengono prodotti dai comandi <code>make bench</code>, <code>make loadtest</code> ed <code>make eval</code> dei singoli repo. Riferimenti: documentazione asyncio e FastAPI; Nygard, <em>Release It!</em> (circuit breaker); Brooker, <em>Exponential Backoff and Jitter</em>; Cormack et al., <em>Reciprocal Rank Fusion</em> (2009); Park et al., <em>Generative Agents</em> (2023); Landis e Koch (1977) per l'interpretazione del kappa.</footer>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const fmt=(n,d=0)=>n.toLocaleString("it-IT",{maximumFractionDigits:d,minimumFractionDigits:d});
+  /* ---------- scroll spy ---------- */
+  const links=[...document.querySelectorAll("nav.toc a")],secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+  function spy(){let c=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)c=i;});links.forEach((a,i)=>a.classList.toggle("on",i===c));}
+  addEventListener("scroll",spy,{passive:true});spy();
+  function seg(id,cb){const el=$(id);el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;[...el.children].forEach(x=>x.setAttribute("aria-pressed",x===b));cb(b.dataset.v);});return()=>el.querySelector("[aria-pressed=true]").dataset.v;}
+  function bar(label,ms,max,cls){return `<div class="barrow"><span>${label}</span><div class="track"><div class="fill ${cls||""}" style="width:${Math.max(2,ms/max*100)}%"></div></div><span class="v">${fmt(ms)} ms</span></div>`;}
+
+  /* ---------- 0 · sequenziale / parallelo / semaforo ---------- */
+  (function(){
+    const n=$("#s0n"),l=$("#s0l"),s=$("#s0s");
+    function draw(){
+      const N=+n.value,L=+l.value,S=+s.value;
+      $("#s0no").textContent=N;$("#s0lo").textContent=L;$("#s0so").textContent=S;
+      const seq=N*L,par=L,sem=Math.ceil(N/S)*L;
+      $("#s0bars").innerHTML=bar("sequenziale (await in serie)",seq,seq,"bad")+bar("TaskGroup, tutte insieme",par,seq,"good")+bar(`TaskGroup + Semaphore(${S})`,sem,seq,S>=N?"good":"");
+      const sp=(seq/sem).toFixed(1);
+      $("#s0msg").innerHTML=`<b>Con il semaforo a ${S}: ${fmt(sem)} ms, speedup ${sp}×.</b> ${S>=N?"Il semaforo non limita nulla: tutte le "+N+" chiamate partono insieme e il tempo è quello di una sola.":"Le "+N+" chiamate viaggiano in "+Math.ceil(N/S)+" ondate da "+S+": ogni ondata costa una latenza intera. È il prezzo che paghi per rispettare il limite di un provider, e lo puoi calcolare prima di misurarlo."}`;
+    }
+    [n,l,s].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 1 · percentili, cache, costo ---------- */
+  (function(){
+    let seed=7;const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296;};
+    const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+    const price={large:{i:2.5,o:10},small:{i:0.15,o:0.6}},median={large:1400,small:700};
+    let model="small";const getModel=seg("#s1model",v=>{model=v;draw();});
+    const h=$("#s1h"),t=$("#s1t");
+    function pct(a,p){const i=Math.min(a.length-1,Math.floor(p*a.length));return a[i];}
+    function draw(){
+      seed=7;const H=+h.value/100,TH=+t.value;
+      $("#s1ho").textContent=Math.round(H*100)+" %";$("#s1to").textContent="0."+TH;
+      const xs=[];for(let i=0;i<2000;i++){const hit=rnd()<H;const med=hit?40:median[model];const sig=hit?0.3:0.55;xs.push(med*Math.exp(sig*gauss()));}
+      xs.sort((a,b)=>a-b);
+      const p50=pct(xs,.5),p95=pct(xs,.95),p99=pct(xs,.99);
+      $("#s1p50").textContent=fmt(p50)+" ms";$("#s1p95").textContent=fmt(p95)+" ms";$("#s1p99").textContent=fmt(p99)+" ms";
+      const pr=price[model],cost=1000*(1-H)*(400*pr.i+300*pr.o)/1e6;
+      $("#s1cost").textContent=fmt(cost,2)+" €";
+      const fp=H===0?0:Math.max(0,(99-TH)*1.2);$("#s1fp").textContent=H===0?"—":fmt(fp,1)+" % degli hit";
+      /* istogramma */
+      const W=640,Hh=170,pad=28,max=Math.max(3000,p99*1.05),bins=48,cnt=new Array(bins).fill(0);
+      xs.forEach(x=>{const b=Math.min(bins-1,Math.floor(x/max*bins));cnt[b]++;});const cm=Math.max(...cnt);
+      let svg=`<line class="ax" x1="${pad}" y1="${Hh-22}" x2="${W-8}" y2="${Hh-22}"/>`;
+      cnt.forEach((c,i)=>{const bw=(W-pad-8)/bins,x=pad+i*bw,hh=c/cm*(Hh-40);svg+=`<rect x="${x+0.5}" y="${Hh-22-hh}" width="${bw-1}" height="${hh}" fill="var(--accent)" opacity=".55"/>`;});
+      [[p50,"p50","var(--good)"],[p95,"p95","var(--warn)"],[p99,"p99","var(--bad)"]].forEach(([v,lab,col])=>{const x=pad+v/max*(W-pad-8);svg+=`<line x1="${x}" y1="10" x2="${x}" y2="${Hh-22}" stroke="${col}" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${x+3}" y="14" fill="${col}">${lab}</text>`;});
+      for(let ms=0;ms<=max;ms+=1000){const x=pad+ms/max*(W-pad-8);svg+=`<text x="${x}" y="${Hh-6}" text-anchor="middle">${ms/1000}s</text>`;}
+      $("#s1chart").innerHTML=svg;
+      let m=`<b>p50 ${fmt(p50)} ms, p99 ${fmt(p99)} ms, ${fmt(cost,2)} € per 1000 richieste.</b> `;
+      if(H===0)m+="Senza cache il p99 è quasi "+(p99/p50).toFixed(1)+" volte il p50: la coda lunga è il provider nelle sue giornate no. Alza l'hit rate e guarda quale percentile si muove per primo.";
+      else if(H<0.5)m+="Il p50 scende poco (la mediana è ancora un miss), ma il costo scende in proporzione agli hit. La cache paga prima in euro che in latenza.";
+      else m+="Ora la maggioranza è un hit: il p50 crolla, il p99 no, perché il 1 % peggiore resta un miss verso il provider. Un p99 basso lo ottieni con timeout e fallback, non con la cache. E a soglia 0."+TH+" circa il "+fmt(fp,1)+" % degli hit sarebbe una risposta non pertinente: quello è il costo che nessuna metrica automatica mostra.";
+      $("#s1msg").innerHTML=m;
+    }
+    [h,t].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 1 · circuit breaker ---------- */
+  (function(){
+    const win=[],log=$("#s1log");let state="closed",cool=0,n=0;
+    function add(txt,cls){const d=document.createElement("div");if(cls)d.className=cls;d.textContent=`${String(++n).padStart(2,"0")} · ${txt}`;log.prepend(d);}
+    function render(){[...$("#s1fsm").querySelectorAll(".st8")].forEach(e=>e.classList.toggle("cur",e.dataset.s===state));
+      const err=win.filter(x=>!x).length;
+      $("#s1bmsg").innerHTML=state==="closed"?`<b>closed: le chiamate vanno al provider.</b> Errori nella finestra: ${err}/5. Al terzo errore il breaker si apre.`:state==="open"?`<b>open: nessuna chiamata al provider, tutto al fallback.</b> Si riprova tra ${cool} tick. Le richieste non aspettano un timeout: falliscono (o vanno al fallback) subito, ed è questo il guadagno.`:`<b>half-open: la prossima chiamata è di prova.</b> Se riesce il breaker si chiude; se fallisce torna open con un nuovo raffreddamento.`;}
+    function call(ok){
+      if(state==="open"){add("chiamata → fallback (breaker aperto, provider non contattato)","w");return render();}
+      if(state==="half"){if(ok){state="closed";win.length=0;add("prova riuscita → closed","g");}else{state="open";cool=4;add("prova fallita → open, raffreddamento 4 tick","e");}return render();}
+      win.push(ok);if(win.length>5)win.shift();
+      add(ok?"chiamata riuscita":"chiamata in errore (5xx)",ok?"g":"e");
+      if(win.filter(x=>!x).length>=3){state="open";cool=4;add("3 errori su 5 → OPEN","e");}
+      render();
+    }
+    $("#s1ok").onclick=()=>call(true);$("#s1ko").onclick=()=>call(false);
+    $("#s1tick").onclick=()=>{if(state==="open"){cool--;add("tick, raffreddamento "+cool);if(cool<=0){state="half";add("raffreddamento finito → half-open","w");}}else add("tick (nessun effetto in "+state+")");render();};
+    $("#s1reset").onclick=()=>{state="closed";win.length=0;cool=0;log.innerHTML="";n=0;render();};
+    render();
+  })();
+
+  /* ---------- 2 · RRF, recall@k, MRR ---------- */
+  (function(){
+    const ids=["A","B","C","D","E","F"];let dense=["A","C","B","E","F","D"],bm25=["C","F","D","A","B","E"],rel=new Set(["A","C","F"]);
+    const k=$("#s2k"),top=$("#s2top");
+    function chips(el,list,onclick){el.innerHTML="";list.forEach((id,i)=>{const b=document.createElement("button");b.className="tok"+(rel.has(id)?" resp":"");b.textContent=(i+1)+"·"+id;b.title="porta in cima";b.onclick=()=>onclick(id);el.appendChild(b);});}
+    function promote(list,id){const i=list.indexOf(id);if(i>0){list.splice(i,1);list.unshift(id);}}
+    function draw(){
+      const K=+k.value,T=+top.value;$("#s2ko").textContent=K;$("#s2topo").textContent=T;
+      chips($("#s2dense"),dense,id=>{promote(dense,id);draw();});chips($("#s2bm25"),bm25,id=>{promote(bm25,id);draw();});
+      const relEl=$("#s2rel");relEl.innerHTML="";ids.forEach(id=>{const b=document.createElement("button");b.className="tok"+(rel.has(id)?" resp":"");b.textContent=id;b.setAttribute("aria-pressed",rel.has(id));b.onclick=()=>{rel.has(id)?rel.delete(id):rel.add(id);draw();};relEl.appendChild(b);});
+      const score={};ids.forEach(id=>{score[id]=1/(K+dense.indexOf(id)+1)+1/(K+bm25.indexOf(id)+1);});
+      const hyb=[...ids].sort((a,b)=>score[b]-score[a]);
+      const recall=list=>rel.size?list.slice(0,T).filter(x=>rel.has(x)).length/rel.size:0;
+      const mrr=list=>{const i=list.findIndex(x=>rel.has(x));return i<0?0:1/(i+1);};
+      let rows=`<tr><th>chunk</th><th>rank dense</th><th>rank BM25</th><th>RRF = 1/(k+r₁)+1/(k+r₂)</th><th>rank hybrid</th><th>pertinente</th></tr>`;
+      hyb.forEach((id,i)=>{rows+=`<tr class="${i<T?"sel":"dim"}"><td class="mono">${id}</td><td>${dense.indexOf(id)+1}</td><td>${bm25.indexOf(id)+1}</td><td class="mono">${score[id].toFixed(4)}</td><td>${i+1}</td><td>${rel.has(id)?'<span class="pill ok">sì</span>':'<span class="pill ko">no</span>'}</td></tr>`;});
+      $("#s2table").innerHTML=rows;
+      const rd=recall(dense),rb=recall(bm25),rh=recall(hyb);
+      $("#s2rd").textContent=rd.toFixed(2);$("#s2rb").textContent=rb.toFixed(2);$("#s2rh").textContent=rh.toFixed(2);$("#s2mrr").textContent=mrr(hyb).toFixed(2);
+      let m=`<b>Hybrid: recall@${T} = ${rh.toFixed(2)}, MRR = ${mrr(hyb).toFixed(2)}.</b> `;
+      m+=rh>Math.max(rd,rb)?"La fusione batte entrambe le liste da sole: un chunk mediamente buono in tutte e due supera uno ottimo in una sola. È il caso tipico in cui hybrid vince.":rh<Math.max(rd,rb)?"Qui la fusione perde contro la lista migliore: succede quando una delle due classifiche è molto più informativa dell'altra e la RRF, che le pesa uguali, la diluisce. Anche questo è un risultato da misurare, non da presumere.":"Pareggio con la lista migliore. Prova a promuovere un chunk pertinente in una sola delle due liste per vedere quanto pesa un singolo rank.";
+      m+=` Con k = ${K}: ${K<10?"un k piccolo esagera le differenze tra le prime posizioni.":K>80?"un k grande appiattisce le posizioni: la fusione tende a contare solo in quante liste compare un chunk.":"il valore classico, 60, bilancia le due cose."}`;
+      $("#s2msg").innerHTML=m;
+    }
+    [k,top].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 3 · macchina a stati dell'agente ---------- */
+  (function(){
+    const STATES=["plan","act","observe","reflect","waiting_approval","stop","failed"];
+    const script=[
+      {st:"plan",tok:800,msg:"piano: 4 sotto-domande (OIDC, passkey, magic link, sessione); tool previsti: web_search, local_retrieval"},
+      {st:"act",tok:600,tools:["web_search(q1)","web_search(q2)","local_retrieval(q3)"],msg:"il modello chiede 3 tool indipendenti → eseguiti in parallelo (TaskGroup)"},
+      {st:"observe",tok:900,msg:"3 risultati appesi ai messaggi; budget aggiornato"},
+      {st:"act",tok:500,tools:["web_search(q4)"],msg:"il modello chiede un altro tool"},
+      {st:"observe",tok:400,msg:"risultato appeso"},
+      {st:"reflect",tok:700,msg:"il piano regge; manca la sotto-domanda 3 → continua"},
+      {st:"act",tok:500,tools:["code_sandbox(confronta_lib)"],approval:true,msg:"tool che richiede approvazione → waiting_approval, stato persistito, processo fermo"},
+      {st:"observe",tok:300,msg:"approvato: sandbox eseguita, risultato appeso"},
+      {st:"act",tok:1200,final:true,msg:"nessun tool richiesto: report finale con 5 fonti, validato (schema + citazioni) → stop"}
+    ];
+    let i=0,tok=0,ok=0,ko=0,state="idle",persisted=null,crashed=false,nextFail=false,retry=0,n=0,awaiting=false;
+    const log=$("#s3log"),b=$("#s3b");
+    function add(t,c){const d=document.createElement("div");if(c)d.className=c;d.textContent=`${String(++n).padStart(2,"0")} · ${t}`;log.prepend(d);}
+    function render(){
+      $("#s3bo").textContent=b.value;
+      $("#s3fsm").innerHTML=STATES.map(s=>`<span class="st8 ${s===state?"cur":""} ${s==="failed"&&state==="failed"?"dead":""}">${s}</span>`).join('<span class="muted mono">→</span>');
+      $("#s3n").textContent=`${i} / ${b.value}`;$("#s3tok").textContent=fmt(tok);$("#s3tools").textContent=`${ok} / ${ko}`;
+      $("#s3db").textContent=persisted?`passo ${persisted.i}, ${persisted.st}`:"—";
+      $("#s3step").disabled=crashed||state==="stop"||state==="failed";$("#s3resume").disabled=!crashed;$("#s3fail").disabled=crashed;
+    }
+    function step(){
+      if(crashed||state==="stop"||state==="failed")return;
+      if(i>=+b.value){state="failed";add(`budget di ${b.value} passi esaurito → failed (BudgetExceeded kind=steps)`,"e");$("#s3msg").innerHTML="<b>Run terminata in failed.</b> Non è un crash: è il contratto. Senza budget l'agente girerebbe finché il provider non chiude la connessione, a spese tue.";return render();}
+      if(awaiting){awaiting=false;state="act";add("approvazione ricevuta → ripresa da waiting_approval","g");}
+      const s=script[Math.min(i,script.length-1)];
+      if(s.tools&&nextFail&&retry===0){nextFail=false;retry=1;state="act";i++;tok+=s.tok;ko++;
+        add(`act: ${s.tools[0]} → ToolResult(ok=false, kind="timeout", retryable=true)`,"e");persisted={i,st:"observe"};
+        add("observe: errore strutturato appeso; il modello decide di riprovare","w");$("#s3msg").innerHTML="<b>Il tool è fallito e l'agente non si è fermato.</b> L'errore è un dato nella conversazione: al passo successivo il modello riprova o cambia strada. Senza errori strutturati l'unica alternativa sarebbe un'eccezione che uccide la run.";return render();}
+      retry=0;i++;tok+=s.tok;state=s.st;
+      if(s.tools){ok+=s.tools.length;}
+      add(`${s.st}: ${s.msg}`,s.final?"g":"");
+      if(s.approval){state="waiting_approval";awaiting=true;persisted={i,st:"waiting_approval"};$("#s3msg").innerHTML="<b>In attesa di approvazione umana.</b> Lo stato è sul database e il processo può anche terminare: l'approvazione è un evento che, domani, farà ripartire la run da qui. Premi «Passo successivo» per approvare.";return render();}
+      if(s.final){state="stop";persisted={i,st:"stop"};$("#s3msg").innerHTML=`<b>Run completata in ${i} passi, ${fmt(tok)} token, ${ok} tool riusciti e ${ko} falliti.</b> Ogni passo è stato persistito prima di procedere: è ciò che ha reso possibile la ripresa dopo il crash, se l'hai provata.`;return render();}
+      persisted={i,st:state};
+      $("#s3msg").innerHTML=`<b>Passo ${i}: ${state}.</b> Stato persistito prima di procedere. ${state==="act"?"Le chiamate ai tool sono side effect fuori dalla macchina a stati: la transizione è pura.":state==="observe"?"I risultati entrano nei messaggi; il budget scende.":state==="reflect"?"Ogni N passi il modello rivaluta il piano in structured output.":"Il piano è un oggetto validato, non testo libero."}`;
+      render();
+    }
+    $("#s3step").onclick=step;
+    $("#s3fail").onclick=()=>{nextFail=true;add("prossimo tool marcato per andare in timeout","w");};
+    $("#s3crash").onclick=()=>{if(state==="idle"||crashed)return;crashed=true;add("💥 kill -9: processo morto in memoria","e");$("#s3msg").innerHTML=`<b>Processo morto al passo ${i}.</b> In RAM non c'è più nulla; sul database c'è lo stato del passo ${persisted?persisted.i:0}. Premi resume.`;render();};
+    $("#s3resume").onclick=()=>{if(!crashed)return;crashed=false;const p=persisted||{i:0,st:"idle"};i=p.i;state=p.st==="stop"?"stop":p.st;add(`resume run_42: ricaricato lo stato del passo ${p.i} (${p.st}); tool già eseguiti non rieseguiti`,"g");$("#s3msg").innerHTML="<b>Ripresa dal passo persistito, non da zero.</b> I tool già eseguiti hanno i loro risultati salvati: rieseguirli costerebbe e, se non idempotenti, farebbe danni.";render();};
+    $("#s3reset").onclick=()=>{i=0;tok=0;ok=0;ko=0;state="idle";persisted=null;crashed=false;nextFail=false;retry=0;awaiting=false;log.innerHTML="";n=0;$("#s3msg").innerHTML="Premi «Passo successivo» per far partire la run.";render();};
+    b.addEventListener("input",render);$("#s3reset").onclick();
+  })();
+
+  /* ---------- 4 · selezione dei ricordi ---------- */
+  (function(){
+    const mem=[
+      {t:"infortunio: ginocchio destro dal 2 marzo, evita squat",rel:.82,imp:9,days:21,tok:40},
+      {t:"obiettivo: 100 kg di squat entro giugno",rel:.74,imp:8,days:35,tok:30},
+      {t:"preferisce allenarsi la mattina presto",rel:.25,imp:3,days:5,tok:20},
+      {t:"il 15 marzo: «il ginocchio è a posto» (aggiorna l'infortunio)",rel:.70,imp:8,days:9,tok:35},
+      {t:"record: stacco 140 kg, 20 marzo",rel:.55,imp:6,days:4,tok:25},
+      {t:"ha chiesto consigli sul sonno la settimana scorsa",rel:.15,imp:4,days:6,tok:30}
+    ];
+    const a=$("#s4a"),b=$("#s4b"),g=$("#s4g"),t=$("#s4t"),h=$("#s4h");
+    function draw(){
+      const A=+a.value,B=+b.value,G=+g.value,T=+t.value,H=+h.value;
+      $("#s4ao").textContent=A.toFixed(2);$("#s4bo").textContent=B.toFixed(2);$("#s4go").textContent=G.toFixed(2);$("#s4to").textContent=T;$("#s4ho").textContent=H;
+      const scored=mem.map(m=>{const rec=Math.pow(.5,m.days/H);return{...m,rec,score:A*m.rel+B*rec+G*(m.imp/10)};}).sort((x,y)=>y.score-x.score);
+      let used=0;scored.forEach(m=>{m.in=used+m.tok<=T;if(m.in)used+=m.tok;});
+      let html=`<div class="h">ricordo</div><div class="h">rilevanza</div><div class="h">recency</div><div class="h">importanza</div><div class="h">punteggio · token</div>`;
+      scored.forEach(m=>{html+=`<div class="r ${m.in?"in":"out"}"><span>${m.in?"✔ ":"✘ "}${m.t}</span><span class="m">${m.rel.toFixed(2)}</span><span class="m">${m.rec.toFixed(2)}</span><span class="m">${m.imp}</span><span class="m">${m.score.toFixed(2)} · ${m.tok}</span></div>`;});
+      $("#s4rec").innerHTML=html;
+      const inj=scored.find(m=>m.t.startsWith("infortunio")),upd=scored.find(m=>m.t.startsWith("il 15"));
+      let msg=`<b>${scored.filter(m=>m.in).length} ricordi nel prompt, ${used} token su ${T}.</b> `;
+      if(inj.in&&!upd.in)msg+="Entra l'infortunio ma non il suo aggiornamento: il coach sconsiglierà gli squat a un ginocchio guarito. È il caso che il consolidamento previene, marcando il fatto come superato invece di lasciarne due versioni in gara.";
+      else if(!inj.in&&!upd.in)msg+="Il ginocchio è rimasto fuori: con questi pesi vincono recency e ricordi recenti poco pertinenti. Alza α o γ.";
+      else if(upd.in&&!inj.in)msg+="Entra l'aggiornamento senza l'infortunio originale: il modello legge «il ginocchio è a posto» senza sapere di quale problema si parla. La provenienza serve anche a questo: a portarsi dietro il contesto.";
+      else msg+="Infortunio e aggiornamento entrano insieme: il coach ha la storia completa. Prova ad abbassare il budget per vedere quale dei due viene sacrificato prima.";
+      $("#s4msg").innerHTML=msg;
+    }
+    [a,b,g,t,h].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 5 · kappa di Cohen ---------- */
+  (function(){
+    const ids=["s5a","s5b","s5c","s5d"];
+    function draw(){
+      const [A,B,C,D]=ids.map(i=>Math.max(0,+$("#"+i).value||0)),N=A+B+C+D;
+      if(!N){$("#s5msg").textContent="Inserisci almeno un caso.";return;}
+      const po=(A+D)/N,pe=((A+B)*(A+C)+(C+D)*(B+D))/(N*N),k=pe===1?0:(po-pe)/(1-pe);
+      $("#s5n").textContent=N;$("#s5po").textContent=(po*100).toFixed(1)+" %";$("#s5pe").textContent=(pe*100).toFixed(1)+" %";$("#s5k").textContent=k.toFixed(2);
+      const lab=k<0.2?"scarso":k<0.4?"discreto":k<0.6?"moderato":k<0.8?"sostanziale":"quasi perfetto";
+      $("#s5msg").innerHTML=`<b>Accordo ${(po*100).toFixed(0)} %, kappa ${k.toFixed(2)} (${lab}).</b> ${po-k>0.25?"La distanza tra i due numeri è il punto: gran parte dell'accordo è quello che si otterrebbe per caso, perché una delle due classi domina. Un giudice che dicesse sempre «buona» avrebbe un accordo alto e un kappa vicino a zero.":"Accordo e kappa sono vicini: le due classi sono bilanciate abbastanza da rendere l'accordo osservato significativo."} ${k<0.6?"Sotto 0,6 il giudice non è pronto per la CI: si lavora sulla rubrica (criteri binari, esempi ancorati) e si rimisura.":"Sopra 0,6 il giudice può entrare in CI, con il kappa scritto accanto a ogni pass rate che produce."}`;
+    }
+    ids.forEach(i=>$("#"+i).addEventListener("input",draw));
+    $("#s5pre1").onclick=()=>{[135,15,0,0].forEach((v,i)=>$("#"+ids[i]).value=v);draw();};
+    $("#s5pre2").onclick=()=>{[120,7,5,18].forEach((v,i)=>$("#"+ids[i]).value=v);draw();};
+    draw();
+  })();
+
+  /* ---------- 5 · soglia del guardrail ---------- */
+  (function(){
+    const th=$("#s5th"),sep=$("#s5sep");
+    const erf=x=>{const s=Math.sign(x);x=Math.abs(x);const t=1/(1+.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return s*y;};
+    const cdf=(x,m,s)=>.5*(1+erf((x-m)/(s*Math.SQRT2)));
+    const pdf=(x,m,s)=>Math.exp(-.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));
+    function draw(){
+      const T=+th.value,S=+sep.value,mL=35,mA=35+S,sd=11;
+      $("#s5tho").textContent=T;$("#s5sepo").textContent=S;
+      const rec=1-cdf(T,mA,sd),fp=1-cdf(T,mL,sd);
+      $("#s5rec").textContent=(rec*100).toFixed(1)+" %";$("#s5fp").textContent=(fp*100).toFixed(1)+" %";
+      const W=640,H=150,pad=24,pk=pdf(0,0,sd);
+      const path=(m,col)=>{let d="";for(let x=0;x<=100;x++){const px=pad+x/100*(W-pad-8),py=H-22-pdf(x,m,sd)/pk*(H-40);d+=(x?"L":"M")+px.toFixed(1)+" "+py.toFixed(1)+" ";}return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>`;};
+      const tx=pad+T/100*(W-pad-8);
+      $("#s5chart").innerHTML=`<line class="ax" x1="${pad}" y1="${H-22}" x2="${W-8}" y2="${H-22}"/>${path(mL,"var(--good)")}${path(mA,"var(--bad)")}<line x1="${tx}" y1="8" x2="${tx}" y2="${H-22}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${tx+4}" y="14">soglia</text><text x="${pad+mL/100*(W-pad-8)}" y="${H-6}" text-anchor="middle" fill="var(--good)">legittimo</text><text x="${Math.min(W-40,pad+mA/100*(W-pad-8))}" y="${H-6}" text-anchor="middle" fill="var(--bad)">attacco</text>`;
+      $("#s5gmsg").innerHTML=`<b>Recall ${(rec*100).toFixed(0)} %, falsi positivi ${(fp*100).toFixed(1)} %.</b> ${fp>0.1?"Più di un utente su dieci viene bloccato senza motivo: in un prodotto conversazionale è un incidente, non una misura di sicurezza.":rec<0.8?"Un attacco su cinque passa: la soglia è troppo prudente verso il traffico legittimo.":"Un compromesso accettabile per questa separazione."} ${S<25?"Le due popolazioni si sovrappongono molto: nessuna soglia va bene, serve un classificatore migliore, non una soglia diversa.":"Con questa separazione esiste una finestra di soglie ragionevoli: il lavoro è trovarla con il dataset, non a occhio."}`;
+    }
+    [th,sep].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+})();
+</script>
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,",
+  ids:[],
+  rules:[
+    {re:"sezione 0",to:"#s0",flags:"i",first:false},
+    {re:"sezione 1",to:"#s1",flags:"i",first:false},
+    {re:"sezione 2",to:"#s2",flags:"i",first:false},
+    {re:"sezione 3",to:"#s3",flags:"i",first:false},
+    {re:"sezione 4",to:"#s4",flags:"i",first:false},
+    {re:"sezione 5",to:"#s5",flags:"i",first:false},
+    {re:"sezioni 1–5",to:"#s1",flags:"i",first:false},
+    {re:"capitolo 1",to:"#s1",flags:"i",first:false},
+    {re:"fase 0",to:"#s0",flags:"i",first:false},
+    {re:"TaskGroup",to:"#s0"},
+    {re:"Semaphore",to:"#s0-semaforo"},
+    {re:"TTFT",to:"#s1-percentili"},
+    {re:"percentil[ei]",to:"#s1-percentili",flags:"i"},
+    {re:"cache semantica",to:"#s1-cache",flags:"i"},
+    {re:"circuit breaker",to:"#s1-breaker",flags:"i"},
+    {re:"chunking",to:"#s2-chunking",flags:"i"},
+    {re:"RRF",to:"#s2-rrf"},
+    {re:"reranking",to:"#s2-rrf",flags:"i"},
+    {re:"macchina a stati",to:"#s3",flags:"i"},
+    {re:"budget",to:"#s3-errori",flags:"i"},
+    {re:"esecuzione durevole",to:"#s3-durabile",flags:"i"},
+    {re:"MCP",to:"#s3-framework"},
+    {re:"consolidamento",to:"#s4-consolidamento",flags:"i"},
+    {re:"provenienza",to:"#s4-consolidamento",flags:"i"},
+    {re:"kappa di Cohen",to:"#s5-kappa",flags:"i"},
+    {re:"giudice LLM",to:"#s5-kappa",flags:"i"},
+    {re:"guardrail",to:"#s5-guardrail",flags:"i"},
+    {re:"falsi positivi",to:"#s5-guardrail",flags:"i"},
+    {re:"ADR",to:"#s6-design"},
+    {re:"DESIGN\\.md",to:"#s6-design"},
+    {re:"POSTMORTEM\\.md",to:"#s6-design"},
+    {re:"guida sulle transazioni",to:"https://pericle82.github.io/explorables/transazioni/",k:"Altra guida",t:"Quando il COMMIT non basta più",body:"<p>Transazioni, ACID, WAL e recovery, isolamento, lock, saga e outbox: la persistenza su cui poggiano memoria e stato durevole.</p>",flags:"i",first:false},
+    {re:"guida sui database vettoriali",to:"https://pericle82.github.io/explorables/transazioni/#cap-16",k:"Altra guida",t:"Le altre famiglie di database",body:"<p>Redis, documentali, wide-column e vettoriali: embedding, distanze, indici ANN e il confine transazionale di ciascuna famiglia.</p>",flags:"i",first:false},
+    {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
+  ],
+  gloss:{selector:"dl.gloss",skip:["Budget","Falso positivo"],extra:{"Percentile":["percentili"],"Kappa di Cohen":["kappa"],"RRF":["Reciprocal Rank Fusion"],"MCP":["Model Context Protocol"]}}
+};
+</script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->
+<!-- xpl:shared xref:start (non modificare: generato da shared/xref.html con scripts/sync-shared.mjs) -->
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+.xref-pop .xp-ex{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+a.xref.ext::after{content:" ↗";font-size:.8em}
+</style>
+<script>
+/* Riferimenti incrociati con anteprima (motore generico).
+   Configurazione in window.XREF_CONFIG = {
+     rules:    [{re:"regex", to:"#id" | "https://…", k:"etichetta", t:"titolo", body:"html", first:true, flags:"g" | "gi"}],
+     gloss:    {selector:"dl.gloss", skip:["Termine", …], extra:{"Termine":["alias", …]}},
+     ids:      [{sel:"css", text:"testo contenuto", id:"id-da-assegnare"}]
+   } */
+(function(){
+  const C=window.XREF_CONFIG||{};const main=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // id aggiuntivi su elementi senza id
+  (C.ids||[]).forEach(r=>{const el=[...document.querySelectorAll(r.sel)].find(e=>txt(e).includes(r.text));if(el&&!el.id)el.id=r.id;});
+
+  /* anteprima automatica di un elemento del documento */
+  function preview(el){
+    if(!el)return null;
+    if(el.tagName==="DIV"&&el.parentElement&&el.parentElement.tagName==="DL"){const dt=el.querySelector("dt"),dd=el.querySelector("dd"),ex=el.querySelector(".ex");
+      return{k:"Definizione",t:txt(dt),body:(dd?`<p>${dd.innerHTML}</p>`:"")+(ex?`<p class="xp-ex">${ex.innerHTML}</p>`:"")};}
+    if(el.tagName==="SECTION"){const eb=el.querySelector(".sec-head .eyebrow"),h=el.querySelector("h2"),p=el.querySelector(".prose p, p");
+      return{k:txt(eb),t:txt(h),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(/^H[2-4]$/.test(el.tagName)){let n=el.nextElementSibling;while(n&&!/^(P|DIV)$/.test(n.tagName))n=n.nextElementSibling;
+      const p=n&&(n.tagName==="P"?n:n.querySelector("p"));const sec=el.closest("section");
+      return{k:sec?txt(sec.querySelector(".sec-head .eyebrow")):"",t:txt(el),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(el.tagName==="TR"){const c=[...el.children];return{k:"",t:txt(c[0]),body:c.slice(1).map(x=>`<p>${x.innerHTML}</p>`).join("")};}
+    const b=el.querySelector("b,h3,h4"),rest=el.cloneNode(true);if(b){const bb=rest.querySelector("b,h3,h4");bb&&bb.remove();}
+    return{k:"",t:txt(b),body:`<p>${rest.innerHTML}</p>`};
+  }
+
+  /* regole: espressioni → bersaglio */
+  const rules=[];
+  (C.rules||[]).forEach(r=>rules.push({re:new RegExp("^(?:"+r.re+")$",r.flags&&r.flags.includes("i")?"i":""),src:r.re,to:r.to,k:r.k,t:r.t,body:r.body,first:r.first!==false,flags:r.flags||""}));
+  // glossario automatico da <dl class="gloss">
+  const G=C.gloss;
+  if(G){const skip=new Set(G.skip||[]);let gi=0;
+    document.querySelectorAll(G.selector||"dl.gloss").forEach(dl=>dl.querySelectorAll(":scope > div").forEach(div=>{const dt=div.querySelector("dt");if(!dt)return;
+      const name=txt(dt);if(skip.has(name))return;div.id=div.id||"def-"+(++gi);div.classList.add("xref-target");
+      let aliases=[];name.split(/\s*\/\s*|\s+vs\s+/).forEach(part=>{const m=part.match(/^(.*?)\s*\((.*?)\)\s*$/);if(m){aliases.push(m[1]);if(!/\s/.test(m[2])||m[2].length<22)aliases.push(m[2]);}else aliases.push(part);});
+      aliases=aliases.concat((G.extra||{})[name]||[]).map(a=>a.trim()).filter(a=>a.length>=3&&!skip.has(a));
+      aliases.forEach(a=>{const acr=/^[A-Z0-9][A-Za-z0-9-]*[A-Z0-9]$/.test(a)&&a!==a.toLowerCase()&&/[A-Z].*[A-Z]|\d/.test(a);
+        rules.push({re:new RegExp("^"+escRe(a).replace(/\s+/g,"\\s+")+"$",acr?"":"i"),src:escRe(a).replace(/\s+/g,"\\s+"),to:"#"+div.id,first:true,flags:acr?"":"i",gloss:true});});}));}
+  if(!rules.length)return;
+  rules.sort((a,b)=>b.src.length-a.src.length);
+
+  const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const seen=new Map();let count=0;
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const s=node.nodeValue;big.lastIndex=0;let m,last=0,changed=false;const frag=document.createDocumentFragment();
+    const sec=node.parentElement.closest("section")||main;if(!seen.has(sec))seen.set(sec,new Set());const S=seen.get(sec);
+    while((m=big.exec(s))){const w=m[0];
+      const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+      if(/[\wÀ-ÿ]/.test(before)||/[\wÀ-ÿ]/.test(after)){continue;}
+      const r=rules.find(r=>r.re.test(w));if(!r)continue;
+      if(r.to.startsWith("#")){const tgt=document.getElementById(r.to.slice(1));if(!tgt||tgt.contains(node))continue;}
+      const key=r.to+"|"+r.src;if(r.first&&S.has(key))continue;S.add(key);
+      const a=document.createElement("a");a.href=r.to;a.className="xref"+(r.gloss?" term":"")+(r.to.startsWith("#")?"":" ext");a.textContent=w;a._xr=r;
+      frag.append(s.slice(last,m.index),a);last=m.index+w.length;changed=true;count++;}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+
+  /* popup */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.id="xref-pop";pop.setAttribute("role","tooltip");document.body.appendChild(pop);
+  let cur=null,tShow=0,tHide=0,ptr="mouse";const touch=matchMedia("(hover: none)").matches;
+  addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  function info(a){const r=a._xr;if(!r.to.startsWith("#"))return{k:r.k||"Altra guida",t:r.t||"",body:r.body||"",ext:true};
+    const el=document.getElementById(r.to.slice(1));const p=preview(el)||{};return{k:r.k||p.k,t:r.t||p.t,body:r.body||p.body};}
+  function show(a){const I=info(a);cur=a;
+    pop.innerHTML=`${I.k?`<span class="xp-k">${escH(I.k)}</span>`:""}${I.t?`<p class="xp-t">${escH(I.t)}</p>`:""}${I.body||""}<a class="xp-go" href="${a.getAttribute("href")}">${I.ext?"Apri la guida →":"Vai alla sezione →"}</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(href){if(!href.startsWith("#")){location.href=href;return;}const el=document.getElementById(href.slice(1));if(!el)return;
+    el.classList.add("xref-target");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"",href);}
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.getAttribute("href"));});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const h=g.getAttribute("href");hide();go(h);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=count;
+})();
+</script>
+<!-- xpl:shared xref:end -->
