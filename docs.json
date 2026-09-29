@@ -225,6 +225,26 @@
       ],
       "version": "1.0",
       "updated": "2026-09-28"
+    },
+    {
+      "slug": "neural-network-driving",
+      "title": "Neural Network Driving",
+      "description": "Come una rete neurale impara a guidare in un simulatore 2D senza gradiente: mondo, sensori, rete, neuroevoluzione e struttura del repo didattico.",
+      "tags": [
+        "reti neurali",
+        "neuroevoluzione",
+        "simulazione",
+        "algoritmi genetici"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-09-29",
+          "notes": "Prima versione: mondo simulato (modello a bicicletta), sensori a raycasting, rete 8-6-4 con grafo interattivo, neuroevoluzione con simulazione in pista, dal video al repo a tappe."
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-09-29"
     }
   ]
 }

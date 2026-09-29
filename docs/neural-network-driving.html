@@ -1,0 +1,1078 @@
+<title>Neural Network Driving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============ TEMA EXPLORABLES ============ accento: bordeaux */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E7EAEF; --ink:#161B24; --muted:#565E6C;
+  --line:#CDD2DA; --grid:#E0E4EA; --accent:#8A3048; --accent-soft:#F3DCE2;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+    --line:#2C3441; --grid:#232A35; --accent:#E08AA0; --accent-soft:#3D1C26;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+  --line:#2C3441; --grid:#232A35; --accent:#E08AA0; --accent-soft:#3D1C26;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-block:8px;margin-inline:-20px;padding-inline:20px}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(90px,140px) 1fr 60px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .15s}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.scroll-x{overflow-x:auto}
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif)}
+.grid3 .box span{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s}
+.cards a:hover{border-color:var(--accent)}
+.cards a b{font-family:var(--serif);font-size:1.05rem}
+.cards a span{font-size:.84rem;color:var(--muted)}
+.cards a small{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+/* componenti di questa guida */
+canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);border-radius:8px;border:1px solid var(--line)}
+.genome{display:grid;grid-template-columns:repeat(41,1fr);gap:2px}
+.genome i{display:block;aspect-ratio:1;border-radius:2px;background:var(--surface-2)}
+.genome i.a{background:var(--accent)} .genome i.b{background:var(--good)} .genome i.m{outline:2px solid var(--warn);outline-offset:-1px}
+.leg{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Reti neurali e neuroevoluzione · guida interattiva</span>
+  <h1>Un'auto che impara a guidare senza che nessuno le insegni: sensori, una rete di 82 numeri e la selezione naturale</h1>
+  <p class="lede">Nel video <em>Neural Network Driving</em> un'auto gira su una pista mentre, sotto, un grafo di nodi e archi si accende a ogni curva: è una rete neurale che legge sette distanze e decide sterzo e gas. Nessuno le ha mostrato come si guida. Cento auto con pesi casuali provano, quasi tutte sbattono, le poche che vanno più lontano si riproducono con qualche errore di copia, e dopo qualche decina di generazioni una completa il giro. Questa guida smonta il progetto nei suoi pezzi, dal modello fisico dell'auto al ciclo evolutivo, e ti fa toccare ciascuno: alla fine c'è una pista vera in cui far evolvere una popolazione nel browser.</p>
+  <div class="cards">
+    <a href="#s1"><small>1</small><b>Il mondo</b><span>Game loop a passo fisso, pista come geometria, modello a bicicletta, collisioni</span></a>
+    <a href="#s2"><small>2</small><b>I sensori</b><span>Sette raggi, intersezioni tra segmenti, numeri tra 0 e 1</span></a>
+    <a href="#s3"><small>3</small><b>La rete</b><span>Neurone, forward pass, tanh, 8 → 6 → 4, il genoma</span></a>
+    <a href="#s4"><small>4</small><b>L'evoluzione</b><span>Fitness, selezione, crossover, mutazione, e una popolazione che impara davanti a te</span></a>
+    <a href="#s5"><small>5</small><b>Dal video al repo</b><span>Il grafo che si accende, una sola fisica, un corso fatto di tag git</span></a>
+    <a href="#sum"><small>Riepilogo</small><b>A confronto</b><span>Ogni pezzo: che cosa fa, la formula, l'errore tipico</span></a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#s1">1 · Mondo</a><a href="#s2">2 · Sensori</a><a href="#s3">3 · Rete</a><a href="#s4">4 · Evoluzione</a><a href="#s5">5 · Repo</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 1 ============ -->
+<section class="st" id="s1">
+  <div class="sec-head">
+    <span class="eyebrow">1 · Il mondo: pista, auto, collisioni</span>
+    <h2>Prima della rete serve un mondo in cui guidare, e deve dare lo stesso risultato ogni volta che lo fai ripartire</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il progetto ha tre blocchi e un ciclo che gira a ogni frame: il <b>mondo</b> produce le letture dei sensori, la <b>rete</b> le trasforma in comandi, i comandi muovono l'auto nel mondo. L'<b>addestramento</b> sta fuori da questo ciclo: non guida mai, sceglie soltanto quali pesi mettere nella rete. Conviene costruire i blocchi in quest'ordine, perché ognuno produce qualcosa di visibile prima del successivo, e il primo è il mondo.</p>
+  </div>
+
+  <div class="vx"><div class="vx-flow"><div class="vx-node">mondo <small>pista, auto, sensori → 8 numeri in [0, 1]</small></div><div class="vx-down">↓ ogni frame</div><div class="vx-node acc">rete <small>82 pesi: 8 → 6 → 4</small></div><div class="vx-down">↓</div><div class="vx-node">comandi <small>sterzo, gas, freno, freno a mano → nuova posizione</small></div><div class="vx-down">↺ torna al mondo · fuori dal ciclo: l'evoluzione sceglie i pesi</div></div></div>
+
+  <h3 id="s1-loop" class="anchor">Il game loop: separare il tempo della fisica da quello del disegno</h3>
+  <div class="prose stack">
+    <p>Un gioco ha due ritmi. Il <b>disegno</b> va alla frequenza dello schermo, 60 volte al secondo se va bene, meno se il computer è lento. La <b>fisica</b> non può dipendere da questo: se il passo di integrazione cambiasse con il frame rate, la stessa auto con gli stessi comandi farebbe traiettorie diverse su due computer, e confrontare due auto diventerebbe impossibile. Perciò <code>update(dt)</code> gira con un <code>dt</code> <em>fisso</em> (per esempio 1/60 s) tante volte quante servono, e <code>render()</code> disegna lo stato quando può. Il vantaggio non è solo la riproducibilità: in addestramento si possono fare cento passi di fisica per ogni frame disegnato, o non disegnare affatto, e la simulazione va cento volte più veloce del tempo reale.</p>
+  </div>
+
+  <h3 id="s1-pista" class="anchor">La pista come geometria</h3>
+  <div class="prose stack">
+    <p>La pista è una <b>linea centrale</b> (una polilinea o una spline chiusa) più una <b>larghezza</b>: spostando ogni punto della centrale verso l'interno e verso l'esterno di metà larghezza si ottengono i due bordi, come sequenze di segmenti. Tutto ciò che il mondo deve sapere sulla pista sta in questi segmenti: contro di essi si calcolano le collisioni e le distanze dei sensori. Lungo la centrale si mettono dei <b>checkpoint</b> ordinati: sono il metro con cui, nella sezione 4, si misurerà quanto un'auto è arrivata lontano. I cordoli bianco-rossi nelle curve sono solo decorazione.</p>
+  </div>
+
+  <h3 id="s1-bici" class="anchor">La fisica dell'auto: il modello a bicicletta</h3>
+  <div class="prose stack">
+    <p>Non serve una simulazione realistica delle quattro ruote. Il <b>modello cinematico a bicicletta</b> riduce l'auto a due ruote in linea, distanti <code>L</code> (il passo): la posteriore spinge, l'anteriore sterza di un angolo <code>δ</code>. Lo stato è posizione, orientamento (<em>heading</em>) e velocità. A ogni passo l'auto avanza di <code>v·dt</code> nella direzione dell'heading, e l'heading ruota di <code>(v / L)·tan(δ)·dt</code>: <b>a parità di sterzo, più vai veloce più curvi</b>, che è ciò che sente chiunque guidi. Gas e freno cambiano <code>v</code>; un attrito la riduce ogni passo. Il freno a mano riduce l'aderenza posteriore: l'heading continua a ruotare mentre la velocità si conserva più a lungo nella direzione vecchia, e l'auto derapa lasciando le scie.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: sterzo, velocità e raggio di curva</h3><span class="tag">matematica reale</span></div>
+    <p>Muovi sterzo e velocità: la traiettoria dei prossimi due secondi cambia forma, e il raggio della curva segue una formula che vale la pena conoscere.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s1st">Sterzo δ (gradi) <output id="s1sto"></output></label><input id="s1st" type="range" min="-35" max="35" value="18"></div>
+      <div class="ctl"><label for="s1v">Velocità v (px/s) <output id="s1vo"></output></label><input id="s1v" type="range" min="20" max="300" value="140"></div>
+      <div class="ctl"><label for="s1L">Passo L (px) <output id="s1Lo"></output></label><input id="s1L" type="range" min="20" max="80" value="40"></div>
+    </div>
+    <svg class="chart" id="s1chart" viewBox="0 0 640 260" role="img" aria-label="Traiettoria dell'auto con il modello a bicicletta"></svg>
+    <div class="readout">
+      <div><small>raggio di curva R = L / tan δ</small><strong id="s1r"></strong></div>
+      <div><small>velocità angolare v / R</small><strong id="s1w"></strong></div>
+      <div><small>gradi percorsi in 2 s</small><strong id="s1deg"></strong></div>
+    </div>
+    <p class="callout" id="s1msg"></p>
+    <p class="note">Modello cinematico puro: niente massa, niente slittamento. È esattamente l'approssimazione usata nel progetto; il freno a mano si aggiunge sopra come riduzione dell'aderenza.</p>
+  </div>
+
+  <h3 id="s1-coll" class="anchor">Collisioni: toccare il bordo è la morte</h3>
+  <div class="prose stack">
+    <p>L'auto è un rettangolo (o, per semplicità, un cerchio) e a ogni passo si controlla se interseca uno dei segmenti del bordo. Se sì, l'auto è <b>eliminata</b>: si ferma dov'è, non consuma più calcolo e la sua corsa è finita. Nella sezione 4 questa è la «morte» che l'evoluzione impara a evitare: un'auto che sbatte presto ha percorso poca pista, e la sua fitness è bassa. Un dettaglio che semplifica tutto: le auto della popolazione <em>non</em> collidono tra loro. Sono cento copie della stessa pista sovrapposte, non cento auto nella stessa gara.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Passo fisso</dt><dd>La fisica avanza sempre dello stesso <code>dt</code>, indipendentemente dal frame rate: stessi comandi, stessa traiettoria, su qualunque computer.</dd><span class="ex">update(1/60) × n, poi render()</span></div>
+    <div><dt>Linea centrale</dt><dd>Polilinea chiusa che definisce la pista; i bordi sono la centrale spostata di metà larghezza da ogni lato.</dd><span class="ex">bordo = centrale ± w/2 · normale</span></div>
+    <div><dt>Modello a bicicletta</dt><dd>Auto ridotta a due ruote in linea: la posteriore spinge, l'anteriore sterza; la curvatura cresce con velocità e sterzo.</dd><span class="ex">θ̇ = (v/L)·tan δ</span></div>
+    <div><dt>Checkpoint</dt><dd>Punti ordinati lungo la centrale; contarli è il modo di misurare il progresso di un'auto.</dd><span class="ex">fitness = superati + frazione</span></div>
+  </dl>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="st" id="s2">
+  <div class="sec-head">
+    <span class="eyebrow">2 · I sensori</span>
+    <h2>La rete non vede la pista: vede sette numeri tra zero e uno</h2>
+  </div>
+  <div class="prose stack">
+    <p>Una rete neurale non può ricevere «la pista»: riceve un vettore di numeri. Il modo più semplice di darle degli occhi è il <b>raycasting</b>: dal muso dell'auto partono sette raggi, a −65°, −20°, −10°, 0°, +10°, +20° e +65° rispetto alla direzione di marcia, e per ciascuno si misura la distanza al primo bordo incontrato. Sette raggi sono pochi ma bastano: i due a ±65° dicono quanto è larga la pista ai lati, quello a 0° quanto è lontana la curva, quelli intermedi da che parte gira.</p>
+    <p>La distanza si trova con un'<b>intersezione segmento-segmento</b>: il raggio è un segmento dal muso alla portata massima <code>d<sub>max</sub></code>, e lo si confronta con ogni segmento del bordo tenendo l'intersezione più vicina. Poi si <b>normalizza</b>: la lettura è <code>s<sub>i</sub> = min(d<sub>i</sub> / d<sub>max</sub>, 1)</code>, un numero tra 0 (muro addosso) e 1 (nessun bordo entro la portata). L'ottavo input è la velocità in avanti, anch'essa divisa per la velocità massima. Normalizzare non è un vezzo: se un input valesse 300 e un altro 0,4, i pesi della rete dovrebbero compensare scale diverse, e l'evoluzione farebbe molta più fatica a trovarli.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: i sette raggi</h3><span class="tag">matematica reale</span></div>
+    <p>Sposta e ruota l'auto nel tratto di pista: i raggi si accorciano dove trovano il bordo e le otto letture in basso sono esattamente il vettore che entra nella rete.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s2x">Posizione lungo la pista <output id="s2xo"></output></label><input id="s2x" type="range" min="0" max="100" value="38"></div>
+      <div class="ctl"><label for="s2y">Scostamento laterale <output id="s2yo"></output></label><input id="s2y" type="range" min="-100" max="100" value="20"></div>
+      <div class="ctl"><label for="s2h">Rotazione (gradi) <output id="s2ho"></output></label><input id="s2h" type="range" min="-60" max="60" value="-15"></div>
+      <div class="ctl"><label for="s2v">Velocità in avanti <output id="s2vo"></output></label><input id="s2v" type="range" min="0" max="100" value="53"></div>
+    </div>
+    <svg class="chart" id="s2chart" viewBox="0 0 640 300" role="img" aria-label="Auto in un tratto di pista con i sette raggi dei sensori"></svg>
+    <div class="bars" id="s2bars"></div>
+    <p class="callout" id="s2msg"></p>
+    <p class="note">Portata massima 160 px. L'intersezione è quella reale tra il raggio e i segmenti dei due bordi; la pista è un tratto curvo costruito con lo stesso metodo della sezione 1 (centrale + larghezza).</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Raycasting</dt><dd>Lanciare un raggio da un punto in una direzione e misurare la distanza al primo ostacolo.</dd><span class="ex">7 raggi da −65° a +65°</span></div>
+    <div><dt>Intersezione segmento-segmento</dt><dd>Formula chiusa che dice se e dove due segmenti si incrociano; per ogni raggio si tiene il bordo più vicino.</dd><span class="ex">parametri t, u in [0, 1]</span></div>
+    <div><dt>Normalizzazione</dt><dd>Portare ogni input in [0, 1] dividendo per il massimo possibile, così i pesi non devono compensare scale diverse.</dd><span class="ex">s = min(d / d_max, 1)</span></div>
+    <div><dt>VelF</dt><dd>Velocità in avanti normalizzata, ottavo input: senza, la rete non saprebbe se frenare.</dd><span class="ex">v / v_max</span></div>
+  </dl>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="st" id="s3">
+  <div class="sec-head">
+    <span class="eyebrow">3 · La rete neurale</span>
+    <h2>Una funzione pura: otto numeri entrano, quattro comandi escono, e tutto il sapere sta in 82 pesi</h2>
+  </div>
+  <div class="prose stack">
+    <p>Spogliata della mistica, la rete di questo progetto è una funzione: prende il vettore degli otto input della sezione 2 e restituisce quattro numeri, da interpretare come comandi. Non ha memoria (è <em>feed-forward</em>: i segnali vanno solo in avanti) e non impara mentre guida. Tutto ciò che «sa» è scritto nei suoi <b>pesi</b>, e cambiare i pesi cambia il modo di guidare. È per questo che l'addestramento può stare fuori dal ciclo di gioco: il suo unico compito è trovare 82 numeri buoni.</p>
+  </div>
+
+  <h3 id="s3-neurone" class="anchor">Il singolo neurone è un rilevatore</h3>
+  <div class="prose stack">
+    <p>Un neurone fa una somma pesata dei suoi input, aggiunge un <b>bias</b> e passa il risultato in una <b>funzione di attivazione</b>. L'intuizione che aiuta: un neurone è un piccolo rilevatore. Se i pesi verso i raggi di sinistra sono negativi e grandi, il neurone si accende quando quei raggi leggono valori bassi, cioè quando il muro è vicino a sinistra. Sei neuroni nascosti sono sei rilevatori del genere, e i quattro neuroni di uscita combinano i rilevatori in comandi: «muro vicino a sinistra» e «curva lontana davanti» diventano «sterza un po' a destra, tieni il gas».</p>
+  </div>
+
+  <h3 id="s3-forward" class="anchor">Il forward pass e le attivazioni</h3>
+  <div class="prose stack">
+    <p>Il calcolo procede strato per strato: si moltiplica la matrice dei pesi <code>W</code> per il vettore degli input, si somma il vettore dei bias <code>b</code>, si applica l'attivazione <code>σ</code> elemento per elemento, e il risultato è l'input dello strato successivo. Per lo strato nascosto e per l'uscita si usa la <b>tanh</b> (tangente iperbolica), che schiaccia qualunque numero in [−1, 1]: è l'intervallo naturale per uno sterzo, dove −0,98 significa «tutto a sinistra» e 0 «dritto». Negli strati nascosti va bene anche la ReLU (Rectified Linear Unit, <code>max(0, x)</code>). Implementarlo a mano con due cicli e un <code>Float32Array</code>, senza librerie, è la parte più didattica del progetto: la formula sotto diventa una decina di righe.</p>
+  </div>
+  <div class="formula">h = tanh(W₁ · x + b₁)      y = tanh(W₂ · h + b₂)      x ∈ ℝ⁸ · h ∈ ℝ⁶ · y ∈ ℝ⁴</div>
+
+  <h3 id="s3-topologia" class="anchor">La topologia: 8 → 6 → 4, e perché si contano i parametri</h3>
+  <div class="prose stack">
+    <p>Il video mostra una rete con circa cinque strati nascosti, per effetto scenico. Per girare in pista ne basta uno con sei neuroni, e la scelta ha due vantaggi: ognuno dei sei neuroni resta leggibile nel grafo della UI, e il numero di parametri resta piccolo. Contarli è un'abitudine da prendere subito: <code>(8×6 + 6) + (6×4 + 4) = 82</code>, cioè pesi più bias di ogni strato. Ottantadue numeri da trovare sono un problema che l'evoluzione risolve in minuti; con cinque strati da trenta neuroni sarebbero migliaia, e servirebbero ore.</p>
+  </div>
+
+  <h3 id="s3-comandi" class="anchor">Dagli output ai comandi, e i pesi come genoma</h3>
+  <div class="prose stack">
+    <p>I quattro output vanno interpretati. Lo <b>sterzo</b> è continuo: il valore in [−1, 1] moltiplicato per l'angolo massimo. <b>Gas</b>, <b>freno</b> e <b>freno a mano</b> sono attivi se il rispettivo output supera una soglia, per esempio 0. È una convenzione arbitraria, e va scritta una volta sola nel codice che traduce output in comandi, così che rete ed evoluzione non la conoscano. L'ultimo passo prepara la sezione 4: tutti i pesi e i bias vengono <b>appiattiti in un unico vettore</b> di 82 numeri, il <b>genoma</b>. L'evoluzione lavorerà su quel vettore, senza sapere che dentro c'è una rete; la rete lo rilegge nella sua forma a matrici quando deve calcolare.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la rete che guida, con i suoi pesi</h3><span class="tag">matematica reale</span></div>
+    <p>Gli otto input sono quelli del laboratorio dei sensori (modificali lì e torna qui). Genera pesi casuali e osserva come cambiano attivazioni e comandi; il grafo è quello del video: archi verdi per pesi positivi, rossi per negativi, spessore proporzionale al modulo, nodi riempiti in base all'attivazione.</p>
+    <div class="row"><button class="btn" id="s3rand">Nuovi pesi casuali</button><button class="btn ghost" id="s3zero">Pesi a zero</button><span class="muted" id="s3seed"></span></div>
+    <svg class="chart" id="s3chart" viewBox="0 0 640 320" role="img" aria-label="Grafo della rete 8-6-4 con archi colorati per segno del peso e nodi riempiti per attivazione"></svg>
+    <p class="vx-sr" id="s3sr"></p>
+    <div class="readout">
+      <div><small>Steering</small><strong id="s3o0"></strong></div>
+      <div><small>Acceleration</small><strong id="s3o1"></strong></div>
+      <div><small>Brake</small><strong id="s3o2"></strong></div>
+      <div><small>Handbrake</small><strong id="s3o3"></strong></div>
+      <div><small>parametri</small><strong>82</strong></div>
+    </div>
+    <p class="callout" id="s3msg"></p>
+    <p class="note">Forward pass reale su una rete 8 → 6 → 4 con tanh, pesi iniziali uniformi in [−1, 1]. Con pesi casuali i comandi sono arbitrari: è esattamente lo stato di un'auto della generazione 0.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Feed-forward</dt><dd>Rete in cui i segnali vanno solo dall'input all'output, senza cicli né memoria: a input uguali, output uguali.</dd><span class="ex">funzione pura di 8 numeri</span></div>
+    <div><dt>Bias</dt><dd>Termine costante sommato alla somma pesata; sposta la soglia a cui il neurone si accende.</dd><span class="ex">W·x + b</span></div>
+    <div><dt>tanh</dt><dd>Tangente iperbolica: schiaccia qualunque numero in [−1, 1]; l'intervallo naturale di uno sterzo.</dd><span class="ex">tanh(3) ≈ 0.995</span></div>
+    <div><dt>Forward pass</dt><dd>Propagazione in avanti: matrice × vettore, più bias, attivazione, strato dopo strato.</dd><span class="ex">h = σ(W h_prev + b)</span></div>
+    <div><dt>Genoma</dt><dd>Tutti i pesi e i bias appiattiti in un unico vettore; l'unità su cui lavora l'evoluzione.</dd><span class="ex">Float32Array(82)</span></div>
+  </dl>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="st" id="s4">
+  <div class="sec-head">
+    <span class="eyebrow">4 · L'addestramento: neuroevoluzione</span>
+    <h2>Non esiste un dataset di guida corretta: molte auto provano, le migliori si riproducono con errori di copia</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il modo standard di addestrare una rete, la discesa del gradiente, ha bisogno di due cose che qui mancano. Servirebbero esempi di «input → output giusto», e nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto. E servirebbe un errore <em>derivabile</em> rispetto ai pesi; invece l'unico segnale disponibile è «quanto sei arrivato lontano», arriva alla fine della corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni: non c'è un gradiente da seguire. L'apprendimento per rinforzo (RL, Reinforcement Learning) risolve questo con tecniche come PPO (Proximal Policy Optimization); la <b>neuroevoluzione</b> lo risolve rinunciando al gradiente del tutto, e per un problema con 82 parametri è più semplice e altrettanto efficace.</p>
+  </div>
+
+  <h3 id="s4-fitness" class="anchor">La fitness: un numero per auto, e il modo in cui viene imbrogliato</h3>
+  <div class="prose stack">
+    <p>Una <b>popolazione</b> di N auto (da 50 a 200) parte con genomi casuali, la generazione 0. Ogni auto guida finché non sbatte o non scade il tempo, e alla fine riceve una <b>fitness</b>: i checkpoint superati più la frazione di strada verso il successivo. È il numero che dice «questa guida meglio di quella». Serve un <b>timeout</b> di mancato progresso, altrimenti un'auto ferma o che gira in tondo sopravvive per sempre senza meritarlo. E serve diffidare della propria metrica: se la fitness premiasse la distanza percorsa invece dei checkpoint, un'auto che fa avanti e indietro nel primo rettilineo vincerebbe. È il <b>reward hacking</b>: la popolazione ottimizza esattamente ciò che misuri, non ciò che volevi.</p>
+  </div>
+
+  <h3 id="s4-operatori" class="anchor">Selezione, crossover, mutazione</h3>
+  <div class="prose stack">
+    <p>Finita la valutazione, si ordina per fitness e si costruisce la generazione successiva. L'<b>elitismo</b> copia intatti i migliori (per esempio i primi 2 o 3), così il campione non si perde mai. Gli altri posti si riempiono con figli: due genitori scelti con un <b>torneo</b> (pesca k a caso, tieni il migliore) o con la <b>roulette</b> (probabilità proporzionale alla fitness), combinati per <b>crossover</b> uniforme (ogni gene preso a caso da uno dei due) o a un punto (prima parte da A, resto da B), e infine <b>mutati</b>: a ogni gene, con probabilità <code>p</code>, si somma rumore gaussiano di ampiezza <code>σ</code>. La mutazione è la sorgente di novità, il crossover ricombina ciò che già funziona, la selezione decide che cosa sopravvive. Ridurre <code>σ</code> col passare delle generazioni fa esplorare all'inizio e rifinire alla fine.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: crossover e mutazione su due genomi</h3><span class="tag">matematica reale</span></div>
+    <p>Due genitori di 82 geni. Scegli il tipo di crossover, la probabilità e l'ampiezza della mutazione, e genera un figlio: ogni cella dice da chi viene e se è stata mutata.</p>
+    <div class="controls">
+      <div class="ctl"><label>Crossover</label><div class="seg" id="s4cx"><button aria-pressed="true" data-v="uniform">uniforme</button><button aria-pressed="false" data-v="onepoint">a un punto</button></div></div>
+      <div class="ctl"><label for="s4p">Probabilità di mutazione p <output id="s4po"></output></label><input id="s4p" type="range" min="0" max="50" value="10"></div>
+      <div class="ctl"><label for="s4sg">Ampiezza σ <output id="s4sgo"></output></label><input id="s4sg" type="range" min="0" max="100" value="30"></div>
+    </div>
+    <div class="row"><button class="btn" id="s4child">Genera un figlio</button></div>
+    <div class="leg"><span><i style="background:var(--accent)"></i>gene dal genitore A</span><span><i style="background:var(--good)"></i>gene dal genitore B</span><span><i style="outline:2px solid var(--warn);outline-offset:-1px;background:var(--surface-2)"></i>mutato</span></div>
+    <div class="genome" id="s4gen"></div>
+    <div class="readout"><div><small>geni da A / da B</small><strong id="s4ab"></strong></div><div><small>geni mutati</small><strong id="s4mut"></strong></div><div><small>distanza dal genitore più vicino</small><strong id="s4dist"></strong></div></div>
+    <p class="callout" id="s4msg"></p>
+  </div>
+
+  <h3 id="s4-ciclo" class="anchor">Il ciclo delle generazioni, dal vivo</h3>
+  <div class="prose stack">
+    <p>Valuta, ordina, seleziona, incrocia, muta, ripeti. Si ferma quando un'auto completa il giro, quando la fitness migliore non cresce più da molte generazioni, o a un massimo prefissato. Il laboratorio qui sotto è il progetto intero in miniatura: una pista chiusa costruita come nella sezione 1, auto con il modello a bicicletta, cinque raggi, una rete 6 → 5 → 2 (sterzo e gas) e il ciclo evolutivo completo. Le prime generazioni sbattono quasi subito; guarda la fitness migliore e quella media salire, e la traiettoria del campione allungarsi.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: una popolazione che impara a girare</h3><span class="tag">simulazione</span></div>
+    <p>Avanza di una o dieci generazioni. In pista vedi le traiettorie dell'ultima generazione (il campione in evidenza); sotto, la fitness migliore e media per generazione.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s4n">Popolazione <output id="s4no"></output></label><input id="s4n" type="range" min="10" max="120" step="10" value="50"></div>
+      <div class="ctl"><label for="s4mp">Mutazione p <output id="s4mpo"></output></label><input id="s4mp" type="range" min="1" max="50" value="15"></div>
+      <div class="ctl"><label for="s4ms">Mutazione σ <output id="s4mso"></output></label><input id="s4ms" type="range" min="5" max="100" value="40"></div>
+      <div class="ctl"><label for="s4el">Élite <output id="s4elo"></output></label><input id="s4el" type="range" min="0" max="10" value="3"></div>
+    </div>
+    <div class="row"><button class="btn" id="s4g1">Avanza 1 generazione</button><button class="btn" id="s4g10">Avanza 10</button><button class="btn ghost" id="s4replay">Replay del campione</button><button class="btn ghost" id="s4reset">Reset (nuovo seed)</button></div>
+    <canvas class="sim" id="s4canvas" width="640" height="400"></canvas>
+    <svg class="chart" id="s4fit" viewBox="0 0 640 120" role="img" aria-label="Fitness migliore e media per generazione"></svg>
+    <div class="readout">
+      <div><small>generazione</small><strong id="s4gn">0</strong></div>
+      <div><small>fitness migliore</small><strong id="s4best">—</strong></div>
+      <div><small>fitness media</small><strong id="s4avg">—</strong></div>
+      <div><small>vive a fine corsa</small><strong id="s4alive">—</strong></div>
+    </div>
+    <p class="callout" id="s4smsg">Generazione 0: pesi casuali. Premi «Avanza» per valutare la popolazione.</p>
+    <p class="note">Rete 6 → 5 → 2 (47 parametri), cinque raggi, 900 passi di fisica per auto con timeout di progresso, fitness = checkpoint superati + frazione, torneo di 3, crossover uniforme, elitismo. Seed fisso per generazione: stessi parametri, stessa storia. È una versione ridotta del progetto, non il progetto.</p>
+  </div>
+
+  <h3 id="s4-general" class="anchor">Generalizzazione: memorizzare una pista non è saper guidare</h3>
+  <div class="prose stack">
+    <p>Una rete allenata su una sola pista può aver imparato quella pista, non la guida: una sequenza di riflessi che funziona perché le curve arrivano sempre nello stesso ordine. La prova è metterla su un tracciato mai visto. Per ottenere un pilota e non un memorizzatore si allena su più piste, o con partenze variate (posizione e orientamento iniziali casuali), e si <em>testa</em> su una pista tenuta fuori. È la stessa distinzione tra training set e test set del machine learning classico, e vale anche qui dove non c'è un dataset. Il campione, infine, si salva: genoma e topologia in JSON (JavaScript Object Notation), da ricaricare per la modalità replay, quella del video, con una sola auto a velocità normale.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Neuroevoluzione</dt><dd>Addestrare una rete con un algoritmo evolutivo sui suoi pesi invece che con il gradiente: valuta, seleziona, ricombina, muta.</dd><span class="ex">nessun dataset, nessuna derivata</span></div>
+    <div><dt>Fitness</dt><dd>Numero che misura quanto un individuo ha fatto bene; qui checkpoint superati più frazione verso il successivo.</dd><span class="ex">con timeout di progresso</span></div>
+    <div><dt>Reward hacking</dt><dd>La popolazione ottimizza la metrica alla lettera e trova comportamenti che la massimizzano senza fare ciò che volevi.</dd><span class="ex">avanti e indietro nel rettilineo</span></div>
+    <div><dt>Elitismo</dt><dd>I migliori passano intatti alla generazione successiva: il campione non si perde mai.</dd><span class="ex">élite = 2–3</span></div>
+    <div><dt>Torneo</dt><dd>Selezione dei genitori: pesca k individui a caso e tieni il migliore.</dd><span class="ex">k = 3</span></div>
+    <div><dt>Crossover</dt><dd>Ricombinazione di due genomi: uniforme (gene per gene) o a un punto (prima parte da A, resto da B).</dd><span class="ex">figlio[i] = caso ? A[i] : B[i]</span></div>
+    <div><dt>Mutazione</dt><dd>Rumore gaussiano di ampiezza σ sommato a ogni gene con probabilità p; la sorgente di novità.</dd><span class="ex">σ decrescente nel tempo</span></div>
+    <div><dt>NEAT</dt><dd>NeuroEvolution of Augmenting Topologies: evolve anche la struttura della rete, non solo i pesi. Estensione facoltativa.</dd><span class="ex">Stanley e Miikkulainen, 2002</span></div>
+  </dl>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="st" id="s5">
+  <div class="sec-head">
+    <span class="eyebrow">5 · Dal video al repo</span>
+    <h2>La UI deve far vedere il ragionamento della rete, e il repo deve poter essere ripercorso da chi impara</h2>
+  </div>
+  <div class="prose stack">
+    <p>Ciò che rende il video memorabile non è l'auto che gira: è il grafo sotto, che si accende a ogni curva. La UI ha quel compito: rendere visibile il forward pass. Nodi in colonne, uno strato per colonna; archi tra tutti i nodi di strati adiacenti, con il <b>colore</b> che dice il segno del peso (verde positivo, rosso negativo) e lo <b>spessore</b> il suo modulo; il <b>riempimento</b> di ogni nodo che segue l'attivazione corrente, frame dopo frame; le etichette con nome e valore degli input a sinistra (−65° 0.77, VelF 0.53) e dei comandi a destra (Steering −0.98). Sono centinaia di archi ridisegnati 60 volte al secondo: meglio un canvas dedicato che un SVG con centinaia di elementi. Accanto, il pannello di addestramento: generazione, auto vive, fitness migliore, il grafico migliore/media, la velocità di simulazione (x1, x10, massima senza disegno), e i controlli per cambiare popolazione e mutazione al volo.</p>
+  </div>
+
+  <h3 id="s5-fisica" class="anchor">Una sola fisica: il nodo tra notebook Python e UI nel browser</h3>
+  <div class="prose stack">
+    <p>Se l'addestramento vive in un notebook Python (NumPy rende la formula della sezione 3 una riga) e la UI in TypeScript con Canvas, la simulazione rischia di esistere due volte, e un'auto allenata in Python guiderebbe diversamente nel browser. Le opzioni sono tre. <b>A</b>, la consigliata: mondo, rete ed evoluzione in Python; un piccolo server FastAPI manda lo stato via WebSocket a ogni frame (auto, punti d'impatto dei raggi, pesi e attivazioni, generazione, fitness) e riceve i comandi (tasti, pausa, velocità); il browser disegna e basta. <b>B</b>: tutto in TypeScript, con il kernel Jupyter di Deno che importa gli stessi moduli della UI; un solo linguaggio, ma senza NumPy. <b>C</b>: fisica riscritta in TypeScript e genoma esportato in JSON; UI pubblicabile come pagina statica, ma due fisiche da tenere allineate con test di equivalenza: sconsigliata. In tutti i casi il <b>contratto WebSocket</b> va fissato prima del codice, perché è il confine oltre il quale Python e UI evolvono separati.</p>
+  </div>
+
+  <div class="vx"><div class="vx-cards"><div class="vx-card"><h5><small>opzione A · consigliata</small> Python + UI che disegna</h5><div class="vx-line">NumPy · FastAPI · WebSocket · React + Canvas</div><div class="vx-out go">una sola fisica; notebook classico; esercita Python</div><div class="vx-out wait">due ambienti da avviare, un protocollo da definire</div></div><div class="vx-card"><h5><small>opzione B</small> Tutto TypeScript</h5><div class="vx-line">kernel Jupyter di Deno importa i moduli .ts della UI</div><div class="vx-out go">un solo linguaggio, una sola installazione</div><div class="vx-out wait">niente NumPy né ecosistema ML Python</div></div><div class="vx-card"><h5><small>opzione C · sconsigliata</small> Fisica riscritta in TS</h5><div class="vx-line">genoma esportato in JSON e caricato dal browser</div><div class="vx-out go">UI statica, pubblicabile ovunque</div><div class="vx-out bad">due fisiche da tenere allineate con test di equivalenza</div></div></div></div>
+
+  <h3 id="s5-tag" class="anchor">Un corso fatto di tag git</h3>
+  <div class="prose stack">
+    <p>Il repo è pensato per essere ripercorso: la storia git diventa il corso. Sette tappe (pista e auto manuale; sensori; rete casuale; grafo della rete; neuroevoluzione; campione e replay; estensioni) diventano sette coppie di tag: <code>step-NN-start</code> contiene boilerplate, commenti <code>TODO(step-NN)</code> che rimandano alla teoria, test rossi, e la soluzione della tappa precedente, così chi si blocca non resta indietro; <code>step-NN-solution</code> è la tappa risolta, da confrontare con la propria. Il test è la definizione di «tappa completata», e per questo tutto deve essere deterministico: seed fisso per ogni generatore casuale, passo di fisica fisso.</p>
+    <p>I tag però non si modificano, e un bug nella tappa 1 andrebbe corretto a mano in tutte le successive. La soluzione è un solo branch <code>solution</code> con la logica nei moduli e blocchi <code># BEGIN SOLUTION</code> / <code># END SOLUTION</code>; uno script (<code>tools/make_steps.py</code>) sostituisce i blocchi con stub e rigenera tutti i tag, ed è la convenzione di nbgrader per i notebook. I notebook stessi non contengono logica: importano da <code>sim/</code> e sperimentano, sono abbinati a file <code>.py</code> con Jupytext (diff leggibili) e ripuliti dagli output con nbstripout; la CI (Continuous Integration) li esegue da zero e verifica che sugli starter i test della tappa corrente falliscano e quelli precedenti passino. Si parte scrivendo la soluzione completa, una tappa per commit; gli starter si ricavano dopo, per sottrazione.</p>
+  </div>
+
+  <div class="vx vx-code"><div class="vx-code-h"><span>Python · un TODO ben scritto</span><button class="vx-copy" type="button">Copia</button></div>
+<pre><code><span class="ln"><span class="tk-kw">def</span> forward(self, x: np.ndarray) -&gt; np.ndarray:
+</span><span class="ln hl">    <span class="tk-cm"># TODO(step-03): calcola lo strato nascosto h = tanh(W1 @ x + b1)</span>
+</span><span class="ln">    <span class="tk-cm"># e poi l'output y = tanh(W2 @ h + b2). Formula: sezione 3.</span>
+</span><span class="ln">    <span class="tk-cm"># Verifica: pytest tests/test_step03.py</span>
+</span><span class="ln">    <span class="tk-kw">raise</span> NotImplementedError
+</span></code></pre></div>
+
+  <dl class="gloss">
+    <div><dt>Grafo della rete</dt><dd>Visualizzazione del forward pass: colore dell'arco = segno del peso, spessore = modulo, riempimento del nodo = attivazione.</dd><span class="ex">canvas dedicato, 60 fps</span></div>
+    <div><dt>Contratto WebSocket</dt><dd>Lo schema dei messaggi tra simulazione e browser, fissato prima del codice: stato a ogni frame in una direzione, comandi nell'altra.</dd><span class="ex">server → browser: auto, raggi, pesi, attivazioni</span></div>
+    <div><dt>Tag a coppie</dt><dd><code>step-NN-start</code> (TODO e test rossi, con la soluzione della tappa precedente) e <code>step-NN-solution</code>.</dd><span class="ex">git diff step-03-start step-03-solution</span></div>
+    <div><dt>BEGIN / END SOLUTION</dt><dd>Marcatori nel branch soluzione da cui uno script genera gli starter, così un bug si corregge in un posto solo.</dd><span class="ex">convenzione nbgrader</span></div>
+    <div><dt>Jupytext</dt><dd>Notebook abbinato a un file .py leggibile: diff puliti, logica nei moduli, notebook che sperimenta.</dd><span class="ex">+ nbstripout per gli output</span></div>
+  </dl>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>I pezzi del progetto, uno per riga</h2></div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Pezzo</th><th>Che cosa fa</th><th>La formula o la regola</th><th>L'errore tipico</th></tr></thead>
+    <tbody>
+      <tr><td>Game loop</td><td>Separa fisica e disegno; accelera l'addestramento</td><td>update(dt fisso) × n, poi render()</td><td>dt legato al frame rate: traiettorie diverse su computer diversi</td></tr>
+      <tr><td>Modello a bicicletta</td><td>Fisica dell'auto con due ruote in linea</td><td>θ̇ = (v / L)·tan δ; R = L / tan δ</td><td>far curvare l'auto da ferma, o sterzo indipendente dalla velocità</td></tr>
+      <tr><td>Sensori</td><td>Sette raggi + velocità → otto numeri in [0, 1]</td><td>s = min(d / d_max, 1)</td><td>input non normalizzati: pesi che devono compensare scale diverse</td></tr>
+      <tr><td>Rete 8 → 6 → 4</td><td>Funzione pura da input a comandi; 82 parametri</td><td>h = tanh(W₁x + b₁), y = tanh(W₂h + b₂)</td><td>rete troppo grande per effetto scenico: migliaia di parametri da evolvere</td></tr>
+      <tr><td>Genoma</td><td>Pesi e bias appiattiti in un vettore</td><td>Float32Array(82)</td><td>far conoscere all'evoluzione la struttura della rete</td></tr>
+      <tr><td>Fitness</td><td>Quanto l'auto è arrivata lontano</td><td>checkpoint + frazione, con timeout di progresso</td><td>reward hacking: premiare la distanza e ottenere auto che vanno avanti e indietro</td></tr>
+      <tr><td>Selezione e riproduzione</td><td>Costruisce la generazione successiva</td><td>élite intatta; torneo; crossover; mutazione gaussiana (p, σ)</td><td>σ costante: esplora sempre e non rifinisce mai; niente élite: si perde il campione</td></tr>
+      <tr><td>Generalizzazione</td><td>Distingue un pilota da un memorizzatore</td><td>più piste o partenze variate; test su pista mai vista</td><td>dichiarare «impara a guidare» avendo visto una sola pista</td></tr>
+      <tr><td>UI</td><td>Rende visibile il forward pass</td><td>colore = segno, spessore = modulo, riempimento = attivazione</td><td>SVG con centinaia di elementi a 60 fps</td></tr>
+      <tr><td>Repo a tappe</td><td>La storia git è il corso</td><td>branch solution + marcatori + script che rigenera i tag; test per tappa; seed fissi</td><td>tag modificati a mano; notebook con stato nascosto; due fisiche</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>Guida costruita sull'indice didattico del progetto «Neural Network Driving» (replica del Reel omonimo). Il laboratorio della sezione 4 è una versione ridotta del progetto (rete 6 → 5 → 2, cinque raggi, pista fissa) e usa una simulazione deterministica con seed: mostra il comportamento del ciclo evolutivo, non le prestazioni del sistema completo. Riferimenti: modello cinematico a bicicletta (Rajamani, <em>Vehicle Dynamics and Control</em>); Stanley e Miikkulainen, <em>Evolving Neural Networks through Augmenting Topologies</em> (2002); Schulman et al., <em>Proximal Policy Optimization</em> (2017); documentazione di Jupytext, nbgrader e del kernel Jupyter di Deno.</footer>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const fmt=(n,d=0)=>n.toLocaleString("it-IT",{maximumFractionDigits:d,minimumFractionDigits:d});
+  const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function rng(seed){let s=seed>>>0;return{next(){s=(s*1664525+1013904223)>>>0;return s/4294967296;},gauss(){let u=0,v=0;while(!u)u=this.next();while(!v)v=this.next();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}};}
+  const links=[...document.querySelectorAll("nav.toc a")],secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+  function spy(){let c=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)c=i;});links.forEach((a,i)=>a.classList.toggle("on",i===c));}
+  addEventListener("scroll",spy,{passive:true});spy();
+  function seg(id,cb){const el=$(id);el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;[...el.children].forEach(x=>x.setAttribute("aria-pressed",x===b));cb(b.dataset.v);});}
+  /* intersezione segmento-segmento: ritorna t lungo il primo segmento o null */
+  function isect(ax,ay,bx,by,cx,cy,dx,dy){const r1x=bx-ax,r1y=by-ay,r2x=dx-cx,r2y=dy-cy;const den=r1x*r2y-r1y*r2x;if(Math.abs(den)<1e-9)return null;const t=((cx-ax)*r2y-(cy-ay)*r2x)/den,u=((cx-ax)*r1y-(cy-ay)*r1x)/den;return(t>=0&&t<=1&&u>=0&&u<=1)?t:null;}
+  function borders(center,w){const L=[],R=[],n=center.length;for(let i=0;i<n;i++){const p=center[i],q=center[(i+1)%n],pr=center[(i-1+n)%n];let tx=q[0]-pr[0],ty=q[1]-pr[1];const l=Math.hypot(tx,ty)||1;tx/=l;ty/=l;L.push([p[0]-ty*w/2,p[1]+tx*w/2]);R.push([p[0]+ty*w/2,p[1]-tx*w/2]);}return{L,R};}
+
+  /* ---------- 1 · bicicletta ---------- */
+  (function(){
+    const st=$("#s1st"),v=$("#s1v"),L=$("#s1L");
+    function draw(){
+      const d=+st.value*Math.PI/180,V=+v.value,Lp=+L.value;$("#s1sto").textContent=st.value+"°";$("#s1vo").textContent=V;$("#s1Lo").textContent=Lp;
+      let x=0,y=0,th=0;const pts=[[0,0]],dt=1/60;for(let i=0;i<120;i++){x+=V*Math.cos(th)*dt;y+=V*Math.sin(th)*dt;th+=V/Lp*Math.tan(d)*dt;pts.push([x,y]);}
+      const R=Math.abs(Math.tan(d))<1e-6?Infinity:Lp/Math.tan(d),w=isFinite(R)?V/Math.abs(R):0,deg=w*2*180/Math.PI;
+      $("#s1r").textContent=isFinite(R)?fmt(Math.abs(R))+" px":"∞";$("#s1w").textContent=fmt(w,2)+" rad/s";$("#s1deg").textContent=fmt(deg)+"°";
+      const W=640,H=260,sc=Math.min((W-80)/Math.max(60,...pts.map(p=>Math.abs(p[0])*2)),(H-60)/Math.max(60,...pts.map(p=>Math.abs(p[1])*2))),cx=W/2,cy=H/2;
+      let path="";pts.forEach((p,i)=>{path+=(i?"L":"M")+(cx+p[0]*sc).toFixed(1)+" "+(cy+p[1]*sc).toFixed(1)+" ";});
+      const [ex,ey]=pts[pts.length-1];
+      $("#s1chart").innerHTML=`<line class="gl" x1="0" y1="${cy}" x2="${W}" y2="${cy}"/><line class="gl" x1="${cx}" y1="0" x2="${cx}" y2="${H}"/><path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5"/><g transform="translate(${cx} ${cy})"><rect x="-10" y="-5" width="20" height="10" rx="2" fill="var(--ink)"/></g><g transform="translate(${cx+ex*sc} ${cy+ey*sc}) rotate(${th*180/Math.PI})"><rect x="-10" y="-5" width="20" height="10" rx="2" fill="var(--accent)" opacity=".8"/></g><text x="${cx+12}" y="${cy-8}">partenza</text><text x="8" y="${H-8}">2 secondi di traiettoria · scala ${sc.toFixed(2)} px/px</text>`;
+      $("#s1msg").innerHTML=`<b>Con δ = ${st.value}° e L = ${Lp} px il raggio è ${isFinite(R)?fmt(Math.abs(R))+" px":"infinito"}, indipendente dalla velocità.</b> ${Math.abs(+st.value)<1?"Sterzo a zero: l'auto va dritta a qualunque velocità.":"La velocità non cambia il raggio ma quanto in fretta lo percorri: a "+V+" px/s l'auto ruota di "+fmt(deg)+"° in due secondi. Raddoppia la velocità e raddoppiano i gradi, con lo stesso cerchio. È questa la coppia che la rete deve imparare a dosare: sterzare molto va bene solo se si è lenti."}`;
+    }
+    [st,v,L].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 2 · sensori ---------- */
+  const RAYS=[-65,-20,-10,0,10,20,65];
+  (function(){
+    const W=640,H=300,w=110,DMAX=160;
+    const center=[];for(let i=0;i<=40;i++){const t=i/40;center.push([40+560*t,150+70*Math.sin(t*Math.PI*1.3-0.4)]);}
+    /* bordi (tratto aperto: normale locale) */
+    const Lb=[],Rb=[];for(let i=0;i<center.length;i++){const p=center[i],q=center[Math.min(i+1,center.length-1)],pr=center[Math.max(i-1,0)];let tx=q[0]-pr[0],ty=q[1]-pr[1];const l=Math.hypot(tx,ty);tx/=l;ty/=l;Lb.push([p[0]-ty*w/2,p[1]+tx*w/2]);Rb.push([p[0]+ty*w/2,p[1]-tx*w/2]);}
+    const segs=[];for(let i=0;i<center.length-1;i++){segs.push([...Lb[i],...Lb[i+1]]);segs.push([...Rb[i],...Rb[i+1]]);}
+    const sx=$("#s2x"),sy=$("#s2y"),sh=$("#s2h"),sv=$("#s2v");
+    function draw(){
+      const t=+sx.value/100,lat=+sy.value/100*(w/2-8),rot=+sh.value*Math.PI/180,vel=+sv.value/100;
+      $("#s2xo").textContent=sx.value+" %";$("#s2yo").textContent=fmt(lat)+" px";$("#s2ho").textContent=sh.value+"°";$("#s2vo").textContent=vel.toFixed(2);
+      const i=Math.min(center.length-2,Math.floor(t*(center.length-1))),f=t*(center.length-1)-i,p=center[i],q=center[i+1];
+      let tx=q[0]-p[0],ty=q[1]-p[1];const l=Math.hypot(tx,ty);tx/=l;ty/=l;
+      const cx=p[0]+tx*l*f-ty*lat,cy=p[1]+ty*l*f+tx*lat,th=Math.atan2(ty,tx)+rot;
+      const reads=RAYS.map(a=>{const ang=th+a*Math.PI/180,ex=cx+Math.cos(ang)*DMAX,ey=cy+Math.sin(ang)*DMAX;let best=1;segs.forEach(s=>{const r=isect(cx,cy,ex,ey,s[0],s[1],s[2],s[3]);if(r!==null&&r<best)best=r;});return{a,s:best,ex:cx+Math.cos(ang)*DMAX*best,ey:cy+Math.sin(ang)*DMAX*best};});
+      const poly=pts=>pts.map(p=>p.join(",")).join(" ");
+      let svg=`<polygon points="${poly(Lb)} ${poly([...Rb].reverse())}" fill="var(--ink)" opacity=".12"/><polyline points="${poly(Lb)}" fill="none" stroke="var(--ink)" stroke-width="2"/><polyline points="${poly(Rb)}" fill="none" stroke="var(--ink)" stroke-width="2"/><polyline points="${poly(center)}" fill="none" stroke="var(--line)" stroke-dasharray="4 6"/>`;
+      reads.forEach(r=>{const hit=r.s<1;svg+=`<line x1="${cx}" y1="${cy}" x2="${r.ex}" y2="${r.ey}" stroke="${hit?"var(--bad)":"var(--good)"}" stroke-width="1.5" opacity=".9"/>${hit?`<circle cx="${r.ex}" cy="${r.ey}" r="3" fill="var(--bad)"/>`:""}`;});
+      svg+=`<g transform="translate(${cx} ${cy}) rotate(${th*180/Math.PI})"><rect x="-12" y="-6" width="24" height="12" rx="2" fill="var(--accent)"/><rect x="6" y="-4" width="5" height="8" fill="var(--bg)"/></g>`;
+      $("#s2chart").innerHTML=svg;
+      const inputs=[...reads.map(r=>r.s),vel];
+      $("#s2bars").innerHTML=inputs.map((v,k)=>`<div class="barrow"><span>${k<7?RAYS[k]+"°":"VelF"}</span><div class="track"><div class="fill" style="width:${v*100}%"></div></div><span class="v">${v.toFixed(2)}</span></div>`).join("");
+      const minI=reads.reduce((m,r,k)=>r.s<reads[m].s?k:m,0);
+      $("#s2msg").innerHTML=`<b>Il raggio più corto è quello a ${RAYS[minI]}° (${reads[minI].s.toFixed(2)}).</b> ${reads[minI].s<0.25?"Muro vicino: una rete addestrata dovrebbe sterzare dalla parte opposta, e la sezione 3 mostra quale peso lo fa.":reads.every(r=>r.s>=1)?"Nessun bordo entro la portata: tutti gli input valgono 1 e la rete è cieca. È il motivo per cui la portata non va scelta troppo corta rispetto alla larghezza della pista.":"Gli input dicono da che parte gira la pista: confronta i raggi a ±20° e ±65°."} Questi otto numeri sono l'unica cosa che la rete riceve.`;
+      window.NND_INPUTS=inputs;document.dispatchEvent(new CustomEvent("nnd-inputs"));
+    }
+    [sx,sy,sh,sv].forEach(x=>x.addEventListener("input",draw));draw();
+  })();
+
+  /* ---------- 3 · rete 8-6-4 ---------- */
+  (function(){
+    const NI=8,NH=6,NO=4,LAB=[...RAYS.map(a=>a+"°"),"VelF"],OUT=["Steering","Acceleration","Brake","Handbrake"];
+    let seed=11,W1,b1,W2,b2;
+    function init(zero){const r=rng(seed);const u=()=>zero?0:(r.next()*2-1);W1=Array.from({length:NH},()=>Array.from({length:NI},u));b1=Array.from({length:NH},u);W2=Array.from({length:NO},()=>Array.from({length:NH},u));b2=Array.from({length:NO},u);$("#s3seed").textContent=zero?"tutti i pesi a 0":"seed "+seed;}
+    function fwd(x){const h=W1.map((row,j)=>Math.tanh(row.reduce((s,wij,i)=>s+wij*x[i],b1[j])));const y=W2.map((row,k)=>Math.tanh(row.reduce((s,wkj,j)=>s+wkj*h[j],b2[k])));return{h,y};}
+    function draw(){
+      const x=window.NND_INPUTS||new Array(8).fill(0.5),{h,y}=fwd(x);
+      const W=640,H=320,cols=[100,320,500],pos=(n,i,c)=>[cols[c],40+(i+0.5)*(H-60)/n];
+      let edges="",nodes="";
+      const edge=(a,b,wt)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${wt>=0?"var(--good)":"var(--bad)"}" stroke-width="${(0.4+Math.abs(wt)*2.4).toFixed(2)}" opacity=".7"/>`;
+      for(let j=0;j<NH;j++)for(let i=0;i<NI;i++)edges+=edge(pos(NI,i,0),pos(NH,j,1),W1[j][i]);
+      for(let k=0;k<NO;k++)for(let j=0;j<NH;j++)edges+=edge(pos(NH,j,1),pos(NO,k,2),W2[k][j]);
+      const node=(p,act,label,side)=>`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="var(--surface)" stroke="var(--ink)" stroke-width="1"/><circle cx="${p[0]}" cy="${p[1]}" r="${(Math.abs(act)*10).toFixed(1)}" fill="${act>=0?"var(--accent)":"var(--muted)"}"/>${label?`<text x="${p[0]+(side<0?-18:18)}" y="${p[1]+4}" text-anchor="${side<0?"end":"start"}">${label}</text>`:""}`;
+      for(let i=0;i<NI;i++)nodes+=node(pos(NI,i,0),x[i],LAB[i]+" "+x[i].toFixed(2),-1);
+      for(let j=0;j<NH;j++)nodes+=node(pos(NH,j,1),h[j],"",0);
+      for(let k=0;k<NO;k++)nodes+=node(pos(NO,k,2),y[k],OUT[k]+" "+y[k].toFixed(2),1);
+      $("#s3chart").innerHTML=edges+nodes;
+      $("#s3sr").textContent="Input: "+LAB.map((l,i)=>l+" "+x[i].toFixed(2)).join(", ")+". Nascosti: "+h.map(v=>v.toFixed(2)).join(", ")+". Output: "+OUT.map((o,k)=>o+" "+y[k].toFixed(2)).join(", ")+".";
+      OUT.forEach((o,k)=>{$("#s3o"+k).textContent=y[k].toFixed(2)+(k>0?(y[k]>0?" · ON":" · off"):(y[k]<-0.2?" · sinistra":y[k]>0.2?" · destra":" · dritto"));});
+      const minI=x.slice(0,7).reduce((m,v,i)=>v<x[m]?i:m,0),want=RAYS[minI]<0?"destra":RAYS[minI]>0?"sinistra":"—";
+      $("#s3msg").innerHTML=`<b>Sterzo ${y[0].toFixed(2)}${y[1]>0?", gas aperto":""}${y[2]>0?", freno":""}${y[3]>0?", freno a mano":""}.</b> ${W1.every(r=>r.every(v=>v===0))?"Con tutti i pesi a zero ogni neurone vale tanh(0) = 0: la rete non fa nulla, qualunque cosa vedano i raggi. È la dimostrazione che il comportamento sta tutto nei pesi.":"Il raggio più corto è a "+RAYS[minI]+"°, quindi un pilota sensato sterzerebbe a "+want+"; questa rete "+((want==="destra"&&y[0]>0.2)||(want==="sinistra"&&y[0]<-0.2)?"lo fa, per caso: su cento genomi casuali qualcuno azzecca, ed è da lì che l'evoluzione parte.":"fa altro, come quasi ogni genoma casuale. Muovi l'auto nel laboratorio dei sensori: i comandi cambiano davvero con gli input, anche se in modo insensato. Nella sezione 4 si scelgono i pesi che rendono la risposta sensata.")}`;
+    }
+    $("#s3rand").onclick=()=>{seed=(seed*7+3)%1000003;init(false);draw();};$("#s3zero").onclick=()=>{init(true);draw();};
+    document.addEventListener("nnd-inputs",draw);init(false);draw();
+  })();
+
+  /* ---------- 4a · crossover e mutazione ---------- */
+  (function(){
+    const N=82,ra=rng(5),rb=rng(9),A=Array.from({length:N},()=>ra.next()*2-1),B=Array.from({length:N},()=>rb.next()*2-1);
+    let mode="uniform",childSeed=1;seg("#s4cx",v=>{mode=v;gen();});
+    const p=$("#s4p"),sg=$("#s4sg");
+    function gen(){
+      const P=+p.value/100,S=+sg.value/100,r=rng(childSeed);$("#s4po").textContent=P.toFixed(2);$("#s4sgo").textContent=S.toFixed(2);
+      const cut=Math.floor(r.next()*N);let na=0,nb=0,nm=0,dA=0,dB=0;let html="";
+      for(let i=0;i<N;i++){const fromA=mode==="uniform"?r.next()<0.5:i<cut;let g=fromA?A[i]:B[i];fromA?na++:nb++;const mut=r.next()<P;if(mut){g+=r.gauss()*S;nm++;}dA+=(g-A[i])**2;dB+=(g-B[i])**2;html+=`<i class="${fromA?"a":"b"}${mut?" m":""}" title="gene ${i}"></i>`;}
+      $("#s4gen").innerHTML=html;$("#s4ab").textContent=na+" / "+nb;$("#s4mut").textContent=nm+" ("+fmt(nm/N*100)+" %)";$("#s4dist").textContent=fmt(Math.sqrt(Math.min(dA,dB)),2);
+      $("#s4msg").innerHTML=`<b>${mode==="uniform"?"Crossover uniforme: ogni gene pescato a caso, circa metà da ciascun genitore.":"Crossover a un punto: i primi "+cut+" geni da A, il resto da B."}</b> ${nm===0?"Nessuna mutazione: il figlio non contiene nulla che i genitori non avessero già. Senza mutazione la popolazione può solo ricombinare, e prima o poi si ferma.":P>0.3?"Una mutazione così frequente riscrive il figlio: si perde ciò che i genitori avevano di buono. Serve all'inizio, quando non c'è nulla di buono da perdere.":"Poche mutazioni, piccole: il figlio somiglia ai genitori ma non è identico. È il regime in cui si rifinisce un campione già decente."} ${mode==="onepoint"?"Con la rete appiattita in un vettore, un punto di taglio separa i pesi del primo strato da quelli del secondo: il figlio eredita i rilevatori di A e i comandi di B.":""}`;
+    }
+    $("#s4child").onclick=()=>{childSeed++;gen();};[p,sg].forEach(x=>x.addEventListener("input",gen));gen();
+  })();
+
+  /* ---------- 4b · neuroevoluzione in pista ---------- */
+  (function(){
+    const cv=$("#s4canvas"),ctx=cv.getContext("2d"),W=640,H=400,NSEG=64,TW=30,NI=6,NH=5,NO=2,NG=NI*NH+NH+NH*NO+NO,STEPS=900,DT=1/30,DMAX=120,VMAX=110,LWB=14,RAY=[-60,-25,0,25,60];
+    const center=[];for(let i=0;i<NSEG;i++){const a=i/NSEG*2*Math.PI,r=110+40*Math.sin(2*a)+22*Math.cos(3*a);center.push([320+1.5*r*Math.cos(a),200+r*Math.sin(a)]);}
+    const {L:LB,R:RB}=borders(center,TW);
+    /* maschera "dentro la pista" a 2 px */
+    const GX=320,GY=200,mask=new Uint8Array(GX*GY);
+    function segDist(px,py,i){const a=center[i],b=center[(i+1)%NSEG];const dx=b[0]-a[0],dy=b[1]-a[1];const t=Math.max(0,Math.min(1,((px-a[0])*dx+(py-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(px-a[0]-t*dx,py-a[1]-t*dy);}
+    for(let gy=0;gy<GY;gy++)for(let gx=0;gx<GX;gx++){const px=gx*2+1,py=gy*2+1;let d=1e9;for(let i=0;i<NSEG;i++){const v=segDist(px,py,i);if(v<d)d=v;}mask[gy*GX+gx]=d<TW/2?1:0;}
+    const inside=(x,y)=>{const gx=x/2|0,gy=y/2|0;return gx>=0&&gy>=0&&gx<GX&&gy<GY&&mask[gy*GX+gx]===1;};
+    function progressOf(x,y,near){let best=-1,bt=0,bd=1e9;for(let k=-3;k<=3;k++){const i=(near+k+NSEG)%NSEG,a=center[i],b=center[(i+1)%NSEG],dx=b[0]-a[0],dy=b[1]-a[1];const t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)));const d=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);if(d<bd){bd=d;best=i;bt=t;}}return{i:best,t:bt};}
+    const startA=Math.atan2(center[1][1]-center[0][1],center[1][0]-center[0][0]);
+    function fwd(g,x){let o=0;const h=new Array(NH);for(let j=0;j<NH;j++){let s=0;for(let i=0;i<NI;i++)s+=g[o++]*x[i];s+=g[o++];h[j]=Math.tanh(s);}const y=new Array(NO);for(let k=0;k<NO;k++){let s=0;for(let j=0;j<NH;j++)s+=g[o++]*h[j];s+=g[o++];y[k]=Math.tanh(s);}return y;}
+    function sense(x,y,th,v){const inp=new Array(NI);for(let r=0;r<5;r++){const a=th+RAY[r]*Math.PI/180,cx=Math.cos(a),cy=Math.sin(a);let d=DMAX;for(let s=4;s<=DMAX;s+=4){if(!inside(x+cx*s,y+cy*s)){d=s;break;}}inp[r]=d/DMAX;}inp[5]=v/VMAX;return inp;}
+    function run(g){let x=center[0][0],y=center[0][1],th=startA,v=30,lap=0,near=0,prog=0,bestProg=0,still=0,alive=true;const path=[[x,y]];let steps=0;
+      for(let s=0;s<STEPS;s++){const inp=sense(x,y,th,v),out=fwd(g,inp);const steer=out[0]*0.6;v+=out[1]*90*DT;v-=v*0.6*DT;v=Math.max(15,Math.min(VMAX,v));x+=Math.cos(th)*v*DT;y+=Math.sin(th)*v*DT;th+=v/LWB*Math.tan(steer)*DT;steps++;if(s%3===0)path.push([x,y]);
+        if(!inside(x,y)){alive=false;break;}
+        const pr=progressOf(x,y,near);if(pr.i===0&&near===NSEG-1)lap++;else if(pr.i===NSEG-1&&near===0)lap--;near=pr.i;prog=lap*NSEG+pr.i+pr.t;
+        if(prog>bestProg+0.05){bestProg=prog;still=0;}else if(++still>120){alive=false;break;}}
+      return{fit:Math.max(0,bestProg),path,alive,steps};}
+    let gen=0,pop=[],hist=[],results=[],seedBase=2,anim=null;
+    const el={n:$("#s4n"),mp:$("#s4mp"),ms:$("#s4ms"),el:$("#s4el")};
+    function labels(){$("#s4no").textContent=el.n.value;$("#s4mpo").textContent=(+el.mp.value/100).toFixed(2);$("#s4mso").textContent=(+el.ms.value/100).toFixed(2);$("#s4elo").textContent=el.el.value;}
+    function initPop(){const r=rng(seedBase*7919);pop=Array.from({length:+el.n.value},()=>Float32Array.from({length:NG},()=>r.next()*2-1));gen=0;hist=[];results=[];}
+    function evaluate(){results=pop.map(g=>run(g));const order=results.map((r,i)=>i).sort((a,b)=>results[b].fit-results[a].fit);pop=order.map(i=>pop[i]);results=order.map(i=>results[i]);const best=results[0].fit,avg=results.reduce((s,r)=>s+r.fit,0)/results.length;hist.push({best,avg,alive:results.filter(r=>r.alive).length});}
+    function reproduce(){const r=rng(seedBase*7919+gen*104729+17),N=+el.n.value,E=Math.min(+el.el.value,N),P=+el.mp.value/100,S=+el.ms.value/100;const next=[];for(let i=0;i<E;i++)next.push(pop[i]);
+      const pick=()=>{let b=N;for(let k=0;k<3;k++){const c=Math.floor(r.next()*pop.length);if(c<b)b=c;}return pop[Math.min(b,pop.length-1)];};
+      while(next.length<N){const a=pick(),b=pick(),c=new Float32Array(NG);for(let i=0;i<NG;i++){c[i]=r.next()<0.5?a[i]:b[i];if(r.next()<P)c[i]+=r.gauss()*S;}next.push(c);}
+      pop=next;gen++;}
+    function drawTrack(){ctx.clearRect(0,0,W,H);ctx.fillStyle=cssv("--surface-2");ctx.fillRect(0,0,W,H);
+      ctx.beginPath();LB.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();RB.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=cssv("--ink");ctx.globalAlpha=.85;ctx.fill("evenodd");ctx.globalAlpha=1;
+      ctx.strokeStyle=cssv("--bg");ctx.lineWidth=2;[LB,RB].forEach(B=>{ctx.beginPath();B.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.stroke();});
+      ctx.strokeStyle=cssv("--accent");ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(LB[0][0],LB[0][1]);ctx.lineTo(RB[0][0],RB[0][1]);ctx.stroke();
+      ctx.fillStyle=cssv("--muted");for(let i=8;i<NSEG;i+=8){ctx.beginPath();ctx.arc(center[i][0],center[i][1],2,0,7);ctx.fill();}}
+    function drawPaths(){drawTrack();if(!results.length)return;ctx.lineWidth=1;results.slice(1).forEach(r=>{ctx.strokeStyle=cssv("--warn");ctx.globalAlpha=.35;ctx.beginPath();r.path.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();});ctx.globalAlpha=1;
+      const b=results[0];ctx.strokeStyle=cssv("--accent");ctx.lineWidth=2.5;ctx.beginPath();b.path.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();const e=b.path[b.path.length-1];ctx.fillStyle=b.alive?cssv("--good"):cssv("--bad");ctx.beginPath();ctx.arc(e[0],e[1],5,0,7);ctx.fill();}
+    function drawFit(){const svg=$("#s4fit");if(!hist.length){svg.innerHTML="";return;}const Wc=640,Hc=120,pad=30,mx=Math.max(NSEG,...hist.map(h=>h.best)),n=hist.length,X=i=>pad+(n===1?0:i/(n-1))*(Wc-pad-10),Y=v=>Hc-18-v/mx*(Hc-30);
+      const line=(k,col)=>`<polyline fill="none" stroke="${col}" stroke-width="2" points="${hist.map((h,i)=>X(i)+","+Y(h[k])).join(" ")}"/>`;
+      svg.innerHTML=`<line class="gl" x1="${pad}" y1="${Y(NSEG)}" x2="${Wc-10}" y2="${Y(NSEG)}" stroke-dasharray="3 3"/><text x="${pad+4}" y="${Y(NSEG)-4}">un giro = ${NSEG}</text><line class="ax" x1="${pad}" y1="${Hc-18}" x2="${Wc-10}" y2="${Hc-18}"/>${line("avg","var(--muted)")}${line("best","var(--accent)")}<text x="${pad}" y="${Hc-4}">gen 0</text><text x="${Wc-10}" y="${Hc-4}" text-anchor="end">gen ${n-1}</text><text x="${Wc-10}" y="12" text-anchor="end" fill="var(--accent)">migliore</text><text x="${Wc-95}" y="12" text-anchor="end">media</text>`;}
+    function readout(){const h=hist[hist.length-1];$("#s4gn").textContent=gen;if(!h){$("#s4best").textContent="—";$("#s4avg").textContent="—";$("#s4alive").textContent="—";return;}$("#s4best").textContent=fmt(h.best,1);$("#s4avg").textContent=fmt(h.avg,1);$("#s4alive").textContent=h.alive+" / "+pop.length;
+      const laps=h.best/NSEG;let m=`<b>Generazione ${gen}: il campione ha percorso ${fmt(laps*100)} % di un giro (fitness ${fmt(h.best,1)}), la media è ${fmt(h.avg,1)}.</b> `;
+      if(gen<=1)m+="Genomi casuali: quasi tutte sbattono alla prima curva, ma una manciata ha, per caso, uno sterzo che segue il muro. Sono loro i genitori della prossima generazione.";
+      else if(laps<0.5)m+="La fitness migliore sale a scatti: ogni scatto è una mutazione che ha superato una curva in più. La media resta bassa perché la maggior parte dei figli mutati peggiora: è il prezzo dell'esplorazione.";
+      else if(laps<1)m+="Il campione supera più di metà pista. Guarda la media: se sale anche lei, la popolazione sta convergendo sullo stesso comportamento; se resta bassa, la mutazione è ancora troppo violenta per il regime di rifinitura.";
+      else m+="Giro completato"+(laps>=2?" più volte":"")+": da qui in poi la fitness cresce solo con la velocità. Questa rete conosce questa pista; per sapere se sa guidare bisognerebbe metterla su un tracciato mai visto (generalizzazione).";
+      if(h.alive===pop.length&&gen>2)m+=" Tutte le auto sono vive a fine corsa: il timeout di progresso non ha eliminato nessuno e la popolazione è quasi omogenea.";
+      $("#s4smsg").innerHTML=m;}
+    function step(k){if(anim){cancelAnimationFrame(anim);anim=null;}for(let i=0;i<k;i++){if(gen>0||hist.length)reproduce();if(!hist.length&&gen===0){}evaluate();}drawPaths();drawFit();readout();}
+    function reset(){seedBase++;labels();initPop();drawTrack();drawFit();readout();$("#s4smsg").textContent="Generazione 0: pesi casuali. Premi «Avanza» per valutare la popolazione.";}
+    $("#s4g1").onclick=()=>{if(!hist.length){evaluate();drawPaths();drawFit();readout();}else step(1);};
+    $("#s4g10").onclick=()=>{if(!hist.length){evaluate();step(9);}else step(10);};
+    $("#s4replay").onclick=()=>{if(!results.length)return;const p=results[0].path;let i=0;if(anim)cancelAnimationFrame(anim);const f=()=>{drawTrack();ctx.strokeStyle=cssv("--accent");ctx.lineWidth=2;ctx.beginPath();for(let k=0;k<=i;k++){const q=p[k];k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);}ctx.stroke();const c=p[i],d=p[Math.max(0,i-1)],th=Math.atan2(c[1]-d[1],c[0]-d[0]);ctx.save();ctx.translate(c[0],c[1]);ctx.rotate(th);ctx.fillStyle=cssv("--accent");ctx.fillRect(-8,-4,16,8);ctx.restore();if(++i<p.length)anim=requestAnimationFrame(f);else{anim=null;drawPaths();}};f();};
+    $("#s4reset").onclick=reset;[el.n,el.mp,el.ms,el.el].forEach(x=>x.addEventListener("input",()=>{labels();if(x===el.n){initPop();drawTrack();drawFit();readout();}}));
+    labels();initPop();drawTrack();readout();
+  })();
+})();
+</script>
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,",
+  ids:[],
+  rules:[
+    {re:"sezione 1",to:"#s1",flags:"i",first:false},
+    {re:"sezione 2",to:"#s2",flags:"i",first:false},
+    {re:"sezione 3",to:"#s3",flags:"i",first:false},
+    {re:"sezione 4",to:"#s4",flags:"i",first:false},
+    {re:"sezione 5",to:"#s5",flags:"i",first:false},
+    {re:"game loop",to:"#s1-loop",flags:"i"},
+    {re:"modello (cinematico )?a bicicletta",to:"#s1-bici",flags:"i"},
+    {re:"checkpoint",to:"#s1-pista",flags:"i"},
+    {re:"raycasting",to:"#s2",flags:"i"},
+    {re:"normalizz",to:"#s2",flags:"i"},
+    {re:"forward pass",to:"#s3-forward",flags:"i"},
+    {re:"tanh",to:"#s3-forward"},
+    {re:"genoma",to:"#s3-comandi",flags:"i"},
+    {re:"fitness",to:"#s4-fitness",flags:"i"},
+    {re:"reward hacking",to:"#s4-fitness",flags:"i"},
+    {re:"crossover",to:"#s4-operatori",flags:"i"},
+    {re:"mutazione",to:"#s4-operatori",flags:"i"},
+    {re:"elitismo",to:"#s4-operatori",flags:"i"},
+    {re:"generalizzazione",to:"#s4-general",flags:"i"},
+    {re:"contratto WebSocket",to:"#s5-fisica",flags:"i"},
+    {re:"Jupytext",to:"#s5-tag"},
+    {re:"nbgrader",to:"#s5-tag"},
+    {re:"discesa del gradiente",to:"https://pericle82.github.io/explorables/training-llm/",k:"Altra guida",t:"Anatomia del Training LLM",body:"<p>Loss, softmax e gradient descent: come si addestra una rete quando un gradiente esiste, e un training dal vivo nel browser.</p>",flags:"i",first:false},
+    {re:"machine learning classico",to:"https://pericle82.github.io/explorables/training-llm/",k:"Altra guida",t:"Anatomia del Training LLM",body:"<p>Dataset, training set e loss: i concetti base dell'addestramento con il gradiente.</p>",flags:"i"}
+  ],
+  gloss:{selector:"dl.gloss",skip:["VelF"],extra:{"Neuroevoluzione":["neuroevolutivo"],"Modello a bicicletta":["bicycle model"]}}
+};
+</script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->
+<!-- xpl:shared xref:start (non modificare: generato da shared/xref.html con scripts/sync-shared.mjs) -->
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+.xref-pop .xp-ex{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+a.xref.ext::after{content:" ↗";font-size:.8em}
+</style>
+<script>
+/* Riferimenti incrociati con anteprima (motore generico).
+   Configurazione in window.XREF_CONFIG = {
+     rules:    [{re:"regex", to:"#id" | "https://…", k:"etichetta", t:"titolo", body:"html", first:true, flags:"g" | "gi"}],
+     gloss:    {selector:"dl.gloss", skip:["Termine", …], extra:{"Termine":["alias", …]}},
+     ids:      [{sel:"css", text:"testo contenuto", id:"id-da-assegnare"}]
+   } */
+(function(){
+  const C=window.XREF_CONFIG||{};const main=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // id aggiuntivi su elementi senza id
+  (C.ids||[]).forEach(r=>{const el=[...document.querySelectorAll(r.sel)].find(e=>txt(e).includes(r.text));if(el&&!el.id)el.id=r.id;});
+
+  /* anteprima automatica di un elemento del documento */
+  function preview(el){
+    if(!el)return null;
+    if(el.tagName==="DIV"&&el.parentElement&&el.parentElement.tagName==="DL"){const dt=el.querySelector("dt"),dd=el.querySelector("dd"),ex=el.querySelector(".ex");
+      return{k:"Definizione",t:txt(dt),body:(dd?`<p>${dd.innerHTML}</p>`:"")+(ex?`<p class="xp-ex">${ex.innerHTML}</p>`:"")};}
+    if(el.tagName==="SECTION"){const eb=el.querySelector(".sec-head .eyebrow"),h=el.querySelector("h2"),p=el.querySelector(".prose p, p");
+      return{k:txt(eb),t:txt(h),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(/^H[2-4]$/.test(el.tagName)){let n=el.nextElementSibling;while(n&&!/^(P|DIV)$/.test(n.tagName))n=n.nextElementSibling;
+      const p=n&&(n.tagName==="P"?n:n.querySelector("p"));const sec=el.closest("section");
+      return{k:sec?txt(sec.querySelector(".sec-head .eyebrow")):"",t:txt(el),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(el.tagName==="TR"){const c=[...el.children];return{k:"",t:txt(c[0]),body:c.slice(1).map(x=>`<p>${x.innerHTML}</p>`).join("")};}
+    const b=el.querySelector("b,h3,h4"),rest=el.cloneNode(true);if(b){const bb=rest.querySelector("b,h3,h4");bb&&bb.remove();}
+    return{k:"",t:txt(b),body:`<p>${rest.innerHTML}</p>`};
+  }
+
+  /* regole: espressioni → bersaglio */
+  const rules=[];
+  (C.rules||[]).forEach(r=>rules.push({re:new RegExp("^(?:"+r.re+")$",r.flags&&r.flags.includes("i")?"i":""),src:r.re,to:r.to,k:r.k,t:r.t,body:r.body,first:r.first!==false,flags:r.flags||""}));
+  // glossario automatico da <dl class="gloss">
+  const G=C.gloss;
+  if(G){const skip=new Set(G.skip||[]);let gi=0;
+    document.querySelectorAll(G.selector||"dl.gloss").forEach(dl=>dl.querySelectorAll(":scope > div").forEach(div=>{const dt=div.querySelector("dt");if(!dt)return;
+      const name=txt(dt);if(skip.has(name))return;div.id=div.id||"def-"+(++gi);div.classList.add("xref-target");
+      let aliases=[];name.split(/\s*\/\s*|\s+vs\s+/).forEach(part=>{const m=part.match(/^(.*?)\s*\((.*?)\)\s*$/);if(m){aliases.push(m[1]);if(!/\s/.test(m[2])||m[2].length<22)aliases.push(m[2]);}else aliases.push(part);});
+      aliases=aliases.concat((G.extra||{})[name]||[]).map(a=>a.trim()).filter(a=>a.length>=3&&!skip.has(a));
+      aliases.forEach(a=>{const acr=/^[A-Z0-9][A-Za-z0-9-]*[A-Z0-9]$/.test(a)&&a!==a.toLowerCase()&&/[A-Z].*[A-Z]|\d/.test(a);
+        rules.push({re:new RegExp("^"+escRe(a).replace(/\s+/g,"\\s+")+"$",acr?"":"i"),src:escRe(a).replace(/\s+/g,"\\s+"),to:"#"+div.id,first:true,flags:acr?"":"i",gloss:true});});}));}
+  if(!rules.length)return;
+  rules.sort((a,b)=>b.src.length-a.src.length);
+
+  const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const seen=new Map();let count=0;
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const s=node.nodeValue;big.lastIndex=0;let m,last=0,changed=false;const frag=document.createDocumentFragment();
+    const sec=node.parentElement.closest("section")||main;if(!seen.has(sec))seen.set(sec,new Set());const S=seen.get(sec);
+    while((m=big.exec(s))){const w=m[0];
+      const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+      if(/[\wÀ-ÿ]/.test(before)||/[\wÀ-ÿ]/.test(after)){continue;}
+      const r=rules.find(r=>r.re.test(w));if(!r)continue;
+      if(r.to.startsWith("#")){const tgt=document.getElementById(r.to.slice(1));if(!tgt||tgt.contains(node))continue;}
+      const key=r.to+"|"+r.src;if(r.first&&S.has(key))continue;S.add(key);
+      const a=document.createElement("a");a.href=r.to;a.className="xref"+(r.gloss?" term":"")+(r.to.startsWith("#")?"":" ext");a.textContent=w;a._xr=r;
+      frag.append(s.slice(last,m.index),a);last=m.index+w.length;changed=true;count++;}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+
+  /* popup */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.id="xref-pop";pop.setAttribute("role","tooltip");document.body.appendChild(pop);
+  let cur=null,tShow=0,tHide=0,ptr="mouse";const touch=matchMedia("(hover: none)").matches;
+  addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  function info(a){const r=a._xr;if(!r.to.startsWith("#"))return{k:r.k||"Altra guida",t:r.t||"",body:r.body||"",ext:true};
+    const el=document.getElementById(r.to.slice(1));const p=preview(el)||{};return{k:r.k||p.k,t:r.t||p.t,body:r.body||p.body};}
+  function show(a){const I=info(a);cur=a;
+    pop.innerHTML=`${I.k?`<span class="xp-k">${escH(I.k)}</span>`:""}${I.t?`<p class="xp-t">${escH(I.t)}</p>`:""}${I.body||""}<a class="xp-go" href="${a.getAttribute("href")}">${I.ext?"Apri la guida →":"Vai alla sezione →"}</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(href){if(!href.startsWith("#")){location.href=href;return;}const el=document.getElementById(href.slice(1));if(!el)return;
+    el.classList.add("xref-target");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"",href);}
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.getAttribute("href"));});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const h=g.getAttribute("href");hide();go(h);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=count;
+})();
+</script>
+<!-- xpl:shared xref:end -->

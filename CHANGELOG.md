@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-09-29
+- **Neural Network Driving** (`neural-network-driving`) v1.0: Prima versione: mondo simulato (modello a bicicletta), sensori a raycasting, rete 8-6-4 con grafo interattivo, neuroevoluzione con simulazione in pista, dal video al repo a tappe.
+
 ## 2026-09-28
 - **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.0: Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail
 
