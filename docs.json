@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.12",
-      "updated": "2026-09-27",
+      "version": "2.13",
+      "updated": "2026-09-30",
       "history": [
+        {
+          "version": "2.13",
+          "date": "2026-09-30",
+          "notes": "Capitolo 3: definizione dell'LSN (indirizzo della nota nel log: ordina e localizza) introdotta dove il log compare per la prima volta; nuova sezione «Dopo il crash: come si trova l'ultima nota scritta?» (file di controllo e redo point, scansione del log in avanti fino al primo CRC non valido, nessuna scansione delle pagine dati); riepilogo e autodiagnosi aggiornati."
+        },
         {
           "version": "2.12",
           "date": "2026-09-27",
