@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-09-30
+- **Quando il COMMIT non basta più** (`transazioni`) v2.14: Capitolo 3: il WAL è un log fisico — ogni nota contiene l'indirizzo della modifica (file, pagina, offset); distinzione esplicita tra l'indirizzo nella nota (quale pagina caricare) e l'LSN nell'header della pagina (se applicare).
 - **Quando il COMMIT non basta più** (`transazioni`) v2.13: Capitolo 3: definizione dell'LSN (indirizzo della nota nel log: ordina e localizza) introdotta dove il log compare per la prima volta; nuova sezione «Dopo il crash: come si trova l'ultima nota scritta?» (file di controllo e redo point, scansione del log in avanti fino al primo CRC non valido, nessuna scansione delle pagine dati); riepilogo e autodiagnosi aggiornati.
 
 ## 2026-09-29

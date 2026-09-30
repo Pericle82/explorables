@@ -111,9 +111,14 @@
         "sistemi distribuiti"
       ],
       "artifact": "https://claude.ai/artifact/3kJZVUqvcKfkLP1azLaM9d",
-      "version": "2.13",
+      "version": "2.14",
       "updated": "2026-09-30",
       "history": [
+        {
+          "version": "2.14",
+          "date": "2026-09-30",
+          "notes": "Capitolo 3: il WAL è un log fisico — ogni nota contiene l'indirizzo della modifica (file, pagina, offset); distinzione esplicita tra l'indirizzo nella nota (quale pagina caricare) e l'LSN nell'header della pagina (se applicare)."
+        },
         {
           "version": "2.13",
           "date": "2026-09-30",
