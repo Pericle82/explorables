@@ -1,0 +1,159 @@
+{
+  "slug": "architetture-llm",
+  "title": "Encoder, decoder, esperti",
+  "area": "Architetture dei modelli",
+  "questions": [
+    {
+      "id": "al-01",
+      "title": "Due milioni di email al giorno",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [2, 3, 4],
+      "prompt": "Un'azienda deve classificare due milioni di email al giorno (spam, fattura, richiesta di assistenza) e, sugli stessi testi, offrire una ricerca per significato. Un collega propone di mandare ogni email a un grande modello conversazionale decoder-only con un prompt. Proponi un'alternativa basata su un encoder come BERT: come lo adatti ai due compiti, che cosa leggi dalla sua uscita e perché costa meno. In quali casi la proposta del collega resta ragionevole?",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Un encoder come BERT restituisce un vettore per token (una rappresentazione), non testo: per classificare si aggiunge una testa piccola sul vettore di [CLS] e si fa un breve fine-tuning su esempi etichettati." },
+        { "id": "c2", "weight": 2, "text": "Per la ricerca per significato si ottiene un vettore per frase (per esempio la media dei vettori dei token) e si confrontano i vettori: è l'uso come modello di embedding, anche per RAG." },
+        { "id": "c3", "weight": 3, "text": "Il costo: l'encoder fa una sola passata sul testo intero ed è piccolo (BERT-base 110 M di parametri), mentre un decoder genera token uno alla volta in un ciclo, con un modello molto più grande." },
+        { "id": "c4", "weight": 2, "text": "La proposta del collega ha senso quando servono istruzioni nel prompt senza raccogliere esempi etichettati, o compiti che richiedono generazione o ragionamento: con la scala i decoder hanno imparato anche a capire, formulando il compito come testo da continuare." }
+      ]
+    },
+    {
+      "id": "al-02",
+      "title": "Far scrivere BERT",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [2, 3],
+      "prompt": "Un collega vuole usare BERT per scrivere testo: mette un [MASK] in fondo alla frase, fa indovinare il token, lo aggiunge e ripete. I risultati sono scadenti. Spiega perché, partendo da come BERT è stato addestrato e da che cosa vede ogni token, e confrontalo con GPT.",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "BERT è addestrato a riempire token coperti (MLM) avendo contesto a sinistra e a destra: ogni token guarda tutti gli altri, in entrambe le direzioni." },
+        { "id": "c2", "weight": 3, "text": "Quando si scrive da sinistra a destra il contesto di destra non esiste ancora: il modello lavora fuori dalle condizioni in cui ha imparato, quindi il risultato è scadente anche se forzandolo qualcosa esce." },
+        { "id": "c3", "weight": 2, "text": "GPT usa una maschera causale (matrice triangolare: ogni token vede solo sé stesso e i precedenti) e impara a prevedere il token successivo: obiettivo di addestramento e uso coincidono." },
+        { "id": "c4", "weight": 2, "text": "GPT genera in modo autoregressivo: ogni token generato diventa ingresso per il successivo, riusando i calcoli dei token precedenti con la cache KV." }
+      ]
+    },
+    {
+      "id": "al-03",
+      "title": "Quanto insegna un documento",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [2, 3, 4],
+      "prompt": "Stesso documento di 1.000 token, usato una volta per addestrare BERT e una volta per addestrare GPT. Quante posizioni producono un segnale di errore in ciascun caso, e perché? Spiega anche perché BERT non sostituisce sempre i token scelti con [MASK], e come questa differenza di segnale si collega al fatto che i grandi modelli di oggi sono quasi tutti decoder-only.",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "BERT produce errore solo sul 15% dei token scelti (circa 150 su 1.000, uno su sette); GPT prevede il token successivo in ogni posizione, quindi produce errore su quasi tutti i token." },
+        { "id": "c2", "weight": 2, "text": "Dei token scelti l'80% diventa [MASK], il 10% un token casuale e il 10% resta uguale, perché nell'uso reale [MASK] non compare mai e il modello non deve imparare a lavorare solo quando c'è." },
+        { "id": "c3", "weight": 3, "text": "Più segnale per documento letto è uno dei motivi per cui i decoder-only hanno vinto, insieme ad almeno un altro: un formato unico per ogni compito («continua il testo»), una sola pila e un solo obiettivo che scalano in modo regolare, l'apprendimento in contesto." },
+        { "id": "c4", "weight": 1, "text": "Menziona che BERT aveva anche l'obiettivo NSP (la seconda frase segue la prima?), poi abbandonato perché RoBERTa ha mostrato che senza NSP e con più dati si ottiene di meglio." }
+      ]
+    },
+    {
+      "id": "al-04",
+      "title": "La cache che non entra in memoria",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [3, 4],
+      "prompt": "Servite un modello decoder-only con contesti lunghi, e la memoria GPU finisce per colpa della cache KV, non dei pesi. Spiega che cos'è la cache KV, perché cresce con il contesto e quale modifica dell'architettura moderna la riduce. Con le cifre di Qwen3-235B (64 teste per le query, 4 per key e value), di quanto si riduce la cache rispetto a un modello in cui ogni testa ha le sue key e value?",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "La cache KV conserva key e value dell'attenzione dei token già elaborati, così a ogni nuovo token generato non si ricalcolano: cresce con la lunghezza del contesto (e con il numero di blocchi)." },
+        { "id": "c2", "weight": 3, "text": "La GQA (Grouped-Query Attention) fa condividere le stesse key e value a gruppi di teste di query, riducendo la cache e velocizzando l'inferenza." },
+        { "id": "c3", "weight": 2, "text": "Calcolo: con 4 teste key-value invece di 64, la cache è circa 64 / 4 = 16 volte più piccola, mentre le teste di query restano 64." },
+        { "id": "c4", "weight": 2, "text": "Collega il problema alla generazione autoregressiva: il decoder genera un token alla volta e ogni passo usa key e value di tutti i token precedenti; un encoder che fa una passata sola non ha questa cache." }
+      ]
+    },
+    {
+      "id": "al-05",
+      "title": "Perché 8x7B non fa 56 miliardi",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [1, 5, 6],
+      "prompt": "Mixtral 8x7B ha 8 esperti per strato, ne sceglie 2 per token, e ha 46,7 miliardi di parametri totali e 12,9 miliardi attivi. Spiega perché i totali non sono 8 × 7 = 56 miliardi e perché gli attivi non sono semplicemente un quarto dei totali. Poi stima la memoria necessaria per i pesi in bf16 e il calcolo per token generato, dicendo da quale dei due numeri dipende ciascuno.",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Gli esperti sostituiscono solo la FFN di ogni blocco; attenzione, embedding e testa restano densi e condivisi da tutti i token: per questo i totali sono 46,7 B e non 56 B." },
+        { "id": "c2", "weight": 2, "text": "La FFN contiene circa due terzi dei parametri di un blocco (8·d² contro 4·d² dell'attenzione): è per questo che i modelli a esperti intervengono lì." },
+        { "id": "c3", "weight": 2, "text": "Gli attivi non sono totali ÷ 4 perché le parti condivise (attenzione, embedding) sono usate da ogni token in aggiunta ai 2 esperti scelti." },
+        { "id": "c4", "weight": 3, "text": "La memoria dipende dai parametri totali (tutti gli esperti devono stare nelle GPU): 46,7 B × 2 byte ≈ 93 GB in bf16. Il calcolo dipende dagli attivi: circa 2 × 12,9 B ≈ 26 miliardi di FLOPs per token." }
+      ]
+    },
+    {
+      "id": "al-06",
+      "title": "L'esperto di matematica",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [6, 7],
+      "prompt": "In una presentazione un collega descrive così un modello a esperti: «Davanti al modello c'è un router che legge la domanda e la manda all'esperto giusto: l'esperto di matematica, quello di codice, quello di biologia». Correggi la descrizione punto per punto: dove sta il router, quanti ce ne sono, che cos'è un esperto, su che cosa decide il router e che cosa rappresentano davvero gli esperti.",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Non c'è un router davanti al modello: c'è un router in ogni blocco a esperti (per esempio 94 blocchi, 94 router), e ognuno decide per ogni token in modo indipendente dagli altri blocchi." },
+        { "id": "c2", "weight": 2, "text": "Un esperto non è un modello completo: è una delle FFN alternative di un blocco; attenzione ed embedding restano densi e condivisi." },
+        { "id": "c3", "weight": 2, "text": "Il router non legge la domanda: lavora sul vettore h di un singolo token dopo l'attenzione di quel blocco, quindi lo stesso token può andare a esperti diversi in contesti o blocchi diversi." },
+        { "id": "c4", "weight": 3, "text": "Gli esperti non hanno argomenti: misurando Mixtral, la distribuzione sugli esperti è quasi la stessa per matematica, biologia e filosofia; le regolarità osservate sono sintattiche (in Python self e l'indentazione vanno di solito allo stesso esperto, token consecutivi scelgono gli stessi esperti)." }
+      ]
+    },
+    {
+      "id": "al-07",
+      "title": "Il router a mano",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [7],
+      "prompt": "Un blocco MoE ha 4 esperti e top-k = 2. Per un token il router produce, dopo la softmax, le probabilità p = [0,1; 0,4; 0,3; 0,2]. Per semplicità ogni esperto restituisce un numero: E1(h) = 5, E2(h) = 10, E3(h) = −4, E4(h) = 7. Calcola l'uscita y del blocco a esperti, mostrando i passaggi, e spiega come impara il router a dare punteggi più alti agli esperti utili se nessuno etichetta i token.",
+      "criteria": [
+        { "id": "c1", "weight": 2, "text": "Sceglie i due esperti con probabilità più alta, E2 (0,4) ed E3 (0,3); E1 ed E4 per questo token non vengono calcolati affatto." },
+        { "id": "c2", "weight": 3, "text": "Rinormalizza tra i soli scelti: g2 = 0,4 / 0,7 ≈ 0,571 e g3 = 0,3 / 0,7 ≈ 0,429, che sommano a 1." },
+        { "id": "c3", "weight": 3, "text": "Calcola y = 0,571 · 10 + 0,429 · (−4) ≈ 5,71 − 1,71 = 4,0 (senza esperto condiviso)." },
+        { "id": "c4", "weight": 2, "text": "Il router si allena come ogni altro peso: l'errore sul token successivo torna indietro anche attraverso i pesi g e sposta la matrice W, così gli esperti che hanno aiutato ricevono punteggi più alti in casi simili." }
+      ]
+    },
+    {
+      "id": "al-08",
+      "title": "Due esperti fanno tutto",
+      "difficulty": "molto alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [6, 7],
+      "prompt": "Durante l'addestramento di un modello con 8 esperti per strato vi accorgete che, dopo qualche migliaio di passi, 2 esperti ricevono il 90% dei token. Spiega come ci si arriva e perché è un problema sia per la qualità sia per l'infrastruttura. Poi confronta tre contromisure (perdita ausiliaria di bilanciamento, capacità per esperto, bias senza perdita ausiliaria): come funziona ciascuna e che cosa costa.",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Il collasso è un circolo vizioso: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile e riceve ancora più token." },
+        { "id": "c2", "weight": 2, "text": "Il danno: gli esperti inutilizzati sono pesi sprecati (capacità persa), e le GPU che ospitano gli esperti più scelti diventano un collo di bottiglia." },
+        { "id": "c3", "weight": 3, "text": "Perdita ausiliaria: un termine α · N · Σ fᵢ · Pᵢ aggiunto all'errore, minimo con carico uniforme (Switch Transformer, α = 0,01); costo: entra nel gradiente e può peggiorare la qualità. Capacità: ogni esperto accetta al massimo (token del batch / esperti) × fattore di capacità, e i token in eccesso saltano l'esperto e passano solo con la connessione residua." },
+        { "id": "c4", "weight": 3, "text": "Bias senza perdita ausiliaria (DeepSeek-V3): un bias per esperto usato solo per scegliere, non per pesare, abbassato per chi è sovraccarico e alzato per chi è scarico; non tocca il gradiente e non scarta token." },
+        { "id": "c5", "weight": 1, "text": "Menziona almeno un'altra tecnica: rumore sui punteggi durante l'addestramento (top-k con rumore) o Expert Choice, in cui ogni esperto sceglie i propri token e il carico è uniforme per costruzione." }
+      ]
+    },
+    {
+      "id": "al-09",
+      "title": "I token in eccesso",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1200,
+      "chapters": [7],
+      "prompt": "Un modello in stile Switch Transformer ha 8 esperti per strato, top-1, e fattore di capacità 1,25. In un batch di 4.096 token, il router manda 900 token all'esperto 3. Quanti token può accettare ciascun esperto? Che cosa succede ai token in più, e che cosa significa per la loro rappresentazione in quel blocco? Come si comporta invece DeepSeek-V3 nello stesso caso?",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Capacità = (4.096 / 8) × 1,25 = 512 × 1,25 = 640 token per esperto; all'esperto 3 ne restano 900 − 640 = 260 in eccesso." },
+        { "id": "c2", "weight": 3, "text": "I token in eccesso saltano l'esperto e passano al blocco successivo solo con la connessione residua: in quel blocco non ricevono il contributo della FFN, ma non spariscono dalla sequenza." },
+        { "id": "c3", "weight": 2, "text": "Il fattore di capacità è un margine sul carico medio (1,25 = 25% in più) e serve proprio perché il router non distribuisce i token in modo perfettamente uniforme." },
+        { "id": "c4", "weight": 2, "text": "DeepSeek-V3 bilancia con un bias usato solo nella scelta, aggiornato in base al carico, e così non scarta nessun token." }
+      ]
+    },
+    {
+      "id": "al-10",
+      "title": "Denso o a esperti sullo stesso server",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [5, 6],
+      "prompt": "Dovete scegliere tra un modello denso da 70 miliardi di parametri (tipo Llama 3 70B) e Qwen3-235B-A22B (235 miliardi totali, 22 miliardi attivi, 128 esperti per strato, 8 scelti per token). Confrontali su memoria dei pesi in bf16, calcolo per token generato, comunicazione tra GPU e capacità del modello. Quale conviene per un servizio con molto traffico se avete GPU in abbondanza, e quale se la memoria disponibile è il vincolo?",
+      "criteria": [
+        { "id": "c1", "weight": 3, "text": "Memoria (parametri totali, 2 byte per peso in bf16): circa 140 GB per il denso da 70 B contro circa 470 GB per Qwen3-235B, perché tutti gli esperti devono stare nelle GPU anche se lavorano a turno." },
+        { "id": "c2", "weight": 3, "text": "Calcolo (parametri attivi, circa 2 × parametri FLOPs per token): circa 140 miliardi di FLOPs per il denso contro circa 44 miliardi per Qwen3, quindi il MoE costa circa un terzo per token." },
+        { "id": "c3", "weight": 2, "text": "Il MoE paga in comunicazione: con il parallelismo per esperti i token vengono spediti alle GPU dei propri esperti e rimandati indietro a ogni blocco (all-to-all)." },
+        { "id": "c4", "weight": 2, "text": "Conclusione coerente: con GPU in abbondanza e molto traffico il MoE dà più capacità (più parametri totali, più conoscenza) a un costo per token minore; con la memoria come vincolo il denso è l'unico dei due che ci sta." },
+        { "id": "c5", "weight": 1, "text": "Menziona che in Qwen3 attenzione ed embedding restano densi, quindi gli attivi includono le parti condivise oltre agli 8 esperti scelti." }
+      ]
+    }
+  ]
+}

@@ -150,8 +150,9 @@ if (exams.length) {
     const d = docs.find((x) => x.slug === ex.slug);
     const src = readFileSync(join(ROOT, "docs", `${ex.slug}.html`), "utf8");
     const chapters = {};
-    for (const m of src.matchAll(/<section id="cap-(\d+)"[^>]*>([\s\S]*?)<\/section>/g)) {
-      const h2 = (m[2].match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [, ""])[1];
+    for (const m of src.matchAll(/<section\b[^>]*\bid="cap-(\d+)"[^>]*>([\s\S]*?)<\/section>/g)) {
+      // titolo del capitolo: l'etichetta «N · Titolo» sopra l'h2 se c'è (template .sec-head), altrimenti l'h2
+      const h2 = (m[2].match(/<span class="eyebrow">([\s\S]*?)<\/span>/) || m[2].match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [, ""])[1];
       chapters[m[1]] = { title: htmlToText(h2).replace(/^\d+\s*·\s*/, ""), text: htmlToText(m[2]) };
     }
     for (const q of ex.questions) for (const n of q.chapters) if (!chapters[n]) errors.push(`exams/${ex.slug}.json · ${q.id}: capitolo ${n} non trovato (serve <section id="cap-${n}"> nella guida)`);
