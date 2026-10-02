@@ -3,6 +3,11 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-02
+- **Encoder, decoder, esperti** (`architetture-llm`) v1.2: Rimando alla guida sull'inferenza per il ciclo di generazione e la cache KV
+- **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.2: Allucinazione e grounding nel RAG; prompt caching del provider distinto dalla cache del gateway; prefill e decode nel TTFT; inferenza tra le letture consigliate
+- **Da Assistente ad Agente** (`assistente-agente`) v1.5: Nuova sottosezione sul prompt con laboratorio; JSON valido con structured outputs e decodifica vincolata; rimando alla guida sull'inferenza
+- **Anatomia del Training LLM** (`training-llm`) v1.10: Nuove sottosezioni: backpropagation e regola della catena con laboratorio; basi di RL e reward model (Bradley-Terry) prima di DPO; glossario con scaling laws e benchmark
+- **Dentro l'inferenza** (`inferenza-llm`) v1.0: Prima versione: ciclo di generazione, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching e PagedAttention, decodifica speculativa, output strutturato
 - **Neural Network Driving** (`neural-network-driving`) v1.1: Revisione: modello a bicicletta (il raggio non dipende dalla velocità), crossover a un punto, discesa del gradiente e apprendimento supervisionato; letture consigliate in testa
 - **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.1: Revisione: nota e callout della cache coerenti con il laboratorio, temperatura e determinismo, laboratorio RRF, scala di Landis e Koch, durata del test con utenti; letture consigliate in testa; rimandi alle guide sugli agenti e sul training
 - **Da Assistente ad Agente** (`assistente-agente`) v1.4: Revisione: correzioni di italiano e acronimi, descrizione dei tool, callout sull'accumulo degli errori; letture consigliate in testa; rimando all'ingegneria dei sistemi LLM per budget, ripresa ed evals

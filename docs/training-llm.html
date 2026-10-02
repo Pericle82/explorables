@@ -100,6 +100,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
 .callout b{font-weight:600}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid2>*{min-width:0}
 @media (max-width:760px){.grid2{grid-template-columns:1fr}}
 .readout{display:flex;flex-wrap:wrap;gap:22px}
 .readout div{display:flex;flex-direction:column}
@@ -230,7 +231,7 @@ table.mt tr.dim td{color:var(--muted)}
 .stepper button.done{color:var(--ink)}
 .stepper button.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 .stepper button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:760px){.stepper{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:760px){.stepper{grid-template-columns:repeat(4,minmax(0,1fr))}.stepper button{overflow-wrap:anywhere}}
 .phase{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px;min-height:220px}
 .phase h4{margin:0;font-family:var(--serif);font-size:1.15rem;font-weight:650}
 .seqrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:36px 1fr;gap:8px;align-items:center;padding:4px 6px;border-radius:6px;border:1px solid transparent}
@@ -623,7 +624,7 @@ table.mt tr.dim td{color:var(--muted)}
   </div>
 
   <!-- LOOP + GD -->
-  <h3 class="anchor">Il ciclo di uno step, e il learning rate</h3>
+  <h3 id="c-step" class="anchor">Il ciclo di uno step, e il learning rate</h3>
   <div class="lab">
     <div class="loop">
       <div class="box hot"><em>1 · forward pass</em><b>Previsione</b><span>Il batch attraversa la rete; per ogni posizione esce un logit per ogni token del vocabolario.</span></div>
@@ -646,13 +647,77 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="gdMsg"></p>
   </div>
 
+  <!-- BACKPROPAGATION -->
+  <h3 id="c-backprop" class="anchor">Backpropagation e regola della catena: da dove vengono i gradienti</h3>
+  <div class="prose stack">
+    <p>Il laboratorio qui sopra aveva un solo peso e una loss di cui si conosce la derivata a memoria. Un LLM ha miliardi di pesi distribuiti su decine di strati, e la loss dipende da ciascuno solo <i>attraverso</i> tutti gli strati che vengono dopo. La <b data-noxref>backpropagation</b> (retropropagazione) è il modo di calcolare tutti quei gradienti in un colpo solo. L'intuizione: alla fine della catena c'è un errore, e la «colpa» di quell'errore viene distribuita <b>all'indietro</b>, strato per strato. Ogni strato riceve dal successivo quanto ha pesato la sua uscita sull'errore, ne prende la sua parte e passa il resto allo strato precedente.</p>
+    <p><b>Derivata, in una riga.</b> La derivata di f rispetto a w è la <b>pendenza</b>: se sposti w di un pochino ε, f cambia di circa (derivata × ε). Positiva vuol dire che aumentando w la loss sale, quindi il peso va abbassato.</p>
+    <p><b>Regola della catena.</b> Se la loss dipende da w solo attraverso una grandezza intermedia h, le pendenze si moltiplicano: <span class="k">∂L/∂w = ∂L/∂h · ∂h/∂w</span>. Come un ingranaggio: se h gira 3 volte più veloce di w, e L 2 volte più veloce di h, allora L gira 6 volte più veloce di w. Con tanti strati in fila si moltiplicano tanti fattori, uno per strato.</p>
+    <p><b>Una rete minuscola a due strati.</b> Un ingresso x, un primo peso w₁, una non linearità tanh, un secondo peso w₂, un'uscita ŷ confrontata con l'obiettivo y:</p>
+  </div>
+  <div class="formula">z = w₁·x    h = tanh(z)    ŷ = w₂·h    L = ½ (ŷ − y)²</div>
+  <div class="grid2">
+    <div class="stack">
+      <div class="diag-title">Forward: da x alla loss (x = 1, w₁ = 0,5, w₂ = 0,5, y = 1)</div>
+      <div class="calc">
+        <div class="eq">z = w₁·x = 0,5 × 1 <strong>0,500</strong></div>
+        <div class="eq">h = tanh(0,5) <strong>0,462</strong></div>
+        <div class="eq">ŷ = w₂·h = 0,5 × 0,462 <strong>0,231</strong></div>
+        <div class="eq">L = ½ (0,231 − 1)² <strong>0,296</strong></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="diag-title">Backward: dalla loss ai pesi, un fattore per strato</div>
+      <div class="calc">
+        <div class="eq">∂L/∂ŷ = ŷ − y <strong>−0,769</strong></div>
+        <div class="eq">∂L/∂w₂ = ∂L/∂ŷ · h <strong>−0,355</strong></div>
+        <div class="eq">∂L/∂h = ∂L/∂ŷ · w₂ <strong>−0,384</strong></div>
+        <div class="eq">∂L/∂z = ∂L/∂h · (1 − h²) = −0,384 × 0,786 <strong>−0,302</strong></div>
+        <div class="eq">∂L/∂w₁ = ∂L/∂z · x <strong>−0,302</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Entrambi i gradienti sono negativi: alzare w₁ e w₂ avvicina ŷ a y. Il passo di discesa w ← w − η · ∂L/∂w lo fa per tutti e due insieme. Nota che il backward riparte <b>da ∂L/∂ŷ</b> e lo riusa: il gradiente di w₁ non si ricalcola da zero, si ottiene da quello già pronto per lo strato sopra. È questo che rende la <span data-noxref>backpropagation</span> economica: costa circa quanto due forward pass, qualunque sia il numero di pesi.</p>
+    <p><b>Perché il training consuma tanta memoria.</b> Il backward usa i valori del forward: h per ∂L/∂w₂, (1 − h²) per passare attraverso tanh, x per ∂L/∂w₁. Per questo durante il training si tengono in memoria le <b>attivazioni</b> di tutti gli strati, per ogni token del batch, finché il backward non le ha consumate. In inferenza non serve: ogni strato può buttare via il suo ingresso appena ha prodotto l'uscita. Quando la memoria non basta si usa il <i>gradient checkpointing</i>: si salvano solo alcune attivazioni e le altre si ricalcolano durante il backward, scambiando calcolo con memoria.</p>
+    <p><b>Gradienti che svaniscono o esplodono.</b> Con decine di strati il gradiente di un peso in basso è un prodotto di decine di fattori: se sono quasi tutti sotto 1 (per esempio una tanh saturata, dove 1 − h² ≈ 0) il prodotto svanisce e i primi strati non imparano; se sono sopra 1 esplode. Le due soluzioni sono quelle viste nella sottosezione sugli strati: la <b>connessione residua</b> (uscita = ingresso + contributo) dà al gradiente una strada diretta, senza moltiplicazioni, fino agli strati più bassi, e la <b>normalizzazione</b> tiene le attivazioni su una scala in cui i fattori restano vicini a 1.</p>
+    <p>Non tutte le reti si allenano così. Nella guida sull'auto che impara a guidare i pesi si trovano senza calcolare nessun gradiente, per neuroevoluzione: funziona con 82 pesi, ma con miliardi di pesi la <span data-noxref>backpropagation</span> è l'unica strada praticabile.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: forward, backward e uno step su una rete a due strati</h3><span class="tag">matematica reale</span></div>
+    <p>Muovi x, w₁, w₂ e y e guarda come cambiano i due gradienti; poi premi «Fai uno step» più volte e osserva la loss scendere.</p>
+    <div class="controls">
+      <div class="ctl"><label for="bpX">Ingresso x <output id="bpXo"></output></label><input id="bpX" type="range" min="-2" max="2" step="0.05" value="1"></div>
+      <div class="ctl"><label for="bpW1">Peso w₁ <output id="bpW1o"></output></label><input id="bpW1" type="range" min="-3" max="3" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="bpW2">Peso w₂ <output id="bpW2o"></output></label><input id="bpW2" type="range" min="-3" max="3" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="bpY">Obiettivo y <output id="bpYo"></output></label><input id="bpY" type="range" min="-1.5" max="1.5" step="0.05" value="1"></div>
+      <div class="ctl"><label for="bpLr">Learning rate η <output id="bpLro"></output></label><input id="bpLr" type="range" min="0.05" max="2" step="0.05" value="0.5"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="bpStep">Fai uno step</button>
+      <button class="btn ghost" id="bpStep10">Fai 10 step</button>
+      <button class="btn ghost" id="bpReset">Ricomincia</button>
+    </div>
+    <div class="grid2">
+      <div class="stack"><div class="diag-title">Forward</div><div class="calc" id="bpFwd"></div></div>
+      <div class="stack"><div class="diag-title">Backward (regola della catena)</div><div class="calc" id="bpBwd"></div></div>
+    </div>
+    <div class="readout" id="bpStats"></div>
+    <div><div class="diag-title">Loss per step</div><svg id="bpChart" class="chart" style="max-width:640px" viewBox="0 0 460 180" role="img" aria-label="Loss della rete a due strati per step"></svg></div>
+    <p class="callout" id="bpMsg"></p>
+    <p class="note">La «verifica numerica» ricalcola ogni gradiente come (L(w + ε) − L(w − ε)) / 2ε con ε = 0,0001, spostando davvero il peso e rifacendo il forward: è il controllo che si usa per verificare un'implementazione della backpropagation. Una rete vera fa le stesse moltiplicazioni con matrici al posto dei singoli numeri.</p>
+  </div>
+
   <!-- glossary -->
-  <h3 class="anchor">Glossario dei termini che ritornano</h3>
+  <h3 id="c-gloss" class="anchor">Glossario dei termini che ritornano</h3>
   <dl class="gloss">
+    <div><dt>Backpropagation (retropropagazione)</dt><dd>L'algoritmo che calcola il gradiente della loss rispetto a ogni peso applicando la regola della catena all'indietro, dall'uscita verso l'ingresso, e riusando i valori salvati nel forward pass.</dd><span class="ex">backward ≈ 2 × il costo del forward</span></div>
     <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e dei loro quadrati (una stima della varianza). Costa circa 2 copie extra dei pesi in memoria.</dd><span class="ex">standard di fatto per gli LLM</span></div>
     <div><dt>Perplexity (perplessità)</dt><dd>È e elevato alla loss: quanti token equiprobabili il modello "sta considerando" in media. Perplexity 1 vuol dire certezza assoluta, 6 vuol dire tirare un dado a sei facce.</dd><span class="ex">metrica classica del pre-training</span></div>
     <div><dt>Checkpoint</dt><dd>Un salvataggio dei pesi (e dello stato dell'ottimizzatore) a un certo step. Si riparte da lì se il training diverge.</dd></div>
     <div><dt>Train / validation</dt><dd>Si misura la loss anche su dati mai visti. Se la loss di training scende ma quella di validazione sale, c'è <b>overfitting</b> (sovradattamento): il modello memorizza invece di generalizzare.</dd></div>
+    <div><dt>Scaling laws (leggi di scala)</dt><dd>Relazioni empiriche tra loss, numero di parametri, token di training e calcolo: la loss scende in modo regolare (una legge di potenza) quando crescono. Servono a scegliere, dato un budget di calcolo, quanto grande fare il modello e quanti token dargli: secondo Chinchilla (Hoffmann et al., 2022) circa 20 token per parametro; oggi molti modelli ne vedono molti di più, perché un modello più piccolo costa meno da usare.</dd><span class="ex">calcolo ≈ 6 × parametri × token</span></div>
+    <div><dt>Benchmark</dt><dd>Una raccolta fissa di domande con risposta nota (matematica, codice, conoscenze) con cui si confrontano i modelli finiti. La loss dice quanto il modello prevede bene il testo, un benchmark se sa fare un compito. Limite: se le domande finiscono nei dati di training (<i>contaminazione</i>), il punteggio sale senza che il modello sia migliorato.</dd><span class="ex">MMLU, GSM8K, SWE-bench</span></div>
     <div><dt>Full fine-tuning vs LoRA</dt><dd>Il primo aggiorna tutti i pesi. LoRA (Low-Rank Adaptation, adattamento a basso rango) congela il modello e allena piccole matrici aggiuntive: meno memoria, risultati spesso simili.</dd></div>
     <div><dt>Base model / modello di riferimento</dt><dd>Il base model esce dal pre-training. Nel post-training si tiene una copia congelata (reference) per misurare quanto il modello nuovo se ne allontana.</dd></div>
     <div><dt>Divergenza KL</dt><dd>La KL (Kullback-Leibler) misura quanto due distribuzioni di probabilità differiscono. Nel post-training fa da "guinzaglio": impedisce al modello di allontanarsi troppo dal riferimento.</dd></div>
@@ -798,6 +863,42 @@ table.mt tr.dim td{color:var(--muted)}
     <p>Invece di una sola risposta ideale, il dataset contiene <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). "Policy" è il nome del modello nel linguaggio dell'RL (Reinforcement Learning, apprendimento per rinforzo): la regola che, dato un contesto, sceglie l'azione (il token successivo).</p>
   </div>
 
+  <h3 id="rl-base" class="anchor">Prima di DPO: le basi dell'RL e il reward model</h3>
+  <div class="prose stack">
+    <p>DPO nasce come scorciatoia di un metodo di RL, quindi conviene vedere prima che cosa scavalca. L'idea di fondo è quella dell'addestramento di un cane: non gli si mostra il movimento giusto, gli si dà un premio quando fa qualcosa di meglio del solito.</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Policy π</dt><dd>Il modello che si allena. Dato il prompt e i token scritti finora (lo <i>stato</i>), assegna una probabilità a ogni token possibile.</dd><span class="ex">π(y | x) = probabilità della risposta y al prompt x</span></div>
+    <div><dt>Azione</dt><dd>Ogni token generato è un'azione; la risposta intera è una sequenza di azioni. La sua log-probabilità è la somma delle log-probabilità dei token.</dd><span class="ex">log π(y | x) = Σ log π(token | prima)</span></div>
+    <div><dt>Reward r</dt><dd>Un numero che valuta la risposta completa, assegnato alla fine: da un reward model, da un verificatore o da una persona.</dd><span class="ex">r = 0,8 per una risposta utile</span></div>
+    <div><dt>Baseline e vantaggio</dt><dd>La baseline b è il reward che ci si <b>aspetta</b> in media per quel prompt. Il vantaggio è A = r − b: positivo se la risposta è andata meglio del solito, negativo se peggio.</dd><span class="ex">r = 0,8, b = 0,5 → A = +0,3</span></div>
+  </dl>
+  <div class="prose stack">
+    <p><b>Policy gradient.</b> L'obiettivo è massimizzare il reward medio. Il gradiente che lo fa (REINFORCE, Williams 1992) ha una forma semplice: per ogni risposta campionata si sposta il modello nella direzione <span class="k">A · ∇ log π(y | x)</span>. In parole: si <b>alza la log-probabilità delle risposte con vantaggio positivo</b> e si abbassa quella delle risposte con vantaggio negativo, tanto più quanto il vantaggio è grande. Sottrarre la baseline non cambia la direzione in media, ma riduce di molto il rumore: senza, un premio di 0,8 alzerebbe la probabilità anche di una risposta peggiore del solito. In PPO (Proximal Policy Optimization) la baseline la stima un secondo modello, il <i>critic</i>; in GRPO (fase 4) è la media del gruppo.</p>
+    <p><b>Il reward model.</b> Per stile e utilità non esiste un verificatore, e chiedere a una persona un voto assoluto («7 su 10») dà numeri incoerenti. È molto più affidabile chiedere quale di due risposte è migliore. Il reward model è una copia dell'LLM con un'uscita sola, un punteggio r(x, y), e si addestra sulle coppie preferita/scartata con il modello di <b>Bradley-Terry</b>: la probabilità che la preferita c batta la scartata r dipende solo dalla differenza dei punteggi.</p>
+  </div>
+  <div class="formula">P(c ≻ r) = σ(r<sub>c</sub> − r<sub>r</sub>)    σ(z) = 1 / (1 + e<sup>−z</sup>)    loss = −log σ(r<sub>c</sub> − r<sub>r</sub>)</div>
+  <div class="prose stack">
+    <p>La <b>sigmoide</b> σ schiaccia qualsiasi numero tra 0 e 1: σ(0) = 0,5, σ(2) ≈ 0,88, σ(−2) ≈ 0,12. La loss è una cross-entropy su una scelta tra due: è bassa quando il reward model dà alla preferita un punteggio molto più alto della scartata.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il reward model su una coppia</h3><span class="tag">matematica reale</span></div>
+    <p>Sposta i due punteggi e osserva la probabilità di Bradley-Terry e la loss; poi prova ad alzarli entrambi della stessa quantità.</p>
+    <div class="controls">
+      <div class="ctl"><label for="rmC">Punteggio della preferita r<sub>c</sub> <output id="rmCo"></output></label><input id="rmC" type="range" min="-4" max="4" step="0.1" value="1"></div>
+      <div class="ctl"><label for="rmR">Punteggio della scartata r<sub>r</sub> <output id="rmRo"></output></label><input id="rmR" type="range" min="-4" max="4" step="0.1" value="0.5"></div>
+    </div>
+    <div class="barrow"><span>P(preferita ≻ scartata)</span><div class="track"><div class="fill" id="rmFill"></div></div><span class="v" id="rmPv"></span></div>
+    <div class="readout" id="rmStats"></div>
+    <p class="formula" id="rmF"></p>
+    <p class="callout" id="rmMsg"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>Perché DPO può fare a meno del reward model.</b> RLHF (Reinforcement Learning from Human Feedback) ottimizza la policy per avere reward alto senza allontanarsi troppo dal modello di riferimento π<sub>ref</sub> (un vincolo di KL, Kullback-Leibler, con peso β). Quel problema ha una soluzione esatta: la policy migliore è π<sub>ref</sub> ripesato per e<sup>r/β</sup>. Rovesciando la formula, ogni reward si può scrivere come <span class="k">r(x, y) = β · log[π(y | x) / π<sub>ref</sub>(y | x)] + un termine che dipende solo dal prompt</span>. Inserito in Bradley-Terry, quel termine si cancella nella differenza r<sub>c</sub> − r<sub>r</sub>, perché il prompt è lo stesso. Resta una loss che contiene solo la policy e il riferimento: è esattamente la formula di DPO qui sotto, dove β · log(π / π<sub>ref</sub>) fa la parte del punteggio (il «reward implicito»). Il reward model c'è ancora, ma è il modello stesso.</p>
+  </div>
+
+  <h3 id="dpo-loss" class="anchor">La loss di DPO sulle coppie</h3>
+
   <div class="lab">
     <div class="lab-head"><h3>Perché "direct": cosa elimina rispetto a RLHF</h3></div>
     <div class="stack">
@@ -855,7 +956,7 @@ table.mt tr.dim td{color:var(--muted)}
   <div class="prose stack">
     <p>Sono due idee diverse che lavorano insieme:</p>
     <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e più difficile da "truccare" (reward hacking) rispetto a un reward model, anche se non impossibile: un codice può superare test scritti male senza essere corretto.</p>
-    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è il suo reward confrontato con la media del gruppo: sopra la media viene rinforzata, sotto viene scoraggiata.</p>
+    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è, come nelle basi di RL della fase 3, reward meno baseline; qui la baseline è la <b>media dei reward del gruppo</b>, e la differenza viene divisa per la deviazione standard del gruppo per avere vantaggi sulla stessa scala da un prompt all'altro. Una risposta sopra la media ha vantaggio positivo e viene rinforzata (si alza la sua log-probabilità), una sotto la media viene scoraggiata. Non serve un critic che stimi la baseline: la stima la fanno le altre risposte dello stesso gruppo.</p>
   </div>
 
   <div class="lab">
@@ -944,7 +1045,7 @@ table.mt tr.dim td{color:var(--muted)}
   <p class="prose note">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, oppure usano OPD al posto dell'RL per i modelli piccoli.</p>
 </section>
 
-<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La formula di DPO, il calcolo dei vantaggi in GRPO, l'algoritmo BPE e il training dal vivo usano invece la matematica reale.</footer>
+<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La backpropagation sulla rete a due strati, il modello di Bradley-Terry del reward model, la formula di DPO, il calcolo dei vantaggi in GRPO, l'algoritmo BPE e il training dal vivo usano invece la matematica reale.</footer>
 </div>
 
 <script>
@@ -1045,6 +1146,20 @@ function drawDPO(){const b=+beta.value,c=+dc.value,r=+dr.value;
 }
 [dc,dr,beta].forEach(i=>i.addEventListener("input",drawDPO));
 
+/* ---------- 3a. basi di RL: reward model di Bradley-Terry ---------- */
+const rmC=$("#rmC"),rmR=$("#rmR");
+function drawRM(){const c=+rmC.value,r=+rmR.value,d=c-r,P=sig(d),loss=Math.log1p(Math.exp(-d)),g=1-P;
+  $("#rmCo").textContent=c.toFixed(1);$("#rmRo").textContent=r.toFixed(1);
+  $("#rmFill").style.width=(P*100).toFixed(1)+"%";$("#rmPv").textContent=(P*100).toFixed(1)+"%";
+  $("#rmStats").innerHTML=`<div><small>differenza r<sub>c</sub> − r<sub>r</sub></small><strong>${d.toFixed(2)}</strong></div><div><small>σ(r<sub>c</sub> − r<sub>r</sub>)</small><strong>${P.toFixed(3)}</strong></div><div><small>loss = −log σ</small><strong>${loss.toFixed(3)}</strong></div><div><small>spinta su r<sub>c</sub> = 1 − σ</small><strong>${g.toFixed(3)}</strong></div>`;
+  $("#rmF").innerHTML=`σ(${c.toFixed(1).replace("-","−")} − (${r.toFixed(1).replace("-","−")})) = 1 / (1 + e<sup>${(d>0?"−":"")+Math.abs(d).toFixed(2)}</sup>) = <b>${P.toFixed(3)}</b>     −log ${P.toFixed(3)} = <b>${loss.toFixed(3)}</b>`;
+  const m=$("#rmMsg");
+  if(d<-.05)m.innerHTML=`<b>Il reward model sbaglia:</b> dà più punti alla risposta scartata. La loss (${loss.toFixed(2)}) è alta e il gradiente spinge con forza ${g.toFixed(2)}: r<sub>c</sub> verrà alzato e r<sub>r</sub> abbassato della stessa quantità.`;
+  else if(d<.05)m.innerHTML=`<b>Indeciso:</b> punteggi uguali danno σ(0) = 0,5 e loss = log 2 ≈ 0,693, qualunque sia il valore dei punteggi. Conta solo la differenza: prova ad alzarli entrambi, la loss non cambia. Per questo i reward di un reward model non hanno uno zero assoluto.`;
+  else if(d<2.5)m.innerHTML=`<b>Ordine giusto, ma margine piccolo:</b> P = ${P.toFixed(2)}. Il training continua ad allargare la differenza, con una spinta 1 − σ = ${g.toFixed(2)} che si riduce man mano che la coppia viene separata.`;
+  else m.innerHTML=`<b>Coppia già risolta:</b> P = ${P.toFixed(3)}, la loss è quasi zero e la spinta (${g.toFixed(3)}) anche. Come in DPO, gli esempi già classificati bene smettono di contare e il training si concentra su quelli sbagliati.`;}
+[rmC,rmR].forEach(i=>i.addEventListener("input",drawRM));
+
 /* ---------- 4. GRPO ---------- */
 const gn=$("#gn");let p0=.3,p=.3,hist=[[0,.3]],group=null;
 seg("#gdiff",v=>{p0=+v;reset();});
@@ -1132,6 +1247,42 @@ function drawGD(){const eta=+gdLr.value,N=+gdN.value;$("#gdLro").textContent=eta
   else if(eta<.15)m.innerHTML=`<b>Troppo lento:</b> passi minuscoli, dopo ${N} step siamo ancora lontani (loss ${last[1].toFixed(3)}). Con un LLM significherebbe settimane di GPU (Graphics Processing Unit) sprecate.`;
   else m.innerHTML=`<b>Buon learning rate:</b> la loss scende in modo regolare fino a ${last[1].toFixed(4)}. Negli LLM si parte alti (dopo il warm-up) e si riduce η verso la fine, per "assestarsi" nel minimo.`;}
 [gdLr,gdN].forEach(i=>i.addEventListener("input",drawGD));
+
+/* ---------- backpropagation su x → w1 → tanh → w2 → ŷ ---------- */
+const bpX=$("#bpX"),bpW1=$("#bpW1"),bpW2=$("#bpW2"),bpY=$("#bpY"),bpLr=$("#bpLr");
+const bp={w1:.5,w2:.5,hist:[]};
+const bpClamp=v=>Math.max(-3,Math.min(3,v));
+function bpFwd(x,w1,w2,y){const z=w1*x,h=Math.tanh(z),yh=w2*h;return{z,h,yh,L:.5*(yh-y)**2};}
+function bpGrad(x,w1,w2,y){const f=bpFwd(x,w1,w2,y);const dy=f.yh-y,g2=dy*f.h,dh=dy*w2,dt=1-f.h*f.h,dz=dh*dt,g1=dz*x;return{...f,dy,g2,dh,dt,dz,g1};}
+const bpN=v=>(v<0?"−":"")+Math.abs(v).toFixed(3);
+function drawBP(){const x=+bpX.value,y=+bpY.value,eta=+bpLr.value,{w1,w2}=bp;
+  $("#bpXo").textContent=x.toFixed(2);$("#bpYo").textContent=y.toFixed(2);$("#bpLro").textContent=eta.toFixed(2);
+  $("#bpW1o").textContent=w1.toFixed(3);$("#bpW2o").textContent=w2.toFixed(3);bpW1.value=w1;bpW2.value=w2;
+  const g=bpGrad(x,w1,w2,y),e=1e-4;
+  const n1=(bpFwd(x,w1+e,w2,y).L-bpFwd(x,w1-e,w2,y).L)/(2*e),n2=(bpFwd(x,w1,w2+e,y).L-bpFwd(x,w1,w2-e,y).L)/(2*e);
+  $("#bpFwd").innerHTML=`<div class="eq">z = w₁·x = ${bpN(w1)} × ${bpN(x)} <strong>${bpN(g.z)}</strong></div><div class="eq">h = tanh(z) <strong>${bpN(g.h)}</strong></div><div class="eq">ŷ = w₂·h = ${bpN(w2)} × ${bpN(g.h)} <strong>${bpN(g.yh)}</strong></div><div class="eq">L = ½ (ŷ − y)² = ½ (${bpN(g.yh)} − ${bpN(y)})² <strong>${g.L.toFixed(4)}</strong></div>`;
+  $("#bpBwd").innerHTML=`<div class="eq">∂L/∂ŷ = ŷ − y <strong>${bpN(g.dy)}</strong></div><div class="eq">∂L/∂w₂ = ∂L/∂ŷ · h <strong>${bpN(g.g2)}</strong></div><div class="eq">∂L/∂h = ∂L/∂ŷ · w₂ <strong>${bpN(g.dh)}</strong></div><div class="eq">∂L/∂z = ∂L/∂h · (1 − h²) = ${bpN(g.dh)} × ${g.dt.toFixed(3)} <strong>${bpN(g.dz)}</strong></div><div class="eq">∂L/∂w₁ = ∂L/∂z · x <strong>${bpN(g.g1)}</strong></div>`;
+  $("#bpStats").innerHTML=`<div><small>loss</small><strong>${g.L.toFixed(4)}</strong></div><div><small>verifica numerica ∂L/∂w₂</small><strong>${bpN(n2)}</strong></div><div><small>verifica numerica ∂L/∂w₁</small><strong>${bpN(n1)}</strong></div><div><small>step eseguiti</small><strong>${Math.max(0,bp.hist.length-1)}</strong></div>`;
+  const H=bp.hist.length?bp.hist:[[0,g.L]];const yM=Math.max(.05,...H.map(p=>p[1]))*1.1;const xM=Math.max(10,H.length-1);
+  const k=lineChart($("#bpChart"),{H:180,xs:[0,xM],series:[{pts:H,color:css("--accent"),area:true}],yMax:yM,xTicks:[0,xM],yTicks:[0,yM/2,yM].map(v=>+v.toPrecision(2)),xFmt:v=>v,yFmt:v=>v,xLabel:"step"});
+  H.forEach(p=>el("circle",{cx:k.X(p[0]),cy:k.Y(Math.min(yM,p[1])),r:3,fill:css("--accent")},$("#bpChart")));
+  const m=$("#bpMsg"),last=bp.hist.length>1?bp.hist[bp.hist.length-2][1]:null;
+  if(g.L<1e-4)m.innerHTML=`<b>Obiettivo raggiunto:</b> ŷ ≈ y e la loss è quasi zero, quindi anche ∂L/∂ŷ e tutti i gradienti che ne derivano sono quasi zero: i pesi smettono di muoversi da soli.`;
+  else if(last!==null&&g.L>last)m.innerHTML=`<b>La loss è salita:</b> con η = ${eta.toFixed(2)} il passo è troppo lungo e scavalca il minimo, come nel laboratorio sulla discesa del gradiente. Abbassa il learning rate.`;
+  else if(Math.abs(x)<.05)m.innerHTML=`<b>Con x = 0 il primo peso non riceve gradiente:</b> ∂L/∂w₁ = ∂L/∂z · x = 0. Il peso w₁ non ha avuto alcun effetto sull'uscita, quindi non ha nessuna «colpa» da ricevere.`;
+  else if(g.dt<.1)m.innerHTML=`<b>tanh saturata:</b> |z| è grande, il fattore 1 − h² vale solo ${g.dt.toFixed(3)} e il gradiente che arriva a w₁ (${bpN(g.g1)}) è molto più piccolo di quello di w₂ (${bpN(g.g2)}). È il gradiente che svanisce, in miniatura: con decine di strati questi fattori si moltiplicano.`;
+  else m.innerHTML=`<b>Regola della catena al lavoro:</b> ∂L/∂w₁ = (ŷ − y) · w₂ · (1 − h²) · x, cioè ${bpN(g.dy)} × ${bpN(w2)} × ${g.dt.toFixed(3)} × ${bpN(x)} = ${bpN(g.g1)}. Il backward riusa ∂L/∂ŷ e i valori h e x salvati nel forward, e la verifica numerica conferma il risultato. Premi «Fai uno step»: ogni peso si sposta di −η × il suo gradiente.`;}
+function bpStep(n){const x=+bpX.value,y=+bpY.value,eta=+bpLr.value;
+  if(!bp.hist.length)bp.hist.push([0,bpFwd(x,bp.w1,bp.w2,y).L]);
+  for(let i=0;i<n;i++){const g=bpGrad(x,bp.w1,bp.w2,y);bp.w1=bpClamp(bp.w1-eta*g.g1);bp.w2=bpClamp(bp.w2-eta*g.g2);bp.hist.push([bp.hist.length,bpFwd(x,bp.w1,bp.w2,y).L]);}
+  drawBP();}
+function bpRestart(){bp.hist=[];drawBP();}
+$("#bpStep").onclick=()=>bpStep(1);$("#bpStep10").onclick=()=>bpStep(10);
+$("#bpReset").onclick=()=>{bp.w1=.5;bp.w2=.5;bpX.value=1;bpY.value=1;bpLr.value=.5;bpRestart();};
+bpW1.addEventListener("input",()=>{bp.w1=+bpW1.value;bpRestart();});
+bpW2.addEventListener("input",()=>{bp.w2=+bpW2.value;bpRestart();});
+[bpX,bpY].forEach(i=>i.addEventListener("input",bpRestart));
+bpLr.addEventListener("input",drawBP);
 
 /* ---------- dataset mix & formats ---------- */
 (function(){const mix=[["Web",55,"--accent"],["Codice",20,"--good"],["Matematica e scienza",10,"--warn"],["Libri e articoli",8,"--muted"],["Multilingue e altro",7,"--line"]];
@@ -1362,10 +1513,10 @@ let attSel=4;
 function drawAtt(){const s=$("#attSent");s.innerHTML="";ATT_T.forEach((t,i)=>{const b=document.createElement("button");b.className="tok"+(i===attSel?" sel resp":"");b.textContent=t;b.onclick=()=>{attSel=i;drawAtt();};s.appendChild(b);});
   $("#attBars").innerHTML=ATT_W[attSel].map((w,j)=>`<div class="barrow"><span>«${ATT_T[attSel]}» → «${ATT_T[j]}»${j===attSel?" (sé stesso)":""}</span><div class="track"><div class="fill" style="width:${w*100}%"></div></div><span class="v">${Math.round(w*100)}%</span></div>`).join("")+(attSel<ATT_T.length-1?`<p class="muted" style="font-size:.82rem">I token successivi (${ATT_T.slice(attSel+1).map(t=>"«"+t+"»").join(", ")}) sono esclusi dalla causal mask.</p>`:"");
   $("#attMsg").innerHTML=ATT_M[attSel];}
-function drawBase(){drawDP();drawOH();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+function drawBase(){drawDP();drawOH();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();drawBP();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
 
 /* init */
-function all(){drawBase();drawLR();drawSFT();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
+function all(){drawBase();drawLR();drawSFT();drawRM();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
 all();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",all);
 new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
@@ -1388,15 +1539,18 @@ window.XREF_CONFIG={
     {re:"BPE",to:"#c-token"},{re:"tokenizer",to:"#c-token",flags:"i"},
     {re:"embedding",to:"#c-emb",flags:"i"},
     {re:"cross-entropy",to:"#c-loss",flags:"i"},{re:"softmax",to:"#c-loss",flags:"i"},{re:"logit",to:"#c-loss",flags:"i"},
-    {re:"learning rate",to:"#c-step",flags:"i"},{re:"gradient descent",to:"#c-step",flags:"i"},{re:"backpropagation",to:"#c-step",flags:"i"},
+    {re:"learning rate",to:"#c-step",flags:"i"},{re:"gradient descent",to:"#c-step",flags:"i"},{re:"backpropagation",to:"#c-backprop",flags:"i"},
+    {re:"sottosezione sugli strati",to:"#c-layer",flags:"i",first:false},
+    {re:"basi di RL della fase 3",to:"#rl-base",flags:"i",first:false},
+    {re:"guida sull'auto che impara a guidare",to:"https://pericle82.github.io/explorables/neural-network-driving/#s4",k:"Altra guida",t:"Neural Network Driving · L'addestramento: neuroevoluzione",body:"<p>Una rete da 82 pesi impara a guidare un'auto in pista senza nessun gradiente: si valutano molte reti, si selezionano le migliori, si ricombinano e si mutano i loro pesi, generazione dopo generazione.</p>",flags:"i",first:false},
     {re:"warm-up",to:"#pre",flags:"i"},
     {re:"attention",to:"#c-layer",flags:"i"},{re:"MLP",to:"#c-layer"},{re:"strat[oi]",to:"#c-layer",flags:"i"},
     {re:"RoPE",to:"#c-emb"},
     {re:"dataset",to:"#c-dataset",flags:"i"},
     {re:"pre-training",to:"#pre",flags:"i"},{re:"token",to:"#c-token",flags:"i"},{re:"loss",to:"#c-loss",flags:"i"},{re:"pesi",to:"#c-pesi",flags:"i"}
   ],
-  gloss:{selector:"dl.gloss",skip:["Scalare","Vettore","Matrice","Esempio (una previsione)","Esempio","Sequenza","Matrice × vettore","Matrice × matrice","Funzione non lineare","Train","validation","Reward","Policy","Batch di token","Base model","modello di riferimento"],
-    extra:{"Vettore one-hot":["one-hot"],"Divergenza KL":["KL"],"Full fine-tuning vs LoRA":["LoRA"],"Norma e similarità coseno":["similarità coseno"],"Prodotto scalare (dot product)":["prodotto scalare"]}}
+  gloss:{selector:"dl.gloss",skip:["Scalare","Vettore","Matrice","Esempio (una previsione)","Esempio","Sequenza","Matrice × vettore","Matrice × matrice","Funzione non lineare","Train","validation","Reward","Policy","Batch di token","Base model","modello di riferimento","Azione","Policy π","Reward r"],
+    extra:{"Vettore one-hot":["one-hot"],"Divergenza KL":["KL"],"Full fine-tuning vs LoRA":["LoRA"],"Norma e similarità coseno":["similarità coseno"],"Prodotto scalare (dot product)":["prodotto scalare"],"Baseline e vantaggio":["baseline"]}}
 };
 </script>
 <!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->

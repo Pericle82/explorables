@@ -338,7 +338,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <li class="hot"><span><b>La maschera di attenzione.</b> In BERT ogni token guarda tutti; in GPT ogni token guarda solo sé stesso e i token <em>precedenti</em>. È una maschera causale: la matrice «chi vede chi» è un triangolo.</span></li>
     <li><span><b>L'obiettivo.</b> BERT indovina il 15% di token coperti; GPT prevede il token successivo in <em>ogni</em> posizione. Con la stessa frase, GPT riceve un segnale di errore da quasi tutti i token, BERT da circa uno su sette.</span></li>
     <li><span><b>L'uscita.</b> BERT restituisce vettori su cui si monta una testa per il compito; GPT restituisce una distribuzione di probabilità sul vocabolario per il token successivo.</span></li>
-    <li><span><b>L'inferenza.</b> BERT fa una passata sola sulla frase intera; GPT genera un token, lo aggiunge all'ingresso e ripete, riusando i calcoli già fatti per i token precedenti (la cache KV, key-value).</span></li>
+    <li><span><b>L'inferenza.</b> BERT fa una passata sola sulla frase intera; GPT genera un token, lo aggiunge all'ingresso e ripete, riusando i calcoli già fatti per i token precedenti (la cache KV, key-value). Come funziona quel ciclo, quanta memoria occupa la cache e perché la risposta costa più della domanda è il tema della guida sull'inferenza.</span></li>
   </ol></div>
 
   <div class="lab">
@@ -770,6 +770,7 @@ window.XREF_CONFIG={
   skip:".lab,.cards,",
   ids:[],
   rules:[
+    {re:"guida sull'inferenza",to:"https://pericle82.github.io/explorables/inferenza-llm/",k:"Altra guida",t:"Dentro l'inferenza",body:"<p>Generazione token per token, campionamento, cache KV, prefill e decode, batching, decodifica speculativa e output strutturato.</p>",flags:"i",first:false},
     {re:"capitolo sugli strati della guida sul training",to:"https://pericle82.github.io/explorables/training-llm/#c-layer",k:"Altra guida",t:"Anatomia del Training LLM · Gli strati",body:"<p>Attention con query, key e value, MLP, connessione residua e normalizzazione, con il conto dei 7 miliardi di pesi di Llama 2 7B.</p>",flags:"i",first:false},
     {re:"capitolo 1",to:"#cap-1",flags:"i",first:false},
     {re:"capitolo 2",to:"#cap-2",flags:"i",first:false},

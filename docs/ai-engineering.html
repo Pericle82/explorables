@@ -163,6 +163,7 @@ html{scroll-behavior:smooth}
     <ul>
       <li><a href="https://pericle82.github.io/explorables/assistente-agente/#tools">Da assistente ad agente · Tools e ciclo dell'agente</a> <span>— function calling, structured output e ciclo pensa-agisci-osserva: la sezione 3 parte da lì per costruire il runtime.</span></li>
       <li><a href="https://pericle82.github.io/explorables/training-llm/#c-token">Anatomia del Training LLM · Token, embedding e temperatura</a> <span>— costi e budget si contano in token, la cache semantica e il RAG usano gli embedding, la cache esatta dipende dalla temperatura.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/inferenza-llm/#cap-4">Dentro l'inferenza · Prefill e decode</a> <span>— perché TTFT, latenza e costo dipendono dai token in ingresso e in uscita, e che cos'è il prompt caching: la sezione 1 misura proprio questi numeri.</span></li>
       <li><a href="https://pericle82.github.io/explorables/transazioni/#cap-3">Quando il COMMIT non basta più · WAL e recovery</a> <span>— l'esecuzione durevole della sezione 3 riusa le stesse idee: log scritto prima, ripresa dall'ultimo passo registrato.</span></li>
     </ul>
   </aside>
@@ -243,12 +244,13 @@ html{scroll-behavior:smooth}
 
   <h3 id="s1-percentili" class="anchor">La media mente: p50, p95, p99</h3>
   <div class="prose stack">
-    <p>Se dieci richieste durano 200 ms e una dura 6 secondi, la media dice 730 ms e non descrive nessuna delle undici. I <b>percentili</b> descrivono tutte: il <b>p50</b> (mediana) è il tempo sotto cui cade metà delle richieste, il <b>p95</b> quello sotto cui ne cade il 95 %, il <b>p99</b> il 99 %. Il p50 racconta l'utente tipico; il p95 gli utenti sfortunati, che sono tanti se hai molto traffico; il p99 le code: retry, breaker che si apre, provider lento a partire. Per lo streaming si misura a parte il <b>TTFT</b> (Time To First Token): il tempo fino al primo token è ciò che l'utente percepisce come «sta rispondendo».</p>
+    <p>Se dieci richieste durano 200 ms e una dura 6 secondi, la media dice 730 ms e non descrive nessuna delle undici. I <b>percentili</b> descrivono tutte: il <b>p50</b> (mediana) è il tempo sotto cui cade metà delle richieste, il <b>p95</b> quello sotto cui ne cade il 95 %, il <b>p99</b> il 99 %. Il p50 racconta l'utente tipico; il p95 gli utenti sfortunati, che sono tanti se hai molto traffico; il p99 le code: retry, breaker che si apre, provider lento a partire. Per lo streaming si misura a parte il <b>TTFT</b> (Time To First Token): il tempo fino al primo token è ciò che l'utente percepisce come «sta rispondendo». Una parte del TTFT non dipende dalla rete: prima di emettere il primo token il modello deve elaborare tutto il prompt in ingresso (la fase di <em>prefill</em>), quindi il TTFT cresce con la lunghezza del contesto, mentre il resto della risposta arriva un token alla volta (la fase di <em>decode</em>). Perché le due fasi si comportano in modo così diverso, e perché i token in uscita costano più di quelli in ingresso, lo spiega la guida sull'inferenza.</p>
   </div>
 
   <h3 id="s1-cache" class="anchor">Due cache, due promesse diverse</h3>
   <div class="prose stack">
     <p>La <b>cache esatta</b> riusa la risposta se la richiesta è identica byte per byte dopo normalizzazione (stesso modello, stessi messaggi, stessa temperatura): la chiave è un hash. È coerente con ciò che l'API (Application Programming Interface) offre solo a temperatura zero: con temperatura maggiore di zero ogni chiamata campiona una risposta potenzialmente diversa, mentre la cache restituisce sempre la stessa (e anche a temperatura zero molti provider non garantiscono un output identico byte per byte). La <b>cache semantica</b> riusa la risposta se la nuova domanda è <em>abbastanza simile</em> a una già vista: si calcola l'embedding dell'ultimo messaggio e si cerca il più vicino per similarità coseno sopra una soglia. È qui che sta il compromesso che vale un ADR (Architecture Decision Record): una soglia bassa aumenta gli hit ma riusa risposte non pertinenti (<b>falsi positivi</b>), una soglia alta riduce entrambi. I falsi positivi non compaiono in nessuna metrica automatica: si contano a mano su un campione di hit, e chi non li misura non sa quanto la cache sta sbagliando.</p>
+    <p>Nessuna delle due va confusa con il <b>prompt caching</b> del provider. Le cache del gateway riusano una <em>risposta</em> e il modello non viene chiamato; il prompt caching invece riusa il lavoro già fatto su un <em>prefisso</em> identico tra una richiesta e l'altra (system prompt, definizioni dei tool, documenti fissi): il modello genera comunque una risposta nuova, ma il TTFT scende e i token in ingresso letti dalla cache sono fatturati a una frazione del prezzo pieno (alcuni provider fanno pagare un sovrapprezzo alla prima scrittura). Funziona solo se il prefisso è identico byte per byte, quindi conviene mettere in testa al prompt ciò che non cambia e in coda ciò che cambia.</p>
   </div>
 
   <div class="lab">
@@ -355,6 +357,7 @@ html{scroll-behavior:smooth}
   <h3 id="s2-nontrovato" class="anchor">Citazioni verificate e «non ho trovato la risposta»</h3>
   <div class="prose stack">
     <p>Due dettagli separano un RAG dimostrativo da uno affidabile. Le <b>citazioni</b>: il modello risponde in structured output con l'elenco degli id dei chunk usati, e un passo deterministico controlla che ogni id esista nel contesto passato e che il testo citato sia contenuto nel chunk; una citazione inventata è un errore misurabile, non un dettaglio di presentazione. Il <b>«non trovato»</b>: due segnali combinati, il punteggio massimo di retrieval sotto una soglia calibrata e il campo <code>found: false</code> nello structured output; il benchmark include domande senza risposta nel corpus proprio per misurare quante volte il sistema inventa invece di ammettere.</p>
+    <p>Entrambi i controlli contengono un difetto che ha un nome preciso: l'<b>allucinazione</b>, una risposta plausibile, scritta con sicurezza, ma non supportata da nessuna fonte. Non è un guasto occasionale: il modello genera il testo più probabile dato il contesto, non un testo verificato, e una frase inventata può essere probabile quanto una vera. Il rimedio del RAG si chiama <b>grounding</b> (ancoraggio al contesto): ogni affermazione della risposta deve essere supportata dai chunk recuperati, e la proprietà che lo misura è la <b>fedeltà</b> (<em>faithfulness</em>). Si misura in due modi complementari: le citazioni verificabili descritte sopra, controllate da codice, e un giudice LLM (Large Language Model) che scompone la risposta in affermazioni e per ciascuna dice se il contesto la sostiene. È lo stesso giudice della sezione 5, e va calibrato allo stesso modo prima di fidarsi del suo punteggio. Fedeltà e correttezza non coincidono: una risposta può essere fedele a un chunk sbagliato o superato, e quello è un errore di retrieval, non di generazione.</p>
   </div>
 
   <dl class="gloss">
@@ -363,6 +366,8 @@ html{scroll-behavior:smooth}
     <div><dt>RRF</dt><dd>Reciprocal Rank Fusion: fusione di più classifiche sommando 1/(k+rank); non richiede di normalizzare i punteggi.</dd><span class="ex">k = 60</span></div>
     <div><dt>Reranking</dt><dd>Riordino dei primi candidati con un cross-encoder che legge domanda e chunk insieme.</dd><span class="ex">top 20–50, poi top n</span></div>
     <div><dt>HyDE</dt><dd>Hypothetical Document Embeddings: si cerca con l'embedding di una risposta ipotetica scritta dal modello, spesso più vicina ai documenti della domanda stessa.</dd><span class="ex">componente opzionale, da misurare in ablation</span></div>
+    <div><dt>Allucinazione</dt><dd>Risposta plausibile e sicura ma non supportata dalle fonti: il modello genera il testo probabile, non quello verificato.</dd><span class="ex">una citazione a un chunk che non esiste</span></div>
+    <div><dt>Grounding (ancoraggio al contesto)</dt><dd>Ogni affermazione della risposta è supportata dal contesto recuperato; si misura come fedeltà (faithfulness) con citazioni verificate e un giudice calibrato.</dd><span class="ex">affermazioni supportate / affermazioni totali</span></div>
     <div><dt>Porta VectorStore</dt><dd>Interfaccia (<code>Protocol</code>) con upsert, search, delete, count; tre adapter (pgvector, Qdrant, FAISS) passano la stessa suite di test di contratto.</dd><span class="ex">architettura esagonale</span></div>
   </dl>
 </section>
@@ -837,6 +842,7 @@ window.XREF_CONFIG={
   rules:[
     {re:"temperatura",to:"https://pericle82.github.io/explorables/training-llm/#c-loss",k:"Altra guida",t:"Anatomia del Training LLM · La loss",body:"<p>Logit, softmax e temperatura: con temperatura zero si sceglie sempre il token più probabile, sopra zero si campiona.</p>",flags:"i"},
     {re:"guida sugli agenti",to:"https://pericle82.github.io/explorables/assistente-agente/#agente",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Function calling, il ciclo pensa-agisci-osserva, workflow contro agente, rischi e controlli.</p>",flags:"i",first:false},
+    {re:"guida sull'inferenza",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-4",k:"Altra guida",t:"Dentro l'inferenza · Prefill e decode",body:"<p>Perché il primo token arriva dopo il prefill, perché i token in uscita costano di più, e come il provider riusa un prefisso già elaborato.</p>",flags:"i",first:false},
     {re:"sezione 0",to:"#s0",flags:"i",first:false},
     {re:"sezione 1",to:"#s1",flags:"i",first:false},
     {re:"sezione 2",to:"#s2",flags:"i",first:false},
@@ -870,7 +876,7 @@ window.XREF_CONFIG={
     {re:"POSTMORTEM\\.md",to:"#s6-design"},
     {re:"guida sulle transazioni",to:"https://pericle82.github.io/explorables/transazioni/",k:"Altra guida",t:"Quando il COMMIT non basta più",body:"<p>Transazioni, ACID, WAL e recovery, isolamento, lock, saga e outbox: la persistenza su cui poggiano memoria e stato durevole.</p>",flags:"i",first:false},
     {re:"guida sui database vettoriali",to:"https://pericle82.github.io/explorables/transazioni/#cap-16",k:"Altra guida",t:"Le altre famiglie di database",body:"<p>Redis, documentali, wide-column e vettoriali: embedding, distanze, indici ANN e il confine transazionale di ciascuna famiglia.</p>",flags:"i",first:false},
-    {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
+    {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/#json-valido",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
   ],
   gloss:{selector:"dl.gloss",skip:["Budget","Falso positivo"],extra:{"Percentile":["percentili"],"Kappa di Cohen":["kappa"],"RRF":["Reciprocal Rank Fusion"],"MCP":["Model Context Protocol"]}}
 };
