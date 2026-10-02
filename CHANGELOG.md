@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-02
+- **Anatomia del Training LLM** (`training-llm`) v1.11: Richiamo di algebra approfondito: vettori e residual stream, prodotto scalare e √d_k, norma e alte dimensioni, matrici come trasformazioni, shape e FLOP, non linearità, basso rango e LoRA; sette laboratori a matematica reale
 - **Encoder, decoder, esperti** (`architetture-llm`) v1.2: Rimando alla guida sull'inferenza per il ciclo di generazione e la cache KV
 - **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.2: Allucinazione e grounding nel RAG; prompt caching del provider distinto dalla cache del gateway; prefill e decode nel TTFT; inferenza tra le letture consigliate
 - **Da Assistente ad Agente** (`assistente-agente`) v1.5: Nuova sottosezione sul prompt con laboratorio; JSON valido con structured outputs e decodifica vincolata; rimando alla guida sull'inferenza
