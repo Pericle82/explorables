@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.10",
+      "version": "1.11",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.11",
+          "date": "2026-10-02",
+          "notes": "Richiamo di algebra approfondito: vettori e residual stream, prodotto scalare e √d_k, norma e alte dimensioni, matrici come trasformazioni, shape e FLOP, non linearità, basso rango e LoRA; sette laboratori a matematica reale"
+        },
         {
           "version": "1.10",
           "date": "2026-10-02",
