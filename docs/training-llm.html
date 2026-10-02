@@ -320,6 +320,26 @@ table.mt tr.dim td{color:var(--muted)}
 .zt-card li.mut{color:var(--muted);font-style:italic}
 @media (max-width:760px){.zt-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:460px){.zt-cards{grid-template-columns:1fr}}
+.z-svg .z-acc{stroke:var(--accent);fill:none;stroke-linecap:round}
+.z-svg .z-accf{fill:var(--accent)}
+.z-svg .z-pct{fill:var(--accent);font-weight:600;font-size:13.5px;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.z-svg .z-off{fill:var(--surface);stroke:var(--line);stroke-width:1.2;stroke-dasharray:4 3}
+.z-svg .z-offt{fill:var(--muted);opacity:.7}
+.za-axes{font-size:.88rem;color:var(--muted);margin:0}
+.za-q{font-size:.92rem;padding:8px 12px;background:var(--surface-2);border-radius:6px}
+.za-q .mono{font-family:var(--mono);font-size:.86rem}
+.za-rows{display:flex;flex-direction:column;gap:6px}
+.za-row{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(70px,150px) 46px;gap:10px;align-items:center;font-size:.86rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.za-row.me{border-color:var(--accent)}
+.za-row.off{color:var(--muted);border-style:dashed;opacity:.75}
+.za-row .t{font-family:var(--mono);font-weight:600}
+.za-row .c{min-width:0}
+.za-row .c .mono{font-family:var(--mono);font-size:.82rem}
+.za-row .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.za-row .track{display:block;height:12px}
+.za-mix{font-size:.92rem;line-height:1.5;padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 6px 6px 0}
+.za-mix ul{margin:4px 0 0;padding-left:18px}
+@media (max-width:560px){.za-row{grid-template-columns:minmax(0,1fr) 46px;grid-template-areas:"t v" "c c" "b b";row-gap:4px}.za-row .t{grid-area:t}.za-row .v{grid-area:v}.za-row .c{grid-area:c}.za-row .track{grid-area:b}}
 </style>
 
 <div class="wrap">
@@ -388,7 +408,7 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- DA ZERO -->
   <h3 id="c-zero" class="anchor">Da zero: neuroni, reti, token, senza formule</h3>
   <div class="prose stack">
-    <p>Questa sottosezione è il punto di partenza per chi non ha mai visto una rete neurale. Non ci sono formule: solo moltiplicazioni e somme con numeri piccoli. Cinque idee, una alla volta, ognuna con un esempio da provare: un neurone, una rete, come impara, come le parole diventano numeri e perché la frase entra tutta insieme.</p>
+    <p>Questa sottosezione è il punto di partenza per chi non ha mai visto una rete neurale. Non ci sono formule: solo moltiplicazioni e somme con numeri piccoli. Sei idee, una alla volta, ognuna con un esempio da provare: un neurone, una rete, come impara, come le parole diventano numeri, perché la frase entra tutta insieme e che cosa succede alle schede dentro la rete.</p>
   </div>
 
   <h4 class="z-h">1 · Un neurone è un piccolo votante</h4>
@@ -530,7 +550,7 @@ table.mt tr.dim td{color:var(--muted)}
   <div class="prose stack">
     <p>Prova a indovinare la parola dopo «Il gatto dorme sul ___». Se ti dicessi solo «sul», potresti rispondere tavolo, treno, muro, qualsiasi cosa. Sono «gatto» e «dorme» a farti pensare a divano o letto. Per indovinare bene serve tutta la frase, non solo l'ultima parola.</p>
     <p>Un modello linguistico fa così. Immagina quattro persone in fila, una per parola: «Il», «gatto», «dorme», «sul». Ognuna tiene in mano la scheda della sua parola, come un foglio di appunti. Si procede a <b>giri</b>. A ogni giro ognuna può leggere le schede di chi le sta davanti nella fila e aggiungere alla propria quello che ha capito. Non può guardare dietro di sé: le parole che vengono dopo non le conosce ancora.</p>
-    <p>Giro dopo giro le schede si riempiono di contesto. Alla fine si guarda solo la scheda dell'ultima persona, quella di «sul»: ormai sa che chi dorme è un gatto, e la usa per dire quali parole sono probabili subito dopo. In un modello vero i giri sono 32.</p>
+    <p>Giro dopo giro le schede si riempiono di contesto. Alla fine si guarda solo la scheda dell'ultima persona, quella di «sul»: ormai sa che chi dorme è un gatto, e la usa per dire quali parole sono probabili subito dopo. In un modello vero i giri sono 32. Che cosa vuol dire, in concreto, che una scheda «entra» nella rete e come fa a «leggere» le altre lo spiega il punto 6, subito dopo il laboratorio.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: quattro schede, giro dopo giro</h3><span class="tag">simulazione</span></div>
@@ -549,6 +569,71 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="ztMsg" aria-live="polite"></p>
     <p class="note">Le schede qui sono scritte a parole perché si possano leggere; in un modello vero sono 4.096 numeri, e nessuno sa dire con precisione che cosa vuol dire ciascuno. Le percentuali sono inventate ma plausibili. Tre giri stanno al posto dei 32 di un modello da 7 miliardi di pesi; e in un modello vero la previsione si fa solo dopo l'ultimo giro: qui la mostriamo a ogni giro per vedere come migliora.</p>
   </div>
+  <h4 class="z-h" id="c-zero-6">6 · Dentro la rete: cosa vuol dire entrare e come si parlano le schede</h4>
+  <div class="prose stack">
+    <p>Il punto 5 ha raccontato le schede che entrano nella rete tutte insieme e si leggono a vicenda. Restano tre domande: che cosa c'entra il numero 4.096 con «7 miliardi di pesi», che cosa vuol dire, in pratica, che una scheda «entra» nella rete, e come fanno le schede a scambiarsi informazioni. Una alla volta.</p>
+    <p><b>4.096 e 7 miliardi sono due cose diverse.</b> 4.096 è quanti numeri ha la scheda di <i>un</i> token: è la scheda del punto 4, con 4.096 numeri invece di 2. 7 miliardi (si scrive «7B», dall'inglese <i>billion</i>, miliardo) è quanti pesi ha la rete intera. Un peso è una manopola fissa: lo spessore di una freccia, come nel neurone dell'ombrello. La scheda cambia a ogni frase; i pesi, finito l'allenamento, restano sempre gli stessi.</p>
+    <p>I due numeri però sono legati. Ricorda la rete 3 → 2 → 1 del punto 2: ognuno dei 3 ingressi era collegato a ognuno dei 2 neuroni di mezzo, quindi 3 × 2 = 6 frecce, e ognuno dei 2 neuroni di mezzo era collegato all'uscita, altre 2 × 1 = 2 frecce. Un peso per ogni coppia ingresso-uscita.</p>
+  </div>
+  <div class="vx vx-formula">ombrello: 3 × 2 + 2 × 1 <span class="op">=</span> 8 pesi<br>scheda → scheda: 4.096 × 4.096<br><span class="op">=</span> 16.777.216 pesi <small>Per trasformare una scheda da 4.096 numeri in un'altra scheda da 4.096 numeri serve un peso per ogni coppia ingresso-uscita: circa 16,8 milioni di pesi. Si scrivono tutti in una tabella con 4.096 righe e 4.096 colonne.</small></div>
+  <div class="prose stack">
+    <p>Una rete come Llama 2 7B è fatta di tabelle di questo tipo, ripetute tante volte. In ogni strato (il «giro» del punto 5) ci sono quattro tabelle 4.096 × 4.096, che servono alle schede per parlarsi, e tre tabelle più larghe, 4.096 × 11.008, che servono a ogni scheda per ragionare da sola: due allargano la scheda a 11.008 numeri, la terza la riporta a 4.096. Gli strati sono 32. In più ci sono due tabelle legate al vocabolario di 32.000 token: una dà a ogni token la sua scheda all'ingresso, l'altra alla fine trasforma l'ultima scheda in un punteggio per ogni token possibile. Il conto completo:</p>
+  </div>
+  <div class="vx vx-formula">4 × 4.096 × 4.096 <span class="op">≈</span> 67,1 milioni<br>+ 3 × 4.096 × 11.008 <span class="op">≈</span> 135,3 milioni<br>uno strato <span class="op">≈</span> 202,4 milioni<br>× 32 strati <span class="op">≈</span> 6,48 miliardi<br>+ 2 × 32.000 × 4.096 <span class="op">≈</span> 262 milioni<br>totale <span class="op">≈</span> 6,74 miliardi <span class="op">→</span> «7B» <small>Le prime due righe sono le tabelle di uno strato (per parlarsi e per ragionare da sola); 2 × 32.000 × 4.096 sono le due tabelle del vocabolario. Mancano solo circa 266.000 pesi di regolazione (le normalizzazioni), troppo pochi per cambiare il totale. Più del 95% dei pesi sta negli strati.</small></div>
+  <div class="prose stack">
+    <p>Se vuoi vedere lo stesso conto riga per riga, con i nomi tecnici delle tabelle, c'è la tabella «Dove sono i 7 miliardi di pesi» nella sottosezione sugli strati. È facoltativa: per andare avanti basta l'idea che i pesi sono tanti perché le schede sono larghe e gli strati sono molti.</p>
+
+    <p><b>Che cosa vuol dire «entrare».</b> La rete non è un oggetto con dei buchi in cui infilare le schede. È una lunga sequenza di calcoli, una ricetta scritta una volta per tutte: moltiplica per questa tabella di pesi, somma, applica la piega «mai sotto 0», passa alla tabella successiva. «Entrare nella rete» vuol dire che i numeri della scheda diventano i numeri di partenza di questi calcoli.</p>
+    <p>Nella rete dell'ombrello l'ingresso erano 3 numeri: nuvole, pioggia, vento. Ognuno veniva moltiplicato per il suo peso e poi si sommava. Qui l'ingresso sono i 4.096 numeri della scheda di un token, moltiplicati per i pesi delle tabelle del primo strato. Il conto è lo stesso, solo molto più lungo.</p>
+    <p>Ogni scheda passa per gli <b>stessi pesi</b>. La ricetta non cambia da un token all'altro: la scheda di «Il» e quella di «sul» vengono moltiplicate per le stesse tabelle, come lo stesso neurone dell'ombrello usato il lunedì e il martedì con il tempo di quel giorno. Per questo il numero dei pesi non dipende dalla lunghezza della frase: con 4 token o con 4.000 la rete ha sempre 6,74 miliardi di pesi.</p>
+    <p>«Tutti insieme» vuol dire che le schede vengono calcolate <b>nello stesso momento</b>, in parallelo, non una dopo l'altra. Immagina quattro calcolatrici uguali, una per scheda, che fanno lo stesso conto nello stesso istante. I processori su cui girano questi modelli, le GPU (Graphics Processing Unit, processori grafici), sono costruiti proprio per fare migliaia di conti uguali contemporaneamente.</p>
+    <p>Ma se ogni scheda facesse i suoi conti da sola, nessuna saprebbe niente delle altre, e «sul» non scoprirebbe mai che chi dorme è un gatto. Per questo ogni strato ha due momenti: prima le schede si parlano, poi ognuna ragiona da sola.</p>
+  </div>
+  <div class="vx">
+    <p class="vx-cap">Che cosa succede in uno strato</p>
+    <div class="vx-flow" aria-label="I due momenti di uno strato">
+      <div class="vx-node"><b>Entrano 4 schede</b> <small>una per token, 4.096 numeri ciascuna</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node acc"><b>1 · Le schede si parlano</b> <small>ogni scheda raccoglie qualcosa dalle schede alla sua sinistra: è l'unico momento in cui passa informazione da un token all'altro</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node acc"><b>2 · Ogni scheda ragiona da sola</b> <small>ogni scheda passa, per conto suo, in una piccola rete come quella dell'ombrello, ma larga: da 4.096 a 11.008 numeri e di nuovo a 4.096</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node"><b>Escono 4 schede</b> <small>sempre da 4.096 numeri, ma più ricche di contesto</small></div>
+      <div class="vx-down">↓ <small>e si ricomincia: 32 strati in tutto, ognuno con le sue tabelle di pesi</small></div>
+      <div class="vx-node code">Le schede escono con la stessa forma con cui sono entrate: per questo l'uscita di uno strato può entrare nel successivo.</div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><b>Come si parlano le schede: l'attenzione.</b> Nel punto 5 abbiamo detto che ogni persona «legge le schede di chi le sta davanti». Ma non le legge tutte allo stesso modo: ascolta di più chi ha qualcosa di utile per lei. Il meccanismo che decide quanto ascoltare chi si chiama <b>attenzione</b>.</p>
+    <p>Pensa a una riunione. Ognuno ha in testa una domanda, porta un cartellino che dice di che cosa si occupa, e ha qualcosa da raccontare. Tu leggi i cartellini degli altri: se un cartellino risponde alla tua domanda, ascolti molto quello che ha da dire quella persona; se non c'entra, la ascolti poco.</p>
+    <p>Ogni token fa lo stesso. Dalla sua scheda ricava, con tre delle quattro tabelle di pesi dello strato, tre liste di numeri più corte: una <b>domanda</b> («che cosa cerco»), un'<b>etichetta</b> («che cosa offro») e un <b>contenuto</b> («che cosa passo a chi mi ascolta»).</p>
+    <p>Poi il token confronta la sua domanda con le etichette dei token alla sua sinistra, lui compreso. Il confronto è il conto del neurone: moltiplica i numeri a coppie e somma. Per esempio, se la domanda di «sul» è [2 ; 2,3] e l'etichetta di «dorme» è [0 ; 1], il punteggio è 2 × 0 + 2,3 × 1 = 2,3. Più la domanda e l'etichetta «vanno d'accordo», più il punteggio è alto.</p>
+  </div>
+  <div class="vx vx-formula">punteggio <span class="op">=</span> domanda · etichetta<br>[2 ; 2,3] · [0 ; 1] <span class="op">=</span> 2 × 0 + 2,3 × 1 <span class="op">=</span> 2,3 <small>Si moltiplicano i numeri nella stessa posizione e si sommano i risultati. Questo conto si chiama prodotto scalare.</small></div>
+  <div class="prose stack">
+    <p>Poi i punteggi diventano percentuali che sommano a 100: il punteggio più alto prende la fetta più grande, e anche un punteggio 0 prende una fetta piccola. Infine il token aggiunge alla sua scheda un miscuglio dei contenuti, in quelle proporzioni: se «sul» dà il 49% a «dorme», metà di quello che riceve viene dal contenuto di «dorme». La quarta tabella dello strato riporta il miscuglio alla forma di una scheda da 4.096 numeri.</p>
+  </div>
+  <div class="vx vx-formula">si aggiunge alla scheda di «sul»:<br>49% × contenuto di «dorme»<br>+ 36% × contenuto di «gatto»<br>+ 10% × contenuto di «sul»<br>+ 5% × contenuto di «Il» <small>Le percentuali sono quelle del laboratorio qui sotto, dove puoi vedere da dove escono.</small></div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: chi ascolta chi</h3><span class="tag">valori illustrativi</span></div>
+    <p>Scegli quale parola ascolta e guarda quali punteggi dà alle etichette, quali percentuali ne escono e che cosa entra nella sua scheda.</p>
+    <div class="row">
+      <span class="diag-title">Chi ascolta</span>
+      <div class="seg" id="zaWho" role="group" aria-label="Quale parola ascolta"><button aria-pressed="false" data-v="0">Il</button><button aria-pressed="false" data-v="1">gatto</button><button aria-pressed="false" data-v="2">dorme</button><button aria-pressed="true" data-v="3">sul</button></div>
+    </div>
+    <p class="za-axes">Domande ed etichette qui hanno due numeri: il primo vuol dire <b>«chi agisce»</b>, il secondo <b>«un'azione o un posto»</b>.</p>
+    <div class="za-q" id="zaQ"></div>
+    <svg id="zaSvg" class="chart z-svg" viewBox="0 0 400 172" style="max-width:560px;margin:0 auto" role="img" aria-label="Quattro parole in fila: frecce di spessore proporzionale a quanto la parola scelta ascolta ciascuna"></svg>
+    <p class="vx-sr" id="zaSr"></p>
+    <div class="za-rows" id="zaRows"></div>
+    <div class="za-mix" id="zaMix"></div>
+    <p class="callout" id="zaMsg" aria-live="polite"></p>
+    <p class="note">I numeri sono inventati, scelti perché il risultato sia sensato; i conti però sono veri: i punteggi sono prodotti scalari e le percentuali escono davvero dai punteggi (per i curiosi: ogni punteggio s diventa e<sup>s</sup>, cioè 2,718 moltiplicato per sé stesso s volte, e poi si divide per il totale). Nei modelli veri domande ed etichette hanno 128 numeri, senza nome; in ogni strato ci sono 32 «teste» che fanno questo conto nello stesso momento, ognuna con domande ed etichette diverse (una può cercare chi agisce, un'altra la parola precedente); e tutto si ripete nei 32 strati.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Poi ognuna ragiona da sola.</b> Dopo aver raccolto il miscuglio, ogni scheda passa, per conto suo, in una piccola rete fatta come quella dell'ombrello: moltiplica, somma, applica la piega «mai sotto 0», ma con 11.008 neuroni nel mezzo invece di 2. Qui le schede non si parlano: ognuna elabora quello che ha appena raccolto. Si pensa che in questi pesi stia buona parte di quello che il modello «sa» sui fatti del mondo.</p>
+    <p><b>Mettendo tutto insieme.</b> Un giro del punto 5 è uno strato: le schede si parlano con l'attenzione, poi ognuna ragiona da sola. Dopo 32 strati la scheda di «sul» contiene il contesto di tutta la frase, e da quella sola scheda si calcolano le percentuali della parola successiva.</p>
+  </div>
   <div class="prose stack">
     <p><b>Come si chiamano queste cose nel resto della guida.</b> Da qui in poi le stesse idee tornano con il loro nome tecnico. Questa tabella fa da ponte.</p>
   </div>
@@ -558,12 +643,17 @@ table.mt tr.dim td{color:var(--muted)}
       <tbody>
         <tr><td>pezzo di testo</td><td><b>token</b> · <a href="#c-token">Token e BPE</a></td></tr>
         <tr><td>scheda di numeri di un token</td><td><b>embedding</b> (un vettore) · <a href="#c-emb">Embedding</a></td></tr>
-        <tr><td>quanto conta un ingresso, spessore della freccia</td><td><b>peso</b> (parametro) · <a href="#c-pesi">I pesi</a></td></tr>
+        <tr><td>quanto conta un ingresso, spessore della freccia, manopola</td><td><b>peso</b> (parametro) · <a href="#c-pesi">I pesi</a></td></tr>
         <tr><td>neurone, nodo</td><td><b>neurone</b> o unità · <a href="#c-backprop">Backpropagation</a> (una rete a due strati)</td></tr>
         <tr><td>«mai sotto 0»: la piega del regolatore</td><td><b>funzione non lineare</b> (ReLU) · <a href="#c-alg-nonlin">Non linearità</a></td></tr>
         <tr><td>giro</td><td><b>strato</b> (layer, blocco) · <a href="#c-layer">Gli strati</a></td></tr>
-        <tr><td>leggere le schede di chi sta davanti</td><td><b>attention</b> (con maschera causale) · <a href="#c-layer">Gli strati</a></td></tr>
-        <tr><td>le percentuali finali</td><td><b>softmax</b> e distribuzione di probabilità · <a href="#c-loss">La loss</a></td></tr>
+        <tr><td>tabella di pesi (4.096 × 4.096)</td><td><b>matrice</b> di pesi · <a href="#c-alg-mat">Una matrice è una trasformazione</a></td></tr>
+        <tr><td>«le schede si parlano», l'attenzione</td><td><b>attention</b> (self-attention) · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>leggere solo le schede di chi sta davanti, a sinistra</td><td><b>maschera causale</b> (causal mask) · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>domanda, etichetta, contenuto</td><td><b>query</b>, <b>key</b>, <b>value</b> · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>confrontare domanda ed etichetta: moltiplicare a coppie e sommare</td><td><b>prodotto scalare</b> · <a href="#c-alg-dot">Prodotto scalare</a></td></tr>
+        <tr><td>«ognuna ragiona da sola»</td><td><b>MLP</b> (Multi-Layer Perceptron, percettrone multistrato) · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>i punteggi che diventano percentuali</td><td><b>softmax</b> e distribuzione di probabilità · <a href="#c-loss">La loss</a></td></tr>
         <tr><td>quanto la risposta è sbagliata</td><td><b>loss</b> · <a href="#c-loss">La loss</a></td></tr>
         <tr><td>spostare un poco ogni peso</td><td><b>step</b> di discesa del gradiente · <a href="#c-step">Il ciclo di uno step</a></td></tr>
       </tbody>
@@ -599,8 +689,8 @@ table.mt tr.dim td{color:var(--muted)}
     <p><b>Come leggere lo schema, passo per passo.</b></p>
     <ol class="steps">
       <li><b>Token.</b> Il modello non legge lettere né parole intere, ma <i>token</i>: pezzi di testo presi da un vocabolario fisso, a volte parole intere, a volte pezzi di parola. Ogni token ha un numero d'ordine, il suo ID. Come si costruisce il vocabolario lo spiega la sottosezione sui token.</li>
-      <li><b>Una scheda di numeri per token.</b> È la scheda della sottosezione «Da zero», ma con d numeri senza nome invece di due. Il modello tiene una tabella con una riga per ogni token del vocabolario, e per ogni token del testo legge la sua riga: questa lista di numeri si chiama <b>embedding</b>. In un 7B d = 4.096. Attenzione: d è la larghezza della scheda di ogni token, non «la dimensione della rete». La rete intera contiene circa 7 miliardi di numeri, i pesi, e la tabella delle schede ne è solo una piccola parte.</li>
-      <li><b>Entra tutta la sequenza.</b> Entrano tutte e quattro le schede, una per posizione, come le quattro persone in fila: è «dorme» a rendere «divano» e «letto» più probabili di «tavolo».</li>
+      <li><b>Una scheda di numeri per token.</b> È la scheda della sottosezione «Da zero», ma con d numeri senza nome invece di due. Il modello tiene una tabella con una riga per ogni token del vocabolario, e per ogni token del testo legge la sua riga: questa lista di numeri si chiama <b>embedding</b>. In un 7B d = 4.096. Attenzione: d è la larghezza della scheda di ogni token, non «la dimensione della rete». La rete intera contiene circa 7 miliardi di numeri, i pesi, e la tabella delle schede ne è solo una piccola parte: il conto completo è nel punto 6 della sottosezione «Da zero».</li>
+      <li><b>Entra tutta la sequenza.</b> Entrano tutte e quattro le schede, una per posizione, come le quattro persone in fila, e passano per gli stessi pesi nello stesso momento: è «dorme» a rendere «divano» e «letto» più probabili di «tavolo».</li>
       <li><b>Tanti strati uguali.</b> Sono i giri: le schede attraversano N strati impilati, 32 in un 7B. Ogni strato fa due cose: prima i token si scambiano informazioni (la scheda di «sul» legge quelle di «gatto» e «dorme», mai quelle dei token successivi), poi ogni scheda viene rielaborata per conto suo. Da ogni strato esce di nuovo una scheda di d numeri per token, così l'uscita di uno strato può entrare nel successivo.</li>
       <li><b>Un punteggio per ogni token possibile.</b> Dopo l'ultimo strato si prende la scheda dell'ultima posizione e si calcola un punteggio per ciascuno dei V token del vocabolario (V = 32.000 in Llama 2). Una funzione chiamata <b>softmax</b> trasforma i punteggi in probabilità, numeri positivi che sommano a 100%. L'uscita del modello è quindi una <b>distribuzione di probabilità</b> su tutti i token, non direttamente il token cercato.</li>
       <li><b>Scegliere e ripetere.</b> Si sceglie un token da quella distribuzione: il più probabile, oppure uno estratto a caso rispettando le probabilità. Lo si aggiunge al testo e si ripete tutto con un token in più. Un testo lungo si genera così, un token alla volta.</li>
@@ -1358,7 +1448,7 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="note">Un blocco ha in realtà molte "teste" di attention in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
   </div>
   <div class="lab">
-    <div class="lab-head"><h3>Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
+    <div class="lab-head"><h3 id="lab-7b">Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
     <div class="scroll-x"><table class="gtable">
       <tr><th>Componente</th><th>Matrici</th><th>Pesi</th></tr>
       <tr><td>Embedding E</td><td class="mono">32.000 × 4.096</td><td class="mono">131 milioni</td></tr>
@@ -2844,7 +2934,76 @@ function drawZT(){
 $("ztGo").addEventListener("click",()=>{if(ztR<3){ztR++;drawZT();}});
 $("ztReset").addEventListener("click",()=>{ztR=0;drawZT();});
 
-drawZN();drawZR();drawZW();drawZT();
+/* ===== 6 · chi ascolta chi (attenzione) ===== */
+const ZA_W=["Il","gatto","dorme","sul"];
+/* due numeri: [chi agisce ; un'azione o un posto] */
+const ZA_K=[[0,0],[1,0],[0,1],[0,0.3]];
+const ZA_Q=[[0.5,0.5],[0.5,0],[2.5,0.5],[2,2.3]];
+const ZA_V=["articolo maschile: arriva qualcosa di preciso","un gatto, un animale","riposare, stare fermo","su + il: un posto, poi un nome maschile"];
+const ZA_QD=["non serve: non c'è nessuno a sinistra","cerca poco: un pizzico di «chi agisce»","cerca soprattutto chi agisce","cerca un'azione o un posto, e anche chi agisce"];
+const ZA_M=[
+  `<b>«Il» è il primo: non ha nessuno alla sua sinistra.</b> L'unica etichetta che può leggere è la sua, quindi prende il 100% da sé stesso, qualunque sia il punteggio. In questo strato la sua scheda non impara niente dalle altre. «gatto», «dorme» e «sul» ci sono già, ma vengono dopo: guardarli sarebbe come sbirciare il futuro.`,
+  `<b>«gatto» cerca poco.</b> La sua domanda è piccola, [0,5 ; 0]: dà 0,5 a sé stesso e 0 a «Il». Anche un punteggio 0 prende una fetta, quindi la divisione è 62% e 38%. Da «Il» riceve «articolo maschile»: ora sa di essere un gatto preciso, quello di cui si parla.`,
+  `<b>«dorme» cerca chi agisce, e lo trova in «gatto».</b> La sua domanda ha un numero grande al primo posto, 2,5, e l'etichetta di «gatto» ha 1 proprio lì: punteggio 2,5, il più alto. Il punteggio più alto prende la fetta più grande, 82%. Così la scheda di «dorme» impara chi è che dorme.`,
+  `<b>«sul» cerca un'azione e chi la fa.</b> «dorme» risponde alla seconda parte della domanda (punteggio 2,3) e prende il 49%; «gatto» alla prima (2) e prende il 36%. Basta una piccola differenza di punteggio per cambiare parecchio la fetta. Adesso la scheda di «sul» sa che si parla di un posto dove dorme un gatto: è quello che serve per pensare a «divano» o «letto».`
+];
+const zf=x=>nf(x,Math.abs(x*10-Math.round(x*10))<1e-9?(Number.isInteger(x)?0:1):2);
+const zv=v=>"["+zf(v[0])+" ; "+zf(v[1])+"]";
+let zaJ=3;
+function drawZA(){
+  const j=zaJ,q=ZA_Q[j];
+  const sc=ZA_K.map(k=>q[0]*k[0]+q[1]*k[1]);
+  const ex=sc.map((s,i)=>i<=j?Math.exp(s):0),tot=ex.reduce((a,b)=>a+b,0);
+  const pc=ex.map(e=>e/tot*100);
+  const pr=pc.map(p=>Math.round(p));
+  $("zaQ").innerHTML=`Domanda di <b>«${ZA_W[j]}»</b>: <span class="mono">${zv(q)}</span> · ${ZA_QD[j]}`;
+  /* disegno */
+  const svg=$("zaSvg");clear(svg);
+  const cx=[50,150,250,350],by=112,bw=78,bh=32;
+  const order=[];for(let i=0;i<=j;i++)order.push(i);
+  order.sort((a,b)=>pc[a]-pc[b]);
+  const labels=[];
+  order.forEach(i=>{
+    const sw=i<j?1.2+pc[i]*0.1:Math.min(6,1.2+pc[i]*0.1),hs=7+sw*0.9;
+    if(i<j){
+      const tx=cx[j]-32+15*i,ty=by-3,sx=cx[i]+(i===0?0:6),h=22+(j-i)*21,mx=(sx+tx)/2,cy=by-3-2*h;
+      const a=Math.atan2(ty-cy,tx-mx),ex2=tx-Math.cos(a)*hs*0.75,ey2=ty-Math.sin(a)*hs*0.75;
+      el("path",{d:`M${sx} ${by-3} Q ${mx} ${cy} ${ex2.toFixed(1)} ${ey2.toFixed(1)}`,class:"z-acc","stroke-width":sw.toFixed(1)},svg);
+      arrowHead(svg,mx,cy,tx,ty,"z-accf",hs);
+      const t=0.16,lx=(1-t)*(1-t)*sx+2*(1-t)*t*mx+t*t*tx,ly=(1-t)*(1-t)*(by-3)+2*(1-t)*t*cy+t*t*ty;
+      labels.push([lx-16,ly+4,pr[i]+"%"]);
+    } else {
+      const x0=cx[j]+14,x1=cx[j]+30,ty=by-3;
+      const a=Math.atan2(ty-(by-44),x1-(cx[j]+44)),ex2=x1-Math.cos(a)*hs*0.75,ey2=ty-Math.sin(a)*hs*0.75;
+      el("path",{d:`M${x0} ${by-3} C ${x0-6} ${by-46} ${cx[j]+50} ${by-50} ${ex2.toFixed(1)} ${ey2.toFixed(1)}`,class:"z-acc","stroke-width":sw.toFixed(1)},svg);
+      arrowHead(svg,cx[j]+44,by-44,x1,ty,"z-accf",hs);
+      labels.push([cx[j]+(j===3?20:30),by-54,pr[i]+"%"+(j===0?" da sé":"")]);
+    }
+  });
+  cx.forEach((x,i)=>{
+    const off=i>j;
+    el("rect",{x:x-bw/2,y:by,width:bw,height:bh,rx:6,class:off?"z-off":(i===j?"z-node on":"z-node")},svg);
+    el("text",{x,y:by+21,"text-anchor":"middle",class:off?"z-v z-offt":"z-v"},svg,ZA_W[i]);
+    if(off)el("text",{x,y:by+bh+18,"text-anchor":"middle",class:"z-mut","font-size":"11"},svg,"non visibile");
+  });
+  labels.forEach(([x,y,t])=>el("text",{x:Math.min(392,Math.max(8,x)),y,"text-anchor":x>370?"end":"middle",class:"z-pct"},svg,t));
+  const vis=order.slice().reverse().map(i=>`«${ZA_W[i]}» ${pr[i]}%`).join(", ");
+  const hid=ZA_W.slice(j+1).map(w=>"«"+w+"»").join(", ");
+  $("zaSr").textContent=`Quattro caselle in fila: Il, gatto, dorme, sul. Ascolta «${ZA_W[j]}». Frecce verso «${ZA_W[j]}», più spesse quanto più è ascoltata la parola di partenza: ${vis}.`+(hid?` Le caselle ${hid} sono grigie, con la scritta «non visibile»: vengono dopo.`:" Nessuna casella è nascosta: «sul» è l'ultima.");
+  /* righe del conto */
+  $("zaRows").innerHTML=ZA_W.map((w,i)=>{
+    if(i>j)return `<div class="za-row off"><span class="t">«${w}»</span> <span class="c">non visibile: viene dopo «${ZA_W[j]}»</span> <span class="track"></span> <span class="v">—</span></div>`;
+    const k=ZA_K[i];
+    return `<div class="za-row${i===j?" me":""}"><span class="t">«${w}»${i===j?" (sé)":""}</span> <span class="c">etichetta <span class="mono">${zv(k)}</span> → <span class="mono">${zf(q[0])} × ${zf(k[0])} + ${zf(q[1])} × ${zf(k[1])} = <b>${zf(Math.round(sc[i]*100)/100)}</b></span></span> <span class="track"><span class="fill" style="display:block;width:${pc[i].toFixed(1)}%"></span></span> <span class="v">${pr[i]}%</span></div>`;
+  }).join("");
+  /* che cosa entra nella scheda */
+  const items=order.slice().reverse().map(i=>`<li><b>${pr[i]}%</b> di «${ZA_V[i]}» <span class="muted">(dal contenuto di «${ZA_W[i]}»${i===j?", cioè da sé stesso":""})</span></li>`).join("");
+  $("zaMix").innerHTML=`<b>Che cosa entra nella scheda di «${ZA_W[j]}»</b> <ul>${items}</ul>`;
+  $("zaMsg").innerHTML=ZA_M[j];
+}
+seg("zaWho",v=>{zaJ=v;drawZA();});
+
+drawZN();drawZR();drawZW();drawZT();drawZA();
 })();
 </script>
 
@@ -2874,6 +3033,8 @@ window.XREF_CONFIG={
     {re:"sottosezione sui pesi|quella sui pesi",to:"#c-pesi",flags:"i",first:false},
     {re:"sottosezione su batch, step ed epoch",to:"#c-batch",flags:"i",first:false},
     {re:"sottosezione «Da zero»",to:"#c-zero",flags:"i",first:false},
+    {re:"punto 6 della sottosezione «Da zero»|punto 6",to:"#c-zero-6",flags:"i",first:false},
+    {re:"tabella «Dove sono i 7 miliardi di pesi»",to:"#lab-7b",k:"Laboratorio · Gli strati",t:"Dove sono i 7 miliardi di pesi",body:"<p>Il conto dei pesi di Llama 2 7B riga per riga: embedding, attention e MLP di ogni blocco, 32 blocchi, testa di output. Totale ≈ 6,74 miliardi.</p>",flags:"i",first:false},
     {re:"quadro d'insieme",to:"#c-quadro",flags:"i"},
     {re:"richiamo di algebra",to:"#c-alg",flags:"i"},
     {re:"guida sull'auto che impara a guidare, nella sezione sulla rete neurale",to:"https://pericle82.github.io/explorables/neural-network-driving/#s3",k:"Altra guida",t:"Neural Network Driving · La rete neurale",body:"<p>Una rete abbastanza piccola da disegnarla tutta: 8 numeri entrano, passano per 6 nodi nascosti ed escono 4 comandi di guida. Ogni nodo fa una somma pesata dei nodi precedenti, e tutto ciò che la rete sa sta nei suoi 82 pesi.</p>",flags:"i",first:false},
