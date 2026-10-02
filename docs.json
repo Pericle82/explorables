@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.9",
+      "version": "1.10",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.10",
+          "date": "2026-10-02",
+          "notes": "Nuove sottosezioni: backpropagation e regola della catena con laboratorio; basi di RL e reward model (Bradley-Terry) prima di DPO; glossario con scaling laws e benchmark"
+        },
         {
           "version": "1.9",
           "date": "2026-10-02",
@@ -81,9 +86,14 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.4",
+      "version": "1.5",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.5",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione sul prompt con laboratorio; JSON valido con structured outputs e decodifica vincolata; rimando alla guida sull'inferenza"
+        },
         {
           "version": "1.4",
           "date": "2026-10-02",
@@ -217,6 +227,11 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-02",
+          "notes": "Rimando alla guida sull'inferenza per il ciclo di generazione e la cache KV"
+        },
+        {
           "version": "1.1",
           "date": "2026-10-02",
           "notes": "Revisione: note del calcolatore corrette sui preset, capacità dei MoE, Llama 4 Maverick, bilanciamento con bias in DeepSeek-V3, rinormalizzazione non universale; letture consigliate in testa; rimando al capitolo sugli strati del training"
@@ -227,7 +242,7 @@
           "notes": "Prima versione: BERT contro GPT, famiglie di architetture, modelli densi e a esperti (MoE), come sceglie il router. Laboratori su maschera di attenzione, calcolatore denso/sparso e router a 8 esperti."
         }
       ],
-      "version": "1.1",
+      "version": "1.2",
       "updated": "2026-10-02"
     },
     {
@@ -243,6 +258,11 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-02",
+          "notes": "Allucinazione e grounding nel RAG; prompt caching del provider distinto dalla cache del gateway; prefill e decode nel TTFT; inferenza tra le letture consigliate"
+        },
+        {
           "version": "1.1",
           "date": "2026-10-02",
           "notes": "Revisione: nota e callout della cache coerenti con il laboratorio, temperatura e determinismo, laboratorio RRF, scala di Landis e Koch, durata del test con utenti; letture consigliate in testa; rimandi alle guide sugli agenti e sul training"
@@ -253,7 +273,7 @@
           "notes": "Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail"
         }
       ],
-      "version": "1.1",
+      "version": "1.2",
       "updated": "2026-10-02"
     },
     {
@@ -279,6 +299,26 @@
         }
       ],
       "version": "1.1",
+      "updated": "2026-10-02"
+    },
+    {
+      "slug": "inferenza-llm",
+      "title": "Dentro l'inferenza",
+      "description": "Come un LLM genera davvero: ciclo token per token, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching, PagedAttention, decodifica speculativa e output strutturato.",
+      "tags": [
+        "LLM",
+        "inferenza",
+        "prestazioni",
+        "serving"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-10-02",
+          "notes": "Prima versione: ciclo di generazione, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching e PagedAttention, decodifica speculativa, output strutturato"
+        }
+      ],
+      "version": "1.0",
       "updated": "2026-10-02"
     }
   ]
