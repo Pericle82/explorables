@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.11",
+      "version": "1.12",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.12",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione sui tensori (rango, shape, fette, broadcasting, reshape e transpose delle teste) con schema e laboratorio; le formule principali della guida in riquadri dedicati"
+        },
         {
           "version": "1.11",
           "date": "2026-10-02",
