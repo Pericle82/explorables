@@ -254,13 +254,20 @@ table.mt tr.dim td{color:var(--muted)}
   <span class="eyebrow">Come si costruisce un <abbr title="Large Language Model">LLM</abbr> (Large Language Model, modello linguistico di grandi dimensioni)</span>
   <h1>Dal testo grezzo al modello che ragiona</h1>
   <p class="lede">Il pre-training produce un laureato che ha letto l'intera biblioteca ma non sa comportarsi. Il post-training è il tirocinio: impara il formato, poi cosa piace alle persone, poi a risolvere esercizi con la soluzione in fondo al libro, e infine insegna a un junior. Si parte da un capitolo sui concetti base (token, loss, gradienti, learning rate) e poi ogni fase ha un laboratorio interattivo.</p>
+  <aside class="vx vx-prereq" aria-label="Letture consigliate prima">
+    <span class="eyebrow">Letture consigliate prima</span>
+  <p>Nessuna lettura obbligatoria: il capitolo sui concetti base parte da vettori e matrici. Facoltativa, per l'intuizione:</p>
+    <ul>
+      <li><a href="https://pericle82.github.io/explorables/neural-network-driving/#s3">Neural Network Driving · La rete</a> <span>— un neurone, un forward pass e 82 pesi visti dal vivo: «il modello è fatto di numeri» su un esempio piccolo, prima di passare ai miliardi.</span></li>
+    </ul>
+  </aside>
 
   <div class="pipeline" aria-label="Pipeline di training">
     <div>
       <div class="phase-label">Pre-training</div>
       <button class="stage" data-go="pre">
         <span class="n">fase 1</span><b>Pre-training + warm-up</b>
-        <span class="d">Trilioni di token, un solo compito: prevedere il token successivo.</span>
+        <span class="d">Migliaia di miliardi di token, un solo compito: prevedere il token successivo.</span>
         <span class="t">conoscenza</span>
       </button>
     </div>
@@ -306,7 +313,7 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- ALGEBRA -->
   <h3 id="c-alg" class="anchor">Richiamo di algebra: vettori e matrici</h3>
   <div class="prose stack">
-    <p>Dentro un LLM ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Bastano queste definizioni per seguire tutto il resto del documento.</p>
+    <p>Dentro un LLM (Large Language Model, modello linguistico di grandi dimensioni) ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Bastano queste definizioni per seguire tutto il resto del documento.</p>
   </div>
   <dl class="gloss">
     <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
@@ -315,9 +322,9 @@ table.mt tr.dim td{color:var(--muted)}
     <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
     <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è "acceso" (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è "più grande" dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0]</span></div>
     <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1</span></div>
-    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
+    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura più usata nel retrieval (la ricerca dei testi più simili a una domanda).</dd><span class="ex">cos = 1 → stessa direzione</span></div>
     <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato "trasforma" un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
-    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
+    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU (Graphics Processing Unit, processori grafici) eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
     <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
     <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2]</span></div>
     <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso</span></div>
@@ -520,7 +527,7 @@ table.mt tr.dim td{color:var(--muted)}
     <thead><tr><th></th><th>Embedding di token</th><th>Embedding semantico (retrieval)</th></tr></thead>
     <tbody>
       <tr><td>Rappresenta</td><td>Un singolo token, senza contesto</td><td>Un'intera frase o un documento</td></tr>
-      <tr><td>Si ottiene</td><td>Leggendo una riga di E, all'ingresso del modello</td><td>Dall'ultimo strato di un modello, facendo la media (pooling) dei vettori contestuali di tutti i token</td></tr>
+      <tr><td>Si ottiene</td><td>Leggendo una riga di E, all'ingresso del modello</td><td>Dall'ultimo strato di un modello, riassumendo (pooling) i vettori contestuali dei token: di solito con la media, a volte con il vettore di un solo token speciale</td></tr>
       <tr><td>Si allena</td><td>Insieme all'LLM, prevedendo il token successivo</td><td>Con training contrastivo: frasi simili vicine, frasi diverse lontane</td></tr>
       <tr><td>Dimensioni tipiche</td><td>V × d, es. 128.000 × 4.096 ≈ 524 milioni di pesi</td><td>Un vettore da 384–3.072 numeri per testo</td></tr>
     </tbody>
@@ -539,14 +546,14 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="sd blk"><b>Blocco 2</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
     <div class="sd sdots">⋮</div>
     <div class="sd blk"><b>Blocco N</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
-    <div class="sd">Testa di output: × Eᵀ <small>[L × V] logit</small></div>
+    <div class="sd">Testa di output: × Eᵀ, o una matrice propria <small>[L × V] logit</small></div>
     <div class="sd io">softmax → una distribuzione su V token per ogni posizione</div>
   </div>
   <div class="prose stack">
     <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi:</p>
-    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token "guarda" gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> ("cosa sto cercando"), una <i>key</i> ("cosa offro") e un <i>value</i> ("cosa passo se vengo scelto"). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; una softmax trasforma questi punteggi in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La causal mask esclude i token successivi.</p>
-    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token.</p>
-    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un "flusso" (il <i>residual stream</i>) che si arricchisce strato dopo strato. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
+    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token "guarda" gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> ("cosa sto cercando"), una <i>key</i> ("cosa offro") e un <i>value</i> ("cosa passo se vengo scelto"). Il prodotto scalare tra la query di un token e la key di ciascun token precedente (e di sé stesso) dice quanto quel token è rilevante; una softmax trasforma questi punteggi in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La <i>causal mask</i> (maschera causale) esclude i token successivi: il modello non può «sbirciare» il token che deve prevedere.</p>
+    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token. Nei modelli moderni come Llama le matrici sono tre (variante «a cancello» SwiGLU) e l'allargamento è di circa 2,7d: è la versione contata nella tabella qui sotto.</p>
+    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un "flusso" (il <i>residual stream</i>) che si arricchisce strato dopo strato. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile. Questo è il blocco di un modello <i>decoder-only</i> come GPT o Llama. Come lo stesso blocco viene montato in BERT o T5, e come la MLP diventa un insieme di esperti nei modelli MoE (Mixture of Experts), è il tema della guida sulle architetture.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: dove guarda l'attention</h3><span class="tag">valori illustrativi</span></div>
@@ -596,7 +603,7 @@ table.mt tr.dim td{color:var(--muted)}
   </div>
   <dl class="gloss">
     <div><dt>Esempio (una previsione)</dt><dd>La coppia "contesto → token successivo". È l'unità minima su cui si calcola la loss.</dd><span class="ex">«il gatto» → «dorme»</span></div>
-    <div><dt>Sequenza</dt><dd>Un pezzo del flusso di token lungo quanto la <b>context length</b> (lunghezza del contesto) L. Una sequenza di L token contiene L esempi, perché ogni posizione predice la successiva, tutte in parallelo.</dd><span class="ex">L = 8.192 token nei modelli attuali</span></div>
+    <div><dt>Sequenza</dt><dd>Un pezzo del flusso di token lungo quanto la <b>context length</b> (lunghezza del contesto) L. Una sequenza di L token contiene L esempi, perché ogni posizione predice la successiva, tutte in parallelo.</dd><span class="ex">es. L = 8.192 token nel pre-training di molti modelli attuali</span></div>
     <div><dt>Batch (gruppo di esempi)</dt><dd>Le B sequenze elaborate <b>insieme</b> prima di aggiornare i pesi. Si fa la media della loss su tutte, così il gradiente è meno "rumoroso" di quello di un esempio solo, e le GPU (Graphics Processing Unit) lavorano in parallelo.</dd><span class="ex">B = batch size, in sequenze</span></div>
     <div><dt>Batch di token</dt><dd>È lo <b>stesso batch</b>, misurato in token invece che in sequenze: B × L. Negli LLM si parla quasi sempre così, perché le sequenze possono avere lunghezze diverse.</dd><span class="ex">512 × 8.192 ≈ 4 milioni di token</span></div>
     <div><dt>Step (giro completo)</dt><dd>Un ciclo intero su <b>un</b> batch: forward pass, calcolo della loss, backward pass, aggiornamento dei pesi. Ogni step cambia i pesi una volta sola.</dd><span class="ex">1 batch = 1 step = 1 aggiornamento</span></div>
@@ -642,7 +649,7 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- glossary -->
   <h3 class="anchor">Glossario dei termini che ritornano</h3>
   <dl class="gloss">
-    <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e della loro varianza. Costa circa 2 copie extra dei pesi in memoria.</dd><span class="ex">standard di fatto per gli LLM</span></div>
+    <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e dei loro quadrati (una stima della varianza). Costa circa 2 copie extra dei pesi in memoria.</dd><span class="ex">standard di fatto per gli LLM</span></div>
     <div><dt>Perplexity (perplessità)</dt><dd>È e elevato alla loss: quanti token equiprobabili il modello "sta considerando" in media. Perplexity 1 vuol dire certezza assoluta, 6 vuol dire tirare un dado a sei facce.</dd><span class="ex">metrica classica del pre-training</span></div>
     <div><dt>Checkpoint</dt><dd>Un salvataggio dei pesi (e dello stato dell'ottimizzatore) a un certo step. Si riparte da lì se il training diverge.</dd></div>
     <div><dt>Train / validation</dt><dd>Si misura la loss anche su dati mai visti. Se la loss di training scende ma quella di validazione sale, c'è <b>overfitting</b> (sovradattamento): il modello memorizza invece di generalizzare.</dd></div>
@@ -715,11 +722,11 @@ table.mt tr.dim td{color:var(--muted)}
 <section class="st" id="pre">
   <div class="sec-head">
     <span class="eyebrow">Fase 1 · Pre-training</span>
-    <h2>Prevedere il token successivo, trilioni di volte</h2>
+    <h2>Prevedere il token successivo, migliaia di miliardi di volte</h2>
   </div>
   <div class="prose stack">
-    <p>Il modello legge testo grezzo (web, codice, libri) e per ogni posizione deve indovinare il token successivo. La loss è la <i>cross-entropy</i> (entropia incrociata): quanto il modello è "sorpreso" dal token vero. Minimizzandola su trilioni di esempi emergono grammatica, fatti, stile e i primi embrioni di ragionamento.</p>
-    <p><b>Il warm-up</b> riguarda il <i>learning rate</i> (tasso di apprendimento, cioè quanto è grande ogni passo di aggiornamento dei pesi). All'inizio i pesi sono casuali, i gradienti enormi e le statistiche dell'ottimizzatore Adam (Adaptive Moment Estimation) non ancora stabilizzate: un passo pieno subito fa "esplodere" la loss. Per questo il learning rate parte da circa zero e sale linearmente per qualche migliaio di step, poi decade. È come scaldare un motore a freddo prima di dare gas.</p>
+    <p>Il modello legge testo grezzo (web, codice, libri) e per ogni posizione deve indovinare il token successivo. La loss è la <i>cross-entropy</i> (entropia incrociata): quanto il modello è "sorpreso" dal token vero. Minimizzandola su migliaia di miliardi di esempi emergono grammatica, fatti, stile e i primi embrioni di ragionamento.</p>
+    <p><b>Il warm-up</b> riguarda il <i>learning rate</i> (tasso di apprendimento, cioè quanto è grande ogni passo di aggiornamento dei pesi). All'inizio i pesi sono casuali, i gradienti grandi e disordinati e le statistiche dell'ottimizzatore Adam (Adaptive Moment Estimation) non ancora stabilizzate: un passo pieno subito fa "esplodere" la loss. Per questo il learning rate parte da circa zero e sale linearmente per qualche migliaio di step, poi decade. È come scaldare un motore a freddo prima di dare gas.</p>
   </div>
 
   <div class="lab">
@@ -788,7 +795,7 @@ table.mt tr.dim td{color:var(--muted)}
     <h2>Imparare dal confronto, senza reward model</h2>
   </div>
   <div class="prose stack">
-    <p>Invece di una sola risposta ideale, il dataset contiene <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). "Policy" è il nome del modello nel linguaggio dell'RL: la regola che, dato un contesto, sceglie l'azione (il token successivo).</p>
+    <p>Invece di una sola risposta ideale, il dataset contiene <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). "Policy" è il nome del modello nel linguaggio dell'RL (Reinforcement Learning, apprendimento per rinforzo): la regola che, dato un contesto, sceglie l'azione (il token successivo).</p>
   </div>
 
   <div class="lab">
@@ -833,7 +840,7 @@ table.mt tr.dim td{color:var(--muted)}
         </div>
       </div>
     </div>
-    <div class="formula">L = −log σ( β·[log π(y<sub>c</sub>)/π<sub>ref</sub>(y<sub>c</sub>)] − β·[log π(y<sub>r</sub>)/π<sub>ref</sub>(y<sub>r</sub>)] )</div>
+    <div class="formula">L = −log σ( β·log[π(y<sub>c</sub>)/π<sub>ref</sub>(y<sub>c</sub>)] − β·log[π(y<sub>r</sub>)/π<sub>ref</sub>(y<sub>r</sub>)] )</div>
     <p class="callout" id="dpoMsg"></p>
   </div>
   <p class="prose"><b>Da ricordare:</b> DPO è <b>offline</b>, cioè i dati sono fissi e il modello non genera nulla durante il training. È ottimo per ciò che è soggettivo: stile, utilità, tono, sicurezza.</p>
@@ -847,7 +854,7 @@ table.mt tr.dim td{color:var(--muted)}
   </div>
   <div class="prose stack">
     <p>Sono due idee diverse che lavorano insieme:</p>
-    <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e difficile da "truccare" (reward hacking).</p>
+    <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e più difficile da "truccare" (reward hacking) rispetto a un reward model, anche se non impossibile: un codice può superare test scritti male senza essere corretto.</p>
     <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è il suo reward confrontato con la media del gruppo: sopra la media viene rinforzata, sotto viene scoraggiata.</p>
   </div>
 
@@ -915,7 +922,7 @@ table.mt tr.dim td{color:var(--muted)}
 
   <div class="prose stack">
     <p><b>Il problema dell'off-policy</b> è l'<i>exposure bias</i> (distorsione da esposizione): in training lo student vede solo le traiettorie perfette del teacher. In inferenza, quando sbaglia un passo, si trova in un territorio mai visto e l'errore si propaga.</p>
-    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL, lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata sulle sequenze dello student. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
+    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL (Reinforcement Learning, apprendimento per rinforzo), lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata sulle sequenze dello student. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
   </div>
 </section>
 
@@ -926,7 +933,7 @@ table.mt tr.dim td{color:var(--muted)}
   <table class="sum">
     <thead><tr><th>Fase</th><th>Dati</th><th>Segnale</th><th>Chi genera</th><th>Densità del segnale</th><th>Insegna</th></tr></thead>
     <tbody>
-      <tr><td>Pre-training</td><td>Testo grezzo, trilioni di token</td><td>Next token</td><td>Nessuno (testo esistente)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token</span></td><td>Conoscenza</td></tr>
+      <tr><td>Pre-training</td><td>Testo grezzo, migliaia di miliardi di token</td><td>Next token</td><td>Nessuno (testo esistente)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token</span></td><td>Conoscenza</td></tr>
       <tr><td>SFT</td><td>Prompt → risposta ideale</td><td>Imitazione</td><td>Persone o modello forte</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token della risposta</span></td><td>Formato, comportamento</td></tr>
       <tr><td>DPO</td><td>Coppie chosen / rejected</td><td>Preferenza relativa</td><td>Dataset fisso (offline)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 confronto per coppia</span></td><td>Stile, utilità, sicurezza</td></tr>
       <tr><td>GRPO + RLVR</td><td>Prompt + verificatore</td><td>Reward 0/1 per risposta</td><td>Il modello stesso (online)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 numero per sequenza</span></td><td>Ragionamento verificabile</td></tr>
@@ -937,7 +944,7 @@ table.mt tr.dim td{color:var(--muted)}
   <p class="prose note">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, oppure usano OPD al posto dell'RL per i modelli piccoli.</p>
 </section>
 
-<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La formula di DPO e il calcolo dei vantaggi in GRPO sono invece quelli reali.</footer>
+<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La formula di DPO, il calcolo dei vantaggi in GRPO, l'algoritmo BPE e il training dal vivo usano invece la matematica reale.</footer>
 </div>
 
 <script>
@@ -1052,7 +1059,7 @@ function renderGroup(g){const t=$("#gTable");if(!g){t.innerHTML="";return;}
     h+=`<tr><td class="mono">${i+1}</td><td class="mono">${x.ans}</td><td><span class="pill ${x.r?"ok":"ko"}">${x.r?"corretto":"errato"}</span></td><td class="mono">${x.r}</td><td class="mono">${x.a>=0?"+":""}${x.a.toFixed(2)}</td><td style="width:40%"><div class="adv"><i style="${style}"></i></div></td></tr>`;});
   t.innerHTML=h;
   $("#gStats").innerHTML=`<div><small>corrette</small><strong>${g.filter(x=>x.r).length} / ${g.length}</strong></div><div><small>media reward</small><strong>${g.mean.toFixed(2)}</strong></div><div><small>dev. standard</small><strong>${g.sd.toFixed(2)}</strong></div><div><small>P(corretta) attuale</small><strong>${(p*100).toFixed(0)}%</strong></div>`;
-  $("#gMsg").innerHTML=g.sd===0?`<b>Nessun segnale:</b> tutte le risposte hanno lo stesso reward (${g.mean===1?"tutte giuste":"tutte sbagliate"}), quindi ogni vantaggio vale 0 e il gradiente è nullo. Questo gruppo è calcolo sprecato.`:"<b>Segnale utile:</b> le risposte corrette hanno vantaggio positivo e la loro probabilità verrà alzata, quelle errate verranno scoraggiate. Nota che nessuno ha dovuto scrivere la risposta giusta: basta saperla verificare.";}
+  $("#gMsg").innerHTML=g.sd===0?`<b>Nessun segnale:</b> tutte le risposte hanno lo stesso reward (${g.mean===1?"tutte giuste":"tutte sbagliate"}), quindi ogni vantaggio vale 0 e il gradiente è nullo. Questo gruppo è calcolo sprecato.`:"<b>Segnale utile:</b> le risposte corrette hanno vantaggio positivo e la loro probabilità verrà alzata, quelle errate verranno scoraggiate. Nota che nessuno ha dovuto scrivere il ragionamento giusto: basta saper verificare il risultato.";}
 function drawG(){lineChart($("#gChart"),{H:180,xs:[0,Math.max(25,hist.length-1)],series:[{pts:hist,color:css("--accent"),area:true}],yMax:1,xTicks:[0,Math.max(25,hist.length-1)],yTicks:[0,.5,1],xFmt:v=>v,yFmt:v=>(v*100)+"%",xLabel:"iterazione"});}
 function reset(){p=p0;hist=[[0,p]];group=null;renderGroup(null);$("#gStats").innerHTML="";$("#gMsg").innerHTML="Premi <b>Genera gruppo</b>: il modello produce N risposte allo stesso prompt e il verificatore assegna a ciascuna reward 1 o 0.";$("#gUpd").disabled=true;drawG();}
 $("#gGen").onclick=()=>{renderGroup(gen());$("#gUpd").disabled=false;};
@@ -1073,7 +1080,7 @@ function drawOPD(mode){const box=$("#oTokens");box.innerHTML="";const D=$("#oDet
   if(mode==="rl"){$("#oTitle").textContent="Testo generato dallo STUDENT: un solo reward alla fine";
     stud.forEach(([t])=>{const s=document.createElement("span");s.className="tok";s.style.background="var(--bad-soft)";s.style.borderColor="var(--bad)";s.textContent=t;box.appendChild(s);});
     const f=document.createElement("span");f.className="pill ko";f.style.alignSelf="center";f.textContent="reward = 0";box.appendChild(f);
-    $("#oMsg").innerHTML="<b>Segnale sui propri errori ma scarso:</b> la risposta è sbagliata e tutti i 17 token vengono penalizzati allo stesso modo, anche i 14 corretti. Il modello deve scoprire da solo, con molti tentativi, che il problema era «41».";
+    $("#oMsg").innerHTML="<b>Segnale sui propri errori ma scarso:</b> la risposta è sbagliata e tutti i 17 token vengono penalizzati allo stesso modo, anche i 15 corretti. Il modello deve scoprire da solo, con molti tentativi, che il problema era «41».";
     D.innerHTML="Chi genera: lo student · Feedback: 1 numero per sequenza · Costo: servono molti campioni";return;}
   $("#oTitle").textContent="Testo generato dallo STUDENT: il teacher valuta ogni token (clicca un token)";
   stud.forEach(([t,pt],i)=>{const b=document.createElement("button");b.className="tok"+(i===sel?" sel":"");const pen=-Math.log(pt);const a=Math.min(1,pen/3);
@@ -1120,7 +1127,7 @@ function drawGD(){const eta=+gdLr.value,N=+gdN.value;$("#gdLro").textContent=eta
   path.forEach((p,i)=>{if(p[0]<-4||p[0]>6||p[1]>13)return;el("circle",{cx:c.X(p[0]),cy:c.Y(p[1]),r:i===path.length-1?6:4,fill:i===0?css("--warn"):i===path.length-1?css("--ink"):css("--accent"),stroke:css("--surface"),"stroke-width":1.5},svg);});
   const t=el("text",{x:c.X(1),y:c.Y(0)-8,"text-anchor":"middle"},svg);t.textContent="minimo";
   const last=path[path.length-1];const m=$("#gdMsg");
-  if(eta>=2)m.innerHTML=`<b>Divergenza:</b> con η ≥ 2 ogni passo supera il minimo e atterra più lontano di prima. Loss finale ${last[1]>999?"≫ 1000":last[1].toFixed(2)}. È ciò che succede a un LLM con learning rate troppo alto: la loss esplode. Il warm-up serve proprio a evitarlo nei primi step, quando la "forma del paesaggio" è ancora sconosciuta.`;
+  if(eta>=2)m.innerHTML=`<b>Divergenza:</b> con η ≥ 2 ogni passo supera il minimo e atterra lontano almeno quanto prima (con η = 2 esatto rimbalza per sempre, oltre 2 si allontana sempre di più). Loss finale ${last[1]>999?"≫ 1000":last[1].toFixed(2)}. È ciò che succede a un LLM con learning rate troppo alto: la loss esplode. Il warm-up serve proprio a evitarlo nei primi step, quando la "forma del paesaggio" è ancora sconosciuta.`;
   else if(eta>1)m.innerHTML=`<b>Oscillazione:</b> il passo salta oltre il minimo e rimbalza da una parte all'altra, pur avvicinandosi. Loss finale ${last[1].toFixed(4)}.`;
   else if(eta<.15)m.innerHTML=`<b>Troppo lento:</b> passi minuscoli, dopo ${N} step siamo ancora lontani (loss ${last[1].toFixed(3)}). Con un LLM significherebbe settimane di GPU (Graphics Processing Unit) sprecate.`;
   else m.innerHTML=`<b>Buon learning rate:</b> la loss scende in modo regolare fino a ${last[1].toFixed(4)}. Negli LLM si parte alti (dopo il warm-up) e si riduce η verso la fine, per "assestarsi" nel minimo.`;}
@@ -1371,6 +1378,7 @@ window.XREF_CONFIG={
   skip:".lab,.thesis,.map,.flowline,.status,",
   ids:[{sel:"h3",text:"Il ciclo di uno step, e il learning rate",id:"c-step"},{sel:"h3",text:"Glossario dei termini che ritornano",id:"c-gloss"},{sel:".lab-head h3",text:"Laboratorio: schedule del learning rate",id:"lab-lr"}],
   rules:[
+    {re:"guida sulle architetture",to:"https://pericle82.github.io/explorables/architetture-llm/",k:"Altra guida",t:"Encoder, decoder, esperti",body:"<p>BERT contro GPT, encoder-only, decoder-only ed encoder-decoder, modelli densi e sparsi a esperti (MoE) e come sceglie il router.</p>",flags:"i",first:false},
     {re:"capitolo 0a",to:"#base",flags:"i",first:false},
     {re:"capitolo 0b",to:"#live",flags:"i",first:false},
     {re:"training dal vivo",to:"#live",flags:"i"},
@@ -1572,6 +1580,13 @@ window.XREF_CONFIG={
 .vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
 .vx-map .to{display:none}.vx-map code{margin-top:6px}}
+/* letture consigliate prima della guida: <aside class="vx-prereq"> nell'intestazione, dopo la .lede */
+.vx.vx-prereq{margin:0;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.vx-prereq ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.vx-prereq li{font-size:.92rem}
+.vx-prereq li a{font-weight:600}
+.vx-prereq li span{color:var(--muted)}
+.vx-prereq p{font-size:.92rem;color:var(--muted)}
 .xref-pop .vx{margin:8px 0}
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}

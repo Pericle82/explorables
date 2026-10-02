@@ -220,6 +220,13 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   <span class="eyebrow">Architetture dei modelli linguistici · guida interattiva</span>
   <h1>Stesso mattone, tre modi di guardare il testo, e un modo per accenderne solo una parte</h1>
   <p class="lede">BERT, GPT, T5, Mixtral e DeepSeek sono costruiti con lo stesso blocco, il Transformer. Cambiano tre scelte: <b>quali parole può guardare ogni parola</b>, <b>che cosa impara a prevedere</b> e <b>quanta parte della rete lavora per ogni token</b>. Questa guida le separa una alla volta: prima BERT contro GPT, poi le famiglie di architetture, infine i modelli densi contro quelli sparsi a esperti (MoE, Mixture of Experts), con il router smontato pezzo per pezzo.</p>
+  <aside class="vx vx-prereq" aria-label="Letture consigliate prima">
+    <span class="eyebrow">Letture consigliate prima</span>
+    <ul>
+      <li><a href="https://pericle82.github.io/explorables/training-llm/#c-token">Anatomia del Training LLM · Token, embedding e strati</a> <span>— che cos'è un token, come diventa un vettore e che cosa fanno attenzione (query, key, value), MLP, residuo e normalizzazione: qui sono dati per noti.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/training-llm/#c-loss">Anatomia del Training LLM · Loss, step e pre-training</a> <span>— il «segnale di errore» del capitolo 3 e l'allenamento sul token successivo.</span></li>
+    </ul>
+  </aside>
   <div class="cards">
     <a href="#cap-1"><small>1</small><b>Il mattone comune</b><span>Attenzione e FFN: dove stanno i parametri</span></a>
     <a href="#cap-2"><small>2</small><b>BERT</b><span>Un lettore che guarda a destra e a sinistra</span></a>
@@ -244,7 +251,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </div>
   <div class="prose stack">
     <p>Un modello linguistico moderno trasforma il testo in token, ogni token in un vettore (l'embedding, vedi la guida sul training), e poi fa passare quei vettori attraverso una pila di blocchi identici. Ogni blocco ha due stadi, sempre nello stesso ordine.</p>
-    <p><b>L'attenzione</b> è il momento in cui i token si parlano: ogni token guarda gli altri, decide quali contano per lui e ne mescola le informazioni nel proprio vettore. <b>La rete feed-forward</b> (FFN, Feed-Forward Network) è il momento in cui ogni token lavora da solo: il suo vettore passa in due o tre moltiplicazioni per matrice, che applicano ciò che il modello ha imparato. Attorno a entrambi ci sono una normalizzazione e una connessione residua, che somma l'ingresso all'uscita, così ogni blocco aggiunge qualcosa invece di riscrivere tutto.</p>
+    <p><b>L'attenzione</b> è il momento in cui i token si parlano: ogni token guarda gli altri, decide quali contano per lui e ne mescola le informazioni nel proprio vettore. <b>La rete feed-forward</b> (FFN, Feed-Forward Network) è il momento in cui ogni token lavora da solo: il suo vettore passa in due o tre moltiplicazioni per matrice, che applicano ciò che il modello ha imparato. Attorno a entrambi ci sono una normalizzazione e una connessione residua, che somma l'ingresso all'uscita, così ogni blocco aggiunge qualcosa invece di riscrivere tutto. Il meccanismo completo, con query, key e value, le teste multiple e il conto dei pesi di Llama 2 7B, è nel capitolo sugli strati della guida sul training: qui basta l'idea dei due stadi.</p>
   </div>
 
   <div class="vx"><div class="vx-stack">
@@ -409,8 +416,8 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <tr><td>Posizione dei token</td><td>vettori di posizione sommati</td><td>RoPE (Rotary Position Embedding): ruota query e key in base alla posizione</td><td>codifica la distanza relativa, si estende a contesti più lunghi</td></tr>
       <tr><td>Normalizzazione</td><td>LayerNorm dopo ogni stadio</td><td>RMSNorm (Root Mean Square Normalization) prima di ogni stadio</td><td>più economica e più stabile con molti blocchi</td></tr>
       <tr><td>FFN</td><td>due matrici, attivazione ReLU</td><td>SwiGLU (Swish-Gated Linear Unit): tre matrici, una fa da «cancello»</td><td>qualità migliore a parità di parametri</td></tr>
-      <tr><td>Teste di attenzione</td><td>ogni testa ha le sue key e value</td><td>GQA (Grouped-Query Attention): gruppi di teste condividono key e value</td><td>cache KV molto più piccola, inferenza più veloce</td></tr>
-      <tr><td>FFN, di nuovo</td><td>densa</td><td>spesso sostituita da esperti (MoE)</td><td>più parametri senza più calcolo per token (capitolo 5)</td></tr>
+      <tr><td>Teste di attenzione</td><td>ogni testa ha le sue key e value</td><td>GQA (Grouped-Query Attention): gruppi di teste condividono key e value</td><td>cache KV (key-value) molto più piccola, inferenza più veloce</td></tr>
+      <tr><td>FFN, di nuovo</td><td>densa</td><td>spesso sostituita da esperti (MoE, Mixture of Experts)</td><td>più parametri senza più calcolo per token (capitolo 5)</td></tr>
     </tbody></table></div>
     <p class="vx-foot">Esempio concreto: Qwen3-235B usa 64 teste per le query e solo 4 per key e value; gpt-oss-120b usa gruppi da 8 e RoPE.</p>
   </div>
@@ -431,7 +438,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </div>
   <div class="prose stack">
     <p>In un modello <b>denso</b> ogni token attraversa tutti i parametri: con 70 miliardi di pesi, ogni parola prodotta passa per 70 miliardi di pesi. Il costo di calcolo per token cresce quindi insieme alla dimensione del modello: circa <code>2 × parametri</code> operazioni in virgola mobile (FLOPs, floating point operations) per ogni token generato, una moltiplicazione e una somma per peso.</p>
-    <p>In un modello <b>sparso</b> a esperti la FFN di un blocco viene sostituita da tante FFN alternative, e ogni token ne usa solo alcune. Nascono così due numeri diversi: i <b>parametri totali</b>, che devono stare tutti in memoria, e i <b>parametri attivi</b>, quelli che un token usa davvero e che determinano il costo di calcolo. È come un ospedale con cento specialisti: sono tutti sul libro paga, ma ogni paziente ne vede due.</p>
+    <p>In un modello <b>sparso</b> a esperti (MoE, Mixture of Experts) la FFN (rete feed-forward) di un blocco viene sostituita da tante FFN alternative, e ogni token ne usa solo alcune. Nascono così due numeri diversi: i <b>parametri totali</b>, che devono stare tutti in memoria, e i <b>parametri attivi</b>, quelli che un token usa davvero e che determinano il costo di calcolo. È come un ospedale con cento specialisti: sono tutti sul libro paga, ma ogni paziente ne vede due.</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Modello</th><th>Totali</th><th>Attivi per token</th><th>Esperti per strato</th><th>Scelti per token</th></tr></thead>
@@ -467,7 +474,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     </div>
     <div class="ratio" id="ccBar"><span class="a">attivi</span><span class="i">inattivi</span></div>
     <p class="callout" id="ccMsg"></p>
-    <p class="note">Semplificazioni: attenzione standard da 4·d² per blocco (senza GQA, quindi un po' sovrastimata), FFN SwiGLU da 3 matrici per esperto, vocabolario di 128.000 token con embedding d'ingresso e di uscita separati, tutti i blocchi a esperti. I preset si avvicinano ai modelli reali: i totali entro pochi punti percentuali, gli attivi un po' più alti perché l'attenzione è sovrastimata. bf16 = 2 byte per peso.</p>
+    <p class="note">Semplificazioni: attenzione standard da 4·d² per blocco (senza GQA, quindi un po' sovrastimata), FFN SwiGLU da 3 matrici per esperto, vocabolario di 128.000 token con embedding d'ingresso e di uscita separati, tutti i blocchi a esperti. I preset si avvicinano ai modelli reali, con scarti dovuti a queste semplificazioni: tipo Qwen3-235B torna entro pochi punti percentuali; tipo Mixtral ha i totali vicini e gli attivi più alti di circa il 10% (attenzione senza GQA, Grouped-Query Attention, e vocabolario più grande di quello vero); il denso arriva a circa 80 B invece dei 70 di Llama 3 70B, perché l'attenzione senza GQA pesa quasi il doppio. bf16 = 2 byte per peso.</p>
   </div>
 
   <h3 id="costi-sparso" class="anchor">Che cosa si guadagna e che cosa si paga</h3>
@@ -497,7 +504,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Non è un router davanti a un modello: è una FFN moltiplicata in ogni blocco</h2>
   </div>
   <div class="prose stack">
-    <p>L'idea intuitiva è: un modello, un router all'ingresso che smista la domanda all'esperto giusto. <b>Non funziona così.</b> Non c'è un router davanti e non ci sono esperti interi, ciascuno un modello completo. Il cambio avviene dentro ogni blocco, e riguarda solo la FFN.</p>
+    <p>L'idea intuitiva è: un modello, un router all'ingresso che smista la domanda all'esperto giusto. <b>Non funziona così.</b> Non c'è un router davanti e non ci sono esperti interi, ciascuno un modello completo. Il cambio avviene dentro ogni blocco, e riguarda solo la FFN (Feed-Forward Network, la rete feed-forward del capitolo 1).</p>
   </div>
   <div class="vx"><div class="vx-pair">
     <div class="vx-box"><h5>Blocco denso</h5>
@@ -516,7 +523,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   <div class="vx"><ol class="vx-steps">
     <li><span><b>La FFN diventa N esperti.</b> Ogni esperto è una FFN completa con i suoi pesi. Nei progetti recenti gli esperti sono tanti e stretti (a grana fine): Qwen3-235B ne ha 128 per strato, ognuno largo meno di mezzo <i>d</i>, invece di pochi esperti grandi.</span></li>
     <li><span><b>C'è un router in ogni blocco a esperti, non uno solo.</b> Con 94 blocchi ci sono 94 router, e ognuno decide per ogni token, in modo indipendente dagli altri. Lo stesso token può andare agli esperti 3 e 17 nel blocco 5 e agli esperti 88 e 102 nel blocco 6.</span></li>
-    <li><span><b>Non tutti i blocchi sono per forza a esperti.</b> DeepSeek-V3 tiene densi i primi tre blocchi; Llama 4 alterna blocchi densi e blocchi a esperti.</span></li>
+    <li><span><b>Non tutti i blocchi sono per forza a esperti.</b> DeepSeek-V3 tiene densi i primi tre blocchi; Llama 4 Maverick alterna blocchi densi e blocchi a esperti.</span></li>
     <li><span><b>Esperti condivisi.</b> Alcuni modelli aggiungono uno o più esperti che lavorano per <em>ogni</em> token, per la conoscenza comune, lasciando agli esperti scelti le specializzazioni (DeepSeek-V3, Llama 4).</span></li>
     <li><span><b>Attenzione, embedding e testa restano densi.</b> Sono condivisi da tutti i token: per questo i parametri attivi non sono semplicemente «totali ÷ esperti».</span></li>
     <li class="hot"><span><b>L'addestramento cambia.</b> Il router si allena insieme a tutto il resto, ma va tenuto in equilibrio (capitolo 7): una perdita di bilanciamento, una capacità massima per esperto, a volte una penalità che tiene piccoli i punteggi del router (<i>z-loss</i>) per evitare instabilità.</span></li>
@@ -524,7 +531,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </ol></div>
 
   <h3 id="moe-codice" class="anchor">Lo stesso, in codice</h3>
-  <div class="prose"><p>Uno strato MoE ridotto all'osso, per un solo token. Tutto il resto del blocco resta come nel modello denso.</p></div>
+  <div class="prose"><p>Uno strato MoE (Mixture of Experts) ridotto all'osso, per un solo token. Tutto il resto del blocco resta come nel modello denso.</p></div>
   <div class="vx vx-code"><div class="vx-code-h"><span>Python · uno strato MoE, token singolo</span><button class="vx-copy" type="button">Copia</button></div>
 <pre><code><span class="ln"><span class="tk-kw">def</span> moe_ffn(h, W_router, esperti, k=<span class="tk-num">2</span>, condiviso=<span class="tk-kw">None</span>):
 </span><span class="ln">    punteggi = h @ W_router                    <span class="tk-cm"># un numero per esperto</span>
@@ -552,7 +559,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Un prodotto scalare, i k punteggi più alti e una forza che tiene tutti al lavoro</h2>
   </div>
   <div class="prose stack">
-    <p>Il router non legge la domanda e non conosce argomenti. Lavora su un vettore alla volta: il vettore <i>h</i> di un token, così com'è dopo l'attenzione di quel blocco. I passi sono sempre gli stessi.</p>
+    <p>Il router non legge la domanda e non conosce argomenti. Lavora su un vettore alla volta: il vettore <i>h</i> di un token, così com'è dopo l'attenzione di quel blocco (e la normalizzazione che precede la FFN). I passi sono questi; il quarto, la rinormalizzazione, è usato da Mixtral, Qwen3 e molti altri, ma non da tutti: Switch Transformer, con un solo esperto per token, e DeepSeek-V2 ne fanno a meno.</p>
   </div>
   <div class="vx"><ol class="vx-steps">
     <li><span class="vx-li"><span><b>Punteggi.</b> Moltiplica <i>h</i> per la matrice del router <i>W</i> (d righe, una colonna per esperto): esce un punteggio per esperto.</span><em>s = h · W</em></span></li>
@@ -563,7 +570,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </ol></div>
   <div class="prose stack">
     <p><b>Come impara a scegliere.</b> Nessuno etichetta i token con «questo va all'esperto 5». La matrice del router si allena come ogni altro peso: l'errore sul token successivo torna indietro anche attraverso i pesi <i>g</i>, e sposta <i>W</i> in modo che gli esperti che hanno aiutato ricevano punteggi più alti in casi simili.</p>
-    <p><b>Che cosa finiscono per rappresentare gli esperti.</b> Non «aree» tematiche. Gli autori di Mixtral hanno misurato come vengono assegnati i token di testi di matematica, biologia, filosofia e articoli scientifici: la distribuzione sugli esperti è quasi la stessa per tutti gli argomenti. Le regolarità sono sintattiche: in Python la parola <code>self</code> e i caratteri di indentazione vanno di solito allo stesso esperto, e token consecutivi tendono a scegliere gli stessi esperti.</p>
+    <p><b>Che cosa finiscono per rappresentare gli esperti.</b> Non «aree» tematiche. Gli autori di Mixtral hanno misurato come vengono assegnati i token di testi di matematica, biologia, filosofia e articoli scientifici: la distribuzione sugli esperti è quasi la stessa per tutti gli argomenti. Le regolarità sono sintattiche: in Python la parola <code>self</code> passa spesso per lo stesso esperto, i token di indentazione finiscono quasi sempre sugli stessi esperti, e token consecutivi tendono a scegliere gli stessi esperti.</p>
   </div>
 
   <div class="lab">
@@ -586,14 +593,14 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="bilanciamento" class="anchor">Il problema del bilanciamento</h3>
   <div class="prose stack">
-    <p>Lasciato a sé, il router tende al <b>collasso</b>: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile, riceve ancora più token. Dopo un po' pochi esperti fanno tutto il lavoro e gli altri sono pesi sprecati, e nel frattempo le GPU che ospitano gli esperti più scelti fanno da collo di bottiglia. Le contromisure principali:</p>
+    <p>Lasciato a sé, il router tende al <b>collasso</b>: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile, riceve ancora più token. Dopo un po' pochi esperti fanno tutto il lavoro e gli altri sono pesi sprecati, e nel frattempo le GPU (Graphics Processing Unit) che ospitano gli esperti più scelti fanno da collo di bottiglia. Le contromisure principali:</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Tecnica</th><th>Come funziona</th><th>Dove</th></tr></thead>
     <tbody>
       <tr><td>Perdita ausiliaria di bilanciamento</td><td>si aggiunge all'errore un termine <code>α · N · Σ fᵢ · Pᵢ</code> (fᵢ = quota di token che l'esperto riceve, Pᵢ = probabilità media che il router gli assegna): è minimo quando il carico è uniforme</td><td>Switch Transformer (α = 0,01), molti modelli successivi</td></tr>
       <tr><td>Capacità per esperto</td><td>ogni esperto accetta al massimo <code>(token del batch / esperti) × fattore di capacità</code>; i token in eccesso saltano l'esperto e passano avanti solo con la connessione residua</td><td>Switch Transformer, GShard</td></tr>
-      <tr><td>Bias senza perdita ausiliaria</td><td>a ogni esperto si somma un bias usato <em>solo per scegliere</em>, non per pesare: si abbassa per chi è sovraccarico e si alza per chi è scarico. Non tocca il gradiente, quindi non peggiora la qualità</td><td>DeepSeek-V3, che così non scarta nessun token</td></tr>
+      <tr><td>Bias senza perdita ausiliaria</td><td>a ogni esperto si somma un bias usato <em>solo per scegliere</em>, non per pesare: si abbassa per chi è sovraccarico e si alza per chi è scarico. Non aggiunge termini al gradiente, quindi disturba la qualità molto meno di una perdita ausiliaria</td><td>DeepSeek-V3 (con in più una perdita ausiliaria piccolissima, per sequenza), che così non scarta nessun token</td></tr>
       <tr><td>Rumore sui punteggi</td><td>rumore casuale aggiunto ai punteggi durante l'addestramento, per far provare anche gli esperti meno scelti</td><td>Shazeer e colleghi, 2017 (top-k con rumore)</td></tr>
       <tr><td>Scelta da parte dell'esperto</td><td>invertire la domanda: ogni esperto sceglie i suoi k token migliori, così il carico è uniforme per costruzione</td><td>Expert Choice (Google, 2022)</td></tr>
     </tbody></table></div></div>
@@ -689,7 +696,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     $("#ccBar").innerHTML=`<span class="a" style="flex:0 0 ${Math.max(pct,4)}%">${pct.toLocaleString("it-IT",{maximumFractionDigits:pct<10?1:0})}% attivi</span><span class="i">${pct>99?"":"inattivi per questo token"}</span>`;
     let m;
     if(E===1)m=`<b>Modello denso.</b> Ogni token usa tutti i ${fmt(tot)} parametri: memoria e calcolo crescono insieme. Per avere più capacità bisogna pagare più calcolo per ogni token.`;
-    else m=`<b>${E} esperti, ${k} per token${shared?" più uno condiviso":""}.</b> In memoria servono ${fmt(tot)} di parametri, ma ogni token ne attraversa ${fmt(act)}: il ${pct.toLocaleString("it-IT",{maximumFractionDigits:1})}%. Il costo di generazione è quello di un modello denso da ${fmt(act)}; la capacità di memorizzare è più vicina a quella di uno da ${fmt(tot)}.`;
+    else m=`<b>${E} esperti, ${k} per token${shared?" più uno condiviso":""}.</b> In memoria servono ${fmt(tot)} di parametri, ma ogni token ne attraversa ${fmt(act)}: il ${pct.toLocaleString("it-IT",{maximumFractionDigits:1})}%. Il costo di generazione è quello di un modello denso da ${fmt(act)}; la capacità di memorizzare sta tra quella di un denso da ${fmt(act)} e quella di uno da ${fmt(tot)}.`;
     $("#ccMsg").innerHTML=m;
   }
   const PRE={dense:{D:8192,L:80,F:3.5,E:1,K:1,S:0},mixtral:{D:4096,L:32,F:3.5,E:8,K:2,S:0},qwen:{D:4096,L:94,F:0.375,E:128,K:8,S:0}};
@@ -739,7 +746,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     if(it===0)m=`<b>Prima dell'addestramento.</b> Con top-${K} ogni token accende ${K} esperti su ${NE}. Nota che i tre «self» e i due «r» scelgono gli stessi esperti: stesso vettore, stessi punteggi. Il carico è già un po' sbilanciato solo per caso.`;
     else if(rmode==="none")m=idle>=NE/2?`<b>Collasso.</b> Dopo ${it} passi ${idle} esperti su ${NE} non ricevono più token: chi era un po' più scelto è stato allenato di più ed è diventato ancora più scelto. I loro parametri occupano memoria senza lavorare.`:`<b>Il ricco diventa più ricco.</b> Gli esperti più scelti guadagnano punteggio a ogni passo. Continua: il carico si concentra.`;
     else if(rmode==="aux")m=`<b>Perdita ausiliaria.</b> Il termine di bilanciamento spinge giù i punteggi degli esperti sovraccarichi e su quelli scarichi: il carico massimo è ${(mx/mean).toFixed(1)}× la media. Il prezzo: questa spinta entra nel gradiente e nei pesi <i>g</i>, e se troppo forte peggiora la qualità.`;
-    else m=`<b>Bias solo per la scelta.</b> Come in DeepSeek-V3, il bias sposta quali esperti vengono scelti ma non i pesi con cui le loro uscite vengono sommate (la riga delle probabilità non contiene il bias). Il carico si livella (massimo ${(mx/mean).toFixed(1)}× la media) senza toccare la funzione che il modello impara.`;
+    else m=`<b>Bias solo per la scelta.</b> Come in DeepSeek-V3, il bias sposta quali esperti vengono scelti ma non i pesi con cui le loro uscite vengono sommate (la riga delle probabilità non contiene il bias). Il carico si livella (massimo ${(mx/mean).toFixed(1)}× la media) senza aggiungere al gradiente una spinta estranea all'obiettivo.`;
     $("#rtMsg").innerHTML=m;
   }
   function train(){const l=loads(),mean=1/NE;
@@ -763,6 +770,7 @@ window.XREF_CONFIG={
   skip:".lab,.cards,",
   ids:[],
   rules:[
+    {re:"capitolo sugli strati della guida sul training",to:"https://pericle82.github.io/explorables/training-llm/#c-layer",k:"Altra guida",t:"Anatomia del Training LLM · Gli strati",body:"<p>Attention con query, key e value, MLP, connessione residua e normalizzazione, con il conto dei 7 miliardi di pesi di Llama 2 7B.</p>",flags:"i",first:false},
     {re:"capitolo 1",to:"#cap-1",flags:"i",first:false},
     {re:"capitolo 2",to:"#cap-2",flags:"i",first:false},
     {re:"capitolo 3",to:"#cap-3",flags:"i",first:false},
@@ -962,6 +970,13 @@ window.XREF_CONFIG={
 .vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
 .vx-map .to{display:none}.vx-map code{margin-top:6px}}
+/* letture consigliate prima della guida: <aside class="vx-prereq"> nell'intestazione, dopo la .lede */
+.vx.vx-prereq{margin:0;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.vx-prereq ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.vx-prereq li{font-size:.92rem}
+.vx-prereq li a{font-weight:600}
+.vx-prereq li span{color:var(--muted)}
+.vx-prereq p{font-size:.92rem;color:var(--muted)}
 .xref-pop .vx{margin:8px 0}
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
