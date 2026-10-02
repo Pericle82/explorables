@@ -2,6 +2,13 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-02
+- **Neural Network Driving** (`neural-network-driving`) v1.1: Revisione: modello a bicicletta (il raggio non dipende dalla velocità), crossover a un punto, discesa del gradiente e apprendimento supervisionato; letture consigliate in testa
+- **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.1: Revisione: nota e callout della cache coerenti con il laboratorio, temperatura e determinismo, laboratorio RRF, scala di Landis e Koch, durata del test con utenti; letture consigliate in testa; rimandi alle guide sugli agenti e sul training
+- **Da Assistente ad Agente** (`assistente-agente`) v1.4: Revisione: correzioni di italiano e acronimi, descrizione dei tool, callout sull'accumulo degli errori; letture consigliate in testa; rimando all'ingegneria dei sistemi LLM per budget, ripresa ed evals
+- **Encoder, decoder, esperti** (`architetture-llm`) v1.1: Revisione: note del calcolatore corrette sui preset, capacità dei MoE, Llama 4 Maverick, bilanciamento con bias in DeepSeek-V3, rinormalizzazione non universale; letture consigliate in testa; rimando al capitolo sugli strati del training
+- **Anatomia del Training LLM** (`training-llm`) v1.9: Revisione: «migliaia di miliardi» al posto di «trilioni», MLP SwiGLU coerente con il conto di Llama 2 7B, AdamW, notazione DPO, reward hacking anche con RLVR; letture consigliate in testa; rimando alla guida sulle architetture
+
 ## 2026-09-30
 - **Quando il COMMIT non basta più** (`transazioni`) v2.14: Capitolo 3: il WAL è un log fisico — ogni nota contiene l'indirizzo della modifica (file, pagina, offset); distinzione esplicita tra l'indirizzo nella nota (quale pagina caricare) e l'LSN nell'header della pagina (se applicare).
 - **Quando il COMMIT non basta più** (`transazioni`) v2.13: Capitolo 3: definizione dell'LSN (indirizzo della nota nel log: ordina e localizza) introdotta dove il log compare per la prima volta; nuova sezione «Dopo il crash: come si trova l'ultima nota scritta?» (file di controllo e redo point, scansione del log in avanti fino al primo CRC non valido, nessuna scansione delle pagine dati); riepilogo e autodiagnosi aggiornati.
