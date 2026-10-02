@@ -107,6 +107,17 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .readout small{font-size:.74rem;color:var(--muted)}
 .readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
 .formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+/* riquadri formula (componente condiviso .vx-formula): a capo o scorrimento interno su schermi stretti */
+.vx-formula{overflow-x:auto;overflow-wrap:normal}
+.prose .vx-formula{margin:4px 0}
+.vx-formula small{margin-top:6px;line-height:1.45}
+/* tensori: scala dei ranghi */
+.tn-ranks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.tn-ranks figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tn-cap{font-size:.8rem;color:var(--muted);line-height:1.35}
+.tn-cap b{display:block;color:var(--ink);font-weight:600}
+@media (max-width:760px){.tn-ranks{grid-template-columns:repeat(2,minmax(0,1fr))}.tn-ranks figure:last-of-type{grid-column:1/-1;width:100%;max-width:190px;justify-self:center}}
+#tnChart [data-l],#tnChart [data-b]{cursor:pointer}
 
 /* token strip */
 .tokens{display:flex;flex-wrap:wrap;gap:4px}
@@ -314,14 +325,15 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- ALGEBRA -->
   <h3 id="c-alg" class="anchor">Richiamo di algebra: vettori e matrici</h3>
   <div class="prose stack">
-    <p>Dentro un LLM (Large Language Model, modello linguistico di grandi dimensioni) ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Questo richiamo le costruisce in sette passi, dal più generale al più specifico: i vettori e la loro somma, il prodotto scalare, la norma e la similarità coseno (con le sorprese delle alte dimensioni), la matrice vista come trasformazione, il prodotto tra matrici e quanto costa, la non linearità, il basso rango. Ogni passo ha un laboratorio con la matematica vera e dice in quale punto della guida il concetto ritorna.</p>
+    <p>Dentro un LLM (Large Language Model, modello linguistico di grandi dimensioni) ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Questo richiamo le costruisce in otto passi, dal più generale al più specifico: i vettori e la loro somma, il prodotto scalare, la norma e la similarità coseno (con le sorprese delle alte dimensioni), la matrice vista come trasformazione, i tensori (tabelle di numeri con più di due assi, il formato in cui viaggiano tutti i dati del modello), il prodotto tra matrici e quanto costa, la non linearità, il basso rango. Ogni passo ha un laboratorio con la matematica vera e dice in quale punto della guida il concetto ritorna.</p>
     <p>Se queste nozioni ti sono familiari, salta al <a href="#c-alg-prom">Promemoria</a> in fondo: raccoglie le definizioni in schede brevi, da riaprire quando un capitolo successivo ne usa una.</p>
   </div>
-  <ol class="vx vx-steps" aria-label="I sette passi del richiamo di algebra">
+  <ol class="vx vx-steps" aria-label="Gli otto passi del richiamo di algebra">
     <li><span class="vx-li"><a href="#c-alg-vett">Vettori: liste, frecce, punti</a> <em>embedding, residual stream</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-dot">Prodotto scalare: quanto due vettori sono d'accordo</a> <em>attention, logit</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-norm">Norma, coseno e alte dimensioni</a> <em>normalizzazione, ricerca per similarità</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-mat">Una matrice è una trasformazione</a> <em>strati, testa di output</em></span></li>
+    <li><span class="vx-li"><a href="#c-alg-tens">Tensori: shape, assi e fette</a> <em>batch, teste dell'attention</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-shape">Matrice × matrice: shape e costo</a> <em>batch, costo del training</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-nonlin">Perché serve una non linearità</a> <em>il blocco che allarga e restringe</em></span></li>
     <li><span class="vx-li"><a href="#c-alg-rank">Basso rango: una matrice grande fatta di due sottili</a> <em>fine-tuning leggero, teste</em></span></li>
@@ -334,7 +346,9 @@ table.mt tr.dim td{color:var(--muted)}
     <p><b>Somma e prodotto per uno scalare.</b> Due vettori si sommano elemento per elemento: [2 ; 1] + [−1 ; 1,5] = [1 ; 2,5]. Geometricamente si appoggia la coda della seconda freccia sulla punta della prima: il risultato va dall'origine all'ultima punta, ed è la diagonale del parallelogramma che ha i due vettori come lati (regola del parallelogramma). Moltiplicare per uno scalare t moltiplica ogni elemento: 1,5 · [−1 ; 1,5] = [−1,5 ; 2,25]. La freccia si allunga (t &gt; 1), si accorcia (0 &lt; t &lt; 1) o si gira dall'altra parte (t &lt; 0), ma resta sulla stessa retta.</p>
     <p><b>Combinazione lineare.</b> Mettendo insieme le due operazioni si ottiene s·a + t·b, una <i>combinazione lineare</i> di a e b. Se a e b non sono paralleli, scegliendo s e t si raggiunge qualsiasi punto del piano: due direzioni indipendenti bastano a descrivere uno spazio a due dimensioni. L'idea ritorna nella sottosezione sulle trasformazioni: il risultato di matrice × vettore è una combinazione lineare delle colonne della matrice.</p>
     <p><b>Da 2 a 4.096 dimensioni.</b> Uno spazio a 4.096 dimensioni non si può disegnare, ma le regole non cambiano: si somma e si scala elemento per elemento, e lunghezze e angoli si calcolano con le stesse formule. Un embedding da 4.096 numeri è un punto in uno spazio a 4.096 dimensioni, e «gatto» e «cane» sono vicini nel senso di sempre: la freccia che va dall'uno all'altro è corta (vedi la sottosezione sull'embedding). Qualche intuizione del piano però si rompe, come mostra la sottosezione sulla norma.</p>
-    <p><b>L'aritmetica degli embedding.</b> Se le direzioni hanno un significato, dovrebbero averlo anche le differenze tra vettori. Con word2vec (Mikolov e colleghi, 2013) si osservò che vec(«re») − vec(«uomo») + vec(«donna») cade vicino a vec(«regina»): la differenza donna − uomo funziona, all'incirca, come una direzione «femminile» che si può aggiungere ad altre parole. Va presa con cautela: il risultato non coincide con «regina», che è solo la parola più vicina <i>escludendo</i> le tre di partenza (senza questa esclusione spesso la più vicina resterebbe «re» stesso), e molte analogie non funzionano affatto. È un indizio che lo spazio degli embedding ha una struttura geometrica, non una regola esatta.</p>
+    <p><b>L'aritmetica degli embedding.</b> Se le direzioni hanno un significato, dovrebbero averlo anche le differenze tra vettori. Con word2vec (Mikolov e colleghi, 2013) si osservò un'aritmetica sorprendente:</p>
+    <div class="vx vx-formula">vec(«re») − vec(«uomo») + vec(«donna») <span class="op">≈</span> vec(«regina») <small>vec(parola) è l'embedding della parola; ≈ vuol dire «la parola più vicina al risultato».</small></div>
+    <p>La differenza donna − uomo funziona, all'incirca, come una direzione «femminile» che si può aggiungere ad altre parole. Va presa con cautela: il risultato non coincide con «regina», che è solo la parola più vicina <i>escludendo</i> le tre di partenza (senza questa esclusione spesso la più vicina resterebbe «re» stesso), e molte analogie non funzionano affatto. È un indizio che lo spazio degli embedding ha una struttura geometrica, non una regola esatta.</p>
     <p><b>Il residual stream è una somma di vettori.</b> Dentro il transformer il vettore di un token non viene sostituito strato dopo strato: ogni sotto-strato calcola un vettore e lo <b>aggiunge</b> a quello che riceve. Dopo N blocchi il vettore finale è una somma di 2N + 1 vettori: l'embedding di partenza più un contributo per ogni attention e per ogni MLP (Multi-Layer Perceptron, percettrone multistrato). È la connessione residua descritta nella sottosezione sugli strati, ed è anche ciò che protegge il gradiente nella sottosezione sulla backpropagation: nella somma l'ingresso passa invariato, quindi all'indietro c'è sempre un percorso in cui il gradiente non viene moltiplicato da nessuno strato.</p>
   </div>
   <div class="lab">
@@ -364,8 +378,12 @@ table.mt tr.dim td{color:var(--muted)}
   <h3 id="c-alg-dot" class="anchor">Prodotto scalare: quanto due vettori sono d'accordo</h3>
   <div class="prose stack">
     <p>Due amici danno un voto da −2 a +2 agli stessi cinque film. Per capire se hanno gusti simili si moltiplicano i loro voti film per film e si sommano i prodotti: se un film piace a entrambi (+ × +) o non piace a nessuno dei due (− × −) il contributo è positivo, se sono in disaccordo è negativo. Il totale è grande e positivo se sono quasi sempre d'accordo, vicino a zero se i loro gusti non hanno niente a che fare l'uno con l'altro, negativo se uno ama ciò che l'altro detesta. Questo totale è il <b>prodotto scalare</b> dei due vettori di voti.</p>
-    <p><b>Due formule per la stessa cosa.</b> Per elementi, a · b = a₁b₁ + a₂b₂ + … + a<sub>d</sub>b<sub>d</sub>. Geometricamente, a · b = |a| |b| cos θ, dove |a| e |b| sono le lunghezze delle frecce e θ l'angolo tra loro. Coincidono per il teorema di Carnot, il teorema di Pitagora generalizzato a un triangolo qualsiasi. Nel triangolo con lati a, b e a − b vale |a − b|² = |a|² + |b|² − 2 |a| |b| cos θ. D'altra parte, sviluppando i quadrati elemento per elemento, |a − b|² = Σ (aᵢ − bᵢ)² = |a|² + |b|² − 2 Σ aᵢbᵢ. Confrontando le due righe resta Σ aᵢbᵢ = |a| |b| cos θ, in qualsiasi numero di dimensioni.</p>
-    <p><b>Proiezione.</b> |b| cos θ è la lunghezza dell'ombra di b sulla retta di a: quanto di b va «nella direzione di a». Si chiama <i>proiezione</i> di b su a, e il prodotto scalare è |a| per quella proiezione. Se a è lungo 1, il prodotto scalare <i>è</i> la proiezione. La freccia che va dall'origine all'ombra è (a · b / |a|²) · a.</p>
+    <p><b>Due formule per la stessa cosa.</b> Il prodotto scalare si calcola per elementi oppure con lunghezze e angolo:</p>
+    <div class="vx vx-formula">a&nbsp;·&nbsp;b <span class="op">=</span> a₁b₁ + a₂b₂ + … + a<sub>d</sub>b<sub>d</sub> <span class="op">=</span> |a| |b| cos θ <small>|a| e |b| sono le lunghezze delle frecce, θ l'angolo tra loro.</small></div>
+    <p>Le due espressioni coincidono per il teorema di Carnot, il teorema di Pitagora generalizzato a un triangolo qualsiasi. Si scrive in due modi la lunghezza del terzo lato, a − b, e si confrontano le due righe:</p>
+    <div class="vx vx-formula">Carnot: |a − b|² <span class="op">=</span> |a|² + |b|² − 2 |a| |b| cos θ<br>per elementi: |a − b|² <span class="op">=</span> Σ (aᵢ − bᵢ)² <span class="op">=</span> |a|² + |b|² − 2 Σ aᵢbᵢ<br><span class="op">⇒</span> Σ aᵢbᵢ <span class="op">=</span> |a| |b| cos θ <small>La seconda riga sviluppa i quadrati elemento per elemento; l'uguaglianza finale vale in qualsiasi numero di dimensioni.</small></div>
+    <p><b>Proiezione.</b> |b| cos θ è la lunghezza dell'ombra di b sulla retta di a: quanto di b va «nella direzione di a». Si chiama <i>proiezione</i> di b su a, e il prodotto scalare è |a| per quella proiezione:</p>
+    <div class="vx vx-formula">lunghezza dell'ombra <span class="op">=</span> |b| cos θ <span class="op">=</span> a&nbsp;·&nbsp;b&nbsp;/&nbsp;|a|<br>freccia dell'ombra <span class="op">=</span> (a&nbsp;·&nbsp;b&nbsp;/&nbsp;|a|²)&nbsp;·&nbsp;a <small>Se a è lungo 1, il prodotto scalare <i>è</i> la proiezione.</small></div>
     <p><b>Segno e grandezza.</b> Il segno dipende solo dall'angolo: positivo sotto i 90°, zero a 90° (vettori <i>ortogonali</i>), negativo oltre. La grandezza dipende anche dalle lunghezze: un vettore molto lungo produce prodotti scalari grandi anche con poca somiglianza di direzione. Per confrontare solo le direzioni si divide per le lunghezze, ed è la similarità coseno della sottosezione sulla norma.</p>
   </div>
   <div class="lab">
@@ -391,16 +409,25 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="vx-card"><h5><small>Dove ritorna · testa di output</small>Un logit per ogni token</h5><p>Il logit del token v è il prodotto scalare tra l'ultimo vettore del modello e la riga di v nella matrice di output: V prodotti scalari, uno per voce del vocabolario. Vince la riga più allineata; la softmax trasforma i punteggi in probabilità. <a href="#c-emb">Embedding</a> · <a href="#c-loss">la loss</a></p></div>
   </div>
   <div class="prose stack">
-    <p><b>Perché nell'attention si divide per √d<sub>k</sub>.</b> Se query e key hanno d<sub>k</sub> elementi indipendenti, con media 0 e varianza 1, il loro prodotto scalare è la somma di d<sub>k</sub> termini casuali di varianza 1: la varianza della somma è d<sub>k</sub> e la deviazione standard √d<sub>k</sub>. Con d<sub>k</sub> = 128 i punteggi oscillerebbero di circa ±11, e una softmax su numeri così distanti mette quasi tutto il peso su un solo token: i gradienti verso gli altri diventano quasi nulli e il training si inceppa. Dividere per √d<sub>k</sub> ≈ 11,3 riporta la deviazione standard a 1, qualunque sia la dimensione (Vaswani e colleghi, 2017). È lo stesso fenomeno che, visto dall'altra parte, rende quasi ortogonali i vettori casuali nella sottosezione sulla norma.</p>
+    <p><b>Perché nell'attention si divide per √d<sub>k</sub>.</b> Se query e key hanno d<sub>k</sub> elementi indipendenti, con media 0 e varianza 1, il loro prodotto scalare è la somma di d<sub>k</sub> termini casuali di varianza 1:</p>
+    <div class="vx vx-formula">varianza(q&nbsp;·&nbsp;k) <span class="op">=</span> d<sub>k</sub> &nbsp; <span class="op">→</span> &nbsp; deviazione standard <span class="op">=</span> √d<sub>k</sub><br>q&nbsp;·&nbsp;k&nbsp;/&nbsp;√d<sub>k</sub> <span class="op">→</span> deviazione standard 1 <small>Con d<sub>k</sub> = 128: √128 ≈ 11,3.</small></div>
+    <p>Senza la divisione, con d<sub>k</sub> = 128 i punteggi oscillerebbero di circa ±11, e una softmax su numeri così distanti mette quasi tutto il peso su un solo token: i gradienti verso gli altri diventano quasi nulli e il training si inceppa. Dividere per √d<sub>k</sub> ≈ 11,3 riporta la deviazione standard a 1, qualunque sia la dimensione (Vaswani e colleghi, 2017). È lo stesso fenomeno che, visto dall'altra parte, rende quasi ortogonali i vettori casuali nella sottosezione sulla norma.</p>
   </div>
 
   <!-- ALGEBRA 3 · NORMA E COSENO -->
   <h3 id="c-alg-norm" class="anchor">Norma, coseno e lo strano mondo delle alte dimensioni</h3>
   <div class="prose stack">
-    <p>La norma è la lunghezza della freccia. In due dimensioni è il teorema di Pitagora: |[3 ; 4]| = √(9 + 16) = 5. In d dimensioni si sommano d quadrati: |a| = √(a₁² + … + a<sub>d</sub>²) = √(a · a). Dividendo un vettore per la sua norma si ottiene il <b>vettore unitario</b> a / |a|: stessa direzione, lunghezza 1. [3 ; 4] diventa [0,6 ; 0,8]. È come portare tutte le frecce alla stessa lunghezza per confrontare soltanto dove puntano.</p>
-    <p><b>Normalizzare dentro il modello.</b> RMSNorm (Root Mean Square Normalization, normalizzazione per la radice della media dei quadrati) usa la stessa idea. Calcola RMS(x) = √((x₁² + … + x<sub>d</sub>²) / d), cioè |x| / √d, la grandezza tipica di un elemento; poi divide ogni elemento per RMS(x) (più una costante minuscola ε che evita di dividere per zero) e lo moltiplica per un guadagno g<sub>i</sub> imparato, uno per dimensione. Senza i guadagni ogni vettore esce con norma esattamente √d: la direzione resta, la scala viene azzerata. Per x = [3 ; 4]: RMS = √(25 / 2) ≈ 3,54 e x / RMS ≈ [0,85 ; 1,13], di norma √2. Serve perché il residual stream è una somma che cresce strato dopo strato: senza normalizzazione ogni sotto-strato riceverebbe numeri su scale diverse, e i gradienti con loro (sottosezione sugli strati).</p>
-    <p><b>Similarità coseno.</b> cos θ = a · b / (|a| |b|), cioè il prodotto scalare dei due vettori unitari. Ignora le lunghezze e va da −1 (direzioni opposte) a 1 (stessa direzione). È la misura con cui il retrieval cerca i documenti più simili a una domanda: si calcola il coseno tra l'embedding della domanda e quello di ogni documento.</p>
-    <p><b>In alta dimensione quasi tutto è ortogonale.</b> Prendi due direzioni a caso nel piano: l'angolo tra loro è uniforme, e coseni vicini a ±1 capitano spesso. In 4.096 dimensioni succede una cosa che il piano non lascia immaginare: due vettori casuali sono quasi sempre quasi perpendicolari, con coseno tra −0,05 e +0,05. Il motivo è lo stesso della divisione per √d<sub>k</sub> (sottosezione sul prodotto scalare): il prodotto scalare di due vettori casuali è una somma di d termini di segno casuale, che in parte si annullano e crescono solo come √d, mentre il prodotto delle norme cresce come d. Il rapporto va come 1/√d: per direzioni uniformemente casuali la varianza del coseno vale esattamente 1/d, quindi la deviazione standard è 1/√d, circa 0,0156 per d = 4.096.</p>
+    <p>La norma è la lunghezza della freccia. In due dimensioni è il teorema di Pitagora; in d dimensioni si sommano d quadrati:</p>
+    <div class="vx vx-formula">|a| <span class="op">=</span> √(a₁² + … + a<sub>d</sub>²) <span class="op">=</span> √(a&nbsp;·&nbsp;a)<br>|[3&nbsp;;&nbsp;4]| <span class="op">=</span> √(9 + 16) <span class="op">=</span> 5 <small>La norma è il prodotto scalare di un vettore con sé stesso, sotto radice.</small></div>
+    <p>Dividendo un vettore per la sua norma si ottiene il <b>vettore unitario</b> a / |a|: stessa direzione, lunghezza 1. [3 ; 4] diventa [0,6 ; 0,8]. È come portare tutte le frecce alla stessa lunghezza per confrontare soltanto dove puntano.</p>
+    <p><b>Normalizzare dentro il modello.</b> RMSNorm (Root Mean Square Normalization, normalizzazione per la radice della media dei quadrati) usa la stessa idea. Calcola la grandezza tipica di un elemento, poi divide ogni elemento per quella e lo moltiplica per un guadagno g<sub>i</sub> imparato, uno per dimensione:</p>
+    <div class="vx vx-formula">RMS(x) <span class="op">=</span> √((x₁² + … + x<sub>d</sub>²)&nbsp;/&nbsp;d) <span class="op">=</span> |x|&nbsp;/&nbsp;√d<br>RMSNorm(x)<sub>i</sub> <span class="op">=</span> g<sub>i</sub>&nbsp;·&nbsp;x<sub>i</sub>&nbsp;/&nbsp;RMS(x)<br>x = [3&nbsp;;&nbsp;4]: RMS <span class="op">=</span> √(25&nbsp;/&nbsp;2) ≈ 3,54, &nbsp; x&nbsp;/&nbsp;RMS ≈ [0,85&nbsp;;&nbsp;1,13] <small>In pratica sotto la radice si aggiunge una costante minuscola ε, che evita di dividere per zero.</small></div>
+    <p>Senza i guadagni ogni vettore esce con norma esattamente √d (√2 nell'esempio): la direzione resta, la scala viene azzerata. Serve perché il residual stream è una somma che cresce strato dopo strato: senza normalizzazione ogni sotto-strato riceverebbe numeri su scale diverse, e i gradienti con loro (sottosezione sugli strati).</p>
+    <p><b>Similarità coseno.</b> È il prodotto scalare dei due vettori unitari:</p>
+    <div class="vx vx-formula">cos θ <span class="op">=</span> a&nbsp;·&nbsp;b&nbsp;/&nbsp;(|a| |b|) <small>Ignora le lunghezze e va da −1 (direzioni opposte) a 1 (stessa direzione).</small></div>
+    <p>È la misura con cui il retrieval cerca i documenti più simili a una domanda: si calcola il coseno tra l'embedding della domanda e quello di ogni documento.</p>
+    <p><b>In alta dimensione quasi tutto è ortogonale.</b> Prendi due direzioni a caso nel piano: l'angolo tra loro è uniforme, e coseni vicini a ±1 capitano spesso. In 4.096 dimensioni succede una cosa che il piano non lascia immaginare: due vettori casuali sono quasi sempre quasi perpendicolari, con coseno tra −0,05 e +0,05. Il motivo è lo stesso della divisione per √d<sub>k</sub> (sottosezione sul prodotto scalare): il prodotto scalare di due vettori casuali è una somma di d termini di segno casuale, che in parte si annullano e crescono solo come √d, mentre il prodotto delle norme cresce come d. Il rapporto va come 1/√d:</p>
+    <div class="vx vx-formula">varianza del coseno <span class="op">=</span> 1/d &nbsp; <span class="op">→</span> &nbsp; deviazione standard <span class="op">=</span> 1/√d<br>d = 4.096: 1/64 <span class="op">≈</span> 0,0156 <small>Vale esattamente per direzioni uniformemente casuali.</small></div>
     <p><b>Perché conta.</b> Se si accetta una piccola tolleranza (per esempio coseni entro ±0,1), il numero di direzioni «quasi indipendenti» che entrano in uno spazio cresce in modo esponenziale con d, ben oltre il numero delle dimensioni: è una conseguenza del lemma di Johnson-Lindenstrauss. La ricerca sull'interpretabilità suggerisce che i modelli sfruttino proprio questo spazio: rappresentano molti più concetti che dimensioni, ciascuno come una direzione quasi ortogonale alle altre, accettando una piccola interferenza (<i>superposition</i>, sovrapposizione; Elhage e colleghi, 2022). Vale anche al contrario: in 4.096 dimensioni un coseno di 0,2 tra due vettori non è «poco», è quasi 13 deviazioni standard sopra quello che darebbe il caso.</p>
   </div>
   <div class="lab">
@@ -421,8 +448,12 @@ table.mt tr.dim td{color:var(--muted)}
   <h3 id="c-alg-mat" class="anchor">Una matrice è una trasformazione</h3>
   <div class="prose stack">
     <p>Una matrice è una macchina: entra un vettore, ne esce un altro. In due dimensioni si vede che cosa fa a tutto il piano insieme: la griglia può ruotare, allungarsi, inclinarsi o schiacciarsi, ma le rette restano rette, le parallele restano parallele e l'origine resta ferma. «Lineare» vuol dire proprio questo.</p>
-    <p><b>Lettura per righe: m rilevatori.</b> Una matrice m × n ha m righe di n numeri, e ogni elemento del risultato è il prodotto scalare di una riga con il vettore: yᵢ = rigaᵢ · x. Ogni riga è un <i>rilevatore</i> che misura quanto x punta nella sua direzione, e l'uscita è l'elenco delle m misure. La testa di output funziona così: V righe, una per token, e V prodotti scalari con l'ultimo vettore, cioè i logit (sottosezione sulla loss).</p>
-    <p><b>Lettura per colonne: una ricetta.</b> Lo stesso prodotto si legge anche come Ax = x₁ · colonna₁ + x₂ · colonna₂ + … + x<sub>n</sub> · colonna<sub>n</sub>: una combinazione lineare delle colonne (sottosezione sui vettori), in cui gli elementi di x dicono quanto prendere di ciascuna. La colonna j è il punto in cui finisce il j-esimo vettore di base (tutti 0 tranne un 1 in posizione j). Se x è one-hot sopravvive una sola colonna, o una sola riga se si moltiplica dall'altra parte: per questo l'embedding è una lettura e non un calcolo (secondo laboratorio qui sotto).</p>
+    <p><b>Lettura per righe: m rilevatori.</b> Una matrice m × n ha m righe di n numeri, e ogni elemento del risultato è il prodotto scalare di una riga con il vettore:</p>
+    <div class="vx vx-formula">y<sub>i</sub> <span class="op">=</span> riga<sub>i</sub>&nbsp;·&nbsp;x &nbsp; per i = 1 … m <small>y = Ax ha m elementi, uno per riga di A.</small></div>
+    <p>Ogni riga è un <i>rilevatore</i> che misura quanto x punta nella sua direzione, e l'uscita è l'elenco delle m misure. La testa di output funziona così: V righe, una per token, e V prodotti scalari con l'ultimo vettore, cioè i logit (sottosezione sulla loss).</p>
+    <p><b>Lettura per colonne: una ricetta.</b> Lo stesso prodotto si legge anche come una combinazione lineare delle colonne (sottosezione sui vettori):</p>
+    <div class="vx vx-formula">Ax <span class="op">=</span> x₁&nbsp;·&nbsp;colonna₁ + x₂&nbsp;·&nbsp;colonna₂ + … + x<sub>n</sub>&nbsp;·&nbsp;colonna<sub>n</sub> <small>Gli elementi di x dicono quanto prendere di ciascuna colonna.</small></div>
+    <p>La colonna j è il punto in cui finisce il j-esimo vettore di base (tutti 0 tranne un 1 in posizione j). Se x è one-hot sopravvive una sola colonna, o una sola riga se si moltiplica dall'altra parte: per questo l'embedding è una lettura e non un calcolo (secondo laboratorio qui sotto).</p>
   </div>
   <div class="grid2">
     <div class="stack">
@@ -448,8 +479,12 @@ table.mt tr.dim td{color:var(--muted)}
       <li><b>Taglio</b> (<i>shear</i>) [[1, k], [0, 1]]: fa scivolare le righe orizzontali le une sulle altre, come un mazzo di carte spinto di lato.</li>
       <li><b>Proiezione</b> [[1, 0], [0, 0]]: butta via la seconda coordinata. Punti diversi finiscono nello stesso posto, quindi non si può tornare indietro: l'informazione è persa. Il rango scende da 2 a 1 (sottosezione sul basso rango).</li>
     </ul>
-    <p>Il <b>determinante</b> ad − bc della matrice [[a, b], [c, d]] dice per quanto la trasformazione moltiplica le aree: 1 per rotazioni e tagli, s₁·s₂ per la scala, 0 quando il piano viene schiacciato su una retta, negativo quando viene ribaltato come in uno specchio. Le matrici non quadrate cambiano anche la dimensione: una m × n porta da n a m numeri. Nella MLP la prima matrice allarga il vettore da d a circa 4d numeri e la seconda lo riporta a d; nell'attention ogni testa lo proietta da d a pochi numeri (sottosezione sul basso rango).</p>
-    <p><b>Composizione: l'ordine conta.</b> Applicare prima B e poi A equivale ad applicare una sola matrice, il prodotto A·B: A(Bx) = (AB)x, che si legge da destra a sinistra. Scambiare l'ordine cambia il risultato. Con R = [[0, −1], [1, 0]] (rotazione di 90°) e S = [[2, 0], [0, 1]] (raddoppia la prima coordinata) si ha S·R = [[0, −2], [1, 0]] ma R·S = [[0, −1], [2, 0]]. Applicate a [1 ; 0]: ruotare e poi scalare dà [0 ; 1], scalare e poi ruotare dà [0 ; 2]. Il prodotto tra matrici non è commutativo. Due conseguenze per la guida: una pila di strati soltanto lineari collassa in una matrice sola (sottosezione sulla non linearità), e nel backward il gradiente attraversa gli strati in ordine inverso, moltiplicato ogni volta per la trasposta Wᵀ (sottosezione sulla backpropagation).</p>
+    <p>Il <b>determinante</b> dice per quanto la trasformazione moltiplica le aree:</p>
+    <div class="vx vx-formula">det [[a,&nbsp;b], [c,&nbsp;d]] <span class="op">=</span> ad − bc <small>Il valore assoluto è il fattore per cui cambiano le aree; il segno dice se il piano viene ribaltato.</small></div>
+    <p>Vale 1 per rotazioni e tagli, s₁·s₂ per la scala, 0 quando il piano viene schiacciato su una retta, negativo quando viene ribaltato come in uno specchio. Le matrici non quadrate cambiano anche la dimensione: una m × n porta da n a m numeri. Nella MLP la prima matrice allarga il vettore da d a circa 4d numeri e la seconda lo riporta a d; nell'attention ogni testa lo proietta da d a pochi numeri (sottosezione sul basso rango).</p>
+    <p><b>Composizione: l'ordine conta.</b> Applicare prima B e poi A equivale ad applicare una sola matrice, il prodotto A·B: A(Bx) = (AB)x, che si legge da destra a sinistra. Scambiare l'ordine cambia il risultato. Con R = [[0, −1], [1, 0]] (rotazione di 90°) e S = [[2, 0], [0, 1]] (raddoppia la prima coordinata):</p>
+    <div class="vx vx-formula">S·R <span class="op">=</span> [[0,&nbsp;−2], [1,&nbsp;0]] &nbsp; ma &nbsp; R·S <span class="op">=</span> [[0,&nbsp;−1], [2,&nbsp;0]]<br>(S·R)&nbsp;·&nbsp;[1&nbsp;;&nbsp;0] <span class="op">=</span> [0&nbsp;;&nbsp;1] &nbsp; ruotare e poi scalare<br>(R·S)&nbsp;·&nbsp;[1&nbsp;;&nbsp;0] <span class="op">=</span> [0&nbsp;;&nbsp;2] &nbsp; scalare e poi ruotare <small>S·R si legge da destra: prima R, poi S.</small></div>
+    <p>Il prodotto tra matrici non è commutativo. Due conseguenze per la guida: una pila di strati soltanto lineari collassa in una matrice sola (sottosezione sulla non linearità), e nel backward il gradiente attraversa gli strati in ordine inverso, moltiplicato ogni volta per la trasposta Wᵀ (sottosezione sulla backpropagation).</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: che cosa fa una matrice 2 × 2 al piano</h3><span class="tag">matematica reale</span></div>
@@ -484,14 +519,125 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È la lettura per colonne vista sopra, con un solo coefficiente diverso da zero. Per questo l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot compare anche nella loss: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
   </div>
 
+  <!-- ALGEBRA 4b · TENSORI -->
+  <h3 id="c-alg-tens" class="anchor">Tensori: shape, assi e fette</h3>
+  <div class="prose stack">
+    <p>Un foglio di calcolo aiuta a vedere la scala. Una casella contiene un numero; una riga di caselle è una lista; un foglio è una tabella con righe e colonne; una cartella di fogli tutti uguali aggiunge una terza direzione, «quale foglio»; uno scaffale di cartelle ne aggiunge una quarta. In matematica sono lo <b>scalare</b>, il <b>vettore</b>, la <b>matrice</b> e poi i <b>tensori</b> con tre, quattro o più assi. Dentro un LLM quasi niente viaggia da solo: i token arrivano a gruppi di sequenze e ogni token porta con sé un vettore, quindi i dati sono quasi sempre tensori di rango 3 o 4.</p>
+  </div>
+  <div class="vx vx-svg s" role="group" aria-label="Dallo scalare al tensore di rango 4">
+    <div class="tn-ranks">
+      <figure>
+        <svg viewBox="0 0 170 134" role="img" aria-label="Scalare: una sola casella"><rect class="bxa" x="68" y="44" width="34" height="34" rx="3"/><text x="85" y="66" text-anchor="middle" font-size="12">2,7</text></svg>
+        <p class="tn-cap"><b>Rango 0 · scalare</b> shape [ ], 1 numero. Per esempio la loss di un batch.</p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 170 134" role="img" aria-label="Vettore: una fila di d caselle"><rect class="bxa" x="43" y="52" width="84" height="14"/><path class="ac" stroke-width=".7" d="M57 52v14M71 52v14M85 52v14M99 52v14M113 52v14"/><line class="ln" x1="43" y1="78" x2="127" y2="78"/><text x="85" y="94" text-anchor="middle" font-size="12">d</text></svg>
+        <p class="tn-cap"><b>Rango 1 · vettore</b> shape [d], d numeri. Un embedding, un bias.</p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 170 134" role="img" aria-label="Matrice: L righe per d colonne"><rect class="bxa" x="46" y="26" width="84" height="56"/><path class="ac" stroke-width=".7" d="M60 26v56M74 26v56M88 26v56M102 26v56M116 26v56M46 40h84M46 54h84M46 68h84"/><line class="ln" x1="46" y1="92" x2="130" y2="92"/><text x="88" y="108" text-anchor="middle" font-size="12">d</text><line class="ln" x1="38" y1="26" x2="38" y2="82"/><text x="31" y="58" text-anchor="end" font-size="12">L</text></svg>
+        <p class="tn-cap"><b>Rango 2 · matrice</b> shape [L × d]. I vettori di una sequenza; i pesi di uno strato [d × d].</p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 170 134" role="img" aria-label="Tensore di rango 3: una pila di B matrici L per d"><rect class="bx" x="64" y="30" width="84" height="56"/><rect class="bx" x="52" y="40" width="84" height="56"/><rect class="bxa" x="40" y="50" width="84" height="56"/><path class="ac" stroke-width=".7" d="M54 50v56M68 50v56M82 50v56M96 50v56M110 50v56M40 64h84M40 78h84M40 92h84"/><line class="ln" x1="40" y1="116" x2="124" y2="116"/><text x="82" y="130" text-anchor="middle" font-size="12">d</text><line class="ln" x1="32" y1="50" x2="32" y2="106"/><text x="25" y="82" text-anchor="end" font-size="12">L</text><line class="ln" x1="34" y1="42" x2="58" y2="22"/><text x="40" y="26" text-anchor="end" font-size="12">B</text></svg>
+        <p class="tn-cap"><b>Rango 3</b> shape [B × L × d]: B matrici L × d impilate. Le attivazioni di un batch.</p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 170 134" role="img" aria-label="Tensore di rango 4: una fila di B cubi, ciascuno h per L per L"><text class="mut" x="86" y="36" text-anchor="middle" font-size="10">ogni cubo: h × L × L</text><rect class="bx" x="28" y="52" width="28" height="28"/><rect class="bx" x="22" y="57" width="28" height="28"/><rect class="bxa" x="16" y="62" width="28" height="28"/><rect class="bx" x="78" y="52" width="28" height="28"/><rect class="bx" x="72" y="57" width="28" height="28"/><rect class="bxa" x="66" y="62" width="28" height="28"/><rect class="bx" x="128" y="52" width="28" height="28"/><rect class="bx" x="122" y="57" width="28" height="28"/><rect class="bxa" x="116" y="62" width="28" height="28"/><line class="ln" x1="16" y1="102" x2="156" y2="102"/><text x="86" y="118" text-anchor="middle" font-size="12">B</text></svg>
+        <p class="tn-cap"><b>Rango 4</b> shape [B × h × L × L]. I punteggi dell'attention: una matrice L × L per testa e per esempio.</p>
+      </figure>
+    </div>
+    <p class="vx-sr">Cinque disegni affiancati, dal più semplice al più ricco. Lo scalare è una sola casella, con shape vuota. Il vettore è una fila di d caselle. La matrice è una griglia di L righe e d colonne. Il tensore di rango 3 è una pila di B griglie L × d: i suoi tre assi sono B (la profondità della pila), L (le righe) e d (le colonne). Il tensore di rango 4 è una fila di B cubi, ciascuno di forma h × L × L.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Rango e shape.</b> Il numero di assi si chiama <i>rango</i> del tensore (in PyTorch <code>ndim</code>). Non va confuso con il rango di una matrice della sottosezione sul basso rango, che conta le direzioni indipendenti: una matrice ha sempre due assi, ma può avere rango 1. La <b>shape</b> (forma) è l'elenco delle lunghezze degli assi, nell'ordine: [B × L × d] vuol dire B esempi del batch, ciascuno di L token, ciascuno con un vettore di d numeri. Il numero di elementi è il prodotto della shape:</p>
+    <div class="vx vx-formula">elementi <span class="op">=</span> B&nbsp;·&nbsp;L&nbsp;·&nbsp;d <span class="op">=</span> 8&nbsp;·&nbsp;4.096&nbsp;·&nbsp;4.096 <span class="op">=</span> 134.217.728 <small>Un batch di 8 sequenze da 4.096 token in un modello con d = 4.096: circa 134 milioni di numeri, 268 MB in bf16 (brain floating point a 16 bit, 2 byte per numero), per ogni strato di cui si tengono le attivazioni.</small></div>
+    <p>Lo scalare ha shape vuota, [ ], e un solo elemento: il prodotto di nessun fattore vale 1. Un asse lungo 1 non cambia il numero di elementi ma cambia la shape: [L × d] e [1 × L × d] contengono gli stessi numeri, e il secondo è un batch di una sola sequenza.</p>
+    <p><b>Non è il tensore della fisica.</b> In fisica un tensore è un oggetto che cambia in un modo preciso quando si cambia sistema di coordinate, come lo sforzo dentro un materiale o la curvatura dello spazio-tempo. Nel deep learning la parola indica soltanto un <b>array multidimensionale</b>: una tabella di numeri con un numero qualsiasi di assi, senza nessuna regola di trasformazione. In NumPy lo stesso oggetto si chiama <code>ndarray</code>.</p>
+    <p><b>Dove compaiono in un LLM.</b> Con le dimensioni di Llama 2 7B (d = 4.096, h = 32 teste da d<sub>k</sub> = d/h = 128 numeri, vocabolario V = 32.000, contesto L = 4.096) e un batch di B = 8 sequenze:</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table" style="min-width:600px">
+    <tr><th>Tensore</th><th>Shape</th><th>Con i numeri di Llama 2 7B</th><th>Elementi</th></tr>
+    <tr><td>Loss del batch</td><td class="m">[ ]</td><td class="m">[ ]</td><td class="m">1</td></tr>
+    <tr><td>Guadagni di RMSNorm, un bias</td><td class="m">[d]</td><td class="m">[4.096]</td><td class="m">4.096</td></tr>
+    <tr><td>ID dei token del batch</td><td class="m">[B × L]</td><td class="m">[8 × 4.096]</td><td class="m">32.768</td></tr>
+    <tr><td>Pesi di uno strato, per esempio W<sub>Q</sub></td><td class="m">[d × d]</td><td class="m">[4.096 × 4.096]</td><td class="m">16.777.216</td></tr>
+    <tr><td>Matrice di embedding E</td><td class="m">[V × d]</td><td class="m">[32.000 × 4.096]</td><td class="m">131.072.000</td></tr>
+    <tr><td>Attivazioni (residual stream)</td><td class="m">[B × L × d]</td><td class="m">[8 × 4.096 × 4.096]</td><td class="m">134.217.728</td></tr>
+    <tr><td>Q, K o V divise in teste</td><td class="m">[B × h × L × d<sub>k</sub>]</td><td class="m">[8 × 32 × 4.096 × 128]</td><td class="m">134.217.728</td></tr>
+    <tr><td>Punteggi dell'attention, per blocco</td><td class="m">[B × h × L × L]</td><td class="m">[8 × 32 × 4.096 × 4.096]</td><td class="m">4.294.967.296</td></tr>
+    <tr><td>Logit</td><td class="m">[B × L × V]</td><td class="m">[8 × 4.096 × 32.000]</td><td class="m">1.048.576.000</td></tr>
+  </table></div></div>
+  <div class="prose stack">
+    <p>I pesi hanno shape fisse, decise dall'architettura; le attivazioni dipendono da B e L, cioè da quanto testo si elabora insieme. I punteggi dell'attention sono il tensore più grande perché crescono con L²: oltre 4 miliardi di numeri per blocco, che è il motivo per cui tecniche come FlashAttention evitano di scriverli tutti in memoria.</p>
+    <p><b>Indici e assi.</b> Un elemento si individua con un indice per asse, X[b, l, j], contando da 0 come nel codice. Gli assi si chiamano per posizione: in [B × L × d] l'asse 0 è il batch, l'asse 1 la posizione nella sequenza, l'asse 2 (o −1, «l'ultimo») la feature, cioè la coordinata del vettore. Fissare un indice vuol dire prendere una <b>fetta</b>: l'asse fissato sparisce e il rango scende di 1. I due punti «:» vogliono dire «tutto l'asse».</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table" style="min-width:520px">
+    <tr><th>Espressione</th><th>Shape</th><th>Che cos'è</th></tr>
+    <tr><td class="m">X</td><td class="m">[B × L × d]</td><td>tutto il batch</td></tr>
+    <tr><td class="m">X[b]</td><td class="m">[L × d]</td><td>la sequenza b: una matrice, una fetta della pila</td></tr>
+    <tr><td class="m">X[b, l]</td><td class="m">[d]</td><td>il vettore del token l nella sequenza b</td></tr>
+    <tr><td class="m">X[b, l, j]</td><td class="m">[ ]</td><td>un numero solo</td></tr>
+    <tr><td class="m">X[:, l]</td><td class="m">[B × d]</td><td>il token in posizione l di ogni sequenza</td></tr>
+    <tr><td class="m">X[:, :, j]</td><td class="m">[B × L]</td><td>la feature j di tutti i token</td></tr>
+  </table></div></div>
+  <div class="prose stack">
+    <p><b>Le operazioni che servono davvero.</b> Con i tensori un modello fa poche cose, sempre le stesse.</p>
+    <p><b>1 · Elemento per elemento.</b> Due tensori con la stessa shape si combinano casella per casella, e il risultato ha ancora quella shape: la connessione residua X + F(X) somma due tensori [B × L × d], e le funzioni non lineari della sottosezione sulla non linearità si applicano a ogni numero separatamente.</p>
+    <p><b>2 · Broadcasting.</b> Quando le shape sono diverse, si allineano partendo da destra: ogni coppia di lunghezze deve essere uguale, oppure una delle due deve valere 1 o mancare. L'asse lungo 1 (o mancante) viene ripetuto quanto serve, senza copiare i dati. È così che un vettore di bias si somma a tutto il batch:</p>
+    <div class="vx vx-formula">X [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <span class="op">+</span> bias [d]<br>bias letto come [1&nbsp;×&nbsp;1&nbsp;×&nbsp;d], ripetuto B&nbsp;·&nbsp;L volte<br><span class="op">→</span> X + bias [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <small>Allineate da destra, le due shape coincidono sull'ultimo asse (d); agli assi B e L il bias non ha lunghezza, quindi vale lo stesso vettore per ogni token. Allo stesso modo la maschera causale [L × L] si somma ai punteggi [B × h × L × L].</small></div>
+    <p><b>3 · Prodotto matriciale in batch.</b> L'operatore @ di PyTorch moltiplica le <b>ultime due</b> dimensioni con la regola delle matrici e tratta tutti gli assi precedenti come un elenco di prodotti indipendenti, da fare in parallelo. Gli assi di batch devono coincidere o potersi ripetere per broadcasting, come i pesi, che sono gli stessi per tutti:</p>
+    <div class="vx vx-formula">X [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <span class="op">@</span> W [d&nbsp;×&nbsp;d] <span class="op">→</span> [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d]<br>Q [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;d<sub>k</sub>] <span class="op">@</span> Kᵀ [B&nbsp;×&nbsp;h&nbsp;×&nbsp;d<sub>k</sub>&nbsp;×&nbsp;L] <span class="op">→</span> punteggi [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;L] <small>Nel primo prodotto W non ha assi di batch e viene riusata per tutte le B sequenze; nel secondo ci sono B · h prodotti [L × d<sub>k</sub>] · [d<sub>k</sub> × L], uno per esempio e per testa.</small></div>
+    <p><b>4 · Reshape e transpose: dividere le teste.</b> Per l'attention a più teste, il vettore di d numeri di ogni token si legge come h pezzi da d<sub>k</sub> = d/h, poi l'asse delle teste si porta davanti a quello dei token, così che ogni testa abbia la sua matrice [L × d<sub>k</sub>]:</p>
+    <div class="vx vx-formula">[B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <span class="op">→</span> reshape <span class="op">→</span> [B&nbsp;×&nbsp;L&nbsp;×&nbsp;h&nbsp;×&nbsp;d<sub>k</sub>] <span class="op">→</span> transpose(1, 2) <span class="op">→</span> [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;d<sub>k</sub>] <small>In PyTorch: <span class="mono">x.view(B, L, h, d_k).transpose(1, 2)</span>. Il numero di elementi non cambia mai: B · L · d = B · h · L · d<sub>k</sub>.</small></div>
+    <p>Nessuno dei due passaggi sposta numeri in memoria. Un tensore è salvato come una sola fila di numeri, <b>contigua</b>, in cui l'ultimo indice è quello che varia più in fretta; lo <b>stride</b> di un asse dice di quante posizioni si salta per far avanzare di 1 quell'indice. Il reshape cambia solo il modo di contare le posizioni, il transpose scambia due stride:</p>
+    <div class="vx vx-formula">posizione in memoria di X[b,&nbsp;l,&nbsp;j] <span class="op">=</span> b&nbsp;·&nbsp;(L·d) + l&nbsp;·&nbsp;d + j<br>stride di [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d]: (L·d, d, 1)<br>dopo il reshape [B&nbsp;×&nbsp;L&nbsp;×&nbsp;h&nbsp;×&nbsp;d<sub>k</sub>]: (L·d, d, d<sub>k</sub>, 1)<br>dopo il transpose [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;d<sub>k</sub>]: (L·d, d<sub>k</sub>, d, 1) <small>Dopo il transpose gli stride non sono più in ordine decrescente: il tensore è <i>non contiguo</i>. Va bene per il prodotto in batch; per riportare l'uscita dell'attention a [B × L × d] serve invece una copia (<span class="mono">contiguous()</span>), perché quel reshape non si ottiene solo cambiando gli stride.</small></div>
+    <p><b>5 · Riduzioni lungo un asse.</b> Una somma, una media o un massimo lungo un asse lo fanno sparire: la somma sull'asse d trasforma [B × L × d] in [B × L], un numero per token. RMSNorm calcola la media dei quadrati sull'ultimo asse e tiene l'asse con lunghezza 1 (<span class="mono">keepdim=True</span>), così il risultato [B × L × 1] si può riusare per broadcasting per dividere ogni vettore. La softmax sull'ultimo asse è una riduzione a metà: la shape non cambia, ma ogni riga viene normalizzata in modo da sommare a 1. La loss, infine, fa la media su tutte le B · L posizioni e torna uno scalare.</p>
+    <div class="vx vx-formula">somma sull'asse d: [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <span class="op">→</span> [B&nbsp;×&nbsp;L]<br>media dei quadrati con keepdim: [B&nbsp;×&nbsp;L&nbsp;×&nbsp;d] <span class="op">→</span> [B&nbsp;×&nbsp;L&nbsp;×&nbsp;1]<br>softmax sull'ultimo asse: [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;L] <span class="op">→</span> [B&nbsp;×&nbsp;h&nbsp;×&nbsp;L&nbsp;×&nbsp;L]<br>media della loss: [B&nbsp;×&nbsp;L] <span class="op">→</span> [&nbsp;] <small>Ogni riduzione toglie l'asse su cui lavora (o lo lascia lungo 1); la softmax è l'eccezione, perché restituisce tanti numeri quanti ne riceve.</small></div>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: un tensore [B × L × d] e quattro operazioni</h3><span class="tag">matematica reale</span></div>
+    <p>Scegli le dimensioni e un'operazione, poi clicca una cella (o passaci sopra) per fissare gli indici b e l: guarda come cambiano shape, numero di elementi e stride.</p>
+    <div class="controls">
+      <div class="ctl"><label for="tnB">Batch B <output id="tnBo"></output></label><input id="tnB" type="range" min="1" max="4" value="3"></div>
+      <div class="ctl"><label for="tnL">Token per sequenza L <output id="tnLo"></output></label><input id="tnL" type="range" min="2" max="8" value="5"></div>
+      <div class="ctl"><label for="tnH">Teste h <output id="tnHo"></output></label><input id="tnH" type="range" min="1" max="4" value="2"></div>
+      <div class="ctl"><label for="tnD">Dimensione d <output id="tnDo"></output></label><input id="tnD" type="range" min="0" max="6" value="2"></div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="tnSb">Indice b (quale sequenza) <output id="tnSbo"></output></label><input id="tnSb" type="range" min="0" max="2" value="1"></div>
+      <div class="ctl"><label for="tnSl">Indice l (quale token) <output id="tnSlo"></output></label><input id="tnSl" type="range" min="0" max="4" value="2"></div>
+    </div>
+    <div class="seg" id="tnOp" role="group" aria-label="Operazione">
+      <button aria-pressed="true" data-v="idx">Indici e fette</button><button aria-pressed="false" data-v="heads">Reshape in teste</button><button aria-pressed="false" data-v="tr">Transpose</button><button aria-pressed="false" data-v="bias">Broadcasting del bias</button><button aria-pressed="false" data-v="sum">Somma sull'asse d</button>
+    </div>
+    <svg id="tnChart" class="chart" viewBox="0 0 560 320" style="max-width:640px;margin:0 auto" role="img" aria-label="Il tensore come pila di matrici, una per esempio del batch"></svg>
+    <p class="vx-sr" id="tnSr"></p>
+    <div class="mixleg" id="tnLeg"></div>
+    <div class="readout" id="tnStats"></div>
+    <div class="formula" id="tnF" style="white-space:normal"></div>
+    <p class="callout" id="tnMsg"></p>
+    <p class="note">Ogni fetta della pila è una sequenza del batch: è disegnata a celle solo quella scelta con b, le altre ne mostrano il bordo. d scorre solo sui multipli di h, perché ogni testa riceve d<sub>k</sub> = d/h colonne. I valori sono interi casuali con seme fisso, gli indici contano da 0. Shape, stride e posizioni in memoria sono quelli di un tensore contiguo in ordine per righe, come lo crea PyTorch; in un modello vero d vale migliaia e le righe B · L sono milioni.</p>
+  </div>
+  <div class="vx vx-cards">
+    <div class="vx-card"><h5><small>Dove ritorna · batch e costo</small>Lo stesso prodotto per tutte le sequenze</h5><p>X [B × L × d] @ W [d × d] è un prodotto tra matrici ripetuto per B sequenze con gli stessi pesi: shape e costo si contano come nella prossima sottosezione, moltiplicando per B. <a href="#c-alg-shape">Shape e costo</a></p></div>
+    <div class="vx-card"><h5><small>Dove ritorna · attention</small>Teste come asse di batch</h5><p>Dopo reshape e transpose le h teste sono un asse in più, e Q·Kᵀ calcola B · h matrici di punteggi in un colpo solo. La softmax lavora sull'ultimo asse, riga per riga. <a href="#c-layer">Gli strati</a></p></div>
+  </div>
+
   <!-- ALGEBRA 5 · SHAPE E COSTO -->
   <h3 id="c-alg-shape" class="anchor">Matrice × matrice: shape e costo</h3>
   <div class="prose stack">
     <p>Una fabbrica che deve verniciare mille sedie non le porta in cabina una alla volta: le mette tutte sul nastro e accende la cabina una volta sola. Per lo stesso motivo un transformer non trasforma i token uno per uno: impila i vettori degli L token come righe di una matrice X [L × d] e fa un solo prodotto X·W. Il risultato è identico, perché la riga i di X·W è il token i trasformato, ma le GPU (Graphics Processing Unit, processori grafici) eseguono migliaia di moltiplicazioni in parallelo, e i pesi W vengono letti dalla memoria una volta per tutti i token invece che una volta per token.</p>
-    <p><b>La regola delle dimensioni interne.</b> A [m × n] · B [n × p] = C [m × p]. L'elemento (i, j) di C è il prodotto scalare della riga i di A con la colonna j di B: per questo le due dimensioni interne (n) devono coincidere, perché sono la lunghezza di quei prodotti scalari, e nel risultato spariscono. Restano le esterne: [L × d] · [d × d<sub>k</sub>] = [L × d<sub>k</sub>]. Quando le shape non tornano il codice si ferma con un errore, e seguire le shape passo per passo è il modo più rapido di capire un'architettura. In questa guida i token sono righe e si scrive X·W; la libreria PyTorch salva la matrice di uno strato lineare come [uscite × ingressi] e calcola X·Wᵀ, che è la stessa cosa scritta al contrario.</p>
-    <p><b>L'attention in quattro prodotti.</b> Q = X·W<sub>Q</sub>, K = X·W<sub>K</sub> e V = X·W<sub>V</sub> sono tre matrici [L × d] per i tre ruoli (query, key, value), divise poi tra h teste di d<sub>k</sub> = d/h colonne ciascuna. Per ogni testa i punteggi sono Q·Kᵀ / √d<sub>k</sub>, una matrice [L × L] il cui elemento (i, j) è qᵢ · kⱼ: tutti i prodotti scalari tra coppie di token in un colpo solo. Dopo la maschera causale e la softmax riga per riga, l'uscita della testa è (pesi)·V, di shape [L × d<sub>k</sub>]; le uscite delle teste si affiancano di nuovo in [L × d] e passano per W<sub>O</sub>.</p>
-    <p><b>Il batch è una dimensione in più.</b> Con B sequenze il tensore diventa [B × L × d]. Le matrici dei pesi sono le stesse per tutte le sequenze, e il prodotto si applica alle ultime due dimensioni di ciascuna in parallelo (in PyTorch l'operatore @ fa esattamente questo). Il costo si moltiplica per B.</p>
-    <p><b>Quanto costa.</b> C [m × p] ha m·p elementi, ciascuno un prodotto scalare lungo n: n moltiplicazioni e n − 1 somme. In tutto circa 2·m·n·p FLOP (floating-point operation, operazione in virgola mobile). Per uno strato lineare, X [L × d] · W [d × d] costa 2·L·d² FLOP; W ha d² parametri, quindi sono <b>2 FLOP per parametro per token</b>: una moltiplicazione e una somma per ogni peso. Vale per tutte le matrici del modello, quindi il forward di un modello con N parametri costa circa 2N FLOP per token. Il backward costa circa il doppio: per ogni strato servono due prodotti della stessa taglia, uno per il gradiente rispetto all'ingresso (con Wᵀ, da passare allo strato sotto) e uno per il gradiente rispetto ai pesi. In totale circa 6N FLOP per token, la regola «calcolo ≈ 6 × parametri × token» delle scaling laws: un modello da 7 miliardi di parametri allenato su 2.000 miliardi di token richiede circa 6 × 7·10⁹ × 2·10¹² ≈ 8,4·10²² FLOP.</p>
+    <p><b>La regola delle dimensioni interne.</b> Due matrici si possono moltiplicare solo se le dimensioni interne coincidono:</p>
+    <div class="vx vx-formula">A [m&nbsp;×&nbsp;n] <span class="op">·</span> B [n&nbsp;×&nbsp;p] <span class="op">=</span> C [m&nbsp;×&nbsp;p] <small>L'elemento (i, j) di C è il prodotto scalare della riga i di A con la colonna j di B.</small></div>
+    <p>Le due dimensioni interne (n) devono coincidere perché sono la lunghezza di quei prodotti scalari, e nel risultato spariscono. Restano le esterne: [L × d] · [d × d<sub>k</sub>] = [L × d<sub>k</sub>]. Quando le shape non tornano il codice si ferma con un errore, e seguire le shape passo per passo è il modo più rapido di capire un'architettura. In questa guida i token sono righe e si scrive X·W; la libreria PyTorch salva la matrice di uno strato lineare come [uscite × ingressi] e calcola X·Wᵀ, che è la stessa cosa scritta al contrario.</p>
+    <p><b>L'attention in quattro prodotti.</b> Tre proiezioni danno una matrice [L × d] per ciascuno dei tre ruoli (query, key, value), divisa poi tra h teste di d<sub>k</sub> = d/h colonne ciascuna con il reshape e il transpose della sottosezione sui tensori. Per ogni testa i conti sono:</p>
+    <div class="vx vx-formula">Q <span class="op">=</span> X·W<sub>Q</sub> &nbsp; K <span class="op">=</span> X·W<sub>K</sub> &nbsp; V <span class="op">=</span> X·W<sub>V</sub> &nbsp; [L&nbsp;×&nbsp;d]<br>punteggi <span class="op">=</span> Q·Kᵀ&nbsp;/&nbsp;√d<sub>k</sub> &nbsp; [L&nbsp;×&nbsp;L]<br>uscita <span class="op">=</span> softmax(punteggi)&nbsp;·&nbsp;V &nbsp; [L&nbsp;×&nbsp;d<sub>k</sub>] <small>L'elemento (i, j) dei punteggi è qᵢ · kⱼ: tutti i prodotti scalari tra coppie di token in un colpo solo. La softmax si applica riga per riga, dopo la maschera causale.</small></div>
+    <p>Le uscite delle teste si affiancano di nuovo in [L × d] e passano per la quarta matrice, W<sub>O</sub>.</p>
+    <p><b>Il batch è una dimensione in più.</b> Con B sequenze X diventa il tensore [B × L × d] della sottosezione sui tensori, e con le teste i punteggi diventano [B × h × L × L]. Le matrici dei pesi sono le stesse per tutte le sequenze, e il prodotto in batch si applica alle ultime due dimensioni di ciascuna in parallelo (in PyTorch l'operatore @ fa esattamente questo). Il costo si moltiplica per B.</p>
+    <p><b>Quanto costa.</b> C [m × p] ha m·p elementi, ciascuno un prodotto scalare lungo n: n moltiplicazioni e n − 1 somme, cioè circa 2·n FLOP (floating-point operation, operazione in virgola mobile). I conti, dal singolo prodotto all'intero training, con N parametri:</p>
+    <div class="vx vx-formula">A [m&nbsp;×&nbsp;n]&nbsp;·&nbsp;B [n&nbsp;×&nbsp;p] <span class="op">≈</span> 2&nbsp;·&nbsp;m&nbsp;·&nbsp;n&nbsp;·&nbsp;p FLOP<br>X [L&nbsp;×&nbsp;d]&nbsp;·&nbsp;W [d&nbsp;×&nbsp;d] <span class="op">≈</span> 2&nbsp;·&nbsp;L&nbsp;·&nbsp;d² FLOP <span class="op">=</span> 2 FLOP per parametro per token<br>forward ≈ 2N &nbsp; + &nbsp; backward ≈ 4N <span class="op">→</span> training ≈ 6N FLOP per token<br>6&nbsp;×&nbsp;7·10⁹ parametri&nbsp;×&nbsp;2·10¹² token <span class="op">≈</span> 8,4·10²² FLOP <small>L'ultima riga è un modello da 7 miliardi di parametri allenato su 2.000 miliardi di token.</small></div>
+    <p>Per uno strato lineare W ha d² parametri, quindi i suoi 2·L·d² FLOP sono una moltiplicazione e una somma per ogni peso e per ogni token. Vale per tutte le matrici del modello, quindi il forward di un modello con N parametri costa circa 2N FLOP per token. Il backward costa circa il doppio: per ogni strato servono due prodotti della stessa taglia, uno per il gradiente rispetto all'ingresso (con Wᵀ, da passare allo strato sotto) e uno per il gradiente rispetto ai pesi. In totale circa 6N FLOP per token: è la regola «calcolo ≈ 6 × parametri × token» delle scaling laws.</p>
     <p><b>Il termine che cresce con L².</b> Due prodotti dell'attention non toccano nessun parametro: Q·Kᵀ e (pesi)·V costano circa 2·L²·d FLOP ciascuno per blocco, sommando tutte le teste. La regola dei 6N li ignora, e finché L è piccolo rispetto a d va bene; quando il contesto si allunga crescono con il quadrato di L e diventano la parte più cara. Il laboratorio lo mostra passaggio per passaggio.</p>
   </div>
   <div class="lab">
@@ -512,8 +658,12 @@ table.mt tr.dim td{color:var(--muted)}
   <h3 id="c-alg-nonlin" class="anchor">Perché serve una non linearità</h3>
   <div class="prose stack">
     <p>Con le sole matrici un foglio si può ruotare, allungare e inclinare, ma non piegare: le rette restano rette. E il prodotto di due matrici è un'altra matrice: dieci strati lineari in fila fanno esattamente quello che fa uno strato solo, e la profondità non serve a niente.</p>
-    <p><b>Il collasso, con i numeri.</b> Prendi W₁ = [[1, 2], [0, 1]] e W₂ = [[1, 0], [−1, 1]]. Applicate in fila a x = [1 ; 1]: W₁x = [3 ; 1], poi W₂ · [3 ; 1] = [3 ; −3 + 1] = [3 ; −2]. Ma il prodotto W₂W₁ = [[1, 2], [−1, −1]] dà subito (W₂W₁)·x = [1 + 2 ; −1 − 1] = [3 ; −2]: lo stesso risultato con una matrice sola. Due strati con 8 pesi si comportano come uno con 4. Aggiungere i termini costanti (i <i>bias</i>) non cambia la conclusione: una funzione lineare più una costante, composta con un'altra della stessa forma, resta della stessa forma.</p>
-    <p><b>Una piega per unità.</b> La ReLU (Rectified Linear Unit, unità lineare rettificata), ReLU(x) = max(0, x), vale 0 per gli ingressi negativi e lascia passare quelli positivi: è una retta con un gomito. Messa tra due matrici, W₂ · ReLU(W₁x), ogni unità nascosta mette un gomito in un punto diverso, e la somma di tanti gomiti è una spezzata. Con abbastanza pezzi una spezzata approssima bene quanto si vuole qualsiasi curva continua su un intervallo: è l'idea del teorema di approssimazione universale, e il laboratorio la costruisce a mano.</p>
+    <p><b>Il collasso, con i numeri.</b> Prendi W₁ = [[1, 2], [0, 1]] e W₂ = [[1, 0], [−1, 1]], e applicale in fila a x = [1 ; 1]; poi rifai il conto con il loro prodotto:</p>
+    <div class="vx vx-formula">due strati: W₁x <span class="op">=</span> [3&nbsp;;&nbsp;1], &nbsp; W₂&nbsp;·&nbsp;[3&nbsp;;&nbsp;1] <span class="op">=</span> [3&nbsp;;&nbsp;−3&nbsp;+&nbsp;1] <span class="op">=</span> [3&nbsp;;&nbsp;−2]<br>una matrice: W₂W₁ <span class="op">=</span> [[1,&nbsp;2], [−1,&nbsp;−1]], &nbsp; (W₂W₁)&nbsp;·&nbsp;x <span class="op">=</span> [1&nbsp;+&nbsp;2&nbsp;;&nbsp;−1&nbsp;−&nbsp;1] <span class="op">=</span> [3&nbsp;;&nbsp;−2] <small>Lo stesso risultato con una matrice sola.</small></div>
+    <p>Due strati con 8 pesi si comportano come uno con 4. Aggiungere i termini costanti (i <i>bias</i>) non cambia la conclusione: una funzione lineare più una costante, composta con un'altra della stessa forma, resta della stessa forma.</p>
+    <p><b>Una piega per unità.</b> La ReLU (Rectified Linear Unit, unità lineare rettificata) vale 0 per gli ingressi negativi e lascia passare quelli positivi: è una retta con un gomito. Si mette tra due matrici:</p>
+    <div class="vx vx-formula">ReLU(x) <span class="op">=</span> max(0, x)<br>y <span class="op">=</span> W₂&nbsp;·&nbsp;ReLU(W₁x) <small>La ReLU si applica a ogni elemento di W₁x separatamente.</small></div>
+    <p>Ogni unità nascosta mette un gomito in un punto diverso, e la somma di tanti gomiti è una spezzata. Con abbastanza pezzi una spezzata approssima bene quanto si vuole qualsiasi curva continua su un intervallo: è l'idea del teorema di approssimazione universale, e il laboratorio la costruisce a mano.</p>
     <p><b>Dove ritorna.</b> In ogni blocco del transformer la MLP allarga il vettore da d a circa 4d numeri, applica la non linearità elemento per elemento e lo riporta a d: in un modello da 7 miliardi di parametri sono circa 11.000 unità non lineari per token, in ogni strato (sottosezione sugli strati). I modelli moderni usano versioni più morbide della ReLU, come GELU (Gaussian Error Linear Unit) e SiLU (Sigmoid Linear Unit), o la variante «a cancello» SwiGLU (Swish-Gated Linear Unit), ma il ruolo è lo stesso. Anche l'attention ha una sua non linearità, la softmax. Nel backward la derivata della ReLU vale 1 dove l'unità è accesa e 0 dove è spenta: il gradiente passa oppure si ferma (sottosezione sulla backpropagation).</p>
   </div>
   <div class="lab">
@@ -537,9 +687,14 @@ table.mt tr.dim td{color:var(--muted)}
   <h3 id="c-alg-rank" class="anchor">Basso rango: una matrice grande fatta di due sottili</h3>
   <div class="prose stack">
     <p>La tavola pitagorica ha 100 caselle, ma per ricostruirla bastano 20 numeri, da 1 a 10 in riga e da 1 a 10 in colonna: ogni casella è il prodotto della sua riga per la sua colonna. Molte matrici grandi sono così: contengono tanti numeri ma poca informazione indipendente.</p>
-    <p><b>Rango.</b> Il rango di una matrice è il numero di direzioni indipendenti che può produrre in uscita. La proiezione vista nella sottosezione sulle trasformazioni ha rango 1: qualunque x entri, Ax cade sulla stessa retta. Una matrice di rango 1 è il prodotto di una colonna per una riga, u·vᵀ. Con u = [1 ; 2 ; 3] e v = [1 ; 0 ; 2] si ottiene [[1, 0, 2], [2, 0, 4], [3, 0, 6]]: nove numeri determinati da sei, e ogni riga è un multiplo della stessa riga.</p>
-    <p><b>Fattorizzazione.</b> Una matrice d × d di rango r si può sempre scrivere come prodotto di due matrici sottili, B [d × r] · A [r × d]: 2·d·r numeri invece di d². Applicarla costa altrettanto poco, con i conti della sottosezione sulle shape: x passa prima per A, che lo comprime in r numeri (un collo di bottiglia), poi per B, che lo riporta a d. Se r è molto più piccolo di d il risparmio è enorme; il prezzo è che l'uscita vive in uno spazio di sole r direzioni.</p>
-    <p><b>LoRA (Low-Rank Adaptation, adattamento a basso rango).</b> Nel fine-tuning con LoRA (Hu e colleghi, 2021) la matrice originale W resta congelata e si allena solo una correzione a basso rango: W' = W + B·A, con B inizializzata a zero, così all'inizio il modello è identico all'originale (il paper moltiplica anche B·A per un fattore di scala α/r). Con d = 4.096 una matrice piena ha 16.777.216 pesi; con r = 8 la correzione ne ha 2 × 4.096 × 8 = 65.536 (0,39%), con r = 16 ne ha 131.072 (0,78%). Su un modello da 7 miliardi di parametri, LoRA con r = 16 sulle matrici W<sub>Q</sub> e W<sub>V</sub> di tutti i 32 blocchi allena circa 8,4 milioni di parametri, lo 0,12% del totale. Funziona perché la modifica che serve al fine-tuning ha, di fatto, un rango basso: nel paper anche valori di r molto piccoli danno risultati vicini al fine-tuning completo.</p>
+    <p><b>Rango.</b> Il rango di una matrice è il numero di direzioni indipendenti che può produrre in uscita. La proiezione vista nella sottosezione sulle trasformazioni ha rango 1: qualunque x entri, Ax cade sulla stessa retta. Una matrice di rango 1 è il prodotto di una colonna per una riga, u·vᵀ:</p>
+    <div class="vx vx-formula">u <span class="op">=</span> [1&nbsp;;&nbsp;2&nbsp;;&nbsp;3], &nbsp; v <span class="op">=</span> [1&nbsp;;&nbsp;0&nbsp;;&nbsp;2]<br>u·vᵀ <span class="op">=</span> [[1,&nbsp;0,&nbsp;2], [2,&nbsp;0,&nbsp;4], [3,&nbsp;0,&nbsp;6]] <small>Nove numeri determinati da sei: ogni riga è un multiplo della stessa riga vᵀ.</small></div>
+    <p><b>Fattorizzazione.</b> Una matrice d × d di rango r si può sempre scrivere come prodotto di due matrici sottili:</p>
+    <div class="vx vx-formula">W [d&nbsp;×&nbsp;d] <span class="op">=</span> B [d&nbsp;×&nbsp;r]&nbsp;·&nbsp;A [r&nbsp;×&nbsp;d] <small>2·d·r numeri invece di d².</small></div>
+    <p>Applicarla costa altrettanto poco, con i conti della sottosezione sulle shape: x passa prima per A, che lo comprime in r numeri (un collo di bottiglia), poi per B, che lo riporta a d. Se r è molto più piccolo di d il risparmio è enorme; il prezzo è che l'uscita vive in uno spazio di sole r direzioni.</p>
+    <p><b>LoRA (Low-Rank Adaptation, adattamento a basso rango).</b> Nel fine-tuning con LoRA (Hu e colleghi, 2021) la matrice originale W resta congelata e si allena solo una correzione a basso rango, con B inizializzata a zero, così all'inizio il modello è identico all'originale (il paper moltiplica anche B·A per un fattore di scala α/r). I conti per d = 4.096:</p>
+    <div class="vx vx-formula">W' <span class="op">=</span> W + B·A<br>matrice piena: 4.096&nbsp;×&nbsp;4.096 <span class="op">=</span> 16.777.216 pesi<br>r = 8: 2&nbsp;×&nbsp;4.096&nbsp;×&nbsp;8 <span class="op">=</span> 65.536 (0,39%) &nbsp; r = 16: 131.072 (0,78%) <small>W resta congelata; si allenano solo B [d × r] e A [r × d].</small></div>
+    <p>Su un modello da 7 miliardi di parametri, LoRA con r = 16 sulle matrici W<sub>Q</sub> e W<sub>V</sub> di tutti i 32 blocchi allena circa 8,4 milioni di parametri, lo 0,12% del totale. Funziona perché la modifica che serve al fine-tuning ha, di fatto, un rango basso: nel paper anche valori di r molto piccoli danno risultati vicini al fine-tuning completo.</p>
     <p><b>Le teste dell'attention lavorano a basso rango.</b> Ogni testa ha le sue proiezioni W<sub>Q</sub> e W<sub>K</sub> da d a d<sub>k</sub> = d/h numeri: in un modello da 7 miliardi di parametri, da 4.096 a 128. Il punteggio qᵢ · kⱼ usa quindi la matrice W<sub>Q</sub>·W<sub>K</sub>ᵀ, grande d × d ma di rango al massimo 128: ogni testa confronta i token guardando solo un sottospazio di 128 direzioni, diverso da quello delle altre teste. Con 32 teste si ottengono 32 punti di vista diversi sugli stessi 4.096 numeri.</p>
   </div>
   <div class="lab">
@@ -556,13 +711,13 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- ALGEBRA · PROMEMORIA -->
   <h3 id="c-alg-prom" class="anchor">Promemoria: le definizioni di algebra in breve</h3>
   <div class="prose stack">
-    <p>Le stesse nozioni dei sette passi, in una scheda ciascuna, da riaprire quando un capitolo successivo le usa.</p>
+    <p>Le stesse nozioni degli otto passi, in una scheda ciascuna, da riaprire quando un capitolo successivo le usa.</p>
   </div>
   <dl class="gloss">
     <div><dt>Scalare</dt><dd>Un singolo numero. Moltiplicare un vettore per uno scalare lo allunga, lo accorcia o lo gira dall'altra parte, senza cambiarne la retta.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
     <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Si somma e si scala elemento per elemento. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
     <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati, o come una trasformazione che porta vettori di n numeri in vettori di m numeri.</dd><span class="ex">E: V × d, una riga per token</span></div>
-    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
+    <div><dt>Tensore e shape</dt><dd>Un array di numeri con un numero qualsiasi di assi (il suo rango): scalare 0, vettore 1, matrice 2. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le lunghezze degli assi, e il loro prodotto è il numero di elementi. Fissare un indice dà una fetta con un asse in meno. Schema e laboratorio nella sottosezione sui tensori.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
     <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è "acceso" (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è "più grande" dell'ID 3. Moltiplicato per una matrice, ne seleziona una riga.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0]</span></div>
     <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ = |a| |b| cos θ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati (ortogonali), negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1</span></div>
     <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura più usata nel retrieval (la ricerca dei testi più simili a una domanda). Tra vettori casuali in d dimensioni vale circa 0, con dispersione 1/√d.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
@@ -805,7 +960,10 @@ table.mt tr.dim td{color:var(--muted)}
   <h3 id="c-loss" class="anchor">La loss: un numero che misura l'errore</h3>
   <div class="prose stack">
     <p>La <b>loss</b> (funzione di perdita) riassume in un solo numero quanto le previsioni del modello sono lontane dall'obiettivo. Tutto il training consiste nel farla scendere. Negli LLM si usa quasi sempre la <b>cross-entropy</b> (entropia incrociata) sul token successivo.</p>
-    <p>Il meccanismo: per ogni posizione la rete produce un <b>logit</b> (punteggio grezzo) per ciascun token del vocabolario. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1. La loss guarda solo la probabilità assegnata al token corretto: <span class="k">loss = −log p(token corretto)</span>. Se il modello dà 100% al token giusto la loss è 0, se gli dà 50% è 0,69, se gli dà 1% è 4,6. La loss di un batch è la media su tutti i suoi token.</p>
+    <p>Il meccanismo: per ogni posizione la rete produce un <b>logit</b> (punteggio grezzo) per ciascun token del vocabolario. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1, e la loss guarda solo la probabilità assegnata al token corretto:</p>
+    <div class="vx vx-formula">p<sub>i</sub> <span class="op">=</span> e<sup>z<sub>i</sub></sup>&nbsp;/&nbsp;(e<sup>z<sub>1</sub></sup> + … + e<sup>z<sub>V</sub></sup>)<br>loss <span class="op">=</span> −log p(token corretto)<br>p = 100% → 0 &nbsp; p = 50% → 0,69 &nbsp; p = 1% → 4,6 <small>z<sub>i</sub> è il logit del token i, V la dimensione del vocabolario; log è il logaritmo naturale.</small></div>
+    <p>La loss di un batch è la media su tutti i suoi token. Da questa media si ricava anche la <b>perplexity</b>, il numero di token equiprobabili tra cui il modello «sta scegliendo» in media:</p>
+    <div class="vx vx-formula">perplexity <span class="op">=</span> e<sup>loss</sup> <small>loss 0,69 → perplexity 2 (una moneta); loss 1,79 → perplexity 6 (un dado).</small></div>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">valori illustrativi</span></div>
@@ -856,7 +1014,8 @@ table.mt tr.dim td{color:var(--muted)}
     </div>
   </div>
   <div class="prose stack">
-    <p>Immagina la loss come un paesaggio collinare, dove ogni punto è una combinazione di pesi. Il <b>gradiente</b> indica la direzione in salita più ripida; il <b>gradient descent</b> (discesa del gradiente) fa un passo nella direzione opposta. La lunghezza del passo è il <b>learning rate</b> (η).</p>
+    <p>Immagina la loss come un paesaggio collinare, dove ogni punto è una combinazione di pesi. Il <b>gradiente</b> indica la direzione in salita più ripida; il <b>gradient descent</b> (discesa del gradiente) fa un passo nella direzione opposta, per ogni peso:</p>
+    <div class="vx vx-formula">w <span class="op">←</span> w − η&nbsp;·&nbsp;∂L/∂w <small>∂L/∂w è la derivata della loss L rispetto al peso w; η, il <b>learning rate</b>, è la lunghezza del passo.</small></div>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: discesa su una loss a una dimensione</h3><span class="tag">matematica reale</span></div>
@@ -865,7 +1024,7 @@ table.mt tr.dim td{color:var(--muted)}
       <div class="ctl"><label for="gdN">Numero di step <output id="gdNo"></output></label><input id="gdN" type="range" min="1" max="20" value="8"></div>
     </div>
     <svg id="gdChart" class="chart" viewBox="0 0 560 240" style="max-width:720px" role="img" aria-label="Discesa del gradiente"></svg>
-    <div class="formula">w ← w − η · ∂loss/∂w        loss(w) = ½ (w − 1)²   →   ∂loss/∂w = w − 1</div>
+    <div class="vx vx-formula">loss(w) <span class="op">=</span> ½ (w − 1)² <span class="op">→</span> ∂loss/∂w <span class="op">=</span> w − 1<br>w <span class="op">←</span> w − η&nbsp;·&nbsp;(w − 1) <small>La loss ha il minimo in w = 1: ogni passo moltiplica la distanza da 1 per (1 − η), quindi con η tra 0 e 2 ci si avvicina, oltre 2 si diverge.</small></div>
     <p class="callout" id="gdMsg"></p>
   </div>
 
@@ -874,10 +1033,12 @@ table.mt tr.dim td{color:var(--muted)}
   <div class="prose stack">
     <p>Il laboratorio qui sopra aveva un solo peso e una loss di cui si conosce la derivata a memoria. Un LLM ha miliardi di pesi distribuiti su decine di strati, e la loss dipende da ciascuno solo <i>attraverso</i> tutti gli strati che vengono dopo. La <b data-noxref>backpropagation</b> (retropropagazione) è il modo di calcolare tutti quei gradienti in un colpo solo. L'intuizione: alla fine della catena c'è un errore, e la «colpa» di quell'errore viene distribuita <b>all'indietro</b>, strato per strato. Ogni strato riceve dal successivo quanto ha pesato la sua uscita sull'errore, ne prende la sua parte e passa il resto allo strato precedente.</p>
     <p><b>Derivata, in una riga.</b> La derivata di f rispetto a w è la <b>pendenza</b>: se sposti w di un pochino ε, f cambia di circa (derivata × ε). Positiva vuol dire che aumentando w la loss sale, quindi il peso va abbassato.</p>
-    <p><b>Regola della catena.</b> Se la loss dipende da w solo attraverso una grandezza intermedia h, le pendenze si moltiplicano: <span class="k">∂L/∂w = ∂L/∂h · ∂h/∂w</span>. Come un ingranaggio: se h gira 3 volte più veloce di w, e L 2 volte più veloce di h, allora L gira 6 volte più veloce di w. Con tanti strati in fila si moltiplicano tanti fattori, uno per strato.</p>
+    <p><b>Regola della catena.</b> Se la loss dipende da w solo attraverso una grandezza intermedia h, le pendenze si moltiplicano:</p>
+    <div class="vx vx-formula">∂L/∂w <span class="op">=</span> ∂L/∂h <span class="op">·</span> ∂h/∂w <small>Con tanti strati in fila: un fattore per strato, dall'uscita fino a w.</small></div>
+    <p>Come un ingranaggio: se h gira 3 volte più veloce di w, e L 2 volte più veloce di h, allora L gira 6 volte più veloce di w. Con tanti strati in fila si moltiplicano tanti fattori, uno per strato.</p>
     <p><b>Una rete minuscola a due strati.</b> Un ingresso x, un primo peso w₁, una non linearità tanh, un secondo peso w₂, un'uscita ŷ confrontata con l'obiettivo y:</p>
   </div>
-  <div class="formula">z = w₁·x    h = tanh(z)    ŷ = w₂·h    L = ½ (ŷ − y)²</div>
+  <div class="vx vx-formula">z <span class="op">=</span> w₁·x &nbsp; h <span class="op">=</span> tanh(z) &nbsp; ŷ <span class="op">=</span> w₂·h &nbsp; L <span class="op">=</span> ½ (ŷ − y)² <small>Quattro passaggi in fila: ogni grandezza dipende solo da quella prima, quindi la regola della catena li attraversa uno alla volta.</small></div>
   <div class="grid2">
     <div class="stack">
       <div class="diag-title">Forward: da x alla loss (x = 1, w₁ = 0,5, w₂ = 0,5, y = 1)</div>
@@ -1096,10 +1257,12 @@ table.mt tr.dim td{color:var(--muted)}
     <div><dt>Baseline e vantaggio</dt><dd>La baseline b è il reward che ci si <b>aspetta</b> in media per quel prompt. Il vantaggio è A = r − b: positivo se la risposta è andata meglio del solito, negativo se peggio.</dd><span class="ex">r = 0,8, b = 0,5 → A = +0,3</span></div>
   </dl>
   <div class="prose stack">
-    <p><b>Policy gradient.</b> L'obiettivo è massimizzare il reward medio. Il gradiente che lo fa (REINFORCE, Williams 1992) ha una forma semplice: per ogni risposta campionata si sposta il modello nella direzione <span class="k">A · ∇ log π(y | x)</span>. In parole: si <b>alza la log-probabilità delle risposte con vantaggio positivo</b> e si abbassa quella delle risposte con vantaggio negativo, tanto più quanto il vantaggio è grande. Sottrarre la baseline non cambia la direzione in media, ma riduce di molto il rumore: senza, un premio di 0,8 alzerebbe la probabilità anche di una risposta peggiore del solito. In PPO (Proximal Policy Optimization) la baseline la stima un secondo modello, il <i>critic</i>; in GRPO (fase 4) è la media del gruppo.</p>
+    <p><b>Policy gradient.</b> L'obiettivo è massimizzare il reward medio. Il gradiente che lo fa (REINFORCE, Williams 1992) ha una forma semplice: per ogni risposta campionata si sposta il modello nella direzione</p>
+    <div class="vx vx-formula">A&nbsp;·&nbsp;∇ log π(y | x), &nbsp; con A <span class="op">=</span> r − b <small>∇ log π(y | x) è la direzione dei pesi che alza la log-probabilità della risposta y; A è il vantaggio, reward meno baseline.</small></div>
+    <p>In parole: si <b>alza la log-probabilità delle risposte con vantaggio positivo</b> e si abbassa quella delle risposte con vantaggio negativo, tanto più quanto il vantaggio è grande. Sottrarre la baseline non cambia la direzione in media, ma riduce di molto il rumore: senza, un premio di 0,8 alzerebbe la probabilità anche di una risposta peggiore del solito. In PPO (Proximal Policy Optimization) la baseline la stima un secondo modello, il <i>critic</i>; in GRPO (fase 4) è la media del gruppo.</p>
     <p><b>Il reward model.</b> Per stile e utilità non esiste un verificatore, e chiedere a una persona un voto assoluto («7 su 10») dà numeri incoerenti. È molto più affidabile chiedere quale di due risposte è migliore. Il reward model è una copia dell'LLM con un'uscita sola, un punteggio r(x, y), e si addestra sulle coppie preferita/scartata con il modello di <b>Bradley-Terry</b>: la probabilità che la preferita c batta la scartata r dipende solo dalla differenza dei punteggi.</p>
   </div>
-  <div class="formula">P(c ≻ r) = σ(r<sub>c</sub> − r<sub>r</sub>)    σ(z) = 1 / (1 + e<sup>−z</sup>)    loss = −log σ(r<sub>c</sub> − r<sub>r</sub>)</div>
+  <div class="vx vx-formula">P(c ≻ r) <span class="op">=</span> σ(r<sub>c</sub> − r<sub>r</sub>)<br>σ(z) <span class="op">=</span> 1&nbsp;/&nbsp;(1 + e<sup>−z</sup>)<br>loss <span class="op">=</span> −log σ(r<sub>c</sub> − r<sub>r</sub>) <small>r<sub>c</sub> e r<sub>r</sub> sono i punteggi che il reward model dà alla risposta preferita e a quella scartata; c ≻ r si legge «c batte r».</small></div>
   <div class="prose stack">
     <p>La <b>sigmoide</b> σ schiaccia qualsiasi numero tra 0 e 1: σ(0) = 0,5, σ(2) ≈ 0,88, σ(−2) ≈ 0,12. La loss è una cross-entropy su una scelta tra due: è bassa quando il reward model dà alla preferita un punteggio molto più alto della scartata.</p>
   </div>
@@ -1116,7 +1279,9 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="rmMsg"></p>
   </div>
   <div class="prose stack">
-    <p><b>Perché DPO può fare a meno del reward model.</b> RLHF (Reinforcement Learning from Human Feedback) ottimizza la policy per avere reward alto senza allontanarsi troppo dal modello di riferimento π<sub>ref</sub> (un vincolo di KL, Kullback-Leibler, con peso β). Quel problema ha una soluzione esatta: la policy migliore è π<sub>ref</sub> ripesato per e<sup>r/β</sup>. Rovesciando la formula, ogni reward si può scrivere come <span class="k">r(x, y) = β · log[π(y | x) / π<sub>ref</sub>(y | x)] + un termine che dipende solo dal prompt</span>. Inserito in Bradley-Terry, quel termine si cancella nella differenza r<sub>c</sub> − r<sub>r</sub>, perché il prompt è lo stesso. Resta una loss che contiene solo la policy e il riferimento: è esattamente la formula di DPO qui sotto, dove β · log(π / π<sub>ref</sub>) fa la parte del punteggio (il «reward implicito»). Il reward model c'è ancora, ma è il modello stesso.</p>
+    <p><b>Perché DPO può fare a meno del reward model.</b> RLHF (Reinforcement Learning from Human Feedback) ottimizza la policy per avere reward alto senza allontanarsi troppo dal modello di riferimento π<sub>ref</sub> (un vincolo di KL, Kullback-Leibler, con peso β). Quel problema ha una soluzione esatta, e la si può rovesciare per esprimere il reward con le due policy:</p>
+    <div class="vx vx-formula">π*(y | x) <span class="op">=</span> π<sub>ref</sub>(y | x)&nbsp;·&nbsp;e<sup>r(x, y)/β</sup>&nbsp;/&nbsp;Z(x)<br><span class="op">⇒</span> r(x, y) <span class="op">=</span> β&nbsp;·&nbsp;log[π*(y | x)&nbsp;/&nbsp;π<sub>ref</sub>(y | x)] + β&nbsp;·&nbsp;log Z(x) <small>π* è la policy migliore; Z(x) è la costante che fa sommare a 1 le probabilità, e dipende solo dal prompt.</small></div>
+    <p>Inserito in Bradley-Terry, quel termine si cancella nella differenza r<sub>c</sub> − r<sub>r</sub>, perché il prompt è lo stesso. Resta una loss che contiene solo la policy e il riferimento: è esattamente la formula di DPO qui sotto, dove β · log(π / π<sub>ref</sub>) fa la parte del punteggio (il «reward implicito»). Il reward model c'è ancora, ma è il modello stesso.</p>
   </div>
 
   <h3 id="dpo-loss" class="anchor">La loss di DPO sulle coppie</h3>
@@ -1163,7 +1328,7 @@ table.mt tr.dim td{color:var(--muted)}
         </div>
       </div>
     </div>
-    <div class="formula">L = −log σ( β·log[π(y<sub>c</sub>)/π<sub>ref</sub>(y<sub>c</sub>)] − β·log[π(y<sub>r</sub>)/π<sub>ref</sub>(y<sub>r</sub>)] )</div>
+    <div class="vx vx-formula">L <span class="op">=</span> −log σ( β·log[π(y<sub>c</sub>)&nbsp;/&nbsp;π<sub>ref</sub>(y<sub>c</sub>)] <span class="op">−</span> β·log[π(y<sub>r</sub>)&nbsp;/&nbsp;π<sub>ref</sub>(y<sub>r</sub>)] ) <small>y<sub>c</sub> e y<sub>r</sub>: risposta preferita e scartata; π: il modello che si allena; π<sub>ref</sub>: il riferimento congelato; β: quanto il modello può allontanarsene. Ogni termine β·log(π / π<sub>ref</sub>) è un reward implicito.</small></div>
     <p class="callout" id="dpoMsg"></p>
   </div>
   <p class="prose"><b>Da ricordare:</b> DPO è <b>offline</b>, cioè i dati sono fissi e il modello non genera nulla durante il training. È ottimo per ciò che è soggettivo: stile, utilità, tono, sicurezza.</p>
@@ -1178,7 +1343,9 @@ table.mt tr.dim td{color:var(--muted)}
   <div class="prose stack">
     <p>Sono due idee diverse che lavorano insieme:</p>
     <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e più difficile da "truccare" (reward hacking) rispetto a un reward model, anche se non impossibile: un codice può superare test scritti male senza essere corretto.</p>
-    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è, come nelle basi di RL della fase 3, reward meno baseline; qui la baseline è la <b>media dei reward del gruppo</b>, e la differenza viene divisa per la deviazione standard del gruppo per avere vantaggi sulla stessa scala da un prompt all'altro. Una risposta sopra la media ha vantaggio positivo e viene rinforzata (si alza la sua log-probabilità), una sotto la media viene scoraggiata. Non serve un critic che stimi la baseline: la stima la fanno le altre risposte dello stesso gruppo.</p>
+    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è, come nelle basi di RL della fase 3, reward meno baseline; qui la baseline è la <b>media dei reward del gruppo</b>, e la differenza viene divisa per la deviazione standard del gruppo per avere vantaggi sulla stessa scala da un prompt all'altro. Per la risposta i di un gruppo:</p>
+    <div class="vx vx-formula">A<sub>i</sub> <span class="op">=</span> (r<sub>i</sub> − media(r))&nbsp;/&nbsp;dev.std(r) <small>r<sub>i</sub> è il reward della risposta i; media e deviazione standard si calcolano sui reward di tutte le risposte dello stesso gruppo.</small></div>
+    <p>Una risposta sopra la media ha vantaggio positivo e viene rinforzata (si alza la sua log-probabilità), una sotto la media viene scoraggiata. Non serve un critic che stimi la baseline: la stima la fanno le altre risposte dello stesso gruppo.</p>
   </div>
 
   <div class="lab">
@@ -1202,7 +1369,6 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="readout" id="gStats"></div>
     <p class="callout" id="gMsg"></p>
     <div><div class="diag-title">Probabilità di risposta corretta nel tempo</div><svg id="gChart" class="chart" style="max-width:640px" viewBox="0 0 460 180" role="img" aria-label="Accuratezza per iterazione"></svg></div>
-    <div class="formula">A<sub>i</sub> = (r<sub>i</sub> − media(r)) / dev.std(r)</div>
     <p class="note">Prova la difficoltà "Difficile": quasi tutti i gruppi sono tutti sbagliati, i vantaggi valgono zero e il modello non impara niente. Per questo nell'RLVR si selezionano prompt di difficoltà intermedia (curriculum). Allo stesso modo, un prompt che il modello risolve sempre non insegna più nulla.</p>
   </div>
 
@@ -1245,7 +1411,9 @@ table.mt tr.dim td{color:var(--muted)}
 
   <div class="prose stack">
     <p><b>Il problema dell'off-policy</b> è l'<i>exposure bias</i> (distorsione da esposizione): in training lo student vede solo le traiettorie perfette del teacher. In inferenza, quando sbaglia un passo, si trova in un territorio mai visto e l'errore si propaga.</p>
-    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL (Reinforcement Learning, apprendimento per rinforzo), lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata sulle sequenze dello student. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
+    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL (Reinforcement Learning, apprendimento per rinforzo), lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata token per token sulle sequenze dello student:</p>
+    <div class="vx vx-formula">KL(π<sub>s</sub> ‖ π<sub>t</sub>) <span class="op">=</span> Σ<sub>v</sub> π<sub>s</sub>(v)&nbsp;·&nbsp;log[π<sub>s</sub>(v)&nbsp;/&nbsp;π<sub>t</sub>(v)] <small>π<sub>s</sub> e π<sub>t</sub> sono le distribuzioni dello student e del teacher sul token successivo, v percorre il vocabolario; si fa la media su tutte le posizioni della sequenza. Spesso la si stima con il solo token campionato: log π<sub>s</sub>(token) − log π<sub>t</sub>(token).</small></div>
+    <p>«Inversa» perché la media è pesata dalle probabilità dello student, non da quelle del teacher: lo student viene penalizzato soprattutto dove mette probabilità su token che il teacher considera improbabili. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
   </div>
 </section>
 
@@ -1267,7 +1435,7 @@ table.mt tr.dim td{color:var(--muted)}
   <p class="prose note">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, oppure usano OPD al posto dell'RL per i modelli piccoli.</p>
 </section>
 
-<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La backpropagation sulla rete a due strati, il modello di Bradley-Terry del reward model, la formula di DPO, il calcolo dei vantaggi in GRPO, l'algoritmo BPE, il training dal vivo e i laboratori del richiamo di algebra (somma di vettori, prodotto scalare e proiezione, coseni tra vettori casuali, matrice 2 × 2, shape e FLOP dell'attention, approssimazione con unità ReLU, basso rango) usano invece la matematica reale.</footer>
+<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La backpropagation sulla rete a due strati, il modello di Bradley-Terry del reward model, la formula di DPO, il calcolo dei vantaggi in GRPO, l'algoritmo BPE, il training dal vivo e i laboratori del richiamo di algebra (somma di vettori, prodotto scalare e proiezione, coseni tra vettori casuali, matrice 2 × 2, tensori con reshape, transpose, broadcasting e riduzioni, shape e FLOP dell'attention, approssimazione con unità ReLU, basso rango) usano invece la matematica reale.</footer>
 </div>
 
 <script>
@@ -1908,6 +2076,98 @@ function drawRK(){const d=RK_D[+$("#rkD").value],r=Math.min(d,RK_R[+$("#rkR").va
   else if(d===4096&&(r===8||r===16))m.innerHTML=`<b>I numeri di LoRA:</b> con d = 4.096 e r = ${r} si allenano ${th(low)} parametri per matrice invece di ${th(full)}, cioè lo ${nf(pct,2)}%: ${th(full/low)} volte meno. La correzione può muoversi solo in ${r} direzioni, ma per il fine-tuning di solito basta.`;
   else m.innerHTML=`<b>Risparmio di ${nf(full/low,full/low>=100?0:1)} volte:</b> ${th(low)} parametri invece di ${th(full)} (${nf(pct,pct<1?2:1)}%). Il prezzo è che l'uscita di B·A vive in uno spazio di sole ${th(r)} direzioni su ${th(d)}.`;}
 ["#rkD","#rkR"].forEach(s=>$(s).addEventListener("input",drawRK));
+/* ---------- algebra 4b: tensori [B × L × d] ---------- */
+const getTnOp=seg("#tnOp",()=>drawTN());
+let tnDv=8;
+const tnDList=h=>{const o=[];for(let v=4;v<=16;v++)if(v%h===0)o.push(v);return o;};
+const tnVal=(b,l,j)=>Math.floor(rng(7919*b+131*l+j+1)()*19)-9;
+const tnBias=j=>((j*5+2)%7)-3;
+function tnSyncD(){const dl=tnDList(+$("#tnH").value),s=$("#tnD");let k=0;dl.forEach((v,i)=>{if(Math.abs(v-tnDv)<Math.abs(dl[k]-tnDv))k=i;});s.max=dl.length-1;s.value=k;tnDv=dl[k];}
+function tnSyncIdx(){const B=+$("#tnB").value,L=+$("#tnL").value,sb=$("#tnSb"),sl=$("#tnSl");sb.max=B-1;sl.max=L-1;if(+sb.value>B-1)sb.value=B-1;if(+sl.value>L-1)sl.value=L-1;}
+$("#tnH").addEventListener("input",()=>{tnSyncD();drawTN();});
+$("#tnD").addEventListener("input",()=>{tnDv=tnDList(+$("#tnH").value)[+$("#tnD").value];drawTN();});
+["#tnB","#tnL"].forEach(s=>$(s).addEventListener("input",()=>{tnSyncIdx();drawTN();}));
+["#tnSb","#tnSl"].forEach(s=>$(s).addEventListener("input",drawTN));
+function tnPick(e){const t=e.target.closest&&e.target.closest("[data-b],[data-l]");if(!t)return;let ch=false;
+  if(t.dataset.b!==undefined&&+$("#tnSb").value!==+t.dataset.b){$("#tnSb").value=t.dataset.b;ch=true;}
+  if(t.dataset.l!==undefined&&+$("#tnSl").value!==+t.dataset.l){$("#tnSl").value=t.dataset.l;ch=true;}
+  if(ch)drawTN();}
+let tnNar=null;addEventListener("resize",()=>{const n=($("#tnChart").parentElement.clientWidth||600)<520;if(n!==tnNar){tnNar=n;drawTN();}});$("#tnChart").addEventListener("click",tnPick);$("#tnChart").addEventListener("mouseover",tnPick);
+tnSyncD();tnSyncIdx();
+function drawTN(){const B=+$("#tnB").value,L=+$("#tnL").value,h=+$("#tnH").value,d=tnDv,dk=d/h,b=+$("#tnSb").value,l=+$("#tnSl").value,op=getTnOp();
+  $("#tnBo").textContent=B;$("#tnLo").textContent=L;$("#tnHo").textContent=h;$("#tnDo").innerHTML=`${d}, d<sub>k</sub> = ${dk}`;$("#tnSbo").textContent=b;$("#tnSlo").textContent=l;
+  const acc=css("--accent"),wn=css("--warn"),ink=css("--ink"),mut=css("--muted"),ln=css("--line"),s2=css("--surface-2"),sf=css("--surface"),bg=css("--bg");
+  const HC=[acc,wn,css("--bad"),mut],HV=["--accent","--warn","--bad","--muted"];
+  const svg=$("#tnChart");clear(svg);
+  const nar=(svg.parentElement.clientWidth||600)<520,W=nar?340:560,ox=B>1?(nar?12:18):0,oy=B>1?(nar?10:14):0,mL=nar?40:48,mR=36,gap=nar?40:64;
+  let cs;
+  if(op==="sum")cs=Math.min(26,Math.floor((W-mL-mR-2*(B-1)*ox-gap)/(d+1)));
+  else if(op==="tr")cs=Math.min(26,Math.floor((W-mL-mR-(B-1)*ox)/d),Math.floor((W-mL-20-(h-1)*12)/d));
+  else cs=Math.min(26,Math.floor((W-mL-mR-(B-1)*ox)/d));
+  const w=d*cs,hh=L*cs,x0=mL,y0=30+(op==="bias"?cs+34:0),yF=y0+(B-1)*oy;
+  const P=(bb,X0)=>[X0+bb*ox,y0+(B-1-bb)*oy];
+  const soft=c=>({c,o:.2}),hot=c=>({c,o:.85});
+  function pile(X0,cols,fill,tabs){const ww=cols*cs;
+    for(let bb=B-1;bb>=0;bb--){const [x,y]=P(bb,X0);
+      if(bb===b){el("rect",{x,y,width:ww,height:hh,fill:sf},svg);for(let r=0;r<L;r++)for(let j=0;j<cols;j++){const f=fill(r,j);el("rect",{x:x+j*cs,y:y+r*cs,width:cs,height:cs,fill:f.c,"fill-opacity":f.o,stroke:sf,"stroke-width":1,"data-l":r},svg);}
+        el("rect",{x,y,width:ww,height:hh,fill:"none",stroke:ink,"stroke-width":1.2,"pointer-events":"none"},svg);}
+      else if(bb>b)el("rect",{x,y,width:ww,height:hh,fill:s2,stroke:ln,"stroke-width":1},svg);
+      else el("rect",{x,y,width:ww,height:hh,fill:"none",stroke:mut,"stroke-width":1,"stroke-dasharray":"4 3","pointer-events":"none"},svg);
+      if(tabs){const g=el("g",{"data-b":bb},svg);el("rect",{x:x+ww+3,y:y+hh-12,width:32,height:15,fill:bg,"fill-opacity":.01},g);stxt(g,x+ww+5,y+hh-1,"b="+bb,bb===b?acc:mut,{size:"11px",bold:bb===b});}}
+    const [xs,ys]=P(b,X0);el("rect",{x:xs-1,y:ys+l*cs-1,width:ww+2,height:cs+2,fill:"none",stroke:ink,"stroke-width":2.2,"pointer-events":"none"},svg);return [xs,ys];}
+  const headFill=(r,j)=>({c:HC[Math.floor(j/dk)%4],o:r===l?.85:.28});
+  const fill=op==="heads"||op==="tr"?headFill:(r)=>r===l?hot(acc):soft(acc);
+  const [xs,ys]=pile(x0,d,fill,true);
+  stxt(svg,xs-6,ys+l*cs+cs/2+4,"l="+l,ink,{anchor:"end",size:"11px",bold:true});
+  if(B>1){arrow(svg,x0-6,yF-7,x0+(B-1)*ox-6,y0-7,mut,1.4);stxt(svg,x0+(B-1)*ox-12,y0-12,"B = "+B,mut,{anchor:"end",size:"11px"});}
+  else stxt(svg,x0,yF-8,"B = 1",mut,{size:"11px"});
+  if(op==="heads"||op==="tr")for(let i=1;i<h;i++)el("line",{x1:xs+i*dk*cs,x2:xs+i*dk*cs,y1:ys-3,y2:ys+hh+3,stroke:ink,"stroke-width":2,"pointer-events":"none"},svg);
+  let H=yF+hh+30;
+  if(op!=="tr")stxt(svg,x0+w/2,yF+hh+18,`L = ${L} righe · d = ${d} colonne`,mut,{anchor:"middle",size:"11px"});
+  if(op==="bias"){const yb=30;for(let j=0;j<d;j++)el("rect",{x:xs+j*cs,y:yb,width:cs,height:cs,fill:wn,"fill-opacity":.85,stroke:sf,"stroke-width":1},svg);
+    stxt(svg,xs,yb-6,"bias [d]",wn,{size:"11px",bold:true});
+    for(let r=0;r<L;r++)el("rect",{x:xs,y:ys+r*cs,width:w,height:3,fill:wn,opacity:.9,"pointer-events":"none"},svg);
+    arrow(svg,xs+w/2,yb+cs+3,xs+w/2,ys-4,wn,1.8);stxt(svg,xs+w/2+8,yb+cs+20,"+ ogni riga",wn,{size:"11px"});}
+  if(op==="sum"){const X1=x0+w+(B-1)*ox+gap,ym=yF+hh/2;
+    pile(X1,1,r=>r===l?hot(acc):soft(acc),false);
+    arrow(svg,x0+w+(B-1)*ox+10,ym,X1-10,ym,ink,1.8);stxt(svg,(x0+w+(B-1)*ox+X1)/2,ym-8,"Σ d",ink,{anchor:"middle",size:"11px",bold:true});
+    stxt(svg,X1+cs/2,yF+hh+18,"[B × L]",mut,{anchor:"middle",size:"11px"});}
+  if(op==="tr"){const yB=yF+hh+56,xm=x0+w/2;
+    arrow(svg,xm,yF+hh+8,xm,yB-10,ink,1.8);stxt(svg,xm+10,yF+hh+30,"transpose(1, 2)",ink,{size:"11px",bold:true});
+    for(let i=0;i<h;i++){const xi=mL+i*(dk*cs+12);
+      for(let r=0;r<L;r++)for(let k=0;k<dk;k++)el("rect",{x:xi+k*cs,y:yB+r*cs,width:cs,height:cs,fill:HC[i%4],"fill-opacity":r===l?.85:.28,stroke:sf,"stroke-width":1,"data-l":r},svg);
+      el("rect",{x:xi,y:yB,width:dk*cs,height:hh,fill:"none",stroke:ink,"stroke-width":1.2,"pointer-events":"none"},svg);
+      el("rect",{x:xi-1,y:yB+l*cs-1,width:dk*cs+2,height:cs+2,fill:"none",stroke:ink,"stroke-width":2.2,"pointer-events":"none"},svg);
+      stxt(svg,xi+dk*cs/2,yB+hh+14,dk*cs>=44?"testa "+i:"t"+i,mut,{anchor:"middle",size:"11px"});}
+    stxt(svg,mL,yB+hh+32,`${h} matrici [${L} × ${dk}] per sequenza`,mut,{size:"11px"});
+    H=yB+hh+44;}
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  /* legenda, letture, formula, commento */
+  const chip=(v,o,t)=>`<span><i style="background:var(${v});opacity:${o}"></i>${t}</span>`;
+  $("#tnLeg").innerHTML=op==="heads"||op==="tr"?[...Array(h)].map((_,i)=>chip(HV[i%4],.85,`testa ${i}: colonne ${i*dk}–${(i+1)*dk-1}`)).join(""):
+    op==="bias"?chip("--warn",.85,"bias [d], sommato a ogni riga")+chip("--accent",.85,"riga X[b, l]"):
+    op==="sum"?chip("--accent",.85,"riga X[b, l] e la sua somma")+chip("--accent",.2,"altre righe della fetta"):
+    chip("--accent",.2,"fetta X[b]: [L × d]")+chip("--accent",.85,"vettore X[b, l]: [d]");
+  const sh=a=>"["+a.join(" × ")+"]",N=B*L*d,base=b*L*d+l*d,row=[...Array(d)].map((_,j)=>tnVal(b,l,j)),bias=[...Array(d)].map((_,j)=>tnBias(j));
+  const R={idx:[["shape",sh([B,L,d])],["elementi",N],["fetta X[b]",sh([L,d])],["vettore X[b, l]",sh([d])],["stride",`(${L*d}, ${d}, 1)`]],
+    heads:[["prima",sh([B,L,d])],["dopo",sh([B,L,h,dk])],["elementi",`${N} → ${N}`],["stride",`(${L*d}, ${d}, ${dk}, 1)`],["numeri spostati","0"]],
+    tr:[["prima",sh([B,L,h,dk])],["dopo",sh([B,h,L,dk])],["elementi",`${N} → ${N}`],["stride",`(${L*d}, ${dk}, ${d}, 1)`],["contiguo",h>1&&L>1?"no":"sì (caso banale)"]],
+    bias:[["X",sh([B,L,d])],["bias",sh([d])+" → "+sh([1,1,d])],["risultato",sh([B,L,d])],["numeri del bias",d],["somme eseguite",N]],
+    sum:[["prima",sh([B,L,d])],["dopo",sh([B,L])],["elementi",`${N} → ${B*L}`],["con keepdim",sh([B,L,1])]]}[op];
+  $("#tnStats").innerHTML=R.map(([k,v])=>`<div><small>${k}</small><strong>${v}</strong></div>`).join("");
+  const F=$("#tnF"),m=$("#tnMsg"),it=h-1;
+  if(op==="idx"){F.innerHTML=`X[${b}, ${l}] = ${vv(row)} &nbsp; shape [${d}]<br>posizione in memoria di X[${b}, ${l}, 0] = ${b}·${L*d} + ${l}·${d} = <b>${base}</b>`;
+    m.innerHTML=`<b>Fissare un indice toglie un asse:</b> X[${b}] è la sequenza ${b}, una matrice [${L} × ${d}]; X[${b}, ${l}] è il vettore del token ${l}, lungo ${d}; X[${b}, ${l}, j] è un numero solo. In tutto il tensore ha ${B} · ${L} · ${d} = ${N} numeri, salvati in memoria in una sola fila: il vettore del token (${b}, ${l}) comincia alla posizione ${base} e occupa le ${d} successive.`;}
+  else if(op==="heads"){F.innerHTML=`X[${b}, ${l}] → ${[...Array(h)].map((_,i)=>`testa ${i}: ${vv(row.slice(i*dk,(i+1)*dk))}`).join(" &nbsp; ")}<br>elemento j → testa ⌊j / ${dk}⌋, posizione j mod ${dk}; in memoria resta alla posizione ${base} + j`;
+    m.innerHTML=h===1?`<b>Una testa sola:</b> con h = 1 il reshape aggiunge solo un asse lungo 1, [${B} × ${L} × 1 × ${d}]. Prova h = 2, 3 o 4 per vedere la riga divisa in pezzi.`:`<b>Il reshape non sposta nessun numero:</b> la riga di ${d} numeri viene solo letta come ${h} pezzi da d<sub>k</sub> = ${dk}, uno per testa. Stessi ${N} elementi, stesso ordine in memoria; cambiano la shape e gli stride, che diventano (${L*d}, ${d}, ${dk}, 1).`;}
+  else if(op==="tr"){F.innerHTML=`Y[b, i, l, k] = X[b, l, i·d<sub>k</sub> + k]<br>Y[${b}, ${it}, ${l}, 0] = X[${b}, ${l}, ${it*dk}] = <b>${nt(row[it*dk])}</b> &nbsp; posizione ${b}·${L*d} + ${it}·${dk} + ${l}·${d} + 0 = <b>${base+it*dk}</b>`;
+    m.innerHTML=`<b>Il transpose scambia due assi senza copiare:</b> ora per ogni sequenza ci sono ${h} matrici [${L} × ${dk}], una per testa, ognuna con tutti i ${L} token. È la forma che serve al prodotto Q·Kᵀ in batch sulle ultime due dimensioni. In memoria non cambia niente: si scambiano gli stride di L e di h, e il tensore diventa non contiguo${h>1&&L>1?"":" (qui no, perché uno dei due assi scambiati è lungo 1)"}. L'uscita dell'attention fa poi il percorso inverso fino a [B × L × d], e lì serve una copia.`;}
+  else if(op==="bias"){F.innerHTML=`X[${b}, ${l}] + bias = ${vv(row)} + ${vv(bias)}<br>= <b>${vv(row.map((v,j)=>v+bias[j]))}</b>`;
+    m.innerHTML=`<b>Il bias ha solo ${d} numeri</b> ma viene sommato a tutte le ${B} · ${L} = ${B*L} righe del tensore (le strisce sul bordo di ogni riga). Le shape si allineano da destra: [${d}] viene letto come [1 × 1 × ${d}] e ripetuto lungo gli assi B e L senza essere copiato, perché lo stride di quegli assi vale 0. Le somme eseguite sono comunque ${N}, una per elemento.`;}
+  else{const S=row.reduce((a,v)=>a+v,0);F.innerHTML=`Σ<sub>j</sub> X[${b}, ${l}, j] = ${row.map((v,j)=>j?(v<0?"− "+nt(-v):"+ "+v):nt(v)).join(" ")} = <b>${nt(S)}</b>`;
+    m.innerHTML=`<b>La riduzione fa sparire l'asse:</b> ogni riga di ${d} numeri diventa un numero solo, e [${B} × ${L} × ${d}] diventa [${B} × ${L}], ${B*L} numeri. Con keepdim resterebbe [${B} × ${L} × 1], che per broadcasting si combina di nuovo con il tensore di partenza: è ciò che fa RMSNorm con la media dei quadrati. La softmax sull'ultimo asse lavora riga per riga allo stesso modo, ma restituisce ${d} numeri che sommano a 1 invece di uno solo.`;}
+  const OPS={idx:"",heads:` Vista dopo il reshape in ${h} teste: le colonne sono colorate a gruppi di ${dk}.`,tr:` Sotto, la stessa sequenza dopo il transpose: ${h} matrici ${L} × ${dk}, una per testa.`,bias:` Sopra la pila c'è il vettore di bias da ${d} numeri, sommato a ogni riga.`,sum:` A destra il risultato della somma sull'asse d: una colonna di ${L} numeri per sequenza, shape [${B} × ${L}].`};
+  $("#tnSr").textContent=`Pila di ${B} matrici ${L} × ${d}, una per sequenza del batch; è disegnata la fetta b = ${b} ed è evidenziata la riga del token l = ${l}.`+OPS[op];}
 /* attention */
 const ATT_T=["il","gatto","nero","ieri","dormiva","sul","divano"];
 const ATT_W=[[1],[.35,.65],[.1,.6,.3],[.15,.1,.05,.7],[.05,.5,.1,.25,.1],[.05,.1,.02,.03,.5,.3],[.03,.1,.02,.05,.25,.45,.1]];
@@ -1916,7 +2176,7 @@ let attSel=4;
 function drawAtt(){const s=$("#attSent");s.innerHTML="";ATT_T.forEach((t,i)=>{const b=document.createElement("button");b.className="tok"+(i===attSel?" sel resp":"");b.textContent=t;b.onclick=()=>{attSel=i;drawAtt();};s.appendChild(b);});
   $("#attBars").innerHTML=ATT_W[attSel].map((w,j)=>`<div class="barrow"><span>«${ATT_T[attSel]}» → «${ATT_T[j]}»${j===attSel?" (sé stesso)":""}</span><div class="track"><div class="fill" style="width:${w*100}%"></div></div><span class="v">${Math.round(w*100)}%</span></div>`).join("")+(attSel<ATT_T.length-1?`<p class="muted" style="font-size:.82rem">I token successivi (${ATT_T.slice(attSel+1).map(t=>"«"+t+"»").join(", ")}) sono esclusi dalla causal mask.</p>`:"");
   $("#attMsg").innerHTML=ATT_M[attSel];}
-function drawBase(){drawAV();drawDP();drawNR();drawMX();drawOH();drawSH();drawNL();drawRK();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();drawBP();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+function drawBase(){drawAV();drawDP();drawNR();drawMX();drawOH();drawTN();drawSH();drawNL();drawRK();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();drawBP();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
 
 /* init */
 function all(){drawBase();drawLR();drawSFT();drawRM();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
@@ -1952,6 +2212,8 @@ window.XREF_CONFIG={
     {re:"sottosezione sulla norma",to:"#c-alg-norm",flags:"i",first:false},
     {re:"sottosezione sulle trasformazioni",to:"#c-alg-mat",flags:"i",first:false},
     {re:"sottosezione sulle shape",to:"#c-alg-shape",flags:"i",first:false},
+    {re:"sottosezione sui tensori",to:"#c-alg-tens",flags:"i",first:false},
+    {re:"tensor[ei]",to:"#c-alg-tens",flags:"i"},
     {re:"sottosezione sulla non linearità",to:"#c-alg-nonlin",flags:"i",first:false},
     {re:"sottosezione sul basso rango",to:"#c-alg-rank",flags:"i",first:false},
     {re:"prodott[oi] scalar[ei]",to:"#c-alg-dot",flags:"i"},
