@@ -282,6 +282,44 @@ table.mt tr.dim td{color:var(--muted)}
 .fwbox{max-height:340px;overflow:auto}
 .heat text{font-size:10px}
 .live .btn:disabled{opacity:.35}
+/* da zero (#c-zero) */
+.z-h{font-family:var(--serif);font-size:1.12rem;font-weight:650;margin:8px 0 0;color:var(--ink)}
+.z-svg text{font-family:var(--mono);font-size:14px;fill:var(--ink)}
+.z-svg .z-lb{fill:var(--ink)}
+.z-svg .z-mut{fill:var(--muted);font-size:12.5px}
+.z-svg .z-w{fill:var(--muted);font-size:12.5px}
+.z-svg .z-v{font-size:14px;font-weight:600}
+.z-svg .z-v.inv{fill:var(--bg)}
+.z-svg .z-big{font-size:18px;font-weight:600}
+.z-svg .z-yes{fill:var(--good);font-weight:600}
+#ztBars .barrow{grid-template-columns:minmax(84px,170px) 1fr 48px}
+@media (max-width:460px){#ztBars .barrow{grid-template-columns:96px 1fr 42px;gap:8px}}
+.z-svg .z-node{fill:var(--surface-2);stroke:var(--line);stroke-width:1.5}
+.z-svg .z-node.on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.5}
+.z-svg .z-fill{fill:var(--accent)}
+.z-svg .z-pos{stroke:var(--good);fill:none}
+.z-svg .z-posf{fill:var(--good)}
+.z-svg .z-neg{stroke:var(--bad);fill:none}
+.z-svg .z-negf{fill:var(--bad)}
+.z-svg .z-ln{stroke:var(--line);fill:none}
+.z-svg .z-lnf{fill:var(--line)}
+.z-svg .z-dimln{stroke:var(--muted);fill:none;opacity:.55}
+.z-svg .z-dimlnf{fill:var(--muted);opacity:.55}
+.z-svg .z-grid{stroke:var(--grid)}
+.z-svg .z-ax{stroke:var(--muted);stroke-width:1.2}
+.z-svg .z-pt{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.z-svg .z-cur{fill:var(--accent);stroke:var(--accent);stroke-width:2}
+.z-svg .z-ghost{fill:var(--surface);stroke:var(--muted);stroke-width:1.5;stroke-dasharray:3 2}
+.z-svg .z-dim{fill:var(--muted);opacity:.35}
+.zt-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.zt-card{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:.84rem;line-height:1.35;background:var(--surface);min-width:0}
+.zt-card.last{border-color:var(--accent)}
+.zt-card b{font-family:var(--mono);font-size:.85rem}
+.zt-card ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.zt-card li.new{background:var(--accent-soft);border-radius:4px;padding:2px 5px;margin-inline:-5px}
+.zt-card li.mut{color:var(--muted);font-style:italic}
+@media (max-width:760px){.zt-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.zt-cards{grid-template-columns:1fr}}
 </style>
 
 <div class="wrap">
@@ -330,10 +368,11 @@ table.mt tr.dim td{color:var(--muted)}
     <h2>Il vocabolario minimo per capire tutto il resto</h2>
   </div>
   <div class="prose stack">
-    <p>Tutte le fasi che seguono sono variazioni dello stesso meccanismo: il modello fa una previsione, una <b>loss</b> misura quanto ha sbagliato, e i <b>pesi</b> vengono spostati di poco nella direzione che riduce l'errore. Cambiano solo <i>da dove arrivano i dati</i> e <i>come si calcola l'errore</i>. Questo capitolo parte da un quadro d'insieme (che cosa fa un modello con un token, dall'inizio alla fine), passa per un richiamo di algebra che serve a capirne i pezzi, e poi costruisce il meccanismo pezzo per pezzo, nell'ordine in cui i dati lo attraversano: dataset → token → pesi → embedding → strati → loss → batch, step ed epoch. Il capitolo 0b li mette tutti insieme in un training vero, da eseguire passo per passo.</p>
+    <p>Tutte le fasi che seguono sono variazioni dello stesso meccanismo: il modello fa una previsione, una <b>loss</b> misura quanto ha sbagliato, e i <b>pesi</b> vengono spostati di poco nella direzione che riduce l'errore. Cambiano solo <i>da dove arrivano i dati</i> e <i>come si calcola l'errore</i>. Se parti da zero, comincia dalla sottosezione «Da zero»: spiega con esempi quotidiani, senza formule, che cosa sono un neurone, una rete e un token, e perché la frase entra tutta insieme nel modello. Poi il capitolo prosegue con un quadro d'insieme (che cosa fa un modello con un token, dall'inizio alla fine, con i numeri veri), passa per un richiamo di algebra che serve a capirne i pezzi, e poi costruisce il meccanismo pezzo per pezzo, nell'ordine in cui i dati lo attraversano: dataset → token → pesi → embedding → strati → loss → batch, step ed epoch. Il capitolo 0b li mette tutti insieme in un training vero, da eseguire passo per passo.</p>
   </div>
 
   <div class="map" aria-label="Percorso dei dati">
+    <a href="#c-zero" class="box">Da zero<small>neuroni, reti, token</small></a><span class="arr">→</span>
     <a href="#c-quadro" class="box">Quadro<small>il viaggio di un token</small></a><span class="arr">→</span>
     <a href="#c-alg" class="box">Algebra<small>vettori e matrici</small></a><span class="arr">→</span>
     <a href="#c-dataset" class="box">Dataset<small>testo grezzo</small></a><span class="arr">→</span>
@@ -346,10 +385,199 @@ table.mt tr.dim td{color:var(--muted)}
     <a href="#live" class="box hot">Training dal vivo<small>tutto insieme</small></a>
   </div>
 
+  <!-- DA ZERO -->
+  <h3 id="c-zero" class="anchor">Da zero: neuroni, reti, token, senza formule</h3>
+  <div class="prose stack">
+    <p>Questa sottosezione è il punto di partenza per chi non ha mai visto una rete neurale. Non ci sono formule: solo moltiplicazioni e somme con numeri piccoli. Cinque idee, una alla volta, ognuna con un esempio da provare: un neurone, una rete, come impara, come le parole diventano numeri e perché la frase entra tutta insieme.</p>
+  </div>
+
+  <h4 class="z-h">1 · Un neurone è un piccolo votante</h4>
+  <div class="prose stack">
+    <p>Esci di casa e decidi se portare l'ombrello. Senza pensarci guardi tre cose: quante nuvole ci sono, che cosa dice la previsione, quanto vento tira. Ognuna la puoi misurare da 0 (per niente) a 1 (moltissimo).</p>
+    <p>Non tutte contano allo stesso modo. La previsione di pioggia conta molto, le nuvole un po' meno. Il vento conta <i>al contrario</i>: con il vento forte l'ombrello si rovescia, e ti passa la voglia di portarlo. Quanto conta ogni cosa si chiama <b>peso</b>: un numero grande se conta molto, vicino a zero se conta poco, negativo se spinge verso il no.</p>
+    <p>Un <b>neurone</b> artificiale fa esattamente questo conto. Moltiplica ogni ingresso per il suo peso, somma tutto e confronta il totale con una <b>soglia</b>: se il totale la supera, il neurone «si accende» e la risposta è sì. È un votante che ascolta tre consiglieri, dando a ognuno più o meno fiducia.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il neurone dell'ombrello</h3><span class="tag">matematica reale</span></div>
+    <p>Muovi il cursore del vento verso destra e guarda quando il neurone si spegne; poi prova a cambiare i pesi e la soglia.</p>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">Che tempo fa (gli ingressi)</div>
+        <div class="controls">
+          <div class="ctl"><label for="znX0">Nuvole <output id="znX0o"></output></label><input id="znX0" type="range" min="0" max="1" step="0.1" value="0.7"></div>
+          <div class="ctl"><label for="znX1">Pioggia prevista <output id="znX1o"></output></label><input id="znX1" type="range" min="0" max="1" step="0.1" value="0.6"></div>
+          <div class="ctl"><label for="znX2">Vento <output id="znX2o"></output></label><input id="znX2" type="range" min="0" max="1" step="0.1" value="0.2"></div>
+        </div>
+        <div class="diag-title">Quanto conta ognuno per te (i pesi)</div>
+        <div class="controls">
+          <div class="ctl"><label for="znW0">Peso delle nuvole <output id="znW0o"></output></label><input id="znW0" type="range" min="-1" max="1" step="0.1" value="0.5"></div>
+          <div class="ctl"><label for="znW1">Peso della pioggia <output id="znW1o"></output></label><input id="znW1" type="range" min="-1" max="1" step="0.1" value="1"></div>
+          <div class="ctl"><label for="znW2">Peso del vento <output id="znW2o"></output></label><input id="znW2" type="range" min="-1" max="1" step="0.1" value="-0.8"></div>
+          <div class="ctl"><label for="znT">Soglia <output id="znTo"></output></label><input id="znT" type="range" min="0" max="1.5" step="0.05" value="0.6"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <svg id="znSvg" class="chart z-svg" viewBox="0 0 410 230" role="img" aria-label="Il neurone dell'ombrello: tre ingressi, tre pesi, un'uscita"></svg>
+        <p class="vx-sr" id="znSr"></p>
+        <div class="calc" id="znCalc"></div>
+      </div>
+    </div>
+    <p class="callout" id="znMsg" aria-live="polite"></p>
+    <p class="note">Nel disegno, lo spessore di ogni freccia è il peso: più è spessa, più quell'ingresso conta. Le frecce verdi spingono verso il sì, quelle rosse tratteggiate (peso negativo) verso il no. I numeri sono quelli veri del conto: un neurone artificiale fa proprio questo, niente di più.</p>
+  </div>
+
+  <h4 class="z-h">2 · Una rete è tanti neuroni in fila, a strati</h4>
+  <div class="prose stack">
+    <p>Un neurone da solo sa fare poco. Il trucco è metterne tanti in fila, a <b>strati</b>: quello che esce dai neuroni di uno strato diventa l'ingresso dei neuroni dello strato dopo. Così il secondo strato non ragiona più su «nuvole» e «vento», ma su idee già un po' elaborate dal primo.</p>
+    <p>Nell'esempio qui sotto i tre ingressi vanno a due neuroni nel mezzo. Il primo dà molto peso a nuvole e pioggia: potremmo chiamarlo «sembra brutto tempo». Il secondo dà molto peso al vento: potremmo chiamarlo «è scomodo». Il neurone finale ascolta questi due e decide: ombrello sì o no.</p>
+    <p>Questa volta ogni neurone non dice solo sì o no, ma <b>quanto è acceso</b>, da 0 a 1, come una luce con il regolatore: il suo valore è il totale pesato, ma mai sotto 0 e mai sopra 1. Alla fine, se il neurone dell'ombrello arriva almeno a 0,5, si prende l'ombrello.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: una rete 3 → 2 → 1</h3><span class="tag">matematica reale</span></div>
+    <p>Scegli un tempo o muovi i tre cursori e segui i numeri che scorrono da sinistra a destra, strato dopo strato.</p>
+    <div class="row">
+      <div class="seg" id="zrPre" role="group" aria-label="Esempi di tempo"><button aria-pressed="true" data-v="0">Pioggia, poco vento</button><button aria-pressed="false" data-v="1">Pioggia e vento forte</button><button aria-pressed="false" data-v="2">Cielo sereno</button></div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="zrX0">Nuvole <output id="zrX0o"></output></label><input id="zrX0" type="range" min="0" max="1" step="0.1" value="0.8"></div>
+      <div class="ctl"><label for="zrX1">Pioggia prevista <output id="zrX1o"></output></label><input id="zrX1" type="range" min="0" max="1" step="0.1" value="0.7"></div>
+      <div class="ctl"><label for="zrX2">Vento <output id="zrX2o"></output></label><input id="zrX2" type="range" min="0" max="1" step="0.1" value="0.3"></div>
+    </div>
+    <svg id="zrSvg" class="chart z-svg" viewBox="0 0 420 260" style="max-width:560px;margin:0 auto" role="img" aria-label="Una rete con tre ingressi, due neuroni nascosti e un'uscita"></svg>
+    <p class="vx-sr" id="zrSr"></p>
+    <div class="calc" id="zrCalc"></div>
+    <p class="callout" id="zrMsg" aria-live="polite"></p>
+    <p class="note">I pesi sono scelti a mano perché la rete dia risposte sensate; in una rete vera li trova l'allenamento (prossimo punto). Anche i nomi «sembra brutto tempo» ed «è scomodo» li abbiamo dati noi, guardando i pesi: la rete non li conosce.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Le parole che si sentono in giro.</b> I cerchi del disegno si chiamano <b>nodi</b>: sono i neuroni. Le linee che li collegano si chiamano <b>archi</b>: ogni arco porta un peso. Questa rete ha 8 pesi (6 tra ingressi e strato di mezzo, 2 verso l'uscita). Lo strato di mezzo si dice <b>nascosto</b> perché non lo si vede né all'ingresso né all'uscita. Una rete con tanti strati nascosti si dice <b>profonda</b>: è il «deep» di <i>deep learning</i>. Una rete grande ha miliardi di pesi, ma ogni neurone fa sempre il conto del laboratorio: moltiplica, somma, decide quanto accendersi.</p>
+    <p>In una rete vera nessuno decide che cosa debba fare un neurone nascosto. I «significati» dei neuroni li trova la rete da sola durante l'allenamento, e spesso non hanno un nome semplice. Per vedere una rete vera, abbastanza piccola da disegnarla tutta (8 ingressi, 6 neuroni nascosti, 4 uscite, 82 pesi), apri la guida sull'auto che impara a guidare, nella sezione sulla rete neurale.</p>
+  </div>
+
+  <h4 class="z-h">3 · Imparare vuol dire aggiustare i pesi</h4>
+  <div class="prose stack">
+    <p>Da dove vengono i pesi giusti? Nessuno li scrive a mano. All'inizio sono numeri a caso, e la rete sbaglia quasi sempre. Poi si ripete un ciclo semplice: le si mostra un esempio di cui si conosce la risposta giusta, si guarda quanto ha sbagliato e si sposta <i>un poco</i> ogni peso nella direzione che avrebbe ridotto l'errore. Ripetuto milioni di volte, su milioni di esempi, il ciclo porta i pesi a valori che funzionano.</p>
+  </div>
+  <div class="vx">
+    <p class="vx-cap">Il ciclo dell'allenamento, sull'esempio dell'ombrello</p>
+    <div class="vx-flow" aria-label="Il ciclo dell'allenamento">
+      <div class="vx-node"><b>1 · Pesi a caso</b> <small>la rete non sa ancora niente</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node"><b>2 · La rete risponde</b> <small>giornata nuvolosa, previsione di pioggia: la rete dice «niente ombrello»</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node"><b>3 · Confronto con la risposta giusta</b> <small>quel giorno è piovuto: la risposta era sbagliata, e di quanto si misura con un numero</small></div>
+      <div class="vx-down">↓</div>
+      <div class="vx-node acc"><b>4 · Ogni peso si sposta un poco</b> <small>per esempio il peso della pioggia cresce un pochino, così la prossima volta la rete dirà più facilmente «ombrello»</small></div>
+      <div class="vx-down">↓ <small>e si ricomincia dal passo 2 con un altro esempio, milioni di volte</small></div>
+      <div class="vx-node code">Nessuno scrive le regole: i pesi giusti emergono dagli esempi.</div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Come si misura l'errore con un numero e come si capisce da che parte spostare ogni peso lo spiegano la sottosezione sulla loss e quelle che la seguono.</p>
+  </div>
+
+  <h4 class="z-h">4 · Le parole diventano numeri</h4>
+  <div class="prose stack">
+    <p>Una rete sa fare solo moltiplicazioni e somme: mangia numeri, non parole. Quindi il testo va spezzato in pezzi, i <b>token</b> (una parola intera o un pezzo di parola: come si sceglie lo spiega la sottosezione sui token), e ogni token riceve una lista di numeri, sempre la stessa: la sua <b>scheda</b>.</p>
+    <p>Immagina schede da due soli numeri, ognuno con un significato preciso: il primo dice <b>quanto è regale</b>, il secondo <b>quanto è femminile</b>, tutti e due da 0 a 1.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="vx-table" style="max-width:520px">
+      <thead><tr><th>Parola</th><th>Quanto è regale</th><th>Quanto è femminile</th><th>Scheda</th></tr></thead>
+      <tbody>
+        <tr><td>uomo</td><td class="m">0,1</td><td class="m">0,1</td><td class="m">[0,1 ; 0,1]</td></tr>
+        <tr><td>donna</td><td class="m">0,1</td><td class="m">0,9</td><td class="m">[0,1 ; 0,9]</td></tr>
+        <tr><td>re</td><td class="m">0,9</td><td class="m">0,1</td><td class="m">[0,9 ; 0,1]</td></tr>
+        <tr><td>regina</td><td class="m">0,9</td><td class="m">0,9</td><td class="m">[0,9 ; 0,9]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose stack">
+    <p>Ora il famoso conto <b>re − uomo + donna</b>, un passo alla volta.</p>
+    <ol class="steps">
+      <li><b>re − uomo</b> = [0,9 − 0,1 ; 0,1 − 0,1] = [0,8 ; 0]. Hai tolto «l'essere un uomo qualunque»: resta solo la regalità.</li>
+      <li><b>+ donna</b> = [0,8 + 0,1 ; 0 + 0,9] = [0,9 ; 0,9]. Hai aggiunto «l'essere donna»: è proprio la scheda di regina.</li>
+    </ol>
+    <p>Sommare e togliere numeri, qui, vuol dire aggiungere e togliere caratteristiche. Nel laboratorio puoi rifare il conto sul disegno e provarlo con altre coppie.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: re − uomo + donna sul piano</h3><span class="tag">valori illustrativi</span></div>
+    <p>Premi i pulsanti da 1 a 4 nell'ordine e guarda dove si sposta il punto; poi scegli un'altra coppia e ripeti.</p>
+    <div class="row">
+      <div class="seg" id="zwStep" role="group" aria-label="Passi del conto"><button aria-pressed="true" data-v="0">1 · Parti da re</button><button aria-pressed="false" data-v="1">2 · Togli uomo</button><button aria-pressed="false" data-v="2">3 · Aggiungi donna</button><button aria-pressed="false" data-v="3">4 · Confronta le frecce</button></div>
+    </div>
+    <div class="row">
+      <span class="diag-title">Coppia</span>
+      <div class="seg" id="zwPair" role="group" aria-label="Coppia di parole"><button aria-pressed="true" data-v="0">re → regina</button><button aria-pressed="false" data-v="1">principe → principessa</button><button aria-pressed="false" data-v="2">attore → attrice</button></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <svg id="zwSvg" class="chart z-svg" viewBox="0 0 400 330" style="max-width:440px;margin:0 auto" role="img" aria-label="Le parole come punti di un piano con gli assi regale e femminile"></svg>
+        <p class="vx-sr" id="zwSr"></p>
+      </div>
+      <div class="stack">
+        <div class="formula" id="zwF" style="white-space:normal"></div>
+        <p class="callout" id="zwMsg" aria-live="polite"></p>
+      </div>
+    </div>
+    <p class="note">I numeri sono inventati, scelti perché il conto torni esatto. In un modello vero la scheda ha migliaia di numeri senza nome, e il conto arriva solo vicino alla parola giusta.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>E nei modelli veri?</b> La scheda di ogni token non ha 2 numeri ma 4.096 (in un modello da 7 miliardi di pesi). Nessuno dà loro un nome come «regale» o «femminile»: all'inizio sono numeri a caso, e il modello li sistema da solo durante l'allenamento, leggendo moltissimo testo, con lo stesso ciclo del punto 3. Alla fine le parole usate in modo simile hanno schede simili, e alcune direzioni prendono un significato, ma solo in modo approssimato: per questo re − uomo + donna arriva <i>vicino</i> a regina, non esattamente sopra.</p>
+  </div>
+
+  <h4 class="z-h">5 · Perché entrano tutti i token insieme</h4>
+  <div class="prose stack">
+    <p>Prova a indovinare la parola dopo «Il gatto dorme sul ___». Se ti dicessi solo «sul», potresti rispondere tavolo, treno, muro, qualsiasi cosa. Sono «gatto» e «dorme» a farti pensare a divano o letto. Per indovinare bene serve tutta la frase, non solo l'ultima parola.</p>
+    <p>Un modello linguistico fa così. Immagina quattro persone in fila, una per parola: «Il», «gatto», «dorme», «sul». Ognuna tiene in mano la scheda della sua parola, come un foglio di appunti. Si procede a <b>giri</b>. A ogni giro ognuna può leggere le schede di chi le sta davanti nella fila e aggiungere alla propria quello che ha capito. Non può guardare dietro di sé: le parole che vengono dopo non le conosce ancora.</p>
+    <p>Giro dopo giro le schede si riempiono di contesto. Alla fine si guarda solo la scheda dell'ultima persona, quella di «sul»: ormai sa che chi dorme è un gatto, e la usa per dire quali parole sono probabili subito dopo. In un modello vero i giri sono 32.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: quattro schede, giro dopo giro</h3><span class="tag">simulazione</span></div>
+    <p>Premi «Giro successivo» tre volte e guarda come si arricchisce la scheda di «sul» e come cambia la sua previsione.</p>
+    <div class="row">
+      <button class="btn" id="ztGo">Giro successivo</button>
+      <button class="btn ghost" id="ztReset">Ricomincia</button>
+      <span class="mono muted" id="ztRound" aria-live="polite"></span>
+    </div>
+    <svg id="ztSvg" class="chart z-svg" viewBox="0 0 400 120" style="max-width:560px;margin:0 auto" role="img" aria-label="Quattro parole in fila e chi legge la scheda di chi"></svg>
+    <p class="vx-sr" id="ztSr"></p>
+    <p class="muted" id="ztCap" style="font-size:.85rem;text-align:center;margin-top:-8px"></p>
+    <div class="zt-cards" id="ztCards"></div>
+    <div class="diag-title" id="ztBarsT"></div>
+    <div class="bars" id="ztBars"></div>
+    <p class="callout" id="ztMsg" aria-live="polite"></p>
+    <p class="note">Le schede qui sono scritte a parole perché si possano leggere; in un modello vero sono 4.096 numeri, e nessuno sa dire con precisione che cosa vuol dire ciascuno. Le percentuali sono inventate ma plausibili. Tre giri stanno al posto dei 32 di un modello da 7 miliardi di pesi; e in un modello vero la previsione si fa solo dopo l'ultimo giro: qui la mostriamo a ogni giro per vedere come migliora.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Come si chiamano queste cose nel resto della guida.</b> Da qui in poi le stesse idee tornano con il loro nome tecnico. Questa tabella fa da ponte.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="vx-table" style="max-width:640px">
+      <thead><tr><th>Qui l'abbiamo chiamato</th><th>Nel resto della guida</th></tr></thead>
+      <tbody>
+        <tr><td>pezzo di testo</td><td><b>token</b> · <a href="#c-token">Token e BPE</a></td></tr>
+        <tr><td>scheda di numeri di un token</td><td><b>embedding</b> (un vettore) · <a href="#c-emb">Embedding</a></td></tr>
+        <tr><td>quanto conta un ingresso, spessore della freccia</td><td><b>peso</b> (parametro) · <a href="#c-pesi">I pesi</a></td></tr>
+        <tr><td>neurone, nodo</td><td><b>neurone</b> o unità · <a href="#c-backprop">Backpropagation</a> (una rete a due strati)</td></tr>
+        <tr><td>«mai sotto 0»: la piega del regolatore</td><td><b>funzione non lineare</b> (ReLU) · <a href="#c-alg-nonlin">Non linearità</a></td></tr>
+        <tr><td>giro</td><td><b>strato</b> (layer, blocco) · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>leggere le schede di chi sta davanti</td><td><b>attention</b> (con maschera causale) · <a href="#c-layer">Gli strati</a></td></tr>
+        <tr><td>le percentuali finali</td><td><b>softmax</b> e distribuzione di probabilità · <a href="#c-loss">La loss</a></td></tr>
+        <tr><td>quanto la risposta è sbagliata</td><td><b>loss</b> · <a href="#c-loss">La loss</a></td></tr>
+        <tr><td>spostare un poco ogni peso</td><td><b>step</b> di discesa del gradiente · <a href="#c-step">Il ciclo di uno step</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose stack">
+    <p><b>E adesso?</b> Il quadro d'insieme, subito qui sotto, ripete lo stesso viaggio, dalle parole alle percentuali, con i numeri veri di un modello da 7 miliardi di pesi.</p>
+  </div>
+
   <!-- QUADRO D'INSIEME -->
   <h3 id="c-quadro" class="anchor">Il quadro d'insieme: che cosa fa un LLM con un token</h3>
   <div class="prose stack">
     <p>Prima dei dettagli, il viaggio completo. Un LLM (Large Language Model, modello linguistico di grandi dimensioni) fa una cosa sola, sempre la stessa: legge un testo e calcola quale pezzo di testo è probabile che venga subito dopo. Lo schema segue la frase «Il gatto dorme sul» dentro un modello da 7 miliardi di pesi (si dice «un 7B»), con le dimensioni vere di Llama 2 7B.</p>
+    <p>È lo stesso viaggio delle quattro persone in fila della sottosezione «Da zero», ora con i numeri veri: le schede della sottosezione precedente diventano liste di 4.096 numeri, i giri diventano 32 strati, e le percentuali finali si scelgono tra 32.000 token possibili.</p>
   </div>
   <div class="vx">
     <p class="vx-cap">Esempio: «Il gatto dorme sul» in un modello 7B</p>
@@ -371,14 +599,14 @@ table.mt tr.dim td{color:var(--muted)}
     <p><b>Come leggere lo schema, passo per passo.</b></p>
     <ol class="steps">
       <li><b>Token.</b> Il modello non legge lettere né parole intere, ma <i>token</i>: pezzi di testo presi da un vocabolario fisso, a volte parole intere, a volte pezzi di parola. Ogni token ha un numero d'ordine, il suo ID. Come si costruisce il vocabolario lo spiega la sottosezione sui token.</li>
-      <li><b>Una scheda di numeri per token.</b> Un numero d'ordine da solo non dice niente. Il modello tiene una tabella con una riga per ogni token del vocabolario, e per ogni token del testo legge la sua riga: una lista di d numeri, chiamata <b>embedding</b>. In un 7B d = 4.096. Attenzione: d è la larghezza della scheda di ogni token, non «la dimensione della rete». La rete intera contiene circa 7 miliardi di numeri, i pesi, e la tabella delle schede ne è solo una piccola parte.</li>
-      <li><b>Entra tutta la sequenza.</b> Per prevedere che cosa viene dopo «sul» il modello non guarda solo «sul»: entrano tutte e quattro le schede, una per posizione. È così che usa il contesto: è «dorme» a rendere «divano» e «letto» più probabili di «tavolo».</li>
-      <li><b>Tanti strati uguali.</b> Le schede attraversano N strati impilati, 32 in un 7B: «deep», in <i>deep learning</i>, vuol dire proprio «con tanti strati». Ogni strato fa due cose: prima i token si scambiano informazioni (la scheda di «sul» raccoglie qualcosa da quelle di «gatto» e «dorme»), poi ogni scheda viene rielaborata per conto suo. Da ogni strato esce di nuovo una scheda di d numeri per token, così l'uscita di uno strato può entrare nel successivo.</li>
+      <li><b>Una scheda di numeri per token.</b> È la scheda della sottosezione «Da zero», ma con d numeri senza nome invece di due. Il modello tiene una tabella con una riga per ogni token del vocabolario, e per ogni token del testo legge la sua riga: questa lista di numeri si chiama <b>embedding</b>. In un 7B d = 4.096. Attenzione: d è la larghezza della scheda di ogni token, non «la dimensione della rete». La rete intera contiene circa 7 miliardi di numeri, i pesi, e la tabella delle schede ne è solo una piccola parte.</li>
+      <li><b>Entra tutta la sequenza.</b> Entrano tutte e quattro le schede, una per posizione, come le quattro persone in fila: è «dorme» a rendere «divano» e «letto» più probabili di «tavolo».</li>
+      <li><b>Tanti strati uguali.</b> Sono i giri: le schede attraversano N strati impilati, 32 in un 7B. Ogni strato fa due cose: prima i token si scambiano informazioni (la scheda di «sul» legge quelle di «gatto» e «dorme», mai quelle dei token successivi), poi ogni scheda viene rielaborata per conto suo. Da ogni strato esce di nuovo una scheda di d numeri per token, così l'uscita di uno strato può entrare nel successivo.</li>
       <li><b>Un punteggio per ogni token possibile.</b> Dopo l'ultimo strato si prende la scheda dell'ultima posizione e si calcola un punteggio per ciascuno dei V token del vocabolario (V = 32.000 in Llama 2). Una funzione chiamata <b>softmax</b> trasforma i punteggi in probabilità, numeri positivi che sommano a 100%. L'uscita del modello è quindi una <b>distribuzione di probabilità</b> su tutti i token, non direttamente il token cercato.</li>
       <li><b>Scegliere e ripetere.</b> Si sceglie un token da quella distribuzione: il più probabile, oppure uno estratto a caso rispettando le probabilità. Lo si aggiunge al testo e si ripete tutto con un token in più. Un testo lungo si genera così, un token alla volta.</li>
     </ol>
     <p><b>In una frase:</b> ogni token entra come una scheda di 4.096 numeri; le schede di tutta la frase attraversano insieme i 32 strati; dall'ultima scheda esce una probabilità per ognuno dei 32.000 token del vocabolario, e il token successivo si sceglie da lì.</p>
-    <p><b>E i «nodi» della rete?</b> Nella guida sull'auto che impara a guidare, nella sezione sulla rete neurale, la rete è così piccola che si disegna tutta: 8 nodi d'ingresso, 6 nodi nascosti e 4 d'uscita, collegati da 82 pesi. Ogni nodo fa una somma pesata dei nodi della fila precedente. In un LLM l'idea è la stessa, ma i nodi sono troppi per disegnarli uno a uno, e si scrive tutto con le matrici, cioè tabelle di numeri: uno strato è soprattutto una moltiplicazione per matrici di pesi. In prima approssimazione i «nodi» di una fila corrispondono alle d caselle della scheda (4.096 per token; dentro uno strato ci sono anche file più larghe, circa 11.000 caselle in un 7B), e i collegamenti tra due file sono i numeri dentro una matrice, cioè i pesi.</p>
+    <p><b>E i neuroni?</b> Ci sono ancora, ma sono troppi per disegnarli uno a uno. In prima approssimazione i neuroni di una fila sono le d caselle della scheda (4.096 per token; dentro uno strato ci sono anche file più larghe, circa 11.000 caselle in un 7B), e i pesi che collegano due file si scrivono tutti insieme in una tabella di numeri, una matrice. Uno strato è quindi soprattutto una moltiplicazione per matrici di pesi: per questo, dopo il laboratorio, serve un richiamo di algebra.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: genera il prossimo token</h3><span class="tag">valori illustrativi</span></div>
@@ -453,39 +681,33 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="note">In grigio tratteggiato c'è b prima di essere moltiplicato per t. I due lati tratteggiati colorati mostrano che si arriva nello stesso punto anche facendo prima t·b e poi a: la somma è la diagonale del parallelogramma che ha a e t·b come lati (regola del parallelogramma).</p>
   </div>
   <div class="prose stack">
-    <p><b>Parole come punti: re − uomo + donna.</b> Se le parole diventano punti, quelle usate in modo simile stanno vicine. Ma c'è di più: anche le <i>frecce tra due parole</i> possono avere un significato. Con un sistema chiamato word2vec (Mikolov e colleghi, 2013) si osservò questo:</p>
-    <ol class="steps">
-      <li>la freccia che va da «uomo» a «donna» è più o meno la stessa (stessa direzione, stessa lunghezza) della freccia che va da «re» a «regina»: in entrambi i casi si passa dal maschile al femminile;</li>
-      <li>quella freccia si calcola con una sottrazione, numero per numero: donna − uomo;</li>
-      <li>quindi, partendo da «re» e aggiungendo quella freccia, si arriva vicino a «regina»: re + (donna − uomo) ≈ regina. Spesso lo si scrive re − uomo + donna, che è lo stesso conto in un altro ordine.</li>
-    </ol>
-    <p><b>Con numeri inventati.</b> Immagina che ogni parola abbia solo 2 numeri: uomo = [1 ; 1], donna = [1 ; 3], re = [4 ; 1], regina = [4,1 ; 2,9].</p>
-    <div class="vx vx-formula">donna − uomo <span class="op">=</span> [1 − 1&nbsp;;&nbsp;3 − 1] <span class="op">=</span> [0&nbsp;;&nbsp;2]<br>re + (donna − uomo) <span class="op">=</span> [4 + 0&nbsp;;&nbsp;1 + 2] <span class="op">=</span> [4&nbsp;;&nbsp;3] <span class="op">≈</span> regina [4,1&nbsp;;&nbsp;2,9] <small>La freccia [0 ; 2] vuol dire «due passi verso l'alto»: in questo spazio inventato, salire è la direzione del femminile. Il simbolo ≈ vuol dire «circa uguale».</small></div>
+    <p><b>Parole come punti: re − uomo + donna.</b> È l'esempio della sottosezione «Da zero», riletto con le parole di questo passo. Ogni parola è un vettore di 2 numeri, [quanto è regale ; quanto è femminile]: uomo = [0,1 ; 0,1], donna = [0,1 ; 0,9], re = [0,9 ; 0,1], regina = [0,9 ; 0,9]. La freccia che porta da «uomo» a «donna» si calcola con una sottrazione, numero per numero; partendo da «re» e aggiungendo quella freccia si arriva su «regina».</p>
+    <div class="vx vx-formula">donna − uomo <span class="op">=</span> [0,1 − 0,1&nbsp;;&nbsp;0,9 − 0,1] <span class="op">=</span> [0&nbsp;;&nbsp;0,8]<br>re + (donna − uomo) <span class="op">=</span> [0,9 + 0&nbsp;;&nbsp;0,1 + 0,8] <span class="op">=</span> [0,9&nbsp;;&nbsp;0,9] <span class="op">=</span> regina <small>La freccia [0 ; 0,8] vuol dire «sali di 0,8 sull'asse del femminile». Scritto come re − uomo + donna è lo stesso conto in un altro ordine: prima si toglie uomo ([0,8 ; 0], resta la regalità), poi si aggiunge donna.</small></div>
   </div>
   <div class="vx vx-svg s" role="group" aria-label="Le quattro parole come punti del piano" style="max-width:520px">
-    <svg viewBox="0 0 420 290" role="img" aria-label="Uomo, donna, re e regina come punti, con due frecce parallele" style="max-width:460px;margin:0 auto">
-      <path class="ln" stroke-width=".7" d="M115 15V265M180 15V265M245 15V265M310 15V265M375 15V265M50 215H415M50 165H415M50 115H415M50 65H415M50 15H415"/>
-      <path class="ln" stroke-width="1.4" d="M50 265H417M50 265V10"/>
-      <text class="mut" x="44" y="279" text-anchor="end" font-size="10">0</text>
-      <text class="mut" x="115" y="279" text-anchor="middle" font-size="10">1</text><text class="mut" x="310" y="279" text-anchor="middle" font-size="10">4</text>
-      <text class="mut" x="44" y="219" text-anchor="end" font-size="10">1</text><text class="mut" x="44" y="119" text-anchor="end" font-size="10">3</text>
-      <line class="ac" stroke-width="3" stroke-linecap="round" x1="115" y1="208" x2="115" y2="130"/><polygon class="acf" points="115,121 109,133 121,133"/>
-      <line class="ac" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5" x1="310" y1="208" x2="310" y2="130"/><polygon class="acf" points="310,121 304,133 316,133"/>
-      <circle class="bxa" cx="115" cy="215" r="6"/><circle class="bxa" cx="115" cy="115" r="6"/><circle class="bxa" cx="310" cy="215" r="6"/>
-      <circle class="ac" stroke-width="1.5" stroke-dasharray="3 3" cx="310" cy="115" r="10"/>
-      <circle class="acf" cx="316.5" cy="120" r="5"/>
-      <text x="125" y="236" font-size="12">uomo [1 ; 1]</text>
-      <text x="127" y="112" font-size="12">donna [1 ; 3]</text>
-      <text x="310" y="238" text-anchor="middle" font-size="12">re [4 ; 1]</text>
-      <text x="330" y="130" font-size="12" font-weight="600">regina</text><text x="330" y="145" font-size="12">[4,1 ; 2,9]</text>
-      <text class="mut" x="310" y="92" text-anchor="middle" font-size="11">re + (donna − uomo) = [4 ; 3]</text>
-      <text class="mut" x="125" y="160" font-size="11">donna − uomo</text><text class="mut" x="125" y="175" font-size="11">= [0 ; 2]</text>
-      <text class="mut" x="300" y="200" text-anchor="end" font-size="11">stessa freccia</text>
+    <svg viewBox="0 0 420 300" role="img" aria-label="Uomo, donna, re e regina come punti, con due frecce parallele" style="max-width:460px;margin:0 auto">
+      <path class="ln" stroke-width=".7" d="M215 25V255M380 25V255M50 140H390M50 25H390"/>
+      <path class="ln" stroke-width="1.4" d="M50 255H397M50 255V18"/>
+      <text class="mut" x="44" y="269" text-anchor="end" font-size="10">0</text>
+      <text class="mut" x="215" y="269" text-anchor="middle" font-size="10">0,5</text><text class="mut" x="380" y="269" text-anchor="middle" font-size="10">1</text>
+      <text class="mut" x="44" y="144" text-anchor="end" font-size="10">0,5</text><text class="mut" x="44" y="29" text-anchor="end" font-size="10">1</text>
+      <text class="mut" x="390" y="290" text-anchor="end" font-size="11">quanto è regale →</text>
+      <text class="mut" x="50" y="12" font-size="11">↑ quanto è femminile</text>
+      <line class="ac" stroke-width="3" stroke-linecap="round" x1="83" y1="225" x2="83" y2="64"/><polygon class="acf" points="83,55 77,67 89,67"/>
+      <line class="ac" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5" x1="347" y1="225" x2="347" y2="64"/><polygon class="acf" points="347,55 341,67 353,67"/>
+      <circle class="bxa" cx="83" cy="232" r="6"/><circle class="bxa" cx="83" cy="48" r="6"/><circle class="bxa" cx="347" cy="232" r="6"/>
+      <circle class="acf" cx="347" cy="48" r="6"/>
+      <text x="93" y="230" font-size="12">uomo</text><text class="mut" x="93" y="244" font-size="11">[0,1 ; 0,1]</text>
+      <text x="93" y="46" font-size="12">donna</text><text class="mut" x="93" y="60" font-size="11">[0,1 ; 0,9]</text>
+      <text x="337" y="230" text-anchor="end" font-size="12">re</text><text class="mut" x="337" y="244" text-anchor="end" font-size="11">[0,9 ; 0,1]</text>
+      <text x="337" y="46" text-anchor="end" font-size="12" font-weight="600">regina</text><text class="mut" x="337" y="60" text-anchor="end" font-size="11">[0,9 ; 0,9]</text>
+      <text class="mut" x="93" y="140" font-size="11">donna − uomo</text><text class="mut" x="93" y="155" font-size="11">= [0 ; 0,8]</text>
+      <text class="mut" x="337" y="140" text-anchor="end" font-size="11">stessa freccia:</text><text class="mut" x="337" y="155" text-anchor="end" font-size="11">re + [0 ; 0,8]</text>
     </svg>
-    <p class="vx-sr">Un piano con quattro punti. Uomo in [1 ; 1] e donna in [1 ; 3], a sinistra; re in [4 ; 1] a destra. Da uomo a donna sale una freccia continua, donna − uomo = [0 ; 2]. Da re sale una freccia tratteggiata identica e parallela, che arriva nel punto calcolato [4 ; 3], segnato con un cerchio tratteggiato. Regina, in [4,1 ; 2,9], è il punto pieno appena accanto: vicino al punto calcolato, ma non esattamente sopra.</p>
+    <p class="vx-sr">Un piano con l'asse orizzontale «quanto è regale» e quello verticale «quanto è femminile», tutti e due da 0 a 1. Uomo in [0,1 ; 0,1] e donna in [0,1 ; 0,9], a sinistra; re in [0,9 ; 0,1] e regina in [0,9 ; 0,9], a destra. Da uomo a donna sale una freccia continua, donna − uomo = [0 ; 0,8]. Da re sale una freccia tratteggiata identica e parallela, che arriva esattamente su regina.</p>
   </div>
   <div class="prose stack">
-    <p>Va preso come un'approssimazione: il punto calcolato non coincide con «regina», che è solo la parola più vicina a quel punto, e molte analogie di questo tipo non funzionano. È un indizio che lo spazio degli embedding ha una struttura geometrica, non una regola esatta.</p>
+    <p>Con numeri inventati il conto torna esatto. Con le schede vere non è così: in un sistema chiamato word2vec (Mikolov e colleghi, 2013) si osservò che re − uomo + donna arriva <i>vicino</i> a «regina», che è solo la parola più vicina al punto calcolato, e molte analogie di questo tipo non funzionano affatto. I numeri veri sono centinaia o migliaia e nessuno ha dato loro un nome come «regale»: è un indizio che lo spazio degli embedding ha una struttura geometrica, non una regola esatta.</p>
   </div>
   <details class="deep">
     <summary data-noxref>Dove ritorna nel modello (si capisce meglio più avanti) <small>somma di vettori negli strati · combinazione lineare · analogie</small></summary>
@@ -2425,6 +2647,207 @@ new MutationObserver(all).observe(document.documentElement,{attributes:true,attr
 })();
 </script>
 
+<script>
+/* ---------- Da zero (#c-zero): neurone, rete 3→2→1, re − uomo + donna, schede a giri ---------- */
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+if(!$("znSvg"))return;
+function el(tag,attrs,parent,txt){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+/* numeri all'italiana: virgola decimale, segno meno tipografico, niente «−0» */
+function nf(x,d){const r=Math.round(x*Math.pow(10,d))/Math.pow(10,d);const s=Math.abs(r).toFixed(d).replace(".",",");return (r<0?"−":"")+s;}
+function nfs(x,d){return x<0?"("+nf(x,d)+")":nf(x,d);}
+function seg(id,cb){const g=$(id);g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(+b.dataset.v);});}
+function press(id,v){$(id).querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",+x.dataset.v===v?"true":"false"));}
+function arrowHead(svg,x1,y1,x2,y2,cls,size){const a=Math.atan2(y2-y1,x2-x1),s=size||8;
+  const p=[[x2,y2],[x2-s*Math.cos(a-0.42),y2-s*Math.sin(a-0.42)],[x2-s*Math.cos(a+0.42),y2-s*Math.sin(a+0.42)]];
+  el("polygon",{points:p.map(q=>q.map(v=>v.toFixed(1)).join(",")).join(" "),class:cls},svg);}
+const clamp01=v=>Math.max(0,Math.min(1,v));
+
+/* ===== 1 · il neurone dell'ombrello ===== */
+const IN=["nuvole","pioggia prevista","vento"];
+function drawZN(){
+  const x=[0,1,2].map(i=>+$("znX"+i).value), w=[0,1,2].map(i=>+$("znW"+i).value), th=+$("znT").value;
+  [0,1,2].forEach(i=>{$("znX"+i+"o").textContent=nf(x[i],1);$("znW"+i+"o").textContent=nf(w[i],1);});
+  $("znTo").textContent=nf(th,2);
+  const parts=x.map((v,i)=>v*w[i]);
+  const tot=parts.reduce((a,b)=>a+b,0);
+  const on=Math.round(tot*1000)>=Math.round(th*1000);
+  const svg=$("znSvg");clear(svg);
+  const ys=[40,115,190],NX=255,NY=115,R=36,IX=118;
+  const lab=[["nuvole"],["pioggia","prevista"],["vento"]];
+  ys.forEach((y,i)=>{
+    const ww=w[i],sw=0.8+Math.abs(ww)*7;
+    const dx=NX-IX,dy=NY-y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    const x1=IX+ux*20,y1=y+uy*20,x2=NX-ux*(R+4),y2=NY-uy*(R+4);
+    if(Math.abs(ww)>0.001){
+      el("line",{x1,y1,x2:x2-ux*6,y2:y2-uy*6,class:ww>0?"z-pos":"z-neg","stroke-width":sw.toFixed(1),"stroke-dasharray":ww>0?"":"6 4","stroke-linecap":"butt"},svg);
+      arrowHead(svg,x1,y1,x2,y2,ww>0?"z-posf":"z-negf",10);
+    } else el("line",{x1,y1,x2,y2,class:"z-ln","stroke-dasharray":"2 4"},svg);
+    const mx=IX+dx*0.42,my=y+dy*0.42;
+    el("text",{x:mx,y:i===2?my+26:my-9,"text-anchor":"middle",class:"z-w"},svg,"× "+nf(ww,1));
+    el("circle",{cx:IX,cy:y,r:19,class:"z-node"},svg);
+    el("text",{x:IX,y:y+4,"text-anchor":"middle",class:"z-v"},svg,nf(x[i],1));
+    lab[i].forEach((t,k)=>el("text",{x:IX-27,y:y+4+(k-(lab[i].length-1)/2)*14,"text-anchor":"end",class:"z-lb"},svg,t));
+  });
+  el("circle",{cx:NX,cy:NY,r:R,class:on?"z-node on":"z-node"},svg);
+  el("text",{x:NX,y:NY-4,"text-anchor":"middle",class:"z-lb"},svg,"totale");
+  el("text",{x:NX,y:NY+14,"text-anchor":"middle",class:"z-big"},svg,nf(tot,2));
+  el("text",{x:NX,y:NY+R+18,"text-anchor":"middle",class:"z-mut"},svg,"soglia "+nf(th,2));
+  el("line",{x1:NX+R+2,y1:NY,x2:NX+R+34,y2:NY,class:on?"z-pos":"z-ln","stroke-width":on?3:1.5},svg);
+  arrowHead(svg,NX+R+2,NY,NX+R+42,NY,on?"z-posf":"z-lnf",9);
+  el("text",{x:NX+R+48,y:NY-3,class:on?"z-yes":"z-lb"},svg,on?"sì,":"niente");
+  el("text",{x:NX+R+48,y:NY+13,class:on?"z-yes":"z-lb"},svg,"ombrello");
+  $("znCalc").innerHTML=IN.map((n,i)=>`<div class="eq"><span>${n} ${nf(x[i],1)} × peso ${nfs(w[i],1)}</span> <strong>${nf(parts[i],2)}</strong></div>`).join("")+
+    `<div class="eq"><span><b>Totale</b> ${nf(parts[0],2)} + ${nfs(parts[1],2)} + ${nfs(parts[2],2)}</span> <strong>${nf(tot,2)}</strong></div>`+
+    `<div class="eq"><span>${nf(tot,2)} ${on?"≥":"&lt;"} soglia ${nf(th,2)}</span> <strong>${on?"si accende: sì":"resta spento: no"}</strong></div>`;
+  $("znSr").textContent=`Tre ingressi entrano nel neurone: nuvole ${nf(x[0],1)} con peso ${nf(w[0],1)}, pioggia prevista ${nf(x[1],1)} con peso ${nf(w[1],1)}, vento ${nf(x[2],1)} con peso ${nf(w[2],1)}. Il totale è ${nf(tot,2)} e la soglia ${nf(th,2)}: il neurone ${on?"si accende e risponde sì, ombrello":"resta spento e risponde niente ombrello"}.`;
+  let m;
+  const top=parts.map((p,i)=>[Math.abs(p),i]).sort((a,b)=>b[0]-a[0])[0][1];
+  if(on) m=`<b>Il neurone si accende.</b> Il totale ${nf(tot,2)} supera la soglia ${nf(th,2)}, quindi la risposta è «sì, ombrello». Chi pesa di più in questo momento è ${IN[top]} (${nf(parts[top],2)}).`;
+  else m=`<b>Il neurone resta spento.</b> Il totale ${nf(tot,2)} non arriva alla soglia ${nf(th,2)}, quindi la risposta è «niente ombrello».`;
+  if(w[2]<0&&x[2]>=0.6) m+=` Il vento forte, con il suo peso negativo, toglie ${nf(-parts[2],2)} al totale: spinge verso il no.`;
+  else if(w.some(v=>v<0)) m+=` Un peso negativo fa il contrario degli altri: più quell'ingresso è alto, più il totale scende.`;
+  m+=` Tutto quello che il neurone «sa» sta nei tre pesi e nella soglia: cambiali e cambia il suo carattere.`;
+  $("znMsg").innerHTML=m;
+}
+["znX0","znX1","znX2","znW0","znW1","znW2","znT"].forEach(id=>$(id).addEventListener("input",drawZN));
+
+/* ===== 2 · la rete 3 → 2 → 1 ===== */
+const WH=[[0.4,0.7,0.1],[-0.2,0.1,1.0]], WO=[1.2,-0.8];
+const HN=["sembra brutto tempo","è scomodo"];
+const PRE=[[0.8,0.7,0.3],[0.8,0.7,0.9],[0.1,0,0.1]];
+function drawZR(){
+  const x=[0,1,2].map(i=>+$("zrX"+i).value);
+  [0,1,2].forEach(i=>$("zrX"+i+"o").textContent=nf(x[i],1));
+  const hs=WH.map(r=>r.reduce((a,w,i)=>a+w*x[i],0)), h=hs.map(clamp01);
+  const os=WO[0]*h[0]+WO[1]*h[1], o=clamp01(os), yes=Math.round(o*1000)>=500;
+  const svg=$("zrSvg");clear(svg);
+  const IXp=112,HX=250,OX=362,iy=[50,130,210],hy=[85,175],oy=130,r=21;
+  const lab=[["nuvole"],["pioggia","prevista"],["vento"]];
+  function edge(x1,y1,x2,y2,w){const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    el("line",{x1:x1+ux*r,y1:y1+uy*r,x2:x2-ux*r,y2:y2-uy*r,class:w>0?"z-pos":"z-neg","stroke-width":(0.8+Math.abs(w)*4).toFixed(1),"stroke-dasharray":w>0?"":"5 4","stroke-opacity":".75"},svg);}
+  iy.forEach((y,i)=>hy.forEach((yy,j)=>edge(IXp,y,HX,yy,WH[j][i])));
+  hy.forEach((yy,j)=>edge(HX,yy,OX,oy,WO[j]));
+  function node(cx,cy,v,txt){el("circle",{cx,cy,r,class:"z-node"},svg);el("circle",{cx,cy,r:r-2,class:"z-fill","fill-opacity":(v*0.95).toFixed(2)},svg);
+    el("text",{x:cx,y:cy+4,"text-anchor":"middle",class:v>0.55?"z-v inv":"z-v"},svg,txt);}
+  iy.forEach((y,i)=>{node(IXp,y,x[i],nf(x[i],1));lab[i].forEach((t,k)=>el("text",{x:IXp-28,y:y+4+(k-(lab[i].length-1)/2)*14,"text-anchor":"end",class:"z-lb"},svg,t));});
+  hy.forEach((yy,j)=>node(HX,yy,h[j],nf(h[j],2)));
+  el("text",{x:HX,y:hy[0]-30,"text-anchor":"middle",class:"z-lb"},svg,"«"+HN[0]+"»");
+  el("text",{x:HX,y:hy[1]+40,"text-anchor":"middle",class:"z-lb"},svg,"«"+HN[1]+"»");
+  node(OX,oy,o,nf(o,2));
+  el("text",{x:OX,y:oy-31,"text-anchor":"middle",class:"z-lb"},svg,"ombrello?");
+  el("text",{x:OX,y:oy+40,"text-anchor":"middle",class:yes?"z-yes":"z-lb"},svg,yes?"sì":"no");
+  el("text",{x:OX,y:oy+55,"text-anchor":"middle",class:"z-mut"},svg,"(sì da 0,5)");
+  [["ingressi",IXp],["strato nascosto",HX],["uscita",OX]].forEach(([t,cx])=>el("text",{x:cx,y:252,"text-anchor":"middle",class:"z-mut"},svg,t));
+  const row=(name,ws,ins,sum,val)=>`<div class="eq"><span><b>${name}</b> ${ws.map((w,i)=>nfs(w,1)+" × "+nf(ins[i],ins===x?1:2)).join(" + ")} = ${nf(sum,2)}${Math.abs(sum-val)>1e-9?` → ${sum<0?"sotto 0, vale 0":"sopra 1, vale 1"}`:""}</span> <strong>${nf(val,2)}</strong></div>`;
+  $("zrCalc").innerHTML=row("«"+HN[0]+"»",WH[0],x,hs[0],h[0])+row("«"+HN[1]+"»",WH[1],x,hs[1],h[1])+row("ombrello?",WO,h,os,o);
+  $("zrSr").textContent=`Tre ingressi (nuvole ${nf(x[0],1)}, pioggia prevista ${nf(x[1],1)}, vento ${nf(x[2],1)}) sono collegati con sei archi a due neuroni nascosti: «${HN[0]}» vale ${nf(h[0],2)}, «${HN[1]}» vale ${nf(h[1],2)}. Questi due sono collegati all'uscita «ombrello?», che vale ${nf(o,2)}: ${yes?"sì":"no"}. Gli archi verdi hanno peso positivo, quelli rossi tratteggiati peso negativo.`;
+  let m;
+  if(yes) m=`<b>Ombrello sì (${nf(o,2)}).</b> «${HN[0]}» è acceso a ${nf(h[0],2)} e spinge forte verso il sì; «${HN[1]}» vale solo ${nf(h[1],2)} e frena poco.`;
+  else if(h[0]>=0.5) m=`<b>Ombrello no (${nf(o,2)}), anche se piove.</b> «${HN[0]}» è acceso (${nf(h[0],2)}), ma «${HN[1]}» è acceso a ${nf(h[1],2)} e con il suo peso negativo (${nf(WO[1],1)}) tira verso il no: con quel vento l'ombrello si rovescerebbe.`;
+  else m=`<b>Ombrello no (${nf(o,2)}).</b> «${HN[0]}» vale solo ${nf(h[0],2)}: non c'è motivo di portarlo.`;
+  m+=` Nota che il neurone finale non vede mai le nuvole o il vento: vede solo i due neuroni nascosti, cioè idee già elaborate dallo strato prima.`;
+  $("zrMsg").innerHTML=m;
+}
+["zrX0","zrX1","zrX2"].forEach(id=>$(id).addEventListener("input",()=>{press("zrPre",-1);drawZR();}));
+seg("zrPre",v=>{PRE[v].forEach((val,i)=>$("zrX"+i).value=val);drawZR();});
+
+/* ===== 4 · re − uomo + donna ===== */
+/* valori in decimi: [regale, femminile] */
+const PAIRS=[{m:"re",f:"regina",r:9},{m:"principe",f:"principessa",r:7},{m:"attore",f:"attrice",r:3}];
+const U=[1,1],D=[1,9];
+let zwS=0,zwP=0;
+function drawZW(){
+  const t=d=>d===0?"0":nf(d/10,1), v=q=>"["+t(q[0])+" ; "+t(q[1])+"]";
+  const P=PAIRS[zwP], M=[P.r,1], F=[P.r,9], A=[M[0]-U[0],M[1]-U[1]], B=[A[0]+D[0],A[1]+D[1]];
+  const svg=$("zwSvg");clear(svg);
+  const X=v=>60+v*30, Y=v=>282-v*25; /* v in decimi: x 60..360, y 282..32 */
+  for(let k=0;k<=10;k+=5){el("line",{x1:X(k),y1:Y(0),x2:X(k),y2:Y(10),class:"z-grid"},svg);el("line",{x1:X(0),y1:Y(k),x2:X(10),y2:Y(k),class:"z-grid"},svg);
+    el("text",{x:X(k),y:Y(0)+16,"text-anchor":"middle",class:"z-mut"},svg,nf(k/10,1));el("text",{x:X(0)-7,y:Y(k)+4,"text-anchor":"end",class:"z-mut"},svg,nf(k/10,1));}
+  el("line",{x1:X(0),y1:Y(0),x2:X(10.4),y2:Y(0),class:"z-ax"},svg);el("line",{x1:X(0),y1:Y(0),x2:X(0),y2:Y(10.6),class:"z-ax"},svg);
+  el("text",{x:X(10),y:Y(0)+32,"text-anchor":"end",class:"z-lb"},svg,"quanto è regale →");
+  el("text",{x:X(0)-2,y:Y(10)-12,class:"z-lb"},svg,"↑ quanto è femminile");
+  /* coppie non scelte: punti tenui */
+  PAIRS.forEach((p,i)=>{if(i===zwP)return;[[p.r,1],[p.r,9]].forEach(q=>el("circle",{cx:X(q[0]),cy:Y(q[1]),r:4,class:"z-dim"},svg));});
+  function arrow(a,b,cls,dash,w){const x1=X(a[0]),y1=Y(a[1]),x2=X(b[0]),y2=Y(b[1]),L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L;
+    el("line",{x1:x1+ux*7,y1:y1+uy*7,x2:x2-ux*14,y2:y2-uy*14,class:cls,"stroke-width":w||3,"stroke-dasharray":dash||"","stroke-linecap":"round"},svg);arrowHead(svg,x1,y1,x2-ux*7,y2-uy*7,cls+"f",11);}
+  if(zwS===3){
+    PAIRS.forEach((p,i)=>arrow([p.r,1],[p.r,9],i===zwP?"z-pos":"z-dimln","6 4",i===zwP?3:2));
+    arrow(U,D,"z-pos","",3);
+    if(P.r>=5)el("text",{x:X(1)+8,y:Y(5),class:"z-lb"},svg,"[0 ; 0,8]");
+    el("text",{x:X(P.r)+(P.r>=5?-8:8),y:Y(5)+(P.r>=5?0:22),"text-anchor":P.r>=5?"end":"start",class:"z-lb"},svg,"[0 ; 0,8]");
+  }
+  if(zwS>=1&&zwS<=2){arrow(M,A,"z-neg","",3);}
+  if(zwS===2){arrow(A,B,"z-pos","",3);}
+  function pt(q,name,cls,anchor,dx,dy){el("circle",{cx:X(q[0]),cy:Y(q[1]),r:6,class:cls},svg);
+    if(name)el("text",{x:X(q[0])+(dx||9),y:Y(q[1])+(dy||4),"text-anchor":anchor||"start",class:"z-lb"},svg,name);}
+  pt(U,"uomo","z-pt","start",9,-8);pt(D,"donna","z-pt","start",9,-8);
+  pt(M,P.m,zwS===0?"z-cur":"z-pt","start",10,5);pt(F,P.f,zwS>=2?"z-cur":"z-pt","start",10,5);
+  if(zwS>=1&&zwS<=2){el("circle",{cx:X(A[0]),cy:Y(A[1]),r:6,class:zwS===1?"z-cur":"z-ghost"},svg);
+    el("text",{x:X(A[0])-9,y:Y(A[1])-9,"text-anchor":"end",class:"z-lb"},svg,"["+t(A[0])+" ; 0]");}
+  let f,m,sr;
+  if(zwS===0){f=`${P.m} = ${v(M)}`;m=`<b>Si parte da ${P.m}.</b> La sua scheda dice: regale ${nf(P.r/10,1)}, femminile 0,1. Premi «2 · Togli uomo».`;sr=`Il punto ${P.m} è in ${v(M)}, in basso. Gli altri punti: uomo in [0,1 ; 0,1], donna in [0,1 ; 0,9], ${P.f} in ${v(F)}.`;}
+  else if(zwS===1){f=`${P.m} − uomo = [${nf(M[0]/10,1)} − 0,1 ; 0,1 − 0,1] = ${v(A)}`;m=`<b>Togli uomo: resta solo la regalità.</b> La freccia rossa porta da ${P.m} a ${v(A)}. Hai tolto «l'essere un uomo qualunque» (0,1 di regalità e 0,1 di femminile): quello che resta, ${nf(A[0]/10,1)}, è la parte «regale» di ${P.m}${P.r<5?", che per un attore è poca: un po' di fama":""}. Premi «3 · Aggiungi donna».`;sr=`Una freccia va da ${P.m} ${v(M)} al punto ${v(A)}, sull'asse orizzontale: re meno uomo lascia solo la regalità.`;}
+  else if(zwS===2){f=`${P.m} − uomo = ${v(A)}<br>${v(A)} + donna = [${nf(A[0]/10,1)} + 0,1 ; 0 + 0,9] = ${v(B)} = ${P.f}`;m=`<b>Aggiungi donna: sei su ${P.f}.</b> La freccia verde aggiunge la scheda di donna, [0,1 ; 0,9], e il punto arriva esattamente su ${P.f}, ${v(F)}. Aggiungere numeri vuol dire aggiungere caratteristiche. Premi «4 · Confronta le frecce».`;sr=`Dal punto ${v(A)} una seconda freccia sale fino a ${v(B)}, che è proprio ${P.f}.`;}
+  else {f=`donna − uomo = [0,1 − 0,1 ; 0,9 − 0,1] = [0 ; 0,8]<br>${P.m} + [0 ; 0,8] = ${v(F)} = ${P.f}`;m=`<b>La «freccia femminile» è sempre la stessa.</b> Da uomo a donna, da re a regina, da principe a principessa, da attore ad attrice: si sale sempre di [0 ; 0,8]. Per questo re − uomo + donna, che è lo stesso conto di re + (donna − uomo), porta su regina. Scegli un'altra coppia: cambia il punto di partenza, non la freccia.`;sr=`Quattro frecce verticali tratteggiate tutte uguali, [0 ; 0,8], salgono da ogni parola maschile alla femminile corrispondente: uomo e donna, re e regina, principe e principessa, attore e attrice.`;}
+  $("zwF").innerHTML=f;$("zwMsg").innerHTML=m;$("zwSr").textContent="Piano con l'asse orizzontale «quanto è regale» e quello verticale «quanto è femminile». "+sr;
+}
+seg("zwStep",v=>{zwS=v;drawZW();});
+seg("zwPair",v=>{zwP=v;drawZW();});
+
+/* ===== 5 · quattro schede, giro dopo giro ===== */
+const ZT_W=["Il","gatto","dorme","sul"];
+const ZT_C=[
+  ["articolo, maschile singolare","","",""],
+  ["animale, nome maschile","+ ha «il» davanti: un gatto preciso, è il soggetto","",""],
+  ["verbo: riposare, stare fermo","+ chi dorme? un gatto","+ un gatto che riposa cerca un posto comodo",""],
+  ["preposizione: «su» + «il», poi arriva un nome maschile","+ viene dopo «dorme»: indica il posto dove si dorme","+ chi dorme è un gatto: un posto dove si sdraia un gatto","+ tutto insieme: un posto morbido, in casa, nome maschile"]
+];
+const ZT_P=[
+  [["tavolo",9],["letto",7],["divano",6],["pavimento",5],["treno",4]],
+  [["letto",16],["divano",14],["pavimento",8],["tavolo",7],["treno",2]],
+  [["divano",25],["letto",22],["pavimento",9],["tavolo",8],["treno",1]],
+  [["divano",31],["letto",24],["tavolo",9],["pavimento",7],["treno",0.5]]
+];
+const ZT_M=[
+  `<b>Giro 0: ognuno conosce solo la sua parola.</b> La scheda di «sul» dice soltanto che arriverà un nome maschile. Se dovesse indovinare adesso, «sul tavolo» e «sul treno» andrebbero bene quanto «sul divano»: nessuna parola supera il 10%.`,
+  `<b>Giro 1: ognuno legge chi gli sta davanti.</b> «gatto» legge «Il»; «dorme» legge «Il» e «gatto» e scopre chi dorme; «sul» legge tutti e tre e capisce che indica un posto dove si dorme. Letto e divano salgono, treno scende.`,
+  `<b>Giro 2: si leggono schede già arricchite.</b> Adesso la scheda di «dorme» contiene anche «un gatto», quindi «sul», leggendola, riceve un'informazione che nel giro 1 non c'era ancora. Le notizie viaggiano lungo la fila, giro dopo giro.`,
+  `<b>Giro 3: la scheda di «sul» è piena di contesto.</b> Si usa solo questa scheda, l'ultima, per la previsione: divano 31%, letto 24%, tavolo 9%. Sono le stesse percentuali dello schema del quadro d'insieme. In un modello vero i giri sono 32 e le schede sono fatte di 4.096 numeri.`
+];
+let ztR=0;
+function drawZT(){
+  const svg=$("ztSvg");clear(svg);
+  const cx=[50,150,250,350],by=82,bw=78,bh=32;
+  for(let j=1;j<4&&ztR>0;j++)for(let i=0;i<j;i++){
+    const x1=cx[i],x2=cx[j],h=14+(j-i)*16,mid=(x1+x2)/2;
+    el("path",{d:`M${x1} ${by-2} Q ${mid} ${by-2-h*2} ${x2-6} ${by-6}`,class:j===3?"z-pos":"z-dimln",fill:"none","stroke-width":j===3?2:1.4},svg);
+    arrowHead(svg,x2-14,by-14,x2-5,by-5,j===3?"z-posf":"z-dimlnf",8);
+  }
+  cx.forEach((x,i)=>{el("rect",{x:x-bw/2,y:by,width:bw,height:bh,rx:6,class:i===3?"z-node on":"z-node"},svg);
+    el("text",{x,y:by+21,"text-anchor":"middle",class:"z-v"},svg,ZT_W[i]);});
+  $("ztCap").textContent=ztR===0?"Giro 0: nessuno ha ancora letto le schede degli altri.":"Ogni freccia va da chi scrive la scheda a chi la legge: sempre da sinistra a destra, mai all'indietro.";
+  $("ztSr").textContent=ztR===0?"Quattro caselle in fila: Il, gatto, dorme, sul. Nessuna freccia: al giro 0 ognuna conosce solo la sua parola.":"Quattro caselle in fila: Il, gatto, dorme, sul. Frecce curve vanno da ogni casella a tutte quelle che la seguono: gatto legge Il; dorme legge Il e gatto; sul legge Il, gatto e dorme. Nessuna freccia va all'indietro.";
+  $("ztCards").innerHTML=ZT_W.map((w,i)=>{
+    const lines=ZT_C[i].slice(0,ztR+1).map((t,k)=>t.trim()?`<li class="${k===ztR&&k>0?"new":""}">${t}</li>`:"").join("");
+    const nobody=i===0&&ztR>0?`<li class="mut">nessuno davanti: la scheda resta così</li>`:(i>0&&ztR>0&&!ZT_C[i][ztR]?`<li class="mut">niente di nuovo in questo giro</li>`:"");
+    return `<div class="zt-card${i===3?" last":""}"><b>«${w}»</b> <ul>${lines}${nobody}</ul></div>`;}).join("");
+  $("ztRound").textContent=`giro ${ztR} di 3 · nel modello vero: 32`;
+  $("ztBarsT").textContent=ztR<3?`Se «sul» dovesse indovinare dopo il giro ${ztR}`:"Previsione finale, dalla sola scheda di «sul»";
+  const ps=ZT_P[ztR],rest=100-ps.reduce((a,p)=>a+p[1],0);
+  $("ztBars").innerHTML=ps.concat([["tutte le altre parole",rest]]).map(([w,p])=>`<div class="barrow"><span>${w==="tutte le altre parole"?w:"«"+w+"»"}</span><div class="track"><div class="fill" style="width:${p}%"></div></div><span class="v">${nf(p,p<1?1:0)}%</span></div>`).join("");
+  $("ztMsg").innerHTML=ZT_M[ztR];
+  $("ztGo").disabled=ztR>=3;
+}
+$("ztGo").addEventListener("click",()=>{if(ztR<3){ztR++;drawZT();}});
+$("ztReset").addEventListener("click",()=>{ztR=0;drawZT();});
+
+drawZN();drawZR();drawZW();drawZT();
+})();
+</script>
+
 <!-- xpl:config (riferimenti incrociati di questa guida) -->
 <script>
 window.XREF_CONFIG={
@@ -2450,6 +2873,7 @@ window.XREF_CONFIG={
     {re:"sottosezione sui token",to:"#c-token",flags:"i",first:false},
     {re:"sottosezione sui pesi|quella sui pesi",to:"#c-pesi",flags:"i",first:false},
     {re:"sottosezione su batch, step ed epoch",to:"#c-batch",flags:"i",first:false},
+    {re:"sottosezione «Da zero»",to:"#c-zero",flags:"i",first:false},
     {re:"quadro d'insieme",to:"#c-quadro",flags:"i"},
     {re:"richiamo di algebra",to:"#c-alg",flags:"i"},
     {re:"guida sull'auto che impara a guidare, nella sezione sulla rete neurale",to:"https://pericle82.github.io/explorables/neural-network-driving/#s3",k:"Altra guida",t:"Neural Network Driving · La rete neurale",body:"<p>Una rete abbastanza piccola da disegnarla tutta: 8 numeri entrano, passano per 6 nodi nascosti ed escono 4 comandi di guida. Ogni nodo fa una somma pesata dei nodi precedenti, e tutto ciò che la rete sa sta nei suoi 82 pesi.</p>",flags:"i",first:false},
