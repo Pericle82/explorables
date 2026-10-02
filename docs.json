@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.12",
+      "version": "1.13",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.13",
+          "date": "2026-10-02",
+          "notes": "Capitolo 0 per chi parte da zero: quadro d'insieme con laboratorio sul percorso di un token; percorso di algebra riscritto con esempi numerici semplici e approfondimenti in riquadri richiudibili «Dove ritorna nel modello»"
+        },
         {
           "version": "1.12",
           "date": "2026-10-02",
