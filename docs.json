@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.13",
+      "version": "1.14",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.14",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione «Da zero»: neurone, rete, apprendimento, parole come numeri (re/regina con assi etichettati), perché entrano tutti i token insieme"
+        },
         {
           "version": "1.13",
           "date": "2026-10-02",
