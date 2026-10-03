@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.1",
+      "version": "2.2",
       "updated": "2026-10-03",
       "history": [
+        {
+          "version": "2.2",
+          "date": "2026-10-03",
+          "notes": "Capitolo 1 ricostruito dal basso prima del laboratorio: il modello a conteggi (bigrammi), perché non basta (esplosione V^n con calcolatore, nessuna generalizzazione), che cos'è una rete neurale e il modello a finestra fissa (Bengio 2003), le reti ricorrenti e i loro tre limiti, l'attention come media pesata con pesi calcolati dal contenuto (esempio numerico), che cos'è un transformer (2017)."
+        },
         {
           "version": "2.1",
           "date": "2026-10-03",

@@ -330,28 +330,118 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
   </div>
   <div class="prose stack">
     <p class="q">Scrivo <b>«il gatto nero dorme sul»</b> e il modello completa con <b>«divano»</b>. Per farlo deve aver usato <i>tutta</i> la frase: «dorme» gli dice che si parla di un posto in cui si dorme, «sul» che manca un nome di luogo. <b>In che modo, concretamente, cinque parole diventano quella previsione?</b></p>
-    <p>In cinque passi, sempre gli stessi, per qualsiasi frase e qualsiasi modello. Li elenchiamo prima a parole, poi li eseguiamo con numeri veri su un modello in miniatura costruito apposta, abbastanza piccolo da leggere ogni cifra e abbastanza fedele da avere la stessa struttura di un modello da 7 miliardi di parametri.</p>
-    <ol class="steps">
-      <li><b>Spezza la frase in token</b> e sostituisci ogni token con il suo numero d'ordine (ID) in un vocabolario fisso. Da qui in poi non esiste più testo, solo una lista di interi.</li>
-      <li><b>Sostituisci ogni ID con un vettore</b>, una lista di numeri letta da una tabella: la riga numero ID della <i>matrice di embedding</i> E. Ogni token diventa un punto in uno spazio a d dimensioni. All'ingresso ogni vettore descrive solo il suo token, senza sapere nulla dei vicini.</li>
-      <li><b>Mescola il contesto.</b> È il passo decisivo. Il vettore dell'ultimo token viene ricalcolato come <i>media pesata</i> dei vettori di tutti i token della frase, se stesso compreso. I pesi non sono fissi: il modello li calcola dal contenuto, chiedendo a ogni token precedente «quanto sei rilevante per me?» con un prodotto scalare. Dopo questo passo il vettore di «sul» contiene un po' di «dorme» e un po' di se stesso, nelle proporzioni decise dai pesi.</li>
-      <li><b>Elabora il vettore mescolato</b> con un piccolo blocco di calcolo che vale per tutti i token: trasforma «dormire + preposizione di luogo» in «ci vuole un luogo». In un modello vero i passi 3 e 4 si ripetono decine di volte in fila (gli <i>strati</i>), ciascuno con i propri pesi.</li>
-      <li><b>Confronta il risultato con ogni riga del vocabolario.</b> Il prodotto scalare tra il vettore finale e il vettore di ciascun token dà un punteggio (<i>logit</i>); la funzione <i>softmax</i> trasforma i punteggi in probabilità che sommano a 1. «divano» è il token con la probabilità più alta.</li>
-    </ol>
-    <p>Due cose vanno dette subito, perché sono il cuore di tutto il documento. Primo: in questi cinque passi <b>non c'è una sola regola scritta a mano</b>; ci sono solo moltiplicazioni e somme tra la frase e un insieme di numeri fissi, i <b>pesi</b> (la tabella E, la matrice che calcola i pesi del mescolamento, il blocco di elaborazione). Secondo: <b>il training cambia solo quei numeri</b>, mai i cinque passi. Nel modello in miniatura i pesi li abbiamo scritti noi, a mano, perché si capisse che cosa fanno; in un modello vero li trova il procedimento del capitolo 2.</p>
+    <p>Per rispondere non basta descrivere il transformer: bisogna arrivarci. Questo capitolo parte dal modo più ingenuo di prevedere una parola (contare), mostra dove si rompe, e introduce un'idea alla volta — i vettori, la rete neurale, la memoria, l'attention — ciascuna come rimedio al limite della precedente. Alla fine il transformer non sarà un oggetto misterioso ma l'ultimo passo di una sequenza di rimedi, e un modello in miniatura lo eseguirà numero per numero sulla nostra frase.</p>
   </div>
 
+  <h3 id="c-step12" class="anchor">Prima di tutto: dal testo ai numeri</h3>
+  <div class="prose stack">
+    <p>Qualunque modello di linguaggio comincia allo stesso modo, perché una funzione matematica non può lavorare su lettere. <b>Primo passo</b>: la frase viene spezzata in <b>token</b>, pezzi di testo presi da un vocabolario fisso, e ogni token è sostituito dal suo numero d'ordine nel vocabolario, l'<b>ID</b>. In un modello vero i token sono frammenti di parola (il vocabolario ha 30.000–250.000 voci); nei nostri esempi, per leggibilità, un token è una parola intera. «il gatto nero dorme sul» diventa <span class="k">[1, 2, 4, 5, 7]</span>.</p>
+    <p><b>Secondo passo</b>: ogni ID viene sostituito da un <b>vettore</b>, cioè una lista di d numeri, letta da una tabella che ha una riga per ogni token del vocabolario: la <b>matrice di embedding</b> E. L'ID 2 diventa la riga 2 di E. Perché non lavorare direttamente con gli ID? Perché un ID è un'etichetta: che «gatto» sia 2 e «cane» sia 3 non dice che si somigliano. Un vettore invece può dirlo: se «gatto» e «cane» hanno vettori simili, tutto ciò che il modello impara sull'uno vale anche per l'altro. Vedremo tra poco che è proprio questo il motivo per cui i vettori servono.</p>
+    <p>Fin qui nessuna previsione: abbiamo solo una lista di punti in uno spazio a d dimensioni, uno per token, ciascuno ignaro degli altri. Il problema da risolvere è: <b>data questa lista, produrre una probabilità per ogni token del vocabolario come prossimo token</b>. Tutto ciò che segue sono modi diversi di costruire questa funzione.</p>
+  </div>
+
+  <h3 id="c-count" class="anchor">Il modello più semplice: contare</h3>
+  <div class="prose stack">
+    <p class="q">Se dovessi prevedere la parola successiva senza nessuna teoria, che cosa farei?</p>
+    <p>Conterei. Prenderei un testo molto lungo e, per ogni parola, annoterei quante volte è seguita da ciascun'altra: dopo «il» viene «gatto» 40 volte, «cane» 35, «pesce» 10… Per prevedere, guardo l'ultima parola e leggo la riga corrispondente della tabella, trasformata in percentuali. È un <b>modello a bigrammi</b> (coppie di parole), ed è esattamente il modello del capitolo 3: una tabella 15 × 15, riga = parola attuale, colonna = parola successiva, e la «previsione» è leggere una riga. Funziona, e in un certo senso contiene già i passi 1 e 5 del transformer: dal testo agli ID, e da una riga di numeri a una distribuzione di probabilità.</p>
+    <p>Ma dopo «sul» questo modello propone «divano», «letto», «tavolo» e «tetto» con le stesse proporzioni che ha visto nel testo, qualunque cosa ci fosse prima. Non sa che la frase parlava di dormire. Per saperlo dovrebbe guardare più indietro: contare le terne (dopo «dorme sul» viene…), le quaterne, e così via. E qui si rompe.</p>
+  </div>
+
+  <h3 id="c-why" class="anchor">Perché contare non basta</h3>
+  <div class="prose stack">
+    <p>Due motivi, e il transformer nasce per rispondere a entrambi.</p>
+    <p><b>1 · La tabella esplode.</b> Con un vocabolario di V token e un contesto di n token, le combinazioni possibili sono V<sup>n</sup>. Già con 32.000 token e un contesto di appena 3, sono 32.000³ ≈ 3 × 10¹³ righe: più di quante parole esistano in tutti i testi mai scritti. Quasi tutte le combinazioni non compaiono mai nel corpus, quindi il modello non ha nulla da contare e resta muto davanti a frasi perfettamente normali. Un contesto di migliaia di token, come quello degli LLM attuali, è impensabile per una tabella.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Calcolatore: quanto sarebbe grande la tabella dei conteggi</h3><span class="tag">aritmetica</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="ngV">Vocabolario V <output id="ngVo"></output></label><input id="ngV" type="range" min="1" max="6" step="0.1" value="4.5"></div>
+      <div class="ctl"><label for="ngN">Token di contesto n <output id="ngNo"></output></label><input id="ngN" type="range" min="1" max="8" value="2"></div>
+    </div>
+    <div class="readout" id="ngOut"></div>
+    <p class="callout" id="ngMsg"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>2 · Non generalizza.</b> Anche se la tabella ci stesse, «il gatto dorme sul» e «il cane dorme sul» sarebbero due righe separate, contate separatamente. Aver visto mille volte che dopo «il gatto dorme sul» viene «divano» non dice nulla su «il cane dorme sul». Un essere umano, invece, trasferisce: gatto e cane sono entrambi animali che dormono. Serve un modo per cui ciò che si impara su una parola valga anche per le parole simili, e un modo per cui la previsione dipenda dal <i>contenuto</i> del contesto, non dalla sua forma esatta.</p>
+    <p>I <b>vettori</b> del secondo passo risolvono il secondo problema: se «gatto» e «cane» hanno vettori vicini, una funzione che lavora sui vettori darà risultati vicini per i due. Resta da costruire quella funzione, che prenda in ingresso i vettori del contesto e restituisca i punteggi del token successivo. Lo strumento è la rete neurale.</p>
+  </div>
+
+  <h3 id="c-nn" class="anchor">La rete neurale, e il primo modello a finestra fissa</h3>
+  <div class="prose stack">
+    <p class="q">Che cos'è, in concreto, una rete neurale? Ne basta una definizione da tre righe.</p>
+    <p>Un <b>neurone</b> è una funzione che riceve dei numeri, li moltiplica ciascuno per un proprio <b>peso</b>, somma tutto e applica una soglia: se la somma è negativa restituisce 0, altrimenti la somma stessa (la funzione <b>ReLU</b>, Rectified Linear Unit). Con i pesi giusti un neurone diventa un rilevatore: «c'è la caratteristica dormire ma non la caratteristica luogo?» è un neurone con peso +1 su «dormire», −1 su «luogo», e la ReLU che spegne tutto il resto. Uno <b>strato</b> è un gruppo di neuroni che leggono gli stessi ingressi, ciascuno con i propri pesi; una <b>rete</b> è una sequenza di strati in cui l'uscita di uno è l'ingresso del successivo. I pesi non li scrive nessuno: si parte da numeri casuali e si aggiustano con il procedimento del capitolo 2. Qualunque cosa faccia un LLM, è fatta di questi mattoni: moltiplicazioni per pesi, somme, soglie.</p>
+    <p><b>Il primo modello neurale di linguaggio</b> (Bengio e colleghi, 2003) fa la cosa più diretta: prende i vettori degli ultimi n token, li mette uno accanto all'altro in un unico vettore lungo n × d, lo passa attraverso una rete di uno o due strati, e dall'ultimo strato esce un punteggio per ogni token del vocabolario. Risolve la generalizzazione: «gatto» e «cane» entrano con vettori simili, quindi escono con previsioni simili, e la rete ha pochi milioni di pesi invece di 10¹³ celle. Ma eredita dalla tabella un limite: la <b>finestra è fissa</b>. Con n = 4 il modello non vede mai il quinto token indietro, e i pesi che leggono «il token due posizioni fa» sono diversi da quelli che leggono «il token tre posizioni fa», quindi la stessa parola spostata di un posto è, per la rete, un ingresso completamente diverso.</p>
+  </div>
+  <div class="diag">
+    <span class="box">ultimi n token<br><small class="muted">finestra fissa</small></span><span class="arr">→</span>
+    <span class="box">n vettori affiancati<br><small class="muted">n × d numeri</small></span><span class="arr">→</span>
+    <span class="box">rete (1–2 strati)</span><span class="arr">→</span>
+    <span class="box hot">un punteggio per token del vocabolario</span>
+  </div>
+
+  <h3 id="c-rnn" class="anchor">Una memoria che si aggiorna: le reti ricorrenti</h3>
+  <div class="prose stack">
+    <p class="q">Come si usa tutto il contesto, lungo quanto si vuole, senza una finestra fissa?</p>
+    <p>La risposta classica è la <b>rete ricorrente</b> (RNN, Recurrent Neural Network): si legge un token alla volta e si tiene un unico vettore di <b>stato</b>, una «memoria» di dimensione fissa. A ogni token lo stato viene ricalcolato da una rete che riceve lo stato precedente e il vettore del token nuovo: stato ← f(stato, token). Dopo aver letto «il gatto nero dorme sul», lo stato dovrebbe contenere, compresso in d numeri, tutto ciò che serve per prevedere «divano». Il contesto non ha più un limite di lunghezza, e gli stessi pesi servono per ogni posizione.</p>
+    <p>Per anni è stato il modo standard di fare modelli di linguaggio (nelle varianti LSTM e GRU), e ha tre difetti che si pagano sempre di più man mano che il contesto cresce. <b>Comprime tutto in un vettore</b>: ciò che è stato letto cento token fa deve sopravvivere a cento aggiornamenti dello stato, e in pratica svanisce. <b>È sequenziale</b>: per calcolare lo stato al token 1.000 bisogna aver calcolato i 999 precedenti, uno dopo l'altro, e le GPU, che eccellono a fare migliaia di operazioni in parallelo, restano ferme. <b>È difficile da addestrare</b>: i gradienti del capitolo 2 devono risalire la stessa catena di mille passi, e lungo la strada si spengono o esplodono.</p>
+  </div>
+  <div class="diag">
+    <span class="box">stato₀</span><span class="arr">→</span>
+    <span class="box">+ «il» → stato₁</span><span class="arr">→</span>
+    <span class="box">+ «gatto» → stato₂</span><span class="arr">→</span>
+    <span class="box">…</span><span class="arr">→</span>
+    <span class="box hot">+ «sul» → stato₅<br><small class="muted">tutto il passato, compresso</small></span><span class="arr">→</span>
+    <span class="box">punteggi</span>
+  </div>
+
+  <h3 id="c-att-idea" class="anchor">L'attention: guardare indietro invece di ricordare</h3>
+  <div class="prose stack">
+    <p class="q">E se, invece di comprimere il passato in una memoria, lo tenessimo tutto a disposizione e lasciassimo che ogni token vada a <i>guardare</i> ciò che gli serve?</p>
+    <p>È l'idea dell'<b>attention</b>, ed è l'unica idea davvero nuova del transformer. Si tengono i vettori di tutti i token della frase, così come sono. Quando bisogna fare la previsione nella posizione di «sul», si costruisce il nuovo vettore di «sul» come <b>media pesata dei vettori di tutti i token fino a lì</b>, se stesso compreso. I pesi della media non sono fissi: vengono <b>calcolati dal contenuto</b>, in tre mosse.</p>
+    <ol class="steps">
+      <li>Dal vettore di «sul» si ricava una <b>domanda</b>: un vettore che dice che cosa «sul» sta cercando nel contesto. Si ottiene moltiplicando il vettore di «sul» per una matrice di pesi, W<sub>q</sub>, che il training aggiusta. Nel modello in miniatura, la domanda di una preposizione cerca soprattutto la caratteristica «dormire».</li>
+      <li>La domanda viene confrontata con il vettore di ciascun token precedente con un <b>prodotto scalare</b> (si moltiplicano le componenti a coppie e si sommano): il risultato è un punteggio alto se il token ha ciò che la domanda cerca, basso o zero altrimenti. Nel nostro esempio «dorme» ottiene un punteggio alto, «il», «gatto» e «nero» circa zero.</li>
+      <li>I punteggi vengono trasformati in <b>pesi che sommano a 1</b> con la softmax (e elevato a ciascun punteggio, diviso per la somma): i token con punteggio alto prendono la maggior parte del peso, gli altri quasi nulla.</li>
+    </ol>
+    <p>Con i numeri del modello in miniatura, nella posizione di «sul» i pesi vengono: «il» 2%, «gatto» 2%, «nero» 2%, «dorme» 28%, «sul» 65%. Il nuovo vettore di «sul» è quindi 0,28 × vettore di «dorme» + 0,65 × vettore di «sul» + briciole: nelle dimensioni leggibili del modello, «dormire» passa da 0,30 a 0,48 e compare «luogo» 0,39 e «preposizione» 0,65. <b>Il vettore di «sul» adesso contiene «dorme»</b>, e la contiene perché «sul» l'ha cercata, non perché una memoria l'ha trasportata fin lì. Un piccolo blocco di neuroni (lo strato successivo) legge questo vettore, trova «dormire + preposizione» e aggiunge «luogo»: il confronto finale con il vocabolario premia «divano» e «letto».</p>
+    <p>Perché risolve i tre difetti della memoria: <b>niente compressione</b>, il token a distanza mille è a disposizione quanto quello accanto, basta che la domanda lo trovi; <b>tutto in parallelo</b>, i pesi di ogni posizione sono prodotti scalari indipendenti, che una GPU calcola in un colpo solo per tutta la frase; <b>gradienti brevi</b>, da «sul» a «dorme» c'è un passo, non una catena. Il prezzo è il costo: ogni token confronta la propria domanda con tutti i precedenti, quindi il lavoro cresce con il quadrato della lunghezza della frase. È il compromesso che definisce gli LLM attuali.</p>
+  </div>
+  <div class="diag">
+    <span class="box">vettore di «sul»</span><span class="arr">→</span>
+    <span class="box">domanda = vettore × W<sub>q</sub></span><span class="arr">→</span>
+    <span class="box">prodotto scalare con ogni token<br><small class="muted">il 0 · gatto 0 · nero 0 · dorme 1 · sul 2</small></span><span class="arr">→</span>
+    <span class="box">softmax<br><small class="muted">2% 2% 2% 28% 65%</small></span><span class="arr">→</span>
+    <span class="box hot">media pesata<br><small class="muted">«sul» contiene «dorme»</small></span>
+  </div>
+
+  <h3 id="c-transformer" class="anchor">Che cos'è, allora, un transformer</h3>
+  <div class="prose stack">
+    <p>Un <b>transformer</b> (Vaswani e colleghi, 2017, «Attention is all you need») è una rete neurale costruita così: i token diventano vettori; poi, per N volte di seguito, un <b>blocco</b> fatto di due parti ricalcola ogni vettore — prima l'<b>attention</b>, in cui ogni token raccoglie informazione dai precedenti con la media pesata appena vista, poi un piccolo gruppo di neuroni (l'<b>MLP</b>, Multi-Layer Perceptron) che elabora il vettore di ciascun token per conto suo; infine l'ultimo vettore viene confrontato con ogni riga del vocabolario per ottenere i punteggi. Il nome dice quello che fa: <b>trasforma una sequenza di vettori in una sequenza di vettori</b>, della stessa lunghezza, N volte, arricchendola a ogni passaggio. Niente memoria da trascinare, niente finestra fissa, niente ciclo sequenziale: solo blocchi identici impilati, con pesi diversi.</p>
+    <p>Gli LLM come GPT, Llama o Claude sono transformer di questo tipo (detti <i>decoder-only</i>: ogni posizione vede solo i token alla sua sinistra, perché deve prevedere il successivo). Un modello da 7 miliardi di parametri ha N = 32 blocchi e vettori di 4.096 numeri; il modello in miniatura qui sotto ha N = 1 e vettori di 8 numeri. La struttura è la stessa, ed è riassunta in cinque passi.</p>
+  </div>
+  <div class="stackdiag">
+    <div class="sd io">1 · token → ID <small>[L]</small></div>
+    <div class="sd">2 · ID → vettore: lettura delle righe di E <small>[L × d]</small></div>
+    <div class="sd blk"><b>Blocco 1</b><span>3 · attention: ogni token = media pesata dei precedenti → 4 · MLP: neuroni su ogni token</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd blk"><b>Blocco 2</b><span>3 · attention → 4 · MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd sdots">⋮ (N blocchi, N = 32 in un 7B, N = 1 nel modello in miniatura)</div>
+    <div class="sd">5 · confronto con ogni riga del vocabolario <small>[L × V] logit</small></div>
+    <div class="sd io">softmax → una probabilità per ogni token del vocabolario</div>
+  </div>
+  <div class="prose stack">
+    <p>Due cose vanno dette subito, perché sono il cuore di tutto il documento. Primo: in questi cinque passi <b>non c'è una sola regola scritta a mano</b>; ci sono solo moltiplicazioni e somme tra la frase e un insieme di numeri fissi, i <b>pesi</b> (la tabella E, la matrice W<sub>q</sub> che costruisce le domande, i pesi dei neuroni dell'MLP). Secondo: <b>il training cambia solo quei numeri</b>, mai i cinque passi. Nel modello in miniatura i pesi li abbiamo scritti noi, a mano, perché si capisse che cosa fanno; in un modello vero li trova il procedimento del capitolo 2.</p>
+  </div>
   <div class="map" aria-label="I cinque passi">
     <span class="box">1 · Token<small>testo → ID</small></span><span class="arr">→</span>
     <span class="box">2 · Vettori<small>riga di E</small></span><span class="arr">→</span>
-    <span class="box hot">3 · Mescola il contesto<small>media pesata</small></span><span class="arr">→</span>
-    <span class="box">4 · Elabora<small>blocco di calcolo</small></span><span class="arr">→</span>
+    <span class="box hot">3 · Attention<small>media pesata del contesto</small></span><span class="arr">→</span>
+    <span class="box">4 · MLP<small>neuroni su ogni token</small></span><span class="arr">→</span>
     <span class="box">5 · Confronta<small>logit → probabilità</small></span>
   </div>
 
   <h3 id="c-toy" class="anchor">Un modello in miniatura, numero per numero</h3>
   <div class="prose stack">
-    <p>Il modello qui sotto ha un vocabolario di 12 token, vettori di 8 numeri e un solo strato. Per renderlo leggibile, le 8 dimensioni hanno un nome (animale, dormire, mangiare, luogo, preposizione, fine, articolo, cibo) e i pesi sono scelti a mano in modo che le dimensioni significhino qualcosa: in un modello vero le dimensioni sono 4.096, nessuna ha un nome, e i pesi li trova il training. Ma il calcolo è lo stesso: scegli una frase, clicca un token per vedere la previsione fatta <i>in quel punto</i> della frase, e segui i cinque pannelli.</p>
+    <p>Il modello qui sotto è un transformer con vocabolario di 12 token, vettori di 8 numeri e un solo blocco (attention + MLP a 7 neuroni). Per renderlo leggibile, le 8 dimensioni hanno un nome (animale, dormire, mangiare, luogo, preposizione, fine, articolo, cibo) e i pesi sono scelti a mano in modo che le dimensioni significhino qualcosa: in un modello vero le dimensioni sono 4.096, nessuna ha un nome, e i pesi li trova il training. Ma il calcolo è lo stesso dei cinque passi. Scegli una frase, clicca un token per vedere la previsione fatta <i>in quel punto</i> della frase, e segui i cinque pannelli: il pannello 3 è l'attention della sezione precedente con i numeri veri, il pannello 4 sono i neuroni della sezione sulla rete neurale.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: dalla frase al token successivo</h3><span class="tag">calcolo reale · pesi scritti a mano</span></div>
@@ -370,14 +460,14 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
         <div class="scroll-x"><table class="gtable emb-table" id="tyE"></table></div>
       </div>
       <div class="stack">
-        <div class="diag-title">3 · Mescola il contesto: quanto pesa ogni token per l'ultimo</div>
+        <div class="diag-title">3 · Attention: quanto pesa ogni token nella media per l'ultimo</div>
         <div class="bars" id="tyMix"></div>
         <div class="formula" id="tyMixed"></div>
       </div>
     </div>
     <div class="grid2">
       <div class="stack">
-        <div class="diag-title">4 · Elabora: il blocco di calcolo legge il vettore mescolato e aggiunge una correzione</div>
+        <div class="diag-title">4 · MLP: sette neuroni leggono il vettore mescolato e aggiungono una correzione</div>
         <div class="att-steps" id="tyRules"></div>
         <div class="formula" id="tyOut"></div>
       </div>
@@ -431,22 +521,26 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
 
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 1</p>
-    <p>Una frase attraversa il modello in cinque passi: diventa una lista di ID; ogni ID diventa un vettore letto da una tabella; il vettore dell'ultimo token viene ricalcolato come media pesata di tutti i vettori della frase, con pesi che dipendono dal contenuto (è così che «tutto il contesto» entra nella previsione); un blocco di calcolo lo elabora; il risultato viene confrontato con ogni riga della tabella e la softmax trasforma i punteggi in probabilità. Non ci sono regole scritte a mano, solo pesi; un modello vero ha gli stessi tre tipi di pesi, miliardi invece di duecento, e ripete i passi centrali decine di volte. Generare testo significa ripetere tutto questo un token alla volta.</p>
+    <p>Prevedere il token successivo contando le sequenze non scala e non generalizza; i vettori rendono simili le parole simili, la rete neurale costruisce la funzione che dai vettori del contesto produce i punteggi. Il modello a finestra fissa non vede lontano; la rete ricorrente vede tutto ma comprime il passato in una memoria, procede in sequenza e si addestra male. L'attention tiene tutti i vettori e lascia che ogni token costruisca il proprio come media pesata dei precedenti, con pesi calcolati dal contenuto: è così che «tutto il contesto» entra nella previsione. Il transformer è una pila di blocchi attention + MLP che trasformano una sequenza di vettori in una sequenza di vettori, seguita dal confronto con il vocabolario. Non ci sono regole scritte a mano, solo pesi; generare testo significa ripetere tutto un token alla volta.</p>
     <p class="recap-sub">Concetti chiave</p>
     <ul>
       <li><strong>Token e ID</strong> — il testo diventa una lista di interi tramite un vocabolario fisso</li>
       <li><strong>Embedding</strong> — la riga di E letta per ogni ID: un punto in uno spazio a d dimensioni, che all'ingresso non sa nulla dei vicini</li>
-      <li><strong>Mescolamento del contesto (attention)</strong> — media pesata dei vettori precedenti, con pesi calcolati da un prodotto scalare e una softmax</li>
-      <li><strong>Blocco di elaborazione (MLP)</strong> — regole «se X, aggiungi Z» realizzate con ReLU di prodotti scalari, uguali per tutti i token</li>
+      <li><strong>Contare non basta</strong> — la tabella dei conteggi esplode (V<sup>n</sup>) e non generalizza; i vettori risolvono la generalizzazione, la rete neurale costruisce la funzione</li>
+      <li><strong>Finestra fissa e memoria ricorrente</strong> — i due modelli precedenti: la prima non vede oltre n token, la seconda comprime tutto in uno stato, è sequenziale e difficile da addestrare</li>
+      <li><strong>Attention</strong> — media pesata dei vettori precedenti, con pesi calcolati dal contenuto (domanda · token, poi softmax): niente compressione, tutto in parallelo</li>
+      <li><strong>Transformer</strong> — embedding, poi N blocchi (attention + MLP) che trasformano una sequenza di vettori in una sequenza di vettori, poi il confronto con il vocabolario</li>
+      <li><strong>Neurone, strato, MLP</strong> — somma pesata + ReLU; regole «se X senza Y, aggiungi Z» uguali per tutti i token</li>
       <li><strong>Logit e softmax</strong> — punteggi per ogni token del vocabolario, trasformati in probabilità</li>
       <li><strong>Pesi</strong> — i soli numeri che il training cambia; i passi restano fissi</li>
       <li><strong>Generazione autoregressiva</strong> — un token alla volta, ognuno diventa contesto del successivo</li>
     </ul>
     <p class="recap-sub">Autodiagnosi · dovresti saper rispondere senza rileggere</p>
     <ol>
-      <li>Nel laboratorio, perché dopo «il gatto nero dorme» il modello propone «sul» e «nel», e dopo «sul» propone «divano» e «letto»? Quale passo porta l'informazione da «dorme» a «sul»?</li>
-      <li>Che cosa cambia nel vettore di «sul» tra il passo 2 e il passo 3?</li>
-      <li>Quali sono i tre tipi di pesi, e che cosa fa il training con i cinque passi?</li>
+      <li>Perché un modello a bigrammi non può sapere che dopo «dorme sul» viene «divano», e perché non basta contare le terne?</li>
+      <li>Che cosa fa di diverso l'attention rispetto a una rete ricorrente per usare un token lontano nel contesto?</li>
+      <li>Nel laboratorio, quale passo porta l'informazione da «dorme» a «sul», e come vengono calcolati i pesi?</li>
+            <li>Quali sono i tre tipi di pesi, e che cosa fa il training con i cinque passi?</li>
       <li>Perché la stessa domanda può ricevere risposte diverse dallo stesso modello?</li>
     </ol>
   </div>
@@ -1865,7 +1959,15 @@ function drawToy(){const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);
 seg("#tySent",v=>{tyToks=[...TY_SENTS[+v]];tyPos=tyToks.length-1;drawToy();});
 $("#tyGen").onclick=()=>{const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);let best=0;r.p.forEach((v,i)=>{if(v>r.p[best])best=i;});const top=TY_V[best];if(top==="<eos>"&&tyPos===tyToks.length-1)return;tyToks=[...pre,top];tyPos=tyToks.length-1;drawToy();};
 $("#tyReset").onclick=()=>{const v=+document.querySelector('#tySent [aria-pressed="true"]').dataset.v;tyToks=[...TY_SENTS[v]];tyPos=tyToks.length-1;drawToy();};
-function drawBase(){drawToy();drawDP();drawOH();drawAtt();drawChain();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+/* calcolatore tabella n-grammi */
+const ngV=$("#ngV"),ngN=$("#ngN");
+function drawNg(){const V=+Math.pow(10,+ngV.value).toPrecision(2),n=+ngN.value;$("#ngVo").textContent=V.toLocaleString("it-IT");$("#ngNo").textContent=n;
+  const cells=Math.pow(V,n);const f=x=>x>=1e15?x.toExponential(1).replace("e+"," × 10^"):x.toLocaleString("it-IT",{maximumFractionDigits:0});
+  const words=1.5e13;// ordine di grandezza del testo disponibile (token)
+  $("#ngOut").innerHTML=`<div><small>righe della tabella (V<sup>n</sup>)</small><strong>${f(cells)}</strong></div><div><small>token in tutto il web testuale, circa</small><strong>1,5 × 10^13</strong></div><div><small>righe che potresti aver visto almeno una volta</small><strong>${cells<=words?"tutte, in teoria":(words/cells>=0.01?"al massimo il "+(words/cells*100).toFixed(0)+"%":"al massimo lo "+(words/cells*100).toExponential(0).replace("e-","× 10^−")+" %")}</strong></div>`;
+  $("#ngMsg").innerHTML=cells<1e6?`<b>Tabella piccola:</b> con V = ${V.toLocaleString("it-IT")} e contesto ${n} si può ancora contare. È il regime del modello a bigrammi del capitolo 3 (15² = 225 celle).`:cells<words?`<b>Tabella enorme ma non assurda:</b> ${f(cells)} celle. Quasi tutte però resterebbero a zero: non basta che una combinazione sia possibile, deve comparire nel testo abbastanza volte da contarla.`:`<b>Impossibile:</b> ${f(cells)} righe, più delle parole mai scritte. La quasi totalità delle frasi normali non è mai apparsa nel corpus, quindi la tabella non avrebbe nulla da dire. Serve una funzione che <i>generalizzi</i> dai vettori, non una tabella: la rete neurale.`;}
+[ngV,ngN].forEach(i=>i.addEventListener("input",drawNg));
+function drawBase(){drawNg();drawToy();drawDP();drawOH();drawAtt();drawChain();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
 
 /* init */
 function all(){drawBase();drawLR();drawSFT();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
