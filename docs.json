@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.8",
-      "updated": "2026-09-25",
+      "version": "2.0",
+      "updated": "2026-10-03",
       "history": [
+        {
+          "version": "2.0",
+          "date": "2026-10-03",
+          "notes": "Riscrittura completa guidata da domande. Parte I: che cosa succede a un prompt dentro il modello (token, embedding, attention con calcolo reale, logit e softmax, conti dei 7B); come impara (auto-supervisione, cross-entropy, gradiente e backpropagation con laboratorio sulla catena, learning rate, batch/step/epoch, memoria di training); training dal vivo. Parte II: le cinque fasi con filo problema → dati → loss → esempio → limite e lo stesso prompt seguito fase per fase; vocabolario RL e DPO introdotti dove servono; riepiloghi e autodiagnosi per capitolo."
+        },
         {
           "version": "1.8",
           "date": "2026-09-25",

@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-03
+- **Anatomia del Training LLM** (`training-llm`) v2.0: Riscrittura completa guidata da domande. Parte I: che cosa succede a un prompt dentro il modello (token, embedding, attention con calcolo reale, logit e softmax, conti dei 7B); come impara (auto-supervisione, cross-entropy, gradiente e backpropagation con laboratorio sulla catena, learning rate, batch/step/epoch, memoria di training); training dal vivo. Parte II: le cinque fasi con filo problema → dati → loss → esempio → limite e lo stesso prompt seguito fase per fase; vocabolario RL e DPO introdotti dove servono; riepiloghi e autodiagnosi per capitolo.
+
 ## 2026-09-30
 - **Quando il COMMIT non basta più** (`transazioni`) v2.14: Capitolo 3: il WAL è un log fisico — ogni nota contiene l'indirizzo della modifica (file, pagina, offset); distinzione esplicita tra l'indirizzo nella nota (quale pagina caricare) e l'LSN nell'header della pagina (se applicare).
 - **Quando il COMMIT non basta più** (`transazioni`) v2.13: Capitolo 3: definizione dell'LSN (indirizzo della nota nel log: ordina e localizza) introdotta dove il log compare per la prima volta; nuova sezione «Dopo il crash: come si trova l'ultima nota scritta?» (file di controllo e redo point, scansione del log in avanti fino al primo CRC non valido, nessuna scansione delle pagine dati); riepilogo e autodiagnosi aggiornati.

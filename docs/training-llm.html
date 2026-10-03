@@ -247,19 +247,55 @@ table.mt tr.dim td{color:var(--muted)}
 .fwbox{max-height:340px;overflow:auto}
 .heat text{font-size:10px}
 .live .btn:disabled{opacity:.35}
+
+/* v2 · aggiunte */
+.recap{margin:36px 0 0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px}
+.recap-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.recap>p{max-width:none}
+.recap-sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.recap ul,.recap ol{max-width:none;margin:0;padding-left:20px}
+.recap li{font-size:.92rem;margin-bottom:5px}
+.q{font-family:var(--serif);font-size:1.15rem;font-weight:500;line-height:1.35;color:var(--ink);border-left:3px solid var(--accent);padding:6px 0 6px 14px;margin:6px 0}
+.q b{font-weight:650}
+.part{margin:56px 0 8px;padding-top:22px;border-top:1px solid var(--line)}
+.part-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.part-title{font-family:var(--serif);font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:650;margin:0}
+.prose ul,.prose ol{margin:0;padding-left:22px}
+.prose li{margin-bottom:6px}
+.bridge{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:14px 16px;font-size:.95rem;display:flex;gap:12px;align-items:flex-start}
+.bridge .arrow{font-family:var(--mono);color:var(--accent);flex:0 0 auto}
+.att-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:760px){.att-grid{grid-template-columns:1.1fr .9fr}}
+.att-steps{display:flex;flex-direction:column;gap:8px;font-size:.88rem}
+.att-steps .st-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline}
+.att-steps .st-row b{font-family:var(--mono);font-size:.74rem;color:var(--accent);white-space:nowrap}
+table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
+.chain{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.chain .cn{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.84rem}
+.chain .cn b{display:block;font-family:var(--mono);font-size:.74rem;color:var(--accent);margin-bottom:4px}
+.chain .cn .val{font-family:var(--mono);font-size:1rem;font-weight:600;display:block;margin-top:4px}
+.chain .cn .grad{font-family:var(--mono);font-size:.84rem;color:var(--bad);display:block}
+.chain .cn.hot{border-color:var(--accent);background:var(--accent-soft)}
+.phasecard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.phasecard .pc{background:var(--surface-2);border-radius:8px;padding:12px 14px;font-size:.9rem}
+.phasecard .pc b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.grid2>*,.att-grid>*,.stack>*{min-width:0}
+.formula{max-width:100%}
+.lab{min-width:0}
+@media (max-width:480px){.stepper{grid-template-columns:repeat(2,1fr)}}
 </style>
 
 <div class="wrap">
 <header class="hero">
   <span class="eyebrow">Come si costruisce un <abbr title="Large Language Model">LLM</abbr> (Large Language Model, modello linguistico di grandi dimensioni)</span>
   <h1>Dal testo grezzo al modello che ragiona</h1>
-  <p class="lede">Il pre-training produce un laureato che ha letto l'intera biblioteca ma non sa comportarsi. Il post-training è il tirocinio: impara il formato, poi cosa piace alle persone, poi a risolvere esercizi con la soluzione in fondo al libro, e infine insegna a un junior. Si parte da un capitolo sui concetti base (token, loss, gradienti, learning rate) e poi ogni fase ha un laboratorio interattivo.</p>
+  <p class="lede">Un LLM è una funzione che riceve del testo e restituisce una probabilità per ogni possibile token successivo. Tutto il resto — il «sapere», la capacità di rispondere, il ragionamento — è il risultato di come quella funzione viene aggiustata, numero per numero, su quantità enormi di esempi. Questa guida risponde a quattro domande, nell'ordine in cui conviene farsele: <b>che cosa succede a un prompt dentro il modello</b>; <b>come un errore su un singolo token diventa una modifica a miliardi di pesi</b>; <b>come sono fatti i dati, davvero</b>; <b>perché servono più fasi di addestramento</b> e che problema risolve ciascuna.</p>
 
   <div class="pipeline" aria-label="Pipeline di training">
     <div>
       <div class="phase-label">Pre-training</div>
       <button class="stage" data-go="pre">
-        <span class="n">fase 1</span><b>Pre-training + warm-up</b>
+        <span class="n">fase 1</span><b>Pre-training</b>
         <span class="d">Trilioni di token, un solo compito: prevedere il token successivo.</span>
         <span class="t">conoscenza</span>
       </button>
@@ -267,10 +303,10 @@ table.mt tr.dim td{color:var(--muted)}
     <div>
       <div class="phase-label">Post-training</div>
       <div class="stages">
-        <button class="stage" data-go="sft"><span class="n">fase 2</span><b>SFT</b><span class="d">Imitare risposte ideali: il modello diventa un assistente.</span><span class="t">formato</span></button>
-        <button class="stage" data-go="dpo"><span class="n">fase 3</span><b>DPO</b><span class="d">Coppie migliore/peggiore: allinearsi alle preferenze.</span><span class="t">preferenze</span></button>
-        <button class="stage" data-go="grpo"><span class="n">fase 4</span><b>GRPO + RLVR</b><span class="d">Esplorare e premiare ciò che un verificatore conferma.</span><span class="t">ragionamento</span></button>
-        <button class="stage" data-go="opd"><span class="n">fase 5</span><b>OPD</b><span class="d">Un teacher grande corregge token per token uno student piccolo.</span><span class="t">compressione</span></button>
+        <button class="stage" data-go="sft"><span class="n">fase 2</span><b>SFT</b><span class="d">Imitare risposte scritte da persone: il modello diventa un assistente.</span><span class="t">formato</span></button>
+        <button class="stage" data-go="dpo"><span class="n">fase 3</span><b>DPO</b><span class="d">Coppie migliore/peggiore: imparare che cosa preferiscono le persone.</span><span class="t">preferenze</span></button>
+        <button class="stage" data-go="grpo"><span class="n">fase 4</span><b>RL con verificatore</b><span class="d">Il modello tenta, un verificatore giudica, si rinforza ciò che funziona.</span><span class="t">ragionamento</span></button>
+        <button class="stage" data-go="opd"><span class="n">fase 5</span><b>Distillazione</b><span class="d">Un modello grande insegna a uno piccolo, token per token.</span><span class="t">compressione</span></button>
       </div>
     </div>
   </div>
@@ -278,116 +314,65 @@ table.mt tr.dim td{color:var(--muted)}
 </header>
 
 <nav class="toc" aria-label="Sezioni"><div class="in">
-  <a href="#base">0a · Concetti base</a><a href="#live">0b · Training dal vivo</a><a href="#pre">1 · Pre-training</a><a href="#sft">2 · SFT</a><a href="#dpo">3 · DPO</a><a href="#grpo">4 · GRPO + RLVR</a><a href="#opd">5 · OPD</a><a href="#sum">Riepilogo</a>
+  <a href="#base">1 · Dentro il modello</a><a href="#learn">2 · Come impara</a><a href="#live">3 · Dal vivo</a><a href="#pre">4 · Pre-training</a><a href="#sft">5 · SFT</a><a href="#dpo">6 · Preferenze</a><a href="#grpo">7 · RL</a><a href="#opd">8 · Distillazione</a><a href="#sum">Riepilogo</a>
 </div></nav>
 
-<!-- ============ 0. CONCETTI BASE ============ -->
+<div class="part">
+  <p class="part-label">Parte I</p>
+  <h2 class="part-title" id="toc-i">Il meccanismo: una funzione che prevede il token successivo, e come la si corregge</h2>
+</div>
+
+<!-- ============ 1. DENTRO IL MODELLO ============ -->
 <section class="st" id="base">
   <div class="sec-head">
-    <span class="eyebrow">Capitolo 0a · Concetti base</span>
-    <h2>Il vocabolario minimo per capire tutto il resto</h2>
+    <span class="eyebrow">Capitolo 1 · Dentro il modello</span>
+    <h2>Che cosa succede a un prompt, dal testo al token successivo</h2>
   </div>
   <div class="prose stack">
-    <p>Tutte le fasi che seguono sono variazioni dello stesso meccanismo: il modello fa una previsione, una <b>loss</b> misura quanto ha sbagliato, e i <b>pesi</b> vengono spostati di poco nella direzione che riduce l'errore. Cambiano solo <i>da dove arrivano i dati</i> e <i>come si calcola l'errore</i>. Questo capitolo costruisce il meccanismo pezzo per pezzo, nell'ordine in cui i dati lo attraversano: richiamo di algebra → dataset → token → pesi → embedding → strati → loss → batch, step ed epoch. Il capitolo 0b li mette tutti insieme in un training vero, da eseguire passo per passo.</p>
+    <p class="q">Scrivo <b>«La capitale della Francia è»</b> e il modello risponde <b>«Parigi»</b>. Che cosa è successo, concretamente, tra la mia frase e quella parola?</p>
+    <p>Partiamo da qui perché tutto il training, in ogni fase, lavora su questo percorso: lo esegue, misura dove ha sbagliato, e lo corregge. Senza avere chiaro il percorso, le fasi di addestramento sembrano riti; con il percorso chiaro, ognuna diventa una scelta ovvia. Seguiremo la frase passo per passo: viene spezzata in <b>token</b>, ogni token diventa un <b>vettore di numeri</b>, i vettori attraversano una pila di <b>strati</b> che li mescolano tra loro, e alla fine esce un <b>punteggio per ogni token del vocabolario</b>, trasformato in probabilità. «Parigi» è semplicemente il token con la probabilità più alta.</p>
   </div>
 
-  <div class="map" aria-label="Percorso dei dati">
-    <a href="#c-alg" class="box">Algebra<small>vettori e matrici</small></a><span class="arr">→</span>
-    <a href="#c-dataset" class="box">Dataset<small>testo grezzo</small></a><span class="arr">→</span>
+  <div class="map" aria-label="Percorso di un prompt">
+    <a href="#c-pesi" class="box">La funzione<small>pesi</small></a><span class="arr">→</span>
     <a href="#c-token" class="box">Token<small>BPE</small></a><span class="arr">→</span>
-    <a href="#c-pesi" class="box">Pesi<small>il modello</small></a><span class="arr">→</span>
     <a href="#c-emb" class="box">Embedding<small>da ID a vettore</small></a><span class="arr">→</span>
-    <a href="#c-layer" class="box">Strati<small>dentro il modello</small></a><span class="arr">→</span>
-    <a href="#c-loss" class="box">Loss<small>l'errore</small></a><span class="arr">→</span>
-    <a href="#c-batch" class="box">Batch · step · epoch<small>il ritmo</small></a><span class="arr">→</span>
-    <a href="#live" class="box hot">Training dal vivo<small>tutto insieme</small></a>
+    <a href="#c-layer" class="box">Strati<small>attention + MLP</small></a><span class="arr">→</span>
+    <a href="#c-loss" class="box">Logit → probabilità<small>softmax</small></a><span class="arr">→</span>
+    <a href="#c-conti" class="box hot">I conti<small>dove sono i 7B</small></a>
   </div>
 
-  <!-- ALGEBRA -->
-  <h3 id="c-alg" class="anchor">Richiamo di algebra: vettori e matrici</h3>
+  <!-- PESI -->
+  <h3 id="c-pesi" class="anchor">Il modello è una funzione fatta di numeri</h3>
   <div class="prose stack">
-    <p>Dentro un LLM ci sono solo numeri, organizzati in vettori e matrici, e poche operazioni ripetute miliardi di volte. Bastano queste definizioni per seguire tutto il resto del documento.</p>
+    <p>Un LLM non contiene testo, regole grammaticali né una base di fatti. Contiene <b>numeri</b>, chiamati <b>pesi</b> o <b>parametri</b>, organizzati in grandi tabelle (matrici), e una ricetta fissa che dice in che ordine moltiplicarli con l'input. Un modello «7B» ha circa 7 miliardi di questi numeri. Dato un testo, la ricetta produce 7 miliardi di moltiplicazioni e somme e, alla fine, un punteggio per ciascuna delle decine di migliaia di voci del vocabolario: «quanto è plausibile che il prossimo token sia questo». La ricetta non cambia mai; il training cambia solo i numeri.</p>
+    <p>Un'analogia utile: un mixer audio con miliardi di manopole. All'inizio le manopole sono in posizione casuale e il suono è rumore. Il training gira ogni manopola di una frazione, miliardi di volte, finché il suono è quello giusto. Nessuno regola una manopola a mano, e nessuno sa che cosa rappresenti la singola manopola: hanno senso solo tutte insieme. Nel capitolo 3 c'è un modello con 225 manopole, e le puoi vedere tutte mentre si muovono.</p>
   </div>
-  <dl class="gloss">
-    <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
-    <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
-    <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati uno sopra l'altro.</dd><span class="ex">E: V × d, una riga per token</span></div>
-    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
-    <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è "acceso" (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è "più grande" dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0]</span></div>
-    <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1</span></div>
-    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
-    <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato "trasforma" un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
-    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
-    <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
-    <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2]</span></div>
-    <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso</span></div>
-  </dl>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: il prodotto scalare come misura di somiglianza</h3><span class="tag">matematica reale</span></div>
-    <div class="grid2">
-      <div class="stack">
-        <div class="ctl"><label for="dpA">Direzione di a <output id="dpAo"></output></label><input id="dpA" type="range" min="0" max="359" value="30"></div>
-        <div class="ctl"><label for="dpB">Direzione di b <output id="dpBo"></output></label><input id="dpB" type="range" min="0" max="359" value="70"></div>
-        <div class="ctl"><label for="dpL">Lunghezza di b <output id="dpLo"></output></label><input id="dpL" type="range" min="0.2" max="1.5" step="0.05" value="1"></div>
-        <div class="formula" id="dpF"></div>
-        <p class="callout" id="dpMsg"></p>
-      </div>
-      <svg id="dpChart" class="chart" viewBox="0 0 300 300" style="max-width:340px;justify-self:center" role="img" aria-label="Due vettori nel piano"></svg>
+    <div class="lab-head"><h3>Dove stanno i pesi in un transformer</h3></div>
+    <div class="grid3">
+      <div class="box"><b>Embedding</b><span>Una riga di numeri per ogni token del vocabolario: il punto di partenza di ciascun token.</span><em>vocabolario × dimensione</em></div>
+      <div class="box"><b>Attention</b><span>Matrici che decidono quali token precedenti guardare e quanto pesano per quello attuale.</span><em>ripetuto per ogni strato</em></div>
+      <div class="box"><b>MLP (Multi-Layer Perceptron, percettrone multistrato)</b><span>Matrici che elaborano, token per token, l'informazione raccolta. Qui si pensa sia immagazzinata buona parte della conoscenza fattuale.</span><em>circa 2/3 dei parametri</em></div>
+      <div class="box"><b>Testa di output</b><span>Trasforma l'ultimo vettore in un punteggio (logit) per ogni token del vocabolario.</span><em>dimensione × vocabolario</em></div>
     </div>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: one-hot × matrice = una riga</h3><span class="tag">matematica reale</span></div>
-    <div class="seg" id="ohSel" role="group" aria-label="Token"></div>
-    <div class="scroll-x"><div class="ohrow" id="ohOut"></div></div>
-    <p class="formula" id="ohF"></p>
-    <p class="note">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È per questo che l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot compare anche nella loss: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
-  </div>
-
-  <!-- DATASET -->
-  <h3 id="c-dataset" class="anchor">Il dataset: com'è fatto davvero</h3>
-  <div class="prose stack">
-    <p>Nel <b>pre-training</b> il dataset <b>non contiene domande e risposte</b>, né etichette. È solo testo: miliardi di documenti (pagine web, libri, articoli scientifici, codice sorgente), salvati di solito in file JSONL (JSON Lines, un oggetto JSON per riga), un documento per riga. Le coppie "input → risposta attesa" non le scrive nessuno: si ricavano automaticamente dal testo stesso. Per ogni posizione, l'obiettivo è semplicemente il token che viene dopo. Per questo si parla di apprendimento <i>auto-supervisionato</i>: il testo fa da domanda e da soluzione insieme.</p>
-    <p>Prima di arrivare al modello, il testo grezzo passa per una lunga pipeline di pulizia. È la parte meno visibile del lavoro, ma è quella che incide di più sulla qualità:</p>
-  </div>
-  <div class="diag">
-    <span class="box">Raccolta (crawl del web, libri, repository di codice)</span><span class="arr">→</span>
-    <span class="box">Estrazione del testo dall'HTML</span><span class="arr">→</span>
-    <span class="box">Filtri di qualità e lingua</span><span class="arr">→</span>
-    <span class="box">Deduplicazione</span><span class="arr">→</span>
-    <span class="box">Rimozione di dati personali e contenuti tossici</span><span class="arr">→</span>
-    <span class="box hot">Tokenizzazione e divisione in shard (file-blocchi)</span>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Una miscela tipica di pre-training</h3><span class="tag">indicativa</span></div>
-    <div class="mix" id="mixBar"></div>
-    <div class="mixleg" id="mixLeg"></div>
-    <p class="note">Ogni laboratorio usa una sua "ricetta" e la tiene segreta. Le proporzioni indicano l'ordine di grandezza, non dati ufficiali. Verso la fine del pre-training si alza spesso la quota di dati di alta qualità (matematica, codice, testi curati): è la fase chiamata <i>annealing</i> o mid-training.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Com'è fatta una riga del dataset, fase per fase</h3></div>
-    <div class="seg" id="dsFmt" role="group" aria-label="Formato del dataset">
-      <button aria-pressed="true" data-v="pre">Pre-training</button><button aria-pressed="false" data-v="sft">SFT</button><button aria-pressed="false" data-v="dpo">DPO</button><button aria-pressed="false" data-v="rlvr">RLVR</button>
-    </div>
-    <pre class="sample" id="dsCode"></pre>
-    <p class="callout" id="dsMsg"></p>
+    <p class="note">In formato bf16 (brain floating point a 16 bit, 2 byte per numero) i 7 miliardi di pesi occupano circa 14 GB: è il file che si scarica quando si «scarica un modello». I conti esatti, matrice per matrice, sono alla fine di questo capitolo.</p>
   </div>
 
   <!-- TOKEN / BPE -->
-  <h3 id="c-token" class="anchor">Token e BPE (Byte Pair Encoding, codifica per coppie di byte)</h3>
+  <h3 id="c-token" class="anchor">Primo passo: dal testo ai token</h3>
   <div class="prose stack">
-    <p>Un LLM non vede lettere né parole, ma <b>token</b>: frammenti di testo presi da un vocabolario fisso (tipicamente 30.000–250.000 voci). Ogni token è un numero intero (ID). In italiano un token corrisponde in media a circa 3–4 caratteri.</p>
-    <p>Chi decide quali frammenti entrano nel vocabolario? L'algoritmo <b>BPE</b>, che si "allena" sul corpus <i>prima</i> del modello, una volta sola:</p>
+    <p class="q">Il modello riceve «La capitale della Francia è». Ma una funzione fatta di numeri non può moltiplicare delle lettere: che cosa riceve, esattamente?</p>
+    <p>Riceve una lista di <b>numeri interi</b>. Il testo viene prima spezzato in <b>token</b>, frammenti presi da un vocabolario fisso (tipicamente 30.000–250.000 voci), e ogni frammento è sostituito dal suo <b>ID</b>, la sua posizione nel vocabolario. La nostra frase diventa qualcosa come <span class="k">[1529, 8871, 503, 9412, 1032]</span>: «La», «·capitale», «·della», «·Francia», «·è» (il punto · segna lo spazio, che fa parte del token seguente). In italiano un token corrisponde in media a 3–4 caratteri: le parole comuni restano intere, quelle rare si spezzano in pezzi.</p>
+    <p>Perché token e non parole o lettere? Con le lettere le sequenze sarebbero lunghissime e ogni simbolo direbbe pochissimo; con le parole il vocabolario sarebbe sterminato e qualsiasi parola nuova, errore di battitura o nome proprio sarebbe irrappresentabile. I token sono il compromesso: frequenti abbastanza da avere un significato, piccoli abbastanza da comporre qualsiasi testo.</p>
+    <p><b>Chi decide quali frammenti entrano nel vocabolario?</b> Un algoritmo, il <b>BPE</b> (Byte Pair Encoding, codifica per coppie di byte), che si «allena» sul corpus <i>prima</i> del modello, una volta sola:</p>
     <ol class="steps">
       <li>Si parte dai simboli più piccoli: i singoli caratteri (nei tokenizer moderni, i singoli byte, così qualsiasi testo è rappresentabile).</li>
       <li>Si conta quale <b>coppia di simboli adiacenti</b> compare più spesso in tutto il corpus.</li>
       <li>Quella coppia viene <b>fusa</b> in un nuovo simbolo, che entra nel vocabolario. La regola di fusione (<i>merge</i>) viene salvata.</li>
       <li>Si ripete finché il vocabolario raggiunge la dimensione desiderata.</li>
     </ol>
-    <p>Il risultato: le sequenze frequenti ("gatt", "ione", " della") diventano un token solo, mentre le parole rare vengono composte da pezzi. Per tokenizzare un testo nuovo si applicano le stesse regole di fusione, nello stesso ordine in cui sono state imparate.</p>
-  </div>
-  <div class="prose stack">
-    <p><b>Il vocabolario dipende dal corpus.</b> Il tokenizer si allena su un campione rappresentativo dei dati di pre-training, una volta sola, e poi viene congelato: ogni token ha la sua riga nella matrice di embedding e la sua uscita nell'ultimo strato, quindi cambiarlo renderebbe inutili quei pesi. Un modello multilingua usa <b>un solo vocabolario condiviso</b>, allenato su una miscela bilanciata di lingue; per questo i vocabolari multilingua sono più grandi (128.000–256.000 token).</p>
-    <p><b>Cosa si configura.</b> L'iperparametro principale è la <b>dimensione del vocabolario</b>, cioè quanti merge fare. La lunghezza dei singoli token non si fissa: emerge dalle frequenze. Nei fatti però è limitata dalla <b>pre-tokenizzazione</b>: prima del BPE un'espressione regolare divide il testo in blocchi (parole con lo spazio iniziale, numeri, punteggiatura) e i merge non superano mai quei confini. Alcune librerie offrono anche un tetto esplicito, facoltativo: <span class="k">max_sentencepiece_length</span> in SentencePiece (default 16 caratteri) e <span class="k">max_token_length</span> nel BpeTrainer di Hugging Face (default nessun limite).</p>
+    <p>Il risultato: le sequenze frequenti («gatt», «ione», «·della») diventano un token solo, mentre le parole rare vengono composte da pezzi. Per tokenizzare un testo nuovo si applicano le stesse regole di fusione, nello stesso ordine in cui sono state imparate. Il laboratorio qui sotto esegue l'algoritmo vero su un corpus minuscolo.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: BPE passo per passo</h3><span class="tag">algoritmo reale</span></div>
@@ -436,6 +421,10 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="bpeMsg"></p>
     <p class="note">Il simbolo · rappresenta lo spazio: come nei tokenizer reali (GPT, Llama) lo spazio fa parte del token che lo segue, quindi «·gatto» e «gatto» sono token diversi. I tokenizer reali lavorano sui byte UTF-8 (Unicode Transformation Format, 8 bit) e fanno decine di migliaia di merge su gigabyte di testo, ma l'algoritmo è esattamente questo. Le coppie che compaiono una volta sola non vengono fuse (frequenza minima 2). Cambiando i due vincoli il laboratorio ripete da capo lo stesso numero di merge, così puoi confrontare i risultati.</p>
   </div>
+  <div class="prose stack">
+    <p><b>Il vocabolario dipende dal corpus, e poi si congela.</b> Il tokenizer si allena su un campione rappresentativo dei dati di pre-training, una volta sola. Dopo, cambiarlo è impossibile senza riaddestrare il modello: ogni token ha la sua riga nella matrice di embedding e la sua uscita nell'ultimo strato, quindi un vocabolario diverso renderebbe inutili quei pesi. Un modello multilingua usa <b>un solo vocabolario condiviso</b>, allenato su una miscela bilanciata di lingue; per questo i vocabolari multilingua sono più grandi (128.000–256.000 token).</p>
+    <p><b>Che cosa si configura.</b> L'iperparametro principale è la <b>dimensione del vocabolario</b>, cioè quanti merge fare. La lunghezza dei singoli token non si fissa: emerge dalle frequenze. Nei fatti però è limitata dalla <b>pre-tokenizzazione</b>: prima del BPE un'espressione regolare divide il testo in blocchi (parole con lo spazio iniziale, numeri, punteggiatura) e i merge non superano mai quei confini. Alcune librerie offrono anche un tetto esplicito, facoltativo: <span class="k">max_sentencepiece_length</span> in SentencePiece (default 16 caratteri) e <span class="k">max_token_length</span> nel BpeTrainer di Hugging Face (default nessun limite).</p>
+  </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: tokenizzatore</h3><span class="tag">approssimazione</span></div>
     <label for="tokIn" class="muted" style="font-size:.8rem">Scrivi un testo</label>
@@ -445,63 +434,80 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="note">Qui la divisione è simulata con una regola semplice, non con un vero vocabolario BPE, ma si vede l'effetto: parole corte e frequenti restano intere, parole lunghe vengono spezzate. Il numero accanto a ogni token è il suo ID.</p>
   </div>
 
-  <!-- PESI -->
-  <h3 id="c-pesi" class="anchor">I pesi: il modello è fatto di numeri</h3>
+  <!-- ALGEBRA (dove serve) -->
+  <h3 id="c-alg" class="anchor">Le operazioni che servono da qui in poi</h3>
   <div class="prose stack">
-    <p>I <b>pesi</b> (o <b>parametri</b>) sono i numeri che il training modifica, e sono l'unica cosa che il modello "sa". Sono organizzati in grandi matrici. Quando un token entra nel modello, viene trasformato in un vettore e moltiplicato per queste matrici, strato dopo strato. Alla fine esce un punteggio per ogni token del vocabolario.</p>
-    <p>Un'analogia: un mixer audio con miliardi di manopole. All'inizio le manopole sono in posizione casuale e il suono è rumore. Il training gira ogni manopola di una frazione, milioni di volte, finché il suono è quello giusto. Nessuno regola una manopola a mano, né sa cosa rappresenti la singola manopola.</p>
+    <p>Da questo punto la frase è una lista di ID, e tutto ciò che accade dopo è algebra: vettori, matrici e tre o quattro operazioni ripetute miliardi di volte. Non serve altro per seguire il resto del documento; ogni voce indica dove la incontrerai.</p>
   </div>
+  <dl class="gloss">
+    <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
+    <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
+    <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati uno sopra l'altro.</dd><span class="ex">E: V × d, una riga per token</span></div>
+    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
+    <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è «acceso» (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è «più grande» dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0] · usato nell'embedding e nella loss</span></div>
+    <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1 · è il cuore dell'attention e dei logit</span></div>
+    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
+    <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato «trasforma» un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
+    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
+    <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
+    <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2] · dentro l'MLP</span></div>
+    <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso · capitolo 2</span></div>
+  </dl>
   <div class="lab">
-    <div class="lab-head"><h3>Dove stanno i pesi in un transformer</h3></div>
-    <div class="grid3">
-      <div class="box"><b>Embedding</b><span>Una riga di numeri per ogni token del vocabolario. È il "significato" iniziale del token.</span><em>vocabolario × dimensione</em></div>
-      <div class="box"><b>Attention</b><span>Matrici che decidono quali token precedenti guardare e quanto pesano per quello attuale.</span><em>ripetuto per ogni strato</em></div>
-      <div class="box"><b>MLP (Multi-Layer Perceptron, percettrone multistrato)</b><span>Matrici che elaborano l'informazione raccolta. Qui si pensa sia immagazzinata buona parte della conoscenza fattuale.</span><em>circa 2/3 dei parametri</em></div>
-      <div class="box"><b>Testa di output</b><span>Trasforma l'ultimo vettore in un punteggio (logit) per ogni token del vocabolario.</span><em>dimensione × vocabolario</em></div>
+    <div class="lab-head"><h3>Laboratorio: il prodotto scalare come misura di somiglianza</h3><span class="tag">matematica reale</span></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="ctl"><label for="dpA">Direzione di a <output id="dpAo"></output></label><input id="dpA" type="range" min="0" max="359" value="30"></div>
+        <div class="ctl"><label for="dpB">Direzione di b <output id="dpBo"></output></label><input id="dpB" type="range" min="0" max="359" value="70"></div>
+        <div class="ctl"><label for="dpL">Lunghezza di b <output id="dpLo"></output></label><input id="dpL" type="range" min="0.2" max="1.5" step="0.05" value="1"></div>
+        <div class="formula" id="dpF"></div>
+        <p class="callout" id="dpMsg"></p>
+      </div>
+      <svg id="dpChart" class="chart" viewBox="0 0 300 300" style="max-width:340px;justify-self:center" role="img" aria-label="Due vettori nel piano"></svg>
     </div>
-    <p class="note">Un modello "7B" ha 7 miliardi di questi numeri: in formato bf16 (brain floating point a 16 bit, cioè 2 byte ciascuno) occupano circa 14 GB. Durante il training servono anche i gradienti e lo stato dell'ottimizzatore, quindi la memoria necessaria è diverse volte più grande. Nel training dal vivo qui sotto il modello ha solo 225 pesi, e li puoi vedere tutti.</p>
+    <p class="note">Tienilo a mente: quando tra poco l'attention «decide quanto un token guarda un altro», o la testa di output «confronta» un vettore con ogni riga del vocabolario, l'operazione che esegue è esattamente questa.</p>
   </div>
 
   <!-- EMBEDDING -->
-  <h3 id="c-emb" class="anchor">Embedding: da ID a vettore</h3>
+  <h3 id="c-emb" class="anchor">Secondo passo: da ID a vettore (embedding)</h3>
   <div class="prose stack">
-    <p>Un ID come 2 non dice nulla al modello: è solo un'etichetta. Il primo strato di ogni LLM trasforma ciascun ID in un <b>vettore</b> di d numeri (d = 4.096 in un modello da 7B), cioè un punto in uno spazio a d dimensioni. Quel vettore è l'<b>embedding</b> del token.</p>
-    <p><b>Come si assegna un embedding a ogni token del vocabolario.</b> Non esiste un embedding "giusto" da assegnare all'inizio. Il procedimento è puramente meccanico:</p>
+    <p class="q">Il token «·Francia» ora è l'ID 9412. Ma un ID è un'etichetta arbitraria, non un numero con cui ha senso fare conti: come fa il modello a lavorarci?</p>
+    <p>Non ci lavora direttamente. Il primo strato di ogni LLM sostituisce ciascun ID con un <b>vettore</b> di d numeri (d = 4.096 in un modello da 7B), cioè un punto in uno spazio a d dimensioni. Quel vettore è l'<b>embedding</b> del token. Da questo momento il testo non esiste più: esistono L punti in uno spazio a 4.096 dimensioni, uno per token, e il resto del modello sposta e mescola questi punti.</p>
+    <p><b>Come si calcola: non si calcola, si legge.</b> Il modello contiene una <b>matrice di embedding</b> E con una riga per ogni token del vocabolario (V righe × d colonne). L'embedding del token con ID 9412 è semplicemente la riga 9412 di E. Matematicamente equivale a moltiplicare un vettore one-hot (tutti zeri, con un 1 in posizione 9412) per E, come mostra il laboratorio seguente; nella pratica si fa una lettura diretta (<i>lookup</i>), molto più veloce. La matrice di input [B × L] di ID diventa così un tensore [B × L × d] di vettori.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: one-hot × matrice = una riga</h3><span class="tag">matematica reale</span></div>
+    <div class="seg" id="ohSel" role="group" aria-label="Token"></div>
+    <div class="scroll-x"><div class="ohrow" id="ohOut"></div></div>
+    <p class="formula" id="ohF"></p>
+    <p class="note">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È per questo che l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot tornerà nel capitolo 2 con un altro ruolo: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Da dove vengono i numeri di E?</b> Non esiste un embedding «giusto» da assegnare a un token: nessuno li sceglie. Il procedimento è puramente meccanico:</p>
     <ol class="steps">
       <li>Il BPE finisce e il vocabolario viene <b>congelato</b>: una lista di V token, ciascuno con il suo ID da 0 a V − 1 (compresi i token speciali come <span class="k">&lt;eos&gt;</span> e i simboli di base).</li>
       <li>Si crea la matrice E con <b>V righe</b> e <b>d colonne</b>. La riga i appartiene al token con ID i: l'abbinamento è solo per posizione, come l'indice di un array.</li>
-      <li>Si riempie E di <b>numeri casuali piccoli</b>, per esempio estratti da una distribuzione normale con media 0 e deviazione standard 0,02. A questo punto le righe non significano nulla: «·gatto» e «·martedì» sono vettori casuali qualsiasi.</li>
-      <li>Il training aggiorna le righe a ogni step, e il significato emerge poco a poco (lo vedi nel secondo laboratorio qui sotto).</li>
+      <li>Si riempie E di <b>numeri casuali piccoli</b>, per esempio estratti da una distribuzione normale con media 0 e deviazione standard 0,02. A questo punto le righe non significano nulla: «·Francia» e «·martedì» sono vettori casuali qualsiasi.</li>
+      <li>Il training aggiorna le righe a ogni step, insieme a tutti gli altri pesi, e il significato emerge poco a poco (lo vedremo nel capitolo 2).</li>
     </ol>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: dal vocabolario BPE alla matrice E</h3><span class="tag">inizializzazione reale</span></div>
-    <p>Questa matrice è costruita sul vocabolario del <a href="#c-token">laboratorio BPE</a> qui sopra: se esegui altri merge, compaiono nuove righe. Qui d = 4 per leggibilità.</p>
+    <p>Questa matrice è costruita sul vocabolario del laboratorio BPE qui sopra: se esegui altri merge, compaiono nuove righe. Qui d = 4 per leggibilità.</p>
     <div class="row"><button class="btn ghost" id="eiSeed">Ri-inizializza con un altro seme casuale</button><span class="muted" id="eiInfo" style="font-size:.85rem"></span></div>
     <div class="scroll-x fwbox"><table class="gtable emb-table" id="eiTable"></table></div>
     <p class="note">Premendo «Ri-inizializza» i numeri cambiano completamente, e va bene così: all'inizio servono solo valori piccoli e diversi tra loro, così che ogni riga parta da un punto diverso. Anche i simboli di base (le singole lettere) hanno la loro riga, perché restano nel vocabolario per rappresentare le parole mai viste.</p>
   </div>
-  <div class="prose stack">
-    <p><b>Come si calcola: non si calcola, si legge.</b> Il modello contiene una <b>matrice di embedding</b> E con una riga per ogni token del vocabolario (V righe × d colonne). L'embedding del token con ID 2 è semplicemente la riga 2 di E. Matematicamente equivale a moltiplicare un <a href="#c-alg">vettore one-hot</a> (tutti zeri, con un 1 in posizione 2) per E, ma nella pratica si fa una lettura diretta (lookup), molto più veloce. La matrice di input [B × L] di ID diventa così un tensore [B × L × d] di vettori.</p>
-  </div>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: il lookup nella matrice E</h3><span class="tag">valori illustrativi</span></div>
+    <div class="lab-head"><h3>Laboratorio: il lookup nella matrice E</h3><span class="tag">lookup reale · pesi iniziali casuali</span></div>
     <div class="diag-title">Frase in input (clicca un token)</div>
     <div class="tokens" id="embSent"></div>
     <div class="scroll-x"><table class="gtable emb-table" id="embTable"></table></div>
     <p class="note" id="embNote"></p>
   </div>
   <div class="prose stack">
-    <p><b>Da dove vengono i numeri di E.</b> Nessuno li sceglie. All'inizio del training E è riempita di numeri casuali piccoli, come tutti gli altri pesi, ed è aggiornata dal backward pass come tutti gli altri pesi. In ogni step ricevono gradiente <b>solo le righe dei token presenti nel batch</b>. Token che compaiono in contesti simili ricevono aggiornamenti simili, e i loro vettori si avvicinano: nessuno impone che «gatto» stia vicino a «cane», emerge dal compito di prevedere il token successivo. È la stessa idea di word2vec, ma qui gli embedding si allenano insieme al resto del modello.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: gli embedding si organizzano durante il training</h3><span class="tag">proiezione illustrativa in 2D</span></div>
-    <div class="ctl" style="max-width:420px"><label for="embT">Avanzamento del training <output id="embTo"></output></label><input id="embT" type="range" min="0" max="100" value="0"></div>
-    <svg id="embChart" class="chart" viewBox="0 0 560 300" style="max-width:720px" role="img" aria-label="Embedding proiettati in due dimensioni"></svg>
-    <p class="callout" id="embMsg"></p>
-  </div>
-  <div class="prose stack">
-    <p><b>Statico all'ingresso, contestuale dopo.</b> La riga di E è identica ogni volta che il token compare: «banca» ha lo stesso embedding in «la banca del fiume» e in «il conto in banca». Sono gli strati successivi (attention e MLP) a mescolarlo con i token vicini, finché all'ultimo strato i due «banca» sono vettori diversi, uno vicino a «fiume», l'altro vicino a «conto».</p>
+    <p><b>Statico all'ingresso, contestuale dopo.</b> La riga di E è identica ogni volta che il token compare: «banca» ha lo stesso embedding in «la banca del fiume» e in «il conto in banca». Sono gli strati successivi a mescolarlo con i token vicini, finché all'ultimo strato i due «banca» sono vettori diversi, uno vicino a «fiume», l'altro vicino a «conto». Il nostro «·Francia», all'ingresso, non sa ancora di trovarsi dopo «capitale della».</p>
+    <p><b>La posizione si aggiunge a parte.</b> La riga di E non sa <i>dove</i> si trova il token: «il cane morde l'uomo» e «l'uomo morde il cane» avrebbero gli stessi cinque vettori. I primi transformer sommavano un secondo vettore, l'embedding posizionale; i modelli attuali usano quasi tutti RoPE (Rotary Position Embedding, embedding posizionale rotazionale), che codifica la posizione ruotando i vettori dentro l'attention, in modo che il prodotto scalare tra due token dipenda dalla loro distanza.</p>
   </div>
   <div class="diag">
     <span class="box">ID del token</span><span class="arr">→</span>
@@ -509,11 +515,7 @@ table.mt tr.dim td{color:var(--muted)}
     <span class="box">+ informazione di posizione<br><small class="muted">RoPE</small></span><span class="arr">→</span>
     <span class="box">N strati di attention + MLP</span><span class="arr">→</span>
     <span class="box hot">vettore contestuale<br><small class="muted">dipende dalla frase</small></span><span class="arr">→</span>
-    <span class="box">confronto con tutte le righe di E<br><small class="muted">logit</small></span>
-  </div>
-  <div class="prose stack">
-    <p><b>La posizione si aggiunge a parte.</b> La riga di E non sa <i>dove</i> si trova il token: «il cane morde l'uomo» e «l'uomo morde il cane» avrebbero gli stessi vettori. I primi transformer sommavano un secondo vettore, l'embedding posizionale; i modelli attuali usano quasi tutti RoPE (Rotary Position Embedding, embedding posizionale rotazionale), che codifica la posizione ruotando i vettori dentro l'attention.</p>
-    <p><b>La stessa matrice anche in uscita.</b> In molti modelli la testa di output riusa E (<i>weight tying</i>, condivisione dei pesi): il logit di ogni token è il prodotto scalare tra l'ultimo vettore contestuale e la riga di E di quel token. Prevedere il token successivo significa quindi cercare la riga di E più simile al vettore prodotto dal modello.</p>
+    <span class="box">confronto con il vocabolario<br><small class="muted">logit</small></span>
   </div>
   <div class="scroll-x">
   <table class="sum" style="min-width:600px">
@@ -526,11 +528,13 @@ table.mt tr.dim td{color:var(--muted)}
     </tbody>
   </table>
   </div>
+  <p class="prose note">La parola «embedding» indica entrambe le cose e genera confusione: quello di cui parla questo documento è il primo, la riga di E. Il secondo, usato nei sistemi di retrieval, è trattato nella guida sulle architetture LLM.</p>
 
   <!-- STRATI -->
-  <h3 id="c-layer" class="anchor">Gli strati: cosa succede dentro il modello</h3>
+  <h3 id="c-layer" class="anchor">Terzo passo: gli strati, dove i token si parlano</h3>
   <div class="prose stack">
-    <p>Uno <b>strato</b> (layer) è un blocco di calcoli con i <b>propri pesi</b>. Riceve un vettore per ogni token e restituisce un vettore per ogni token, della stessa dimensione: entra una matrice [L × d], esce una matrice [L × d]. Siccome ingresso e uscita hanno la stessa forma, gli strati si possono <b>impilare</b>: l'uscita di uno è l'ingresso del successivo. "Deep" in <i>deep learning</i> significa proprio questo: molti strati in fila. Un modello da 7B ne ha 32, i modelli più grandi oltre 100.</p>
+    <p class="q">Ora ho cinque vettori, uno per token, ciascuno ignaro degli altri. Per prevedere «Parigi» il vettore finale deve sapere che si parla di una <i>capitale</i>, della <i>Francia</i>, e che la frase aspetta un nome. Come si trasferisce questa informazione da un token all'altro?</p>
+    <p>Attraverso una pila di <b>strati</b> (layer). Uno strato è un blocco di calcoli con i <b>propri pesi</b>: riceve un vettore per ogni token e restituisce un vettore per ogni token, della stessa dimensione. Entra una matrice [L × d], esce una matrice [L × d]. Siccome ingresso e uscita hanno la stessa forma, gli strati si possono <b>impilare</b>: l'uscita di uno è l'ingresso del successivo. «Deep» in <i>deep learning</i> significa proprio questo: molti strati in fila. Un modello da 7B ne ha 32, i modelli più grandi oltre 100.</p>
   </div>
   <div class="stackdiag">
     <div class="sd io">ID dei token <small>[L]</small></div>
@@ -539,22 +543,54 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="sd blk"><b>Blocco 2</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
     <div class="sd sdots">⋮</div>
     <div class="sd blk"><b>Blocco N</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
-    <div class="sd">Testa di output: × Eᵀ <small>[L × V] logit</small></div>
+    <div class="sd">Testa di output: × W<sub>out</sub> <small>[L × V] logit</small></div>
     <div class="sd io">softmax → una distribuzione su V token per ogni posizione</div>
   </div>
   <div class="prose stack">
-    <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi:</p>
-    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token "guarda" gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> ("cosa sto cercando"), una <i>key</i> ("cosa offro") e un <i>value</i> ("cosa passo se vengo scelto"). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; una softmax trasforma questi punteggi in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La causal mask esclude i token successivi.</p>
-    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token.</p>
-    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un "flusso" (il <i>residual stream</i>) che si arricchisce strato dopo strato. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
+    <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi e complementari.</p>
+    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token «guarda» gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> («che cosa sto cercando»), una <i>key</i> («che cosa offro») e un <i>value</i> («che cosa passo se vengo scelto»). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; i punteggi vengono divisi per √d (per tenerli su una scala stabile) e una softmax li trasforma in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La <i>causal mask</i> esclude i token successivi: ogni posizione vede solo il passato, perché in generazione il futuro non esiste ancora. Nel nostro esempio, la query di «·è» cerca «di che cosa si predica» e trova la key di «·capitale» e di «·Francia»: il vettore di «·è» esce dall'attention contenendo un po' di entrambi.</p>
+    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token. Qui, si ritiene, avviene gran parte del «ricordare»: un vettore che contiene «capitale» e «Francia» viene trasformato in uno che contiene «Parigi». Gli studi di interpretabilità mostrano che i fatti sono distribuiti su molti pesi degli MLP dei blocchi centrali, non in una cella precisa.</p>
+    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un «flusso» (il <i>residual stream</i>) che si arricchisce strato dopo strato; è anche ciò che permette ai gradienti del capitolo 2 di risalire cento strati senza spegnersi. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
   </div>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: dove guarda l'attention</h3><span class="tag">valori illustrativi</span></div>
-    <div class="diag-title">Clicca un token: vedi quanto peso dà a sé stesso e ai token precedenti</div>
+    <div class="lab-head"><h3>Laboratorio: il calcolo dell'attention</h3><span class="tag">matematica reale · vettori d = 4 scelti a mano</span></div>
+    <div class="diag-title">Clicca un token: vedi come si calcola quanto peso dà a sé stesso e ai token precedenti</div>
     <div class="tokens" id="attSent"></div>
-    <div class="bars" id="attBars"></div>
-    <p class="callout" id="attMsg"></p>
-    <p class="note">Un blocco ha in realtà molte "teste" di attention in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
+    <div class="att-grid">
+      <div class="stack">
+        <div class="att-steps" id="attSteps"></div>
+      </div>
+      <div class="stack">
+        <div class="bars" id="attBars"></div>
+        <p class="callout" id="attMsg"></p>
+      </div>
+    </div>
+    <p class="note">Il calcolo (prodotto scalare query · key, divisione per √d, softmax, media pesata dei value) è quello vero di una testa di attention. I vettori query e key dei sette token sono scelti a mano, con 4 dimensioni invece di 128, per imitare una testa che ha imparato a collegare verbi e soggetti: in un modello reale li producono le matrici W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> moltiplicate per il vettore del token, e il training le aggiusta. Un blocco ha molte teste in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
+  </div>
+
+  <!-- LOGIT → PROB -->
+  <h3 id="c-loss" class="anchor">Ultimo passo: dai logit alla probabilità di «Parigi»</h3>
+  <div class="prose stack">
+    <p class="q">Dopo 32 blocchi il vettore nella posizione di «·è» contiene tutto il contesto. Come diventa la parola «Parigi»?</p>
+    <p>Con un ultimo prodotto scalare, ripetuto V volte. La <b>testa di output</b> è una matrice con una colonna per ogni token del vocabolario: il vettore finale viene moltiplicato per ciascuna colonna, e ogni prodotto scalare è un <b>logit</b>, il punteggio grezzo di quel token come candidato. Un vettore finale «vicino» alla colonna di «·Parigi» produce un logit alto per «·Parigi». Alcuni modelli (GPT-2, Gemma) usano come testa di output la stessa matrice E dell'ingresso (<i>weight tying</i>, condivisione dei pesi): prevedere il token successivo diventa letteralmente «cercare la riga di E più simile al vettore prodotto». La maggior parte dei modelli grandi attuali, Llama compreso, tiene invece una matrice separata.</p>
+    <p>I logit possono essere qualsiasi numero, positivo o negativo. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1: eleva e a ciascun logit e divide per la somma. Il token più probabile è la «risposta» del modello; in generazione si può sceglierlo sempre (<i>greedy</i>) oppure estrarre a caso secondo le probabilità, eventualmente dopo averle rese più o meno piatte con la <b>temperatura</b>. E poi? Il token scelto viene aggiunto alla frase, e tutto il percorso riparte da capo per prevedere il token dopo: un LLM genera <b>un token alla volta</b>, in modo autoregressivo. «La capitale della Francia è Parigi» ha richiesto un passaggio completo; il punto che segue ne richiederà un altro.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">matematica reale · logit di esempio</span></div>
+    <div class="sample">Contesto: «La capitale della Francia è» → token corretto: «Parigi»</div>
+    <div class="controls">
+      <div class="ctl"><label for="smT">Avanzamento del training <output id="smTo"></output></label><input id="smT" type="range" min="0" max="100" value="60"></div>
+      <div class="ctl"><label for="smTemp">Temperatura (solo in generazione) <output id="smTempo"></output></label><input id="smTemp" type="range" min="0.2" max="2" step="0.1" value="1"></div>
+    </div>
+    <div class="bars" id="smBars"></div>
+    <div class="readout" id="smStats"></div>
+    <p class="note">La softmax e la loss sono calcolate davvero sui sei logit mostrati (il vocabolario vero ne ha decine di migliaia; qui sei candidati bastano). Il cursore «avanzamento» scala i logit per simulare che cosa fa il training: all'inizio sono quasi uguali, ogni token ha probabilità ≈ 1/6 e la loss vale log 6 ≈ 1,79; il training li separa. La <b>temperatura</b> divide i logit prima della softmax e si usa solo quando il modello genera: sotto 1 rende l'output più deterministico, sopra 1 più vario. La riga «loss» anticipa il capitolo 2: è il numero che il training cercherà di abbassare.</p>
+  </div>
+
+  <!-- CONTI -->
+  <h3 id="c-conti" class="anchor">I conti: dove sono i 7 miliardi di pesi</h3>
+  <div class="prose stack">
+    <p>Ora che il percorso è chiaro, i numeri di un modello reale si possono leggere componente per componente. Llama 2 7B ha d = 4.096, 32 blocchi, vocabolario di 32.000 token, MLP interno di 11.008.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
@@ -565,68 +601,138 @@ table.mt tr.dim td{color:var(--muted)}
       <tr><td>MLP (per blocco)</td><td class="mono">3 matrici 4.096 × 11.008</td><td class="mono">135 milioni</td></tr>
       <tr><td>Un blocco completo</td><td class="mono">attention + MLP</td><td class="mono">≈ 202 milioni</td></tr>
       <tr><td>32 blocchi</td><td class="mono">32 × 202 milioni</td><td class="mono">≈ 6,48 miliardi</td></tr>
-      <tr><td>Testa di output</td><td class="mono">4.096 × 32.000 (qui non condivisa con E)</td><td class="mono">131 milioni</td></tr>
-      <tr><td><b>Totale</b></td><td></td><td class="mono"><b>≈ 6,74 miliardi → "7B"</b></td></tr>
+      <tr><td>Testa di output</td><td class="mono">4.096 × 32.000 (non condivisa con E)</td><td class="mono">131 milioni</td></tr>
+      <tr><td><b>Totale</b></td><td></td><td class="mono"><b>≈ 6,74 miliardi → «7B»</b></td></tr>
     </table></div>
-    <p class="note">Oltre il 95% dei pesi sta negli strati, non nell'embedding. L'MLP ne contiene circa due terzi.</p>
+    <p class="note">Oltre il 95% dei pesi sta negli strati, non nell'embedding; l'MLP ne contiene circa due terzi. Per generare <b>un</b> token il modello esegue circa 2 operazioni per peso, cioè ~14 miliardi di moltiplicazioni-somme: una GPU moderna le fa in pochi millisecondi, e il tempo di risposta è dominato dal leggere i 14 GB di pesi dalla memoria, non dal calcolo.</p>
+  </div>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 1</p>
+    <p>Un LLM è una funzione fissa con miliardi di numeri regolabili. Il prompt viene spezzato in token (BPE), ogni ID diventa un vettore leggendo una riga della matrice E, i vettori attraversano N blocchi in cui l'attention mescola l'informazione tra token e l'MLP la elabora token per token, e il vettore finale viene confrontato con ogni token del vocabolario producendo i logit, che la softmax trasforma in probabilità. «Parigi» è il token con la probabilità più alta; generare un testo significa ripetere tutto questo un token alla volta. Questo percorso, il <b>forward pass</b>, è ciò che il training esegue, misura e corregge.</p>
+    <p class="recap-sub">Concetti chiave</p>
+    <ul>
+      <li><strong>Pesi (parametri)</strong> — i numeri del modello, organizzati in matrici; l'unica cosa che il training cambia</li>
+      <li><strong>Token, ID, BPE</strong> — il testo diventa una lista di interi tramite un vocabolario costruito una volta sola per fusione delle coppie frequenti</li>
+      <li><strong>Embedding</strong> — la riga di E letta per ogni ID: statica all'ingresso, resa contestuale dagli strati</li>
+      <li><strong>Attention e MLP</strong> — i token si scambiano informazione (prodotto scalare query·key, softmax, media dei value) e poi la elaborano ciascuno per sé</li>
+      <li><strong>Residual stream</strong> — ogni strato aggiunge una correzione al vettore invece di sostituirlo</li>
+      <li><strong>Logit e softmax</strong> — punteggi grezzi per ogni token del vocabolario, trasformati in probabilità; la generazione è autoregressiva</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi · dovresti saper rispondere senza rileggere</p>
+    <ol>
+      <li>Perché «·gatto» e «gatto» sono due token diversi, e perché il vocabolario non si può cambiare dopo il training?</li>
+      <li>L'embedding di «banca» è lo stesso in «banca del fiume» e «conto in banca»? E all'ultimo strato?</li>
+      <li>Qual è l'unico punto del modello in cui un token riceve informazione dagli altri, e perché non può guardare i token successivi?</li>
+      <li>Che cos'è un logit, e che cosa fa la softmax?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 2. COME IMPARA ============ -->
+<section class="st" id="learn">
+  <div class="sec-head">
+    <span class="eyebrow">Capitolo 2 · Come impara</span>
+    <h2>Dall'errore su un token alla modifica di miliardi di pesi</h2>
+  </div>
+  <div class="prose stack">
+    <p class="q">All'inizio i pesi sono casuali e il modello dà a «Parigi» una probabilità del 2%, come a qualsiasi altro token. Alla fine gli dà il 90%. <b>Che cosa è successo ai 7 miliardi di numeri nel frattempo, e chi ha deciso come cambiarli?</b></p>
+    <p>Nessuno li ha decisi. Il training è un ciclo meccanico che ripete quattro mosse: esegui il forward pass del capitolo 1 su un pezzo di testo, <b>misura</b> con un numero quanto la previsione è lontana dal token vero, <b>calcola per ogni peso</b> in che direzione spostarlo perché quel numero scenda, e spostalo di poco. Il ciclo gira milioni di volte. Questo capitolo lo smonta nei suoi pezzi, ciascuno con la sua domanda: da dove vengono gli esempi, come si misura l'errore, come si calcola la direzione (è qui che vive la <i>backpropagation</i>), quanto grande è il passo, con che ritmo si servono i dati. Il capitolo 3 rimette insieme i pezzi in un training vero, eseguibile nel browser.</p>
+  </div>
+  <div class="map" aria-label="Il ciclo del training">
+    <a href="#c-dataset" class="box">Dati<small>testo, nessuna etichetta</small></a><span class="arr">→</span>
+    <a href="#c-ce" class="box">Loss<small>l'errore in un numero</small></a><span class="arr">→</span>
+    <a href="#c-grad" class="box hot">Gradiente<small>backpropagation</small></a><span class="arr">→</span>
+    <a href="#c-step" class="box">Step<small>learning rate</small></a><span class="arr">→</span>
+    <a href="#c-batch" class="box">Ritmo<small>batch, epoch</small></a><span class="arr">→</span>
+    <a href="#c-change" class="box">Che cosa cambia<small>nei pesi</small></a>
+  </div>
+
+  <!-- DATASET -->
+  <h3 id="c-dataset" class="anchor">Da dove vengono gli esempi: testo, e nessuna etichetta</h3>
+  <div class="prose stack">
+    <p class="q">Per imparare che dopo «La capitale della Francia è» viene «Parigi» servirebbe qualcuno che scriva milioni di coppie domanda → risposta. Chi le ha scritte?</p>
+    <p>Nessuno. Nel <b>pre-training</b> il dataset <b>non contiene domande e risposte</b>, né etichette. È solo testo: miliardi di documenti (pagine web, libri, articoli scientifici, codice sorgente), salvati di solito in file JSONL (JSON Lines, un oggetto JSON per riga), un documento per riga. Le coppie «input → risposta attesa» si ricavano automaticamente dal testo stesso: per ogni posizione, l'obiettivo è semplicemente il token che viene dopo. Un documento di 1.000 token contiene 999 esempi, uno per posizione, tutti gratis. Se da qualche parte nel corpus c'è scritto «la capitale della Francia è Parigi», quella frase è già un esempio con la sua soluzione. Per questo si parla di apprendimento <i>auto-supervisionato</i>: il testo fa da domanda e da soluzione insieme.</p>
+    <p>Prima di arrivare al modello, il testo grezzo passa per una lunga pipeline di pulizia. È la parte meno visibile del lavoro, ma è quella che incide di più sulla qualità:</p>
+  </div>
+  <div class="diag">
+    <span class="box">Raccolta (crawl del web, libri, repository di codice)</span><span class="arr">→</span>
+    <span class="box">Estrazione del testo dall'HTML</span><span class="arr">→</span>
+    <span class="box">Filtri di qualità e lingua</span><span class="arr">→</span>
+    <span class="box">Deduplicazione</span><span class="arr">→</span>
+    <span class="box">Rimozione di dati personali e contenuti tossici</span><span class="arr">→</span>
+    <span class="box hot">Tokenizzazione e divisione in shard (file-blocchi)</span>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Una miscela tipica di pre-training</h3><span class="tag">indicativa</span></div>
+    <div class="mix" id="mixBar"></div>
+    <div class="mixleg" id="mixLeg"></div>
+    <p class="note">Ogni laboratorio usa una sua «ricetta» e la tiene segreta. Le proporzioni indicano l'ordine di grandezza, non dati ufficiali. Verso la fine del pre-training si alza spesso la quota di dati di alta qualità (matematica, codice, testi curati): è la fase chiamata <i>annealing</i> o mid-training.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Com'è fatta una riga del dataset, fase per fase</h3></div>
+    <div class="seg" id="dsFmt" role="group" aria-label="Formato del dataset">
+      <button aria-pressed="true" data-v="pre">Pre-training</button><button aria-pressed="false" data-v="sft">SFT</button><button aria-pressed="false" data-v="dpo">DPO</button><button aria-pressed="false" data-v="rlvr">RLVR</button>
+    </div>
+    <pre class="sample" id="dsCode"></pre>
+    <p class="callout" id="dsMsg"></p>
+    <p class="note">Le tre voci SFT, DPO e RLVR anticipano la Parte II: le fasi successive usano dataset di forma diversa, e ogni forma corrisponde a un modo diverso di calcolare l'errore. Il meccanismo di questo capitolo resta lo stesso per tutte.</p>
   </div>
 
   <!-- LOSS -->
-  <h3 id="c-loss" class="anchor">La loss: un numero che misura l'errore</h3>
+  <h3 id="c-ce" class="anchor">La loss: l'errore in un solo numero</h3>
   <div class="prose stack">
-    <p>La <b>loss</b> (funzione di perdita) riassume in un solo numero quanto le previsioni del modello sono lontane dall'obiettivo. Tutto il training consiste nel farla scendere. Negli LLM si usa quasi sempre la <b>cross-entropy</b> (entropia incrociata) sul token successivo.</p>
-    <p>Il meccanismo: per ogni posizione la rete produce un <b>logit</b> (punteggio grezzo) per ciascun token del vocabolario. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1. La loss guarda solo la probabilità assegnata al token corretto: <span class="k">loss = −log p(token corretto)</span>. Se il modello dà 100% al token giusto la loss è 0, se gli dà 50% è 0,69, se gli dà 1% è 4,6. La loss di un batch è la media su tutti i suoi token.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">valori illustrativi</span></div>
-    <div class="sample">Contesto: «La capitale della Francia è» → token corretto: «Parigi»</div>
-    <div class="controls">
-      <div class="ctl"><label for="smT">Avanzamento del training <output id="smTo"></output></label><input id="smT" type="range" min="0" max="100" value="60"></div>
-      <div class="ctl"><label for="smTemp">Temperatura (solo in generazione) <output id="smTempo"></output></label><input id="smTemp" type="range" min="0.2" max="2" step="0.1" value="1"></div>
-    </div>
-    <div class="bars" id="smBars"></div>
-    <div class="readout" id="smStats"></div>
-    <p class="note">All'inizio i logit sono quasi uguali: ogni token ha probabilità ≈ 1/6 e la loss vale log 6 ≈ 1,79. Il training separa i logit e la loss scende. La <b>temperatura</b> divide i logit prima della softmax e si usa solo quando il modello genera: sotto 1 rende l'output più deterministico, sopra 1 più vario. La loss di training si calcola sempre a temperatura 1.</p>
+    <p class="q">Il modello dà a «Parigi» il 12% e a «Lione» il 30%. Quanto ha sbagliato? Serve un numero, perché solo un numero si può far scendere.</p>
+    <p>La <b>loss</b> (funzione di perdita) è quel numero. Negli LLM si usa quasi sempre la <b>cross-entropy</b> (entropia incrociata) sul token successivo, che guarda una cosa sola: la probabilità che il modello ha dato al token <i>corretto</i>. La formula è <span class="k">loss = −log p(token corretto)</span>. Se il modello dà il 100% al token giusto la loss è 0; con il 50% vale 0,69; con il 12% vale 2,12; con l'1% vale 4,6. Più la probabilità è bassa, più la loss sale, e sale sempre più in fretta: sbagliare «di molto» costa molto più che sbagliare «di poco». Che cosa facesse «Lione» non conta direttamente: conta solo che la sua probabilità ha rubato spazio a «Parigi».</p>
+    <p>Due proprietà la rendono adatta. È <b>derivabile</b>: cambiando di pochissimo un peso, la loss cambia di pochissimo e in modo calcolabile, ed è questo che permette il passo successivo. E ha un significato leggibile: e elevato alla loss è la <b>perplexity</b>, «tra quanti token equiprobabili il modello sta esitando». Loss 2,12 significa perplexity 8,3: come tirare a indovinare tra otto candidati. Un buon modello di pre-training arriva a una loss intorno a 2 sul testo web (perplexity ≈ 7): non può scendere a zero, perché il testo è davvero incerto (dopo «il» può venire quasi qualunque cosa).</p>
+    <p>La loss di un intero batch è la <b>media</b> delle loss di tutti i suoi token: migliaia o milioni di numeri riassunti in uno. Tutto il training consiste nel far scendere quel numero medio sui dati che il modello non ha ancora visto.</p>
   </div>
 
-  <!-- BATCH STEP EPOCH -->
-  <h3 id="c-batch" class="anchor">Esempio, sequenza, batch, step, epoch</h3>
+  <!-- GRADIENTE / BACKPROP -->
+  <h3 id="c-grad" class="anchor">Il gradiente: in che direzione muovere ciascun peso</h3>
   <div class="prose stack">
-    <p>Questi termini descrivono il <i>ritmo</i> del training, cioè come il dataset viene servito al modello. Conviene definirli in ordine, dal più piccolo al più grande:</p>
+    <p class="q">Ho un numero, la loss, e 7 miliardi di manopole. Per ogni manopola devo sapere: se la giro un po' a destra, la loss sale o scende? E di quanto? Provare una manopola alla volta richiederebbe 7 miliardi di forward pass per ogni step.</p>
+    <p>La risposta a quella domanda, per <i>tutte</i> le manopole insieme, è il <b>gradiente</b>: un numero per ogni peso, con lo stesso segno e la stessa proporzione di «quanto cambierebbe la loss se aumentassi questo peso di pochissimo». Gradiente positivo: aumentando il peso la loss sale, quindi va diminuito. Gradiente negativo: va aumentato. Gradiente grande: quel peso conta molto per questo errore; gradiente zero: non c'entra. Il gradiente è la derivata della loss rispetto a ciascun peso, e la <b>backpropagation</b> (retropropagazione) è l'algoritmo che li calcola tutti con un costo pari a circa <b>due forward pass</b>, non sette miliardi.</p>
+    <p><b>Il punto di partenza è semplice.</b> Per softmax seguita da cross-entropy, la derivata della loss rispetto a ciascun logit ha una forma che si può scrivere a mano: <span class="k">gradiente del logit j = p(j) − y(j)</span>, dove y è il vettore one-hot del token corretto (1 su «Parigi», 0 altrove). Con i nostri numeri: il logit di «Parigi» ha gradiente 0,12 − 1 = <b>−0,88</b> (va alzato, e molto); quello di «Lione» 0,30 − 0 = <b>+0,30</b> (va abbassato, in proporzione a quanto ha rubato); un token con probabilità 0,001 ha gradiente +0,001, cioè resta quasi fermo. Nessuna regola scritta a mano dice «premia Parigi, punisci Lione»: lo dice la derivata.</p>
+    <p><b>Poi si torna indietro, strato per strato.</b> I logit sono il prodotto del vettore finale con la testa di output; il vettore finale è l'uscita del blocco 32, che dipende dall'uscita del blocco 31, e così via fino a E. Ogni operazione del forward pass è una funzione semplice (una moltiplicazione di matrici, una somma, una ReLU, una softmax) di cui si conosce la derivata. La <b>regola della catena</b> dice che la derivata di una composizione è il prodotto delle derivate dei pezzi: per sapere quanto la loss dipende da un peso del blocco 12, si moltiplica «quanto la loss dipende dall'uscita del blocco 32» per «quanto l'uscita del 32 dipende da quella del 31» … per «quanto l'uscita del 12 dipende da quel peso». Il backward pass percorre la rete <b>all'indietro</b>, dalla loss verso l'input, e a ogni strato fa due cose: calcola il gradiente dei pesi di quello strato (e lo mette da parte) e passa allo strato precedente il gradiente rispetto al suo ingresso. Ogni valore intermedio del forward pass serve a questo calcolo: per questo durante il training si tengono in memoria le <i>attivazioni</i>, e per questo il training costa molta più memoria dell'inferenza.</p>
+    <p>Il laboratorio seguente fa esattamente questo su una «rete» di due pesi, abbastanza piccola da seguire ogni moltiplicazione. La struttura è identica a quella di un transformer: una catena di funzioni, derivate locali, prodotto all'indietro.</p>
   </div>
-  <dl class="gloss">
-    <div><dt>Esempio (una previsione)</dt><dd>La coppia "contesto → token successivo". È l'unità minima su cui si calcola la loss.</dd><span class="ex">«il gatto» → «dorme»</span></div>
-    <div><dt>Sequenza</dt><dd>Un pezzo del flusso di token lungo quanto la <b>context length</b> (lunghezza del contesto) L. Una sequenza di L token contiene L esempi, perché ogni posizione predice la successiva, tutte in parallelo.</dd><span class="ex">L = 8.192 token nei modelli attuali</span></div>
-    <div><dt>Batch (gruppo di esempi)</dt><dd>Le B sequenze elaborate <b>insieme</b> prima di aggiornare i pesi. Si fa la media della loss su tutte, così il gradiente è meno "rumoroso" di quello di un esempio solo, e le GPU (Graphics Processing Unit) lavorano in parallelo.</dd><span class="ex">B = batch size, in sequenze</span></div>
-    <div><dt>Batch di token</dt><dd>È lo <b>stesso batch</b>, misurato in token invece che in sequenze: B × L. Negli LLM si parla quasi sempre così, perché le sequenze possono avere lunghezze diverse.</dd><span class="ex">512 × 8.192 ≈ 4 milioni di token</span></div>
-    <div><dt>Step (giro completo)</dt><dd>Un ciclo intero su <b>un</b> batch: forward pass, calcolo della loss, backward pass, aggiornamento dei pesi. Ogni step cambia i pesi una volta sola.</dd><span class="ex">1 batch = 1 step = 1 aggiornamento</span></div>
-    <div><dt>Epoch (epoca)</dt><dd>Un passaggio completo su <b>tutto</b> il dataset, cioè tutti i batch una volta. All'inizio di ogni epoch l'ordine delle sequenze viene rimescolato. Nel pre-training si fa di solito circa un'epoch sola (i dati sono troppi per ripeterli); nel fine-tuning 1–3.</dd><span class="ex">step per epoch = token del dataset ÷ token per batch</span></div>
-  </dl>
   <div class="lab">
-    <div class="lab-head"><h3>Calcolatore: quanti step servono?</h3><span class="tag">ordini di grandezza</span></div>
-    <div class="seg" id="calcPre" role="group" aria-label="Scenari">
-      <button aria-pressed="true" data-v="demo">Training dal vivo (sotto)</button><button aria-pressed="false" data-v="sft">Fine-tuning SFT</button><button aria-pressed="false" data-v="pre">Pre-training grande</button>
-    </div>
+    <div class="lab-head"><h3>Laboratorio: backpropagation su una catena di due pesi</h3><span class="tag">matematica reale</span></div>
+    <div class="formula">a = w₁ · x &nbsp;│&nbsp; h = ReLU(a) &nbsp;│&nbsp; y = w₂ · h &nbsp;│&nbsp; loss = ½ (y − t)² &nbsp;│&nbsp; x = 1, obiettivo t = 1</div>
     <div class="controls">
-      <div class="ctl"><label for="cD">Token nel dataset</label><input id="cD" class="txt" type="number" min="1"></div>
-      <div class="ctl"><label for="cL">Context length L (token per sequenza)</label><input id="cL" class="txt" type="number" min="1"></div>
-      <div class="ctl"><label for="cB">Batch size B (sequenze per batch)</label><input id="cB" class="txt" type="number" min="1"></div>
+      <div class="ctl"><label for="chW1">peso w₁ <output id="chW1o"></output></label><input id="chW1" type="range" min="-2" max="2" step="0.05" value="0.5"></div>
+      <div class="ctl"><label for="chW2">peso w₂ <output id="chW2o"></output></label><input id="chW2" type="range" min="-2" max="2" step="0.05" value="0.6"></div>
+      <div class="ctl"><label for="chEta">learning rate η <output id="chEtao"></output></label><input id="chEta" type="range" min="0.05" max="1" step="0.05" value="0.3"></div>
     </div>
-    <div class="calc" id="calcOut"></div>
+    <div class="diag-title">Forward pass (da sinistra a destra: i valori) e backward pass (da destra a sinistra: i gradienti ∂loss/∂·)</div>
+    <div class="chain" id="chNodes"></div>
+    <div class="formula" id="chF"></div>
+    <div class="row"><button class="btn" id="chStep">Applica un passo: w ← w − η · gradiente</button><button class="btn ghost" id="chReset">Ricomincia</button></div>
+    <p class="callout" id="chMsg"></p>
+    <p class="note">Leggi i gradienti da destra verso sinistra: la loss dipende da y come (y − t); y dipende da w₂ come h e da h come w₂; la ReLU lascia passare il gradiente se a &gt; 0 e lo azzera altrimenti; a dipende da w₁ come x. Il gradiente di w₁ è il prodotto di tutti i fattori lungo la catena: è la regola della catena. Prova a portare w₁ sotto zero: la ReLU si spegne, il gradiente di w₁ diventa 0 e quel peso non impara più da questo esempio, qualunque sia l'errore. In un transformer la catena ha centinaia di anelli, ma ogni anello è semplice come questi.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Perché costa «solo» due forward pass.</b> Il backward pass esegue, per ogni matrice del forward, due moltiplicazioni di matrici della stessa dimensione (una per il gradiente dei pesi, una per il gradiente da passare indietro): circa il doppio del lavoro del forward. Il conto complessivo di uno step di training è quindi circa <b>6 operazioni per peso per token</b> (2 del forward + 4 del backward), la formula che si usa per stimare il costo di un pre-training: 6 × parametri × token. Il training automatico delle derivate (<i>autograd</i>) è ciò che le librerie come PyTorch fanno per te: registrano ogni operazione del forward e applicano la regola della catena al contrario.</p>
+    <p><b>Il gradiente di un batch è la media dei gradienti dei suoi esempi.</b> Un peso che in un esempio dovrebbe salire e in un altro scendere riceve una spinta piccola: il modello impara ciò che è <i>coerente</i> tra gli esempi, non il caso singolo. Nel capitolo 3 lo vedrai nella matrice del gradiente: le celle dei token che non compaiono nel batch restano a zero.</p>
   </div>
 
-  <!-- LOOP + GD -->
-  <h3 class="anchor">Il ciclo di uno step, e il learning rate</h3>
+  <!-- STEP + LR -->
+  <h3 id="c-step" class="anchor">Lo step: quattro mosse e un passo di lunghezza η</h3>
+  <div class="prose stack">
+    <p class="q">Ora so, per ogni peso, in che direzione muoverlo. Di quanto?</p>
+  </div>
   <div class="lab">
     <div class="loop">
       <div class="box hot"><em>1 · forward pass</em><b>Previsione</b><span>Il batch attraversa la rete; per ogni posizione esce un logit per ogni token del vocabolario.</span></div>
       <div class="box"><em>2 · loss</em><b>Misura dell'errore</b><span>La media di −log p(token corretto) su tutti i token del batch.</span></div>
-      <div class="box"><em>3 · backward pass</em><b>Gradienti</b><span>La backpropagation (retropropagazione) calcola, per ogni peso, in che direzione spostarlo per ridurre la loss.</span></div>
+      <div class="box"><em>3 · backward pass</em><b>Gradienti</b><span>La backpropagation calcola, per ogni peso, in che direzione spostarlo per ridurre la loss.</span></div>
       <div class="box"><em>4 · optimizer step</em><b>Aggiornamento</b><span>L'ottimizzatore sposta ogni peso di un passo proporzionale al learning rate.</span></div>
     </div>
   </div>
   <div class="prose stack">
-    <p>Immagina la loss come un paesaggio collinare, dove ogni punto è una combinazione di pesi. Il <b>gradiente</b> indica la direzione in salita più ripida; il <b>gradient descent</b> (discesa del gradiente) fa un passo nella direzione opposta. La lunghezza del passo è il <b>learning rate</b> (η).</p>
+    <p>La regola base è <span class="k">w ← w − η · gradiente</span>: ogni peso si muove nel verso opposto al suo gradiente, di una quantità proporzionale a esso e a un fattore globale, il <b>learning rate</b> η. Immagina la loss come un paesaggio collinare in 7 miliardi di dimensioni, dove ogni punto è una combinazione di pesi e l'altezza è la loss: il gradiente indica la salita più ripida, e il <b>gradient descent</b> (discesa del gradiente) fa un passo in discesa. Ma il gradiente è una pendenza <i>locale</i>, vale solo nei dintorni del punto: un passo troppo lungo atterra su un pendio diverso, magari più in alto; un passo troppo corto impiega un'eternità. Il learning rate è il compromesso, ed è l'iperparametro più delicato di tutto il training: negli LLM vale tipicamente 10⁻⁴–10⁻³ nel pre-training e 10⁻⁵ nel fine-tuning, con pesi che stanno intorno a ±0,02.</p>
+    <p>La forma «stocastica» del nome, SGD (Stochastic Gradient Descent), ricorda che il gradiente è calcolato su un <i>batch</i>, un campione dei dati, e quindi è una stima rumorosa della pendenza vera. Gli LLM usano un ottimizzatore più sofisticato, <b>AdamW</b>, che adatta il passo a ogni singolo peso in base alla storia recente dei suoi gradienti (ne tiene una media mobile e una media dei quadrati): i pesi con gradienti sempre piccoli ricevono passi relativamente più grandi, quelli con gradienti grandi e oscillanti vengono frenati. Il principio però è lo stesso del laboratorio qui sotto.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: discesa su una loss a una dimensione</h3><span class="tag">matematica reale</span></div>
@@ -639,33 +745,106 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="gdMsg"></p>
   </div>
 
-  <!-- glossary -->
-  <h3 class="anchor">Glossario dei termini che ritornano</h3>
+  <!-- BATCH STEP EPOCH -->
+  <h3 id="c-batch" class="anchor">Il ritmo: esempio, sequenza, batch, step, epoch</h3>
+  <div class="prose stack">
+    <p class="q">Il dataset ha 15 mila miliardi di token. Non si può calcolare la loss su tutti insieme, né aggiornare i pesi dopo ogni singolo token. Con che ritmo si servono i dati al modello?</p>
+    <p>Questi cinque termini descrivono proprio quel ritmo, dal più piccolo al più grande:</p>
+  </div>
   <dl class="gloss">
-    <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e della loro varianza. Costa circa 2 copie extra dei pesi in memoria.</dd><span class="ex">standard di fatto per gli LLM</span></div>
-    <div><dt>Perplexity (perplessità)</dt><dd>È e elevato alla loss: quanti token equiprobabili il modello "sta considerando" in media. Perplexity 1 vuol dire certezza assoluta, 6 vuol dire tirare un dado a sei facce.</dd><span class="ex">metrica classica del pre-training</span></div>
-    <div><dt>Checkpoint</dt><dd>Un salvataggio dei pesi (e dello stato dell'ottimizzatore) a un certo step. Si riparte da lì se il training diverge.</dd></div>
-    <div><dt>Train / validation</dt><dd>Si misura la loss anche su dati mai visti. Se la loss di training scende ma quella di validazione sale, c'è <b>overfitting</b> (sovradattamento): il modello memorizza invece di generalizzare.</dd></div>
-    <div><dt>Full fine-tuning vs LoRA</dt><dd>Il primo aggiorna tutti i pesi. LoRA (Low-Rank Adaptation, adattamento a basso rango) congela il modello e allena piccole matrici aggiuntive: meno memoria, risultati spesso simili.</dd></div>
-    <div><dt>Base model / modello di riferimento</dt><dd>Il base model esce dal pre-training. Nel post-training si tiene una copia congelata (reference) per misurare quanto il modello nuovo se ne allontana.</dd></div>
-    <div><dt>Divergenza KL</dt><dd>La KL (Kullback-Leibler) misura quanto due distribuzioni di probabilità differiscono. Nel post-training fa da "guinzaglio": impedisce al modello di allontanarsi troppo dal riferimento.</dd></div>
-    <div><dt>Policy</dt><dd>Nel linguaggio dell'RL (Reinforcement Learning, apprendimento per rinforzo) è il modello che si sta allenando: dato un contesto, "sceglie l'azione", cioè il token.</dd></div>
-    <div><dt>Reward</dt><dd>Un punteggio assegnato a una risposta completa: da un umano, da un reward model o da un verificatore automatico.</dd></div>
-    <div><dt>Rollout</dt><dd>Una risposta generata dal modello durante il training RL, che poi viene valutata.</dd></div>
-    <div><dt>On-policy vs off-policy</dt><dd>On-policy: si impara da testo generato dal modello stesso, adesso. Off-policy: da testo scritto da altri (persone, un altro modello, una versione vecchia).</dd></div>
-    <div><dt>Online vs offline</dt><dd>Online: il modello genera nuovi esempi durante il training (GRPO, OPD). Offline: il dataset è fisso fin dall'inizio (SFT, DPO).</dd></div>
+    <div><dt>Esempio (una previsione)</dt><dd>La coppia «contesto → token successivo». È l'unità minima su cui si calcola la loss.</dd><span class="ex">«il gatto» → «dorme»</span></div>
+    <div><dt>Sequenza</dt><dd>Un pezzo del flusso di token lungo quanto la <b>context length</b> (lunghezza del contesto) L. Una sequenza di L token contiene L esempi, perché ogni posizione predice la successiva, tutte in parallelo in un solo forward pass.</dd><span class="ex">L = 8.192 token nei modelli attuali</span></div>
+    <div><dt>Batch (gruppo di esempi)</dt><dd>Le B sequenze elaborate <b>insieme</b> prima di aggiornare i pesi. Si fa la media della loss su tutte, così il gradiente è meno «rumoroso» di quello di un esempio solo, e le GPU (Graphics Processing Unit) lavorano in parallelo.</dd><span class="ex">B = batch size, in sequenze</span></div>
+    <div><dt>Batch di token</dt><dd>È lo <b>stesso batch</b>, misurato in token invece che in sequenze: B × L. Negli LLM si parla quasi sempre così, perché le sequenze possono avere lunghezze diverse.</dd><span class="ex">512 × 8.192 ≈ 4 milioni di token</span></div>
+    <div><dt>Step (giro completo)</dt><dd>Un ciclo intero su <b>un</b> batch: forward pass, calcolo della loss, backward pass, aggiornamento dei pesi. Ogni step cambia i pesi una volta sola.</dd><span class="ex">1 batch = 1 step = 1 aggiornamento</span></div>
+    <div><dt>Epoch (epoca)</dt><dd>Un passaggio completo su <b>tutto</b> il dataset, cioè tutti i batch una volta. All'inizio di ogni epoch l'ordine delle sequenze viene rimescolato. Nel pre-training si fa di solito circa un'epoch sola (i dati sono troppi per ripeterli); nel fine-tuning 1–3.</dd><span class="ex">step per epoch = token del dataset ÷ token per batch</span></div>
   </dl>
+  <div class="lab">
+    <div class="lab-head"><h3>Calcolatore: quanti step servono?</h3><span class="tag">ordini di grandezza</span></div>
+    <div class="seg" id="calcPre" role="group" aria-label="Scenari">
+      <button aria-pressed="true" data-v="demo">Training dal vivo (capitolo 3)</button><button aria-pressed="false" data-v="sft">Fine-tuning SFT</button><button aria-pressed="false" data-v="pre">Pre-training grande</button>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="cD">Token nel dataset</label><input id="cD" class="txt" type="number" min="1"></div>
+      <div class="ctl"><label for="cL">Context length L (token per sequenza)</label><input id="cL" class="txt" type="number" min="1"></div>
+      <div class="ctl"><label for="cB">Batch size B (sequenze per batch)</label><input id="cB" class="txt" type="number" min="1"></div>
+    </div>
+    <div class="calc" id="calcOut"></div>
+  </div>
+
+  <!-- CHE COSA CAMBIA -->
+  <h3 id="c-change" class="anchor">Che cosa cambia nei pesi, e che cosa serve per farlo</h3>
+  <div class="prose stack">
+    <p class="q">Dopo milioni di step i pesi sono diversi. Ma «diversi» come? Si può vedere qualcosa di sensato in quei numeri?</p>
+    <p>Nei singoli pesi no: nessuna manopola significa qualcosa da sola. Nelle righe di E, però, qualcosa si vede. Ogni step aggiorna <b>solo le righe dei token presenti nel batch</b>, e token che compaiono in contesti simili (prima delle stesse parole, dopo le stesse parole) ricevono gradienti simili: i loro vettori si avvicinano. Nessuno impone che «gatto» stia vicino a «cane»; emerge dal compito di prevedere il token successivo, perché prevedere bene ciò che segue «gatto» e ciò che segue «cane» richiede informazioni quasi uguali. È la stessa idea di word2vec, ma qui gli embedding si allenano insieme al resto del modello. Il laboratorio seguente è uno schema qualitativo di questo fenomeno: le posizioni finali sono disegnate a mano, ma proiettando con tecniche come PCA o t-SNE gli embedding di un modello vero si osservano raggruppamenti dello stesso tipo.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: gli embedding si organizzano durante il training</h3><span class="tag">schema qualitativo · proiezione 2D</span></div>
+    <div class="ctl" style="max-width:420px"><label for="embT">Avanzamento del training <output id="embTo"></output></label><input id="embT" type="range" min="0" max="100" value="0"></div>
+    <svg id="embChart" class="chart" viewBox="0 0 560 300" style="max-width:720px" role="img" aria-label="Embedding proiettati in due dimensioni"></svg>
+    <p class="callout" id="embMsg"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>Quanta memoria serve per allenare.</b> Il capitolo 1 diceva che i pesi di un 7B occupano 14 GB in bf16. Per allenarli non bastano: servono anche i gradienti (una copia della stessa forma dei pesi), le due medie mobili di AdamW per ogni peso, e di solito una copia «master» dei pesi in precisione piena (fp32, 4 byte) perché accumulare milioni di piccoli aggiornamenti in 16 bit perderebbe le cifre. In totale circa <b>16 byte per parametro</b>: oltre 110 GB per un 7B, prima ancora di contare le attivazioni del forward pass da conservare per il backward. È il motivo per cui il training richiede molte GPU anche per modelli che in inferenza stanno su una sola, e per cui esistono tecniche come LoRA (sotto) che allenano solo una piccola frazione di pesi.</p>
+  </div>
+  <div class="scroll-x">
+  <table class="sum" style="min-width:560px">
+    <thead><tr><th>Per ogni peso, durante il training</th><th>Byte</th><th>Per un modello da 7B</th></tr></thead>
+    <tbody>
+      <tr><td>Peso in bf16 (quello usato nel forward)</td><td class="mono">2</td><td class="mono">14 GB</td></tr>
+      <tr><td>Gradiente in bf16</td><td class="mono">2</td><td class="mono">14 GB</td></tr>
+      <tr><td>AdamW: media dei gradienti + media dei quadrati (fp32)</td><td class="mono">8</td><td class="mono">56 GB</td></tr>
+      <tr><td>Copia master del peso in fp32</td><td class="mono">4</td><td class="mono">28 GB</td></tr>
+      <tr><td><b>Totale</b> (senza attivazioni)</td><td class="mono"><b>16</b></td><td class="mono"><b>≈ 112 GB</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- glossary -->
+  <h3 id="c-gloss" class="anchor">Glossario dei termini che ritornano</h3>
+  <dl class="gloss">
+    <div><dt>Ottimizzatore (AdamW)</dt><dd>AdamW (Adam with decoupled Weight decay) adatta il passo a ogni peso tenendo una media mobile dei gradienti e della loro varianza. Costa 2 copie extra dei pesi in memoria, in fp32.</dd><span class="ex">standard di fatto per gli LLM</span></div>
+    <div><dt>Perplexity (perplessità)</dt><dd>È e elevato alla loss: quanti token equiprobabili il modello «sta considerando» in media. Perplexity 1 vuol dire certezza assoluta, 6 vuol dire tirare un dado a sei facce.</dd><span class="ex">metrica classica del pre-training</span></div>
+    <div><dt>Checkpoint</dt><dd>Un salvataggio dei pesi (e dello stato dell'ottimizzatore) a un certo step. Si riparte da lì se il training diverge o una macchina si guasta.</dd></div>
+    <div><dt>Train / validation</dt><dd>Si misura la loss anche su dati mai visti. Se la loss di training scende ma quella di validazione sale, c'è <b>overfitting</b> (sovradattamento): il modello memorizza invece di generalizzare.</dd></div>
+    <div><dt>Iperparametro</dt><dd>Un numero che non viene appreso ma scelto da chi allena: learning rate, batch size, numero di epoch, dimensione del vocabolario. Si distingue dai parametri, cioè i pesi.</dd></div>
+    <div><dt>Full fine-tuning vs LoRA</dt><dd>Il primo aggiorna tutti i pesi. LoRA (Low-Rank Adaptation, adattamento a basso rango) congela il modello e allena piccole matrici aggiuntive accanto a quelle originali: meno memoria, risultati spesso simili.</dd></div>
+    <div><dt>Attivazioni</dt><dd>I valori intermedi del forward pass (l'uscita di ogni strato per ogni token). Servono al backward pass e occupano memoria in proporzione a batch × context length.</dd></div>
+  </dl>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 2</p>
+    <p>Il training non «insegna» nulla in senso umano: ripete un ciclo di quattro mosse. Il testo stesso fornisce gli esempi (il token successivo è la soluzione); la cross-entropy riassume l'errore in un numero, −log della probabilità data al token giusto; la backpropagation calcola, con la regola della catena percorsa all'indietro, quanto quel numero dipende da ciascuno dei miliardi di pesi (il gradiente), partendo dalla formula p − y sui logit; e ogni peso si sposta di un passo η nel verso opposto. I dati sono serviti in batch di sequenze, ogni batch è uno step, un giro completo del dataset è un'epoch. Dopo milioni di step la struttura emerge nei pesi senza che nessuno l'abbia scritta.</p>
+    <p class="recap-sub">Concetti chiave</p>
+    <ul>
+      <li><strong>Auto-supervisione</strong> — gli esempi si ricavano dal testo: ogni token è il target dei precedenti</li>
+      <li><strong>Cross-entropy</strong> — loss = −log p(token corretto); e<sup>loss</sup> è la perplexity</li>
+      <li><strong>Gradiente</strong> — un numero per ogni peso: di quanto e in che verso cambierebbe la loss</li>
+      <li><strong>Backpropagation</strong> — regola della catena all'indietro, dalla loss verso l'input; costa ~2 forward pass; punto di partenza p − y</li>
+      <li><strong>Learning rate η e ottimizzatore</strong> — la lunghezza del passo; AdamW la adatta peso per peso</li>
+      <li><strong>Batch, step, epoch</strong> — il ritmo con cui i dati vengono serviti e i pesi aggiornati</li>
+      <li><strong>Memoria di training</strong> — ~16 byte per parametro più le attivazioni: molto più dell'inferenza</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi · dovresti saper rispondere senza rileggere</p>
+    <ol>
+      <li>Il modello dà al token corretto il 25%: quanto vale la loss? E la perplexity?</li>
+      <li>Perché il gradiente del logit del token corretto è sempre negativo, e quello degli altri sempre positivo?</li>
+      <li>Che cosa succederebbe con un learning rate dieci volte troppo grande? E dieci volte troppo piccolo?</li>
+      <li>Perché il training di un 7B non sta in una GPU da 24 GB, se il modello in inferenza ci sta?</li>
+    </ol>
+  </div>
 </section>
 
-<!-- ============ 0b. TRAINING DAL VIVO ============ -->
+<!-- ============ 3. TRAINING DAL VIVO ============ -->
 <section class="st" id="live">
   <div class="sec-head">
-    <span class="eyebrow">Capitolo 0b · Training dal vivo</span>
+    <span class="eyebrow">Capitolo 3 · Training dal vivo</span>
     <h2>Un training vero, dal dataset all'aggiornamento dei pesi</h2>
   </div>
   <div class="prose stack">
-    <p>Qui sotto c'è un modello linguistico minuscolo che si allena davvero nel tuo browser: dataset, tokenizzazione, sequenze, batch, forward pass, loss, gradienti e aggiornamento, con la matematica reale. Segui gli 8 passaggi con <b>Avanti</b>. Dopo il primo giro, il ciclo riparte dal passo 4 con il batch successivo; quando i batch finiscono, inizia una nuova epoch.</p>
-    <p class="note">Semplificazione onesta: un transformer usa tutto il contesto a sinistra, mentre questo modello guarda solo l'ultimo token (un <i>modello a bigrammi</i>). I suoi pesi sono una tabella 15 × 15: riga = token attuale, colonna = token successivo. Il flusso del training però è identico a quello di un LLM.</p>
+    <p class="q">I capitoli 1 e 2 descrivono il meccanismo a parole. Si può vederlo girare, con numeri veri, senza fidarsi?</p>
+    <p>Sì. Qui sotto c'è un modello linguistico minuscolo che si allena davvero nel tuo browser: dataset, tokenizzazione, sequenze, batch, forward pass, loss, gradienti e aggiornamento, con la matematica reale del capitolo 2 (la formula p − y per il gradiente, la regola w ← w − η · gradiente per l'aggiornamento). Segui gli 8 passaggi con <b>Avanti</b> e confronta ogni schermata con la sezione corrispondente: i passi 1–3 sono i dati, il 4 è il forward pass del capitolo 1, il 5 la loss, il 6 il backward pass, il 7 lo step. Dopo il primo giro, il ciclo riparte dal passo 4 con il batch successivo; quando i batch finiscono, inizia una nuova epoch.</p>
+    <p class="note">Semplificazione onesta: un transformer usa tutto il contesto a sinistra, mentre questo modello guarda solo l'ultimo token (un <i>modello a bigrammi</i>). I suoi pesi sono una tabella 15 × 15: riga = token attuale, colonna = token successivo, e il «forward pass» è leggere una riga e applicarle la softmax. Il flusso del training però è identico a quello di un LLM, e la loss, il gradiente e l'aggiornamento sono calcolati con le stesse formule.</p>
   </div>
 
   <div class="lab live">
@@ -691,12 +870,12 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="lab">
       <div class="lab-head"><h3>Loss per step</h3></div>
       <svg id="lvLoss" class="chart" viewBox="0 0 460 220" role="img" aria-label="Loss per step"></svg>
-      <p class="note">Ogni punto è la loss di un batch, prima dell'aggiornamento. La linea tratteggiata è log 15 ≈ 2,71, la loss di un modello che tira a indovinare tra 15 token.</p>
+      <p class="note">Ogni punto è la loss di un batch, prima dell'aggiornamento. La linea tratteggiata è log 15 ≈ 2,71, la loss di un modello che tira a indovinare tra 15 token. Nota che non arriva a zero: dopo «il» il dataset stesso è ambiguo.</p>
     </div>
     <div class="lab">
       <div class="lab-head"><h3>I 225 pesi del modello</h3></div>
       <div class="scroll-x"><svg id="lvHeat" class="chart heat" viewBox="0 0 400 400" role="img" aria-label="Matrice dei pesi"></svg></div>
-      <p class="note">Riga = token attuale, colonna = token successivo. <span style="color:var(--accent)">Verde</span>: peso positivo (successione favorita). <span style="color:var(--bad)">Rosso</span>: peso negativo. Passa sopra una cella per il valore.</p>
+      <p class="note">Riga = token attuale, colonna = token successivo. <span style="color:var(--accent)">Verde</span>: peso positivo (successione favorita). <span style="color:var(--bad)">Rosso</span>: peso negativo. Passa sopra una cella per il valore. Sono le 225 «manopole» del capitolo 1.</p>
     </div>
   </div>
 
@@ -708,25 +887,44 @@ table.mt tr.dim td{color:var(--muted)}
     </div>
     <div class="bars" id="lvTryBars"></div>
     <div class="sample" id="lvGenOut">Allena il modello e poi genera: all'inizio le frasi sono casuali, dopo qualche epoch somigliano a quelle del dataset.</div>
+    <p class="note">La generazione è autoregressiva come in un LLM: si estrae un token secondo le probabilità, lo si usa come nuovo input, e si ripete fino a <span class="k">&lt;eos&gt;</span>. Dopo 20 epoch il modello produce frasi del dataset e qualche ricombinazione plausibile («il cane dorme sul divano»): ha imparato le transizioni, non le frasi. Un LLM fa la stessa cosa con un contesto di migliaia di token invece di uno.</p>
   </div>
+
+  <div class="bridge"><span class="arrow">→ Parte II</span><span>Il meccanismo è tutto qui. Quello che cambia da una fase di addestramento all'altra è soltanto <b>da dove arrivano gli esempi</b> e <b>come si calcola l'errore</b>: pre-training, SFT, DPO, RL e distillazione sono cinque risposte diverse a queste due domande, ciascuna nata da un limite della precedente.</span></div>
 </section>
 
-<!-- ============ 1. PRE-TRAINING ============ -->
+<div class="part">
+  <p class="part-label">Parte II</p>
+  <h2 class="part-title" id="toc-ii">Le fasi: cinque modi di scegliere gli esempi e misurare l'errore</h2>
+</div>
+<div class="prose stack" style="margin-bottom:28px">
+  <p>Da qui in poi seguiremo un solo prompt, <b>«Qual è la capitale della Francia?»</b>, e guarderemo che cosa risponde il modello dopo ogni fase. Per ciascuna fase le domande sono sempre le stesse quattro: quale problema lascia aperto la fase precedente; da dove arrivano gli esempi e com'è fatta una riga del dataset; come si calcola l'errore (la loss) e quindi che cosa viene rinforzato; quale limite resta, che la fase successiva dovrà affrontare.</p>
+</div>
+
+<!-- ============ 4. PRE-TRAINING ============ -->
 <section class="st" id="pre">
   <div class="sec-head">
     <span class="eyebrow">Fase 1 · Pre-training</span>
     <h2>Prevedere il token successivo, trilioni di volte</h2>
   </div>
   <div class="prose stack">
-    <p>Il modello legge testo grezzo (web, codice, libri) e per ogni posizione deve indovinare il token successivo. La loss è la <i>cross-entropy</i> (entropia incrociata): quanto il modello è "sorpreso" dal token vero. Minimizzandola su trilioni di esempi emergono grammatica, fatti, stile e i primi embrioni di ragionamento.</p>
-    <p><b>Il warm-up</b> riguarda il <i>learning rate</i> (tasso di apprendimento, cioè quanto è grande ogni passo di aggiornamento dei pesi). All'inizio i pesi sono casuali, i gradienti enormi e le statistiche dell'ottimizzatore Adam (Adaptive Moment Estimation) non ancora stabilizzate: un passo pieno subito fa "esplodere" la loss. Per questo il learning rate parte da circa zero e sale linearmente per qualche migliaio di step, poi decade. È come scaldare un motore a freddo prima di dare gas.</p>
+    <p class="q">Perché servono trilioni di token di testo qualsiasi per un modello che alla fine deve «rispondere alle domande»? E che cosa esce, esattamente, da questa fase?</p>
+    <p><b>Il problema di partenza.</b> Un modello con pesi casuali non sa nulla: né grammatica, né fatti, né che cosa sia una domanda. Insegnargli tutto questo con esempi scritti a mano è impossibile per quantità: la conoscenza implicita in una lingua (concordanze, idiomi, fatti, modi di argomentare, convenzioni del codice) è troppo vasta per essere elencata. Il pre-training aggira il problema con l'auto-supervisione del capitolo 2: il testo esistente è già pieno di esempi, basta usare ogni token come obiettivo dei precedenti.</p>
+    <p><b>I dati.</b> Testo grezzo, nella forma vista nel capitolo 2: una riga JSONL per documento, nessuna etichetta, una miscela di web, codice, libri, articoli. La scala è il punto: Llama 2 è stato pre-addestrato su circa 2.000 miliardi di token, Llama 3 su 15.000 miliardi. Una regola empirica (lo studio «Chinchilla», 2022) suggerisce che, a parità di calcolo, convenga circa 20 token per parametro; i modelli recenti ne usano molti di più, perché un modello piccolo allenato a lungo costa meno da <i>servire</i>, e il costo di inferenza oggi pesa più di quello di training.</p>
+    <p><b>La loss.</b> Esattamente la cross-entropy del capitolo 2, su <i>ogni</i> token di <i>ogni</i> documento: il segnale più denso che esista, una correzione per ogni posizione. Minimizzarla su trilioni di esempi costringe il modello a comprimere nel modo più efficiente possibile le regolarità del testo, e le regolarità del testo sono grammatica, fatti, stile, e i primi embrioni di ragionamento (per prevedere il token dopo «quindi 17 × 23 =» conviene saper moltiplicare). Nessuna di queste cose è un obiettivo esplicito: sono tutte scorciatoie per prevedere meglio.</p>
+    <p><b>Il costo.</b> Con la formula del capitolo 2 (6 operazioni per parametro per token): 6 × 7 miliardi × 2.000 miliardi ≈ 8 × 10²² operazioni, circa 184.000 ore di GPU A100 per il solo Llama 2 7B; i modelli di frontiera sono centinaia di volte più costosi. È la fase che si fa <b>una volta</b>, e da cui tutte le altre partono: le fasi successive costano in totale pochi punti percentuali di questa.</p>
   </div>
 
+  <h3 class="anchor" id="pre-lr">Il learning rate nel tempo: warm-up e decadimento</h3>
+  <div class="prose stack">
+    <p class="q">Nel capitolo 2 il learning rate era un numero. Perché nei training veri cambia durante il training?</p>
+    <p>Per due motivi opposti, all'inizio e alla fine. <b>All'inizio</b> i pesi sono casuali, i gradienti sono enormi e le medie mobili di AdamW non si sono ancora stabilizzate: un passo pieno fin dal primo step spinge i pesi in direzioni sbagliate e la loss «esplode», talvolta fino a produrre NaN (Not a Number) e a dover ripartire da un checkpoint. Per questo il learning rate parte da circa zero e sale linearmente per qualche centinaio o migliaio di step: il <b>warm-up</b>. È come scaldare un motore a freddo prima di dare gas. <b>Alla fine</b> succede il contrario: con il passo pieno il modello continua a oscillare intorno al minimo senza assestarsi; riducendo η (decadimento coseno, oppure lineare) i pesi si posano nel punto migliore della valle. Llama 2, per esempio: picco 3 × 10⁻⁴, warm-up di 2.000 step, decadimento coseno fino al 10% del picco, batch da 4 milioni di token.</p>
+  </div>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: schedule del learning rate</h3><span class="tag">simulazione illustrativa</span></div>
+    <div class="lab-head"><h3>Laboratorio: schedule del learning rate</h3><span class="tag">curve qualitative</span></div>
     <div class="controls">
       <div class="ctl"><label for="wu">Warm-up <output id="wuo"></output></label><input id="wu" type="range" min="0" max="10" step="0.5" value="2"></div>
-      <div class="ctl" style="flex:0 1 auto"><label>Schedule dopo il warm-up</label>
+      <div class="ctl" style="flex:0 1 auto"><label>Andamento dopo il warm-up</label>
         <div class="seg" id="sched" role="group" aria-label="Schedule">
           <button aria-pressed="true" data-v="cos">Cosine</button><button aria-pressed="false" data-v="wsd">WSD</button><button aria-pressed="false" data-v="const">Costante</button>
         </div>
@@ -737,22 +935,47 @@ table.mt tr.dim td{color:var(--muted)}
       <div><div class="diag-title">Loss di training</div><svg id="lossChart" class="chart" viewBox="0 0 460 220" role="img" aria-label="Curva della loss"></svg></div>
     </div>
     <p class="callout" id="lrMsg"></p>
-    <p class="note">Prova a portare il warm-up a 0%: nei primi step la loss mostra picchi (spike) di instabilità. Con WSD (Warmup-Stable-Decay, riscaldamento-stabile-decadimento) la loss resta più alta nella fase piatta e cala di colpo nel decadimento finale. Il vantaggio pratico è che puoi prolungare la fase stabile e fermarti quando vuoi.</p>
+    <p class="note">Le curve del learning rate sono quelle reali (lineare, coseno, WSD); la curva della loss è uno schema qualitativo che riproduce le forme osservate nei training veri, non il risultato di un modello. Prova a portare il warm-up a 0%: nei primi step la loss mostra picchi (spike) di instabilità. Con WSD (Warmup-Stable-Decay, riscaldamento-stabile-decadimento) la loss resta più alta nella fase piatta e cala di colpo nel decadimento finale; il vantaggio pratico è che puoi prolungare la fase stabile e decidere quando fermarti.</p>
   </div>
 
-  <p class="prose"><b>Risultato:</b> un <i>base model</i>. Se gli scrivi "Qual è la capitale della Francia?" potrebbe rispondere con altre tre domande, perché sul web quella frase compare spesso dentro un quiz. Sa la risposta, ma non sa che tu la vuoi.</p>
+  <h3 class="anchor" id="pre-out">Che cosa esce: un base model</h3>
+  <div class="prose stack">
+    <p>Il risultato è un <b>base model</b>: un modello che <i>continua</i> qualunque testo nel modo più probabile secondo il corpus. Sa moltissimo, ma non sa che cosa tu voglia da lui, perché non è mai stato addestrato su una «richiesta»: solo su testo che prosegue.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Il nostro prompt dopo il pre-training</h3></div>
+    <div class="sample" style="font-family:var(--sans)"><b>Prompt:</b> «Qual è la capitale della Francia?»<br><b>Continuazione del base model:</b> «Qual è la capitale della Germania? Qual è la capitale della Spagna? Qual è la capitale dell'Italia? Risposte a pagina 12.»</div>
+    <p class="note">Non è un errore: sul web una domanda del genere compare spessissimo dentro un quiz, seguita da altre domande. Il modello ha fatto la cosa per cui è stato ottimizzato, prevedere la continuazione più probabile. <b>Sa</b> la risposta (se gli scrivi «La capitale della Francia è» completa con «Parigi»), ma non sa che tu la vuoi. La conoscenza c'è; manca il comportamento.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Due cose che si vedono in produzione.</b> La <i>mid-training</i> o <i>annealing</i>: nell'ultima parte del pre-training si alza la quota di dati curati (matematica, codice, testi di qualità) mentre il learning rate decade, e il modello ne ricava un guadagno sproporzionato. E la <i>valutazione</i>: un base model si misura con la loss su un testo di validazione (perplexity) e con batterie di domande a scelta multipla completate come testo, non conversando con lui.</p>
+  </div>
+  <div class="bridge"><span class="arrow">→ fase 2</span><span><b>Il limite:</b> il base model continua il testo, non risponde. Per trasformarlo in un assistente serve mostrargli come si comporta un assistente: esempi di richieste seguite da risposte, scritti apposta. È la fase successiva.</span></div>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · fase 1</p>
+    <ul>
+      <li><strong>Problema</strong> — pesi casuali: il modello non sa nulla, e la conoscenza di una lingua è troppo vasta per essere scritta a mano</li>
+      <li><strong>Dati</strong> — trilioni di token di testo grezzo, nessuna etichetta; una riga JSONL per documento</li>
+      <li><strong>Loss</strong> — cross-entropy su ogni token: il segnale più denso possibile</li>
+      <li><strong>Dettagli pratici</strong> — warm-up e decadimento del learning rate; costo ≈ 6 × parametri × token; mid-training con dati curati</li>
+      <li><strong>Risultato</strong> — un base model che continua il testo: sa, ma non risponde</li>
+    </ul>
+  </div>
 </section>
 
-<!-- ============ 2. SFT ============ -->
+<!-- ============ 5. SFT ============ -->
 <section class="st" id="sft">
   <div class="sec-head">
     <span class="eyebrow">Fase 2 · SFT (Supervised Fine-Tuning, fine-tuning supervisionato)</span>
     <h2>Il behavior shift: stesso sapere, altro comportamento</h2>
   </div>
   <div class="prose stack">
-    <p>Si addestra su decine o centinaia di migliaia di coppie <i>prompt → risposta ideale</i>, scritte da persone o da un modello più forte. La loss è sempre next-token prediction, con una differenza: si calcola <b>solo sui token della risposta</b>. Il prompt fa da contesto ma non viene "imparato".</p>
+    <p class="q">Il base model sa che la capitale è Parigi ma risponde con altre domande. Come gli si insegna a <i>rispondere</i>, senza riaddestrarlo da capo?</p>
+    <p><b>Il problema.</b> Il comportamento «rispondi alla richiesta» non è nel corpus di pre-training, o lo è solo di rado e mescolato a tutto il resto. Ma il meccanismo del capitolo 2 non chiede che i dati siano testo trovato: chiede solo coppie contesto → token successivo. Se si costruiscono testi in cui a una richiesta segue una risposta ben fatta, e li si dà in pasto allo stesso ciclo di training, il modello imparerà a continuare una richiesta con una risposta. È un cambio di comportamento (<i>behavior shift</i>), non di conoscenza: la conoscenza è già nei pesi, si sta solo insegnando al modello in che forma tirarla fuori.</p>
+    <p><b>I dati.</b> Conversazioni scritte apposta: una richiesta e la risposta che vorremmo, redatte da annotatori umani o generate da un modello più forte e filtrate. Ogni esempio viene formattato con un <b>chat template</b>: token speciali che delimitano i ruoli (<span class="k">&lt;utente&gt;</span>, <span class="k">&lt;assistente&gt;</span>, <span class="k">&lt;fine&gt;</span>), così il modello impara anche <i>dove</i> finisce la richiesta e dove deve fermarsi. La quantità è sorprendentemente piccola rispetto al pre-training: da qualche migliaio a qualche centinaio di migliaia di esempi (Llama 2 ne ha usati circa 27.000, scelti per qualità; lo studio LIMA ha mostrato risultati notevoli con 1.000). Conta la qualità: il modello imita <i>esattamente</i> quello che vede, errori e stile compresi.</p>
+    <p><b>La loss.</b> Sempre la cross-entropy sul token successivo, con una sola modifica: si calcola <b>solo sui token della risposta</b>. I token della richiesta entrano nel forward pass come contesto, ma la loro previsione non viene valutata (si dice che sono <i>mascherati</i>). Il motivo: non vogliamo che il modello impari a generare richieste, e le richieste scritte da utenti non sono un buon testo da imitare. Il learning rate è molto più basso che nel pre-training (10⁻⁵ contro 10⁻⁴), per 1–3 epoch: pochi aggiustamenti, perché si vuole spostare il comportamento senza cancellare il sapere.</p>
   </div>
-
   <div class="lab">
     <div class="lab-head"><h3>Dove si calcola la loss</h3></div>
     <div class="tokens" id="maskStrip"></div>
@@ -760,10 +983,10 @@ table.mt tr.dim td{color:var(--muted)}
       <span class="row" style="gap:6px"><span class="tok prompt">tok</span> prompt: nessuna loss (maschera)</span>
       <span class="row" style="gap:6px"><span class="tok resp">tok</span> risposta: loss di cross-entropy</span>
     </div>
+    <p class="note">Nel forward pass tutti i 17 token vengono elaborati e per ciascuno esce una distribuzione sul token successivo; nel calcolo della loss si fa la media solo sulle 8 posizioni della risposta. Il token <span class="k">&lt;fine&gt;</span> è incluso: il modello deve imparare anche a smettere.</p>
   </div>
-
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: come si sposta la distribuzione dell'output</h3><span class="tag">valori illustrativi</span></div>
+    <div class="lab-head"><h3>Laboratorio: come si sposta la distribuzione dell'output</h3><span class="tag">schema qualitativo</span></div>
     <div class="ctl"><label for="sftp">Avanzamento SFT <output id="sftpo"></output></label><input id="sftp" type="range" min="0" max="100" value="0"></div>
     <div class="grid2">
       <div class="stack">
@@ -775,30 +998,51 @@ table.mt tr.dim td{color:var(--muted)}
         <div class="sample" id="sftSample"></div>
       </div>
     </div>
-    <p class="note">Il cold start dei modelli di ragionamento avviene qui: si aggiungono esempi con catene di ragionamento (CoT, Chain-of-Thought) per insegnare il formato "prima penso, poi rispondo". Il vero miglioramento del ragionamento arriva dopo, con l'RL (Reinforcement Learning, apprendimento per rinforzo).</p>
-  </div>
-
-  <p class="prose callout"><b>Limite dell'SFT:</b> il modello imita e basta. Vede solo risposte "giuste", quindi non impara cosa rende una risposta migliore di un'altra, e non può superare la qualità di chi ha scritto i dati.</p>
-</section>
-
-<!-- ============ 3. DPO ============ -->
-<section class="st" id="dpo">
-  <div class="sec-head">
-    <span class="eyebrow">Fase 3 · Policy optimization · DPO (Direct Preference Optimization, ottimizzazione diretta delle preferenze)</span>
-    <h2>Imparare dal confronto, senza reward model</h2>
+    <p class="note">Le percentuali sono uno schema qualitativo, non misure: mostrano il tipo di spostamento che l'SFT produce. All'inizio la massa di probabilità sta sulle continuazioni «da web» (quiz, articoli, forum); dopo poche migliaia di esempi si sposta sulla risposta diretta. La conoscenza (Parigi) non cambia: cambia la forma in cui viene emessa.</p>
   </div>
   <div class="prose stack">
-    <p>Invece di una sola risposta ideale, il dataset contiene <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). "Policy" è il nome del modello nel linguaggio dell'RL: la regola che, dato un contesto, sceglie l'azione (il token successivo).</p>
+    <p><b>Due usi che tornano.</b> Il <i>cold start</i> dei modelli di ragionamento avviene qui: si aggiungono esempi con catene di ragionamento esplicite (CoT, Chain-of-Thought) per insegnare il formato «prima penso, poi rispondo», così che la fase di RL abbia da dove partire. E l'SFT è anche il modo in cui si fa la <i>distillazione classica</i>: le risposte le scrive un modello grande, e quello piccolo le imita (ne riparleremo nella fase 5).</p>
+    <p><b>Il limite.</b> Il modello imita e basta. Vede una sola risposta «giusta» per richiesta, quindi non impara che cosa renda una risposta <i>migliore</i> di un'altra, né può superare la qualità di chi ha scritto i dati. E c'è un rischio sottile: se gli esempi di SFT contengono fatti che il modello non aveva nel pre-training, impara che «rispondere con sicurezza anche quando non si sa» è il comportamento atteso, cioè impara ad allucinare. Per questo i dati di SFT devono insegnare la forma, non nuova conoscenza.</p>
   </div>
-
   <div class="lab">
-    <div class="lab-head"><h3>Perché "direct": cosa elimina rispetto a RLHF</h3></div>
+    <div class="lab-head"><h3>Il nostro prompt dopo l'SFT</h3></div>
+    <div class="sample" style="font-family:var(--sans)"><b>Prompt:</b> «Qual è la capitale della Francia?»<br><b>Risposta:</b> «La capitale della Francia è Parigi.»</div>
+    <p class="note">Risponde. Ma risponderebbe così anche se la domanda fosse ambigua, o se la risposta migliore fosse più lunga, o più breve, o chiedesse un chiarimento: non ha mai visto un confronto tra risposte, solo risposte.</p>
+  </div>
+  <div class="bridge"><span class="arrow">→ fase 3</span><span><b>Il limite:</b> per andare oltre l'imitazione serve un segnale che dica non «ecco la risposta giusta» ma «questa è meglio di quella». È molto più facile da raccogliere (confrontare è più facile che scrivere) e porta informazione nuova: è la fase delle preferenze.</span></div>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · fase 2</p>
+    <ul>
+      <li><strong>Problema</strong> — il base model continua, non risponde: manca il comportamento, non il sapere</li>
+      <li><strong>Dati</strong> — conversazioni scritte apposta, formattate con un chat template; poche migliaia o centinaia di migliaia, di alta qualità</li>
+      <li><strong>Loss</strong> — cross-entropy solo sui token della risposta (il prompt è mascherato); learning rate basso, poche epoch</li>
+      <li><strong>Risultato</strong> — un assistente che imita le risposte viste; cold start del ragionamento</li>
+      <li><strong>Limite</strong> — nessuna nozione di «meglio»; non può superare i dati; rischio di imparare a inventare</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 6. PREFERENZE / DPO ============ -->
+<section class="st" id="dpo">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 3 · Preferenze · RLHF e DPO (Direct Preference Optimization, ottimizzazione diretta delle preferenze)</span>
+    <h2>Imparare dal confronto, senza scrivere la risposta giusta</h2>
+  </div>
+  <div class="prose stack">
+    <p class="q">«Parigi.» e «La capitale della Francia è Parigi; è anche la città più popolosa del Paese, con circa 2 milioni di abitanti.» sono entrambe corrette. Quale preferiscono le persone? E come si insegna una <i>preferenza</i>, che non è un token da prevedere?</p>
+    <p><b>Il problema.</b> Molte qualità di una risposta (utilità, tono, lunghezza giusta, prudenza, sicurezza) non hanno una «risposta corretta» da imitare: sono relative. Ma chiedere a una persona quale di due risposte sia migliore è facile, veloce e affidabile, molto più che chiederle di scrivere la risposta ideale. Il dataset diventa quindi fatto di <b>coppie</b>: per lo stesso prompt una risposta <span style="color:var(--good)">preferita</span> (<i>chosen</i>) e una <span style="color:var(--bad)">scartata</span> (<i>rejected</i>). Entrambe sono di solito generate dal modello stesso dopo l'SFT; il giudizio viene da annotatori umani o da un modello giudice (in quel caso si parla di RLAIF, Reinforcement Learning from AI Feedback).</p>
+    <p><b>La strada storica: RLHF.</b> Il primo metodo (InstructGPT, 2022) usava le coppie in due tempi. Prima si addestra un <b>reward model</b>, una copia del modello con in cima un solo numero in uscita, a dare punteggio più alto alla risposta preferita (loss di classificazione sulla coppia). Poi si usa l'apprendimento per rinforzo: il modello genera risposte, il reward model le valuta, e un algoritmo chiamato PPO (Proximal Policy Optimization) alza la probabilità delle risposte ben valutate, tenendo il modello vicino a quello di partenza con una penalità (la divergenza KL, spiegata sotto). Funziona, ma richiede quattro modelli in memoria, una generazione continua durante il training e una messa a punto notoriamente fragile.</p>
+    <p><b>DPO: la scorciatoia.</b> Nel 2023 un articolo ha mostrato che il giro si può saltare. L'obiettivo di RLHF, scritto per esteso, ha una soluzione in forma chiusa: il modello ottimo è quello per cui <span class="k">β · log( π(risposta) / π<sub>ref</sub>(risposta) )</span> si comporta da reward. In parole: quanto il modello nuovo ha <i>alzato</i> la probabilità di una risposta rispetto al modello di riferimento (quello uscito dall'SFT, congelato) è già, implicitamente, il punteggio che le assegna. Allora si può addestrare direttamente il modello perché quel «reward implicito» sia più alto per la chosen che per la rejected, con una semplice loss di classificazione sulla coppia: niente reward model, niente generazione durante il training, niente RL.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Perché «direct»: che cosa elimina rispetto a RLHF</h3></div>
     <div class="stack">
-      <div class="diag-title">RLHF (Reinforcement Learning from Human Feedback) con PPO (Proximal Policy Optimization)</div>
+      <div class="diag-title">RLHF (Reinforcement Learning from Human Feedback) con PPO</div>
       <div class="diag">
         <span class="box">Coppie di preferenza</span><span class="arr">→</span>
         <span class="box">Addestra un reward model</span><span class="arr">→</span>
-        <span class="box">Genera risposte</span><span class="arr">→</span>
+        <span class="box">Il modello genera risposte</span><span class="arr">→</span>
         <span class="box">Il reward model le valuta</span><span class="arr">→</span>
         <span class="box">Aggiornamento PPO + critic</span><span class="arr">↺</span>
       </div>
@@ -809,10 +1053,12 @@ table.mt tr.dim td{color:var(--muted)}
         <span class="box dead">generazione online</span><span class="arr">→</span>
         <span class="box hot">Una loss di classificazione sulle coppie</span>
       </div>
-      <p class="note">DPO dimostra che il modello stesso, confrontato con un modello di riferimento congelato (quello uscito dall'SFT), contiene già un reward implicito. Non servono il reward model né l'RL: basta una loss supervisionata, stabile ed economica.</p>
+      <p class="note">DPO dimostra che il modello stesso, confrontato con il riferimento congelato, contiene già un reward implicito. Basta una loss supervisionata, stabile ed economica, dello stesso tipo di quelle dei capitoli precedenti: forward pass su chosen e rejected (con il modello e con il riferimento), loss, backward, step.</p>
     </div>
   </div>
-
+  <div class="prose stack">
+    <p><b>La loss, letta pezzo per pezzo.</b> Per ogni coppia si calcola, con il modello e con il riferimento, la log-probabilità dell'intera risposta chosen e dell'intera rejected (somma dei log p dei suoi token, cioè la cross-entropy con il segno cambiato). Δ<sub>c</sub> = log π(chosen) − log π<sub>ref</sub>(chosen) dice quanto il modello ha alzato la chosen rispetto a com'era; Δ<sub>r</sub> lo stesso per la rejected. Il <b>margine</b> è β · (Δ<sub>c</sub> − Δ<sub>r</sub>), e la loss è −log σ(margine): piccola se il margine è grande e positivo, grande se il modello preferisce la rejected. Il gradiente è pesato da σ(−margine): le coppie già separate contano poco, quelle sbagliate contano molto. β (tipicamente 0,1–0,5) regola quanto è «costoso» allontanarsi dal riferimento: più è alto, più basta un piccolo Δ per ottenere lo stesso margine, e meno il modello si sposta.</p>
+  </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: la loss di DPO</h3><span class="tag">formula reale</span></div>
     <div class="grid2">
@@ -836,23 +1082,58 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="formula">L = −log σ( β·[log π(y<sub>c</sub>)/π<sub>ref</sub>(y<sub>c</sub>)] − β·[log π(y<sub>r</sub>)/π<sub>ref</sub>(y<sub>r</sub>)] )</div>
     <p class="callout" id="dpoMsg"></p>
   </div>
-  <p class="prose"><b>Da ricordare:</b> DPO è <b>offline</b>, cioè i dati sono fissi e il modello non genera nulla durante il training. È ottimo per ciò che è soggettivo: stile, utilità, tono, sicurezza.</p>
-</section>
-
-<!-- ============ 4. GRPO + RLVR ============ -->
-<section class="st" id="grpo">
-  <div class="sec-head">
-    <span class="eyebrow">Fase 4 · GRPO (Group Relative Policy Optimization) + RLVR (Reinforcement Learning with Verifiable Rewards)</span>
-    <h2>Il modello esplora, il verificatore giudica</h2>
+  <dl class="gloss">
+    <div><dt>Base model / modello di riferimento</dt><dd>Il base model esce dal pre-training. Nel post-training si tiene una copia congelata del modello di partenza (<i>reference</i>, di solito quello uscito dall'SFT) per misurare quanto il modello nuovo se ne allontana.</dd></div>
+    <div><dt>Divergenza KL</dt><dd>La KL (Kullback-Leibler) misura quanto due distribuzioni di probabilità differiscono. Nel post-training fa da «guinzaglio»: impedisce al modello di allontanarsi troppo dal riferimento, cioè di dimenticare ciò che sapeva o di trovare scorciatoie assurde che piacciono al reward.</dd></div>
+    <div><dt>Reward model</dt><dd>Un modello addestrato sulle coppie di preferenza a dare un punteggio a una risposta. In RLHF è un modello separato; in DPO è implicito nel modello stesso.</dd></div>
+  </dl>
+  <div class="lab">
+    <div class="lab-head"><h3>Il nostro prompt dopo le preferenze</h3></div>
+    <div class="sample" style="font-family:var(--sans)"><b>Prompt:</b> «Qual è la capitale della Francia?»<br><b>Risposta:</b> «La capitale della Francia è Parigi. È anche la città più grande del Paese e ne è la capitale dal X secolo, salvo brevi interruzioni. Vuoi sapere qualcos'altro sulla Francia?»</div>
+    <p class="note">Il modello ha imparato che gli annotatori preferivano risposte complete ma non prolisse, cortesi, con un'apertura al seguito. Nessuno ha scritto <i>questa</i> risposta: è emersa dal confronto tra migliaia di coppie. Nota anche il rischio tipico: se gli annotatori preferiscono sistematicamente la risposta più lunga, il modello impara a essere lungo (<i>length bias</i>), anche quando non serve.</p>
   </div>
   <div class="prose stack">
-    <p>Sono due idee diverse che lavorano insieme:</p>
-    <p><b>RLVR dice <i>da dove</i> viene il reward.</b> Non c'è un giudice umano né un reward model appreso, ma un <b>verificatore automatico</b>. Per la matematica controlla se il risultato coincide con la soluzione, per il codice se i test unitari passano, per un JSON se rispetta lo schema. Il reward è oggettivo e difficile da "truccare" (reward hacking).</p>
-    <p><b>GRPO dice <i>come</i> si ottimizza.</b> Per ogni prompt il modello genera un <b>gruppo</b> di risposte. Il vantaggio di ciascuna è il suo reward confrontato con la media del gruppo: sopra la media viene rinforzata, sotto viene scoraggiata.</p>
+    <p><b>Il limite.</b> DPO è <b>offline</b>: le coppie sono fisse, e il modello non genera nulla durante il training; dopo pochi step le risposte che produrrebbe non sono più quelle del dataset, e il segnale si allontana da ciò che fa davvero. Ed è <b>soggettivo per costruzione</b>: ottimo per stile, utilità, tono e sicurezza, ma per i compiti in cui esiste una risposta <i>verificabile</i> (matematica, codice, formati) il giudizio umano è lento, costoso e meno affidabile di un controllo automatico. Soprattutto, imitare o preferire non insegna a <i>cercare</i>: per problemi che richiedono tentativi, nessun dataset statico contiene i tentativi giusti.</p>
   </div>
+  <div class="bridge"><span class="arrow">→ fase 4</span><span><b>Il limite:</b> servono un giudice che non si stanchi e non si sbagli, e un modello che produca lui stesso i tentativi da giudicare. È l'apprendimento per rinforzo con reward verificabili.</span></div>
 
+  <div class="recap">
+    <p class="recap-title">In sintesi · fase 3</p>
+    <ul>
+      <li><strong>Problema</strong> — molte qualità sono relative: non esiste la risposta da imitare, ma si può dire quale di due è migliore</li>
+      <li><strong>Dati</strong> — coppie prompt / chosen / rejected, giudicate da persone o da un modello</li>
+      <li><strong>RLHF</strong> — reward model + PPO: funziona ma è costoso e fragile</li>
+      <li><strong>DPO</strong> — il reward è implicito in β·log(π/π<sub>ref</sub>); loss = −log σ(margine) sulla coppia; nessun reward model, nessuna generazione</li>
+      <li><strong>Limite</strong> — offline, soggettivo, soggetto al length bias; non insegna a cercare</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 7. RL CON VERIFICATORE ============ -->
+<section class="st" id="grpo">
+  <div class="sec-head">
+    <span class="eyebrow">Fase 4 · RLVR (Reinforcement Learning with Verifiable Rewards) con GRPO (Group Relative Policy Optimization)</span>
+    <h2>Il modello tenta, il verificatore giudica</h2>
+  </div>
+  <div class="prose stack">
+    <p class="q">Per «Quanto fa 17 × 23?» non serve chiedere a nessuno quale risposta sia migliore: 391 è giusto e il resto è sbagliato. Si può usare questo fatto per far <i>migliorare</i> il modello, invece di fargli imitare soluzioni scritte da altri?</p>
+    <p><b>Il problema.</b> Nei compiti con una risposta verificabile (matematica, codice con test, formati strutturati, giochi) l'imitazione ha un tetto: il modello può al massimo diventare bravo quanto le soluzioni che vede, e le soluzioni scritte da persone non contengono i passi che <i>a lui</i> servirebbero (le sue esitazioni, i suoi controlli, i suoi errori tipici). Per superare il tetto bisogna lasciare che sia il modello a produrre i tentativi, e rinforzare quelli che funzionano. È l'apprendimento per rinforzo (RL, Reinforcement Learning), che qui ha un vocabolario suo.</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Policy</dt><dd>Nel linguaggio dell'RL è il modello che si sta allenando, visto come regola di decisione: dato un contesto, «sceglie l'azione», cioè il token successivo.</dd></div>
+    <div><dt>Rollout</dt><dd>Una risposta completa generata dal modello durante il training, token per token, da valutare.</dd></div>
+    <div><dt>Reward</dt><dd>Un punteggio assegnato a un rollout intero: da un umano, da un reward model o, qui, da un verificatore automatico. Un solo numero per tutta la sequenza.</dd></div>
+    <div><dt>Vantaggio (advantage)</dt><dd>Quanto il reward di un rollout è migliore o peggiore di quanto ci si aspettava: è ciò che decide se rinforzarlo o scoraggiarlo.</dd></div>
+    <div><dt>On-policy vs off-policy</dt><dd>On-policy: si impara da testo generato dal modello stesso, adesso. Off-policy: da testo scritto da altri (persone, un altro modello, una versione vecchia). SFT e DPO sono off-policy; l'RL è on-policy.</dd></div>
+    <div><dt>Online vs offline</dt><dd>Online: il modello genera nuovi esempi durante il training (RL, OPD). Offline: il dataset è fisso fin dall'inizio (SFT, DPO).</dd></div>
+  </dl>
+  <div class="prose stack">
+    <p><b>I dati.</b> Il dataset contiene solo il problema e il modo di verificarlo: una domanda con la risposta finale attesa, oppure un esercizio di programmazione con i suoi test. Nessuna soluzione scritta per esteso. Le soluzioni le genera il modello, durante il training, e un programma (il <b>verificatore</b>) le controlla: per la matematica confronta il risultato con quello atteso, per il codice esegue i test, per un JSON controlla lo schema. Da qui il nome RLVR: il reward è <i>verificabile</i>, oggettivo, e per questo difficile da «truccare» (il <i>reward hacking</i>, in cui il modello trova un modo di ottenere punti senza risolvere il problema, resta possibile se il verificatore è lasco: per esempio un test troppo debole).</p>
+    <p><b>Come si trasforma un reward in un gradiente.</b> Qui c'è il passaggio nuovo rispetto a tutto il resto del documento. La loss dei capitoli precedenti confrontava la distribuzione del modello con un token obiettivo; qui non c'è un token obiettivo, c'è un numero alla fine della sequenza. L'idea del <i>policy gradient</i> è semplice: per ogni rollout, si calcola la log-probabilità che il modello ha dato ai propri token, e la si <b>moltiplica per il vantaggio</b>. Se il vantaggio è positivo, il gradiente spinge ad alzare la probabilità di quei token (come se fossero il target di un SFT); se è negativo, ad abbassarla. L'aggiornamento è la stessa mossa w ← w − η · gradiente di sempre: cambia solo come si costruisce il segnale.</p>
+    <p><b>GRPO: il vantaggio si calcola dentro il gruppo.</b> Perché serve «quanto ci si aspettava»? Se un problema è facile e il modello lo risolve 9 volte su 10, il decimo tentativo sbagliato è informativo, i nove giusti quasi no; se è difficile e lo risolve 1 volta su 10, è quel tentativo giusto a contare. Nel PPO classico questa aspettativa la stima un secondo modello (il <i>critic</i>), grande quanto la policy. GRPO (2024) la sostituisce con una media: per ogni prompt il modello genera un <b>gruppo</b> di N risposte, e il vantaggio di ciascuna è il suo reward meno la media del gruppo, diviso per la deviazione standard. Sopra la media si rinforza, sotto si scoraggia, e se tutte hanno lo stesso reward (tutte giuste o tutte sbagliate) il vantaggio è zero per tutte e quel gruppo non insegna nulla. Si aggiunge una penalità KL verso il modello di riferimento, per non allontanarsi troppo, e un <i>clipping</i> che limita quanto un singolo step può cambiare le probabilità.</p>
+  </div>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: un passo di GRPO</h3><span class="tag">simulazione</span></div>
+    <div class="lab-head"><h3>Laboratorio: un passo di GRPO</h3><span class="tag">vantaggi reali · dinamica semplificata</span></div>
     <div class="controls">
       <div class="ctl"><label for="gn">Dimensione del gruppo N <output id="gno"></output></label><input id="gn" type="range" min="2" max="16" value="8"></div>
       <div class="ctl" style="flex:0 1 auto"><label>Difficoltà del prompt (probabilità iniziale di risposta giusta)</label>
@@ -873,37 +1154,60 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="gMsg"></p>
     <div><div class="diag-title">Probabilità di risposta corretta nel tempo</div><svg id="gChart" class="chart" style="max-width:640px" viewBox="0 0 460 180" role="img" aria-label="Accuratezza per iterazione"></svg></div>
     <div class="formula">A<sub>i</sub> = (r<sub>i</sub> − media(r)) / dev.std(r)</div>
-    <p class="note">Prova la difficoltà "Difficile": quasi tutti i gruppi sono tutti sbagliati, i vantaggi valgono zero e il modello non impara niente. Per questo nell'RLVR si selezionano prompt di difficoltà intermedia (curriculum). Allo stesso modo, un prompt che il modello risolve sempre non insegna più nulla.</p>
+    <p class="note">I reward e i vantaggi sono calcolati davvero con la formula di GRPO; l'effetto dell'aggiornamento sulla probabilità di risposta corretta è una dinamica semplificata (nella realtà dipende dai gradienti sui pesi). Prova la difficoltà «Difficile»: quasi tutti i gruppi sono tutti sbagliati, i vantaggi valgono zero e il modello non impara niente. Per questo nell'RLVR si selezionano prompt di difficoltà intermedia (<i>curriculum</i>). Allo stesso modo, un prompt che il modello risolve sempre non insegna più nulla.</p>
   </div>
-
   <div class="lab">
-    <div class="lab-head"><h3>Cosa serve in memoria durante il training</h3></div>
+    <div class="lab-head"><h3>Che cosa serve in memoria durante il training</h3></div>
     <div class="grid2">
       <div class="stack"><div class="diag-title">PPO</div>
         <div class="diag"><span class="box hot">Policy (si allena)</span><span class="box">Riferimento (congelato)</span><span class="box">Reward model</span><span class="box hot">Critic / value model (si allena)</span></div>
-        <p class="note">Il critic stima "quanto mi aspetto di guadagnare da qui" ed è grande quanto la policy.</p>
+        <p class="note">Il critic stima «quanto mi aspetto di guadagnare da qui» ed è grande quanto la policy.</p>
       </div>
       <div class="stack"><div class="diag-title">GRPO + RLVR</div>
         <div class="diag"><span class="box hot">Policy (si allena)</span><span class="box">Riferimento (congelato)</span><span class="box">Verificatore (codice)</span><span class="box dead">critic</span></div>
-        <p class="note">La media del gruppo sostituisce il critic come baseline: all'incirca metà della memoria.</p>
+        <p class="note">La media del gruppo sostituisce il critic come baseline, il verificatore sostituisce il reward model: all'incirca metà della memoria.</p>
       </div>
     </div>
   </div>
-  <p class="prose callout"><b>Perché conta:</b> qui il modello non imita più, <b>esplora</b>. Genera ragionamenti suoi e rinforza quelli che portano alla risposta giusta. Così può superare i dati di partenza, ed è in questa fase che nei modelli di ragionamento (tipo DeepSeek-R1) emergono comportamenti come ricontrollare i passaggi o tornare indietro dopo un errore.</p>
+  <div class="prose stack">
+    <p><b>Che cosa emerge.</b> Qui il modello non imita più: <b>esplora</b>. Genera ragionamenti suoi e rinforza quelli che portano alla risposta giusta, e così può superare i dati di partenza. È in questa fase che nei modelli di ragionamento (DeepSeek-R1 è il caso documentato più noto, 2025) compaiono comportamenti che nessuno ha scritto negli esempi: ricontrollare i passaggi, tornare indietro dopo un errore, provare una seconda strada, scrivere catene di ragionamento sempre più lunghe quando il problema lo richiede. Sono comportamenti che <i>aumentano la probabilità di reward</i>, e per questo vengono rinforzati.</p>
+    <p><b>Il limite.</b> Serve un verificatore, quindi la fase funziona solo dove la correttezza è controllabile da un programma: non per un saggio, una consulenza, una conversazione. Il segnale è <b>sparso</b>: un numero per migliaia di token generati, e il modello deve scoprire da solo quale passo ha causato l'errore, con molti tentativi; per questo l'RL è la fase più costosa in calcolo dopo il pre-training, dominata dalla generazione dei rollout. E un modello così allenato è grande e lento da servire: la sua capacità di ragionare costa a ogni risposta.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Il nostro prompt (uno verificabile) dopo l'RL</h3></div>
+    <div class="sample" style="font-family:var(--sans)"><b>Prompt:</b> «Quanto fa 17 × 23?»<br><b>Risposta:</b> «17 × 23 = 17 × 20 + 17 × 3 = 340 + 51 = 391. Verifica: 391 ÷ 17 = 23 ✓. <b>391</b>.»</div>
+    <p class="note">Il passo di verifica non era negli esempi: è stato rinforzato perché i rollout che ricontrollavano ottenevano reward più spesso.</p>
+  </div>
+  <div class="bridge"><span class="arrow">→ fase 5</span><span><b>Il limite:</b> il modello che sa ragionare è grande e caro. Si può trasferire ciò che ha imparato a un modello piccolo, senza rifare l'RL da capo? È la distillazione, e il modo in cui la si fa cambia molto il risultato.</span></div>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · fase 4</p>
+    <ul>
+      <li><strong>Problema</strong> — l'imitazione ha un tetto; nei compiti verificabili si può fare meglio lasciando tentare il modello</li>
+      <li><strong>Dati</strong> — solo problema + verificatore; le soluzioni le genera il modello (on-policy, online)</li>
+      <li><strong>Segnale</strong> — un reward 0/1 per rollout, trasformato in gradiente moltiplicando la log-probabilità dei token per il vantaggio</li>
+      <li><strong>GRPO</strong> — vantaggio = reward relativo alla media del gruppo, normalizzato; niente critic; penalità KL e clipping</li>
+      <li><strong>Risultato</strong> — comportamenti di ragionamento emergenti (verifica, backtracking)</li>
+      <li><strong>Limite</strong> — solo domini verificabili; segnale sparso e costoso; modello grande da servire</li>
+    </ul>
+  </div>
 </section>
 
-<!-- ============ 5. OPD ============ -->
+<!-- ============ 8. DISTILLAZIONE ============ -->
 <section class="st" id="opd">
   <div class="sec-head">
-    <span class="eyebrow">Fase 5 · Knowledge distillation · OPD (On-Policy Distillation, distillazione on-policy)</span>
+    <span class="eyebrow">Fase 5 · Knowledge distillation e OPD (On-Policy Distillation, distillazione on-policy)</span>
     <h2>Lo student scrive, il teacher corregge ogni parola</h2>
   </div>
   <div class="prose stack">
-    <p>Obiettivo: trasferire le capacità di un modello grande (<i>teacher</i>) a uno piccolo ed economico (<i>student</i>). Cambia molto <b>chi genera il testo</b> su cui si impara e <b>quanto è denso il segnale</b>. Confronta le tre modalità sullo stesso esercizio.</p>
+    <p class="q">Ho un modello da 70 miliardi di parametri che ragiona bene e uno da 7 che costa un decimo. Come trasferisco la capacità dal primo al secondo?</p>
+    <p><b>Il problema.</b> Rifare l'RL sul modello piccolo funziona male: un modello piccolo scopre da solo meno soluzioni, quindi riceve meno reward, quindi impara più lentamente. Ma il modello grande (il <i>teacher</i>) ha già le risposte, e molto di più: per ogni contesto ha un'intera distribuzione sul token successivo. La <b>distillazione</b> usa il teacher come fonte di segnale per lo <i>student</i>. Il punto delicato è <b>chi scrive il testo</b> su cui lo student impara.</p>
+    <p><b>Distillazione classica (off-policy).</b> Il teacher genera molte soluzioni, e lo student le imita con un SFT: segnale denso (ogni token), ma sulle <i>traiettorie del teacher</i>. Lo student vede solo ragionamenti perfetti. Quando poi, in inferenza, sbaglia un passo, si trova in un territorio mai visto in training e non sa recuperare: è l'<i>exposure bias</i> (distorsione da esposizione). L'errore si propaga.</p>
+    <p><b>RL sullo student (on-policy, sparso).</b> Lo student genera, il verificatore giudica. Impara sui propri errori, ma con un numero per sequenza: deve scoprire da solo, in molti tentativi, quale dei suoi passi era sbagliato.</p>
+    <p><b>OPD: on-policy e denso.</b> Lo student genera la soluzione; poi, per ogni token che ha scritto, il teacher dice quale distribuzione avrebbe avuto <i>lui</i> in quel punto, dato il testo dello student fino a lì. La loss confronta le due distribuzioni token per token con la divergenza KL inversa (reverse KL, KL(student ‖ teacher)): penalizza lo student dove assegna probabilità a token che il teacher riterrebbe improbabili. Il risultato è un segnale che ha le due qualità insieme: è sui <i>propri</i> errori (on-policy) ed è <i>denso</i> (ogni token). Un errore in un passo viene segnalato in quel passo, e i passi corretti successivi non vengono puniti, perché il teacher li giudica nel contesto dello student. I risultati pubblicati (2024–2025) riportano guadagni paragonabili all'RL con un ordine di grandezza in meno di calcolo.</p>
   </div>
-
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: tre modi di insegnare allo student</h3><span class="tag">valori illustrativi</span></div>
+    <div class="lab-head"><h3>Laboratorio: tre modi di insegnare allo student</h3><span class="tag">esempio costruito · probabilità illustrative</span></div>
     <div class="seg" id="omode" role="group" aria-label="Modalità">
       <button aria-pressed="false" data-v="off">Distillazione off-policy</button><button aria-pressed="false" data-v="rl">RLVR</button><button aria-pressed="true" data-v="opd">OPD</button>
     </div>
@@ -911,33 +1215,65 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="tokens" id="oTokens"></div>
     <div class="callout" id="oMsg"></div>
     <div class="sample" id="oDetail" style="font-family:var(--sans)"></div>
+    <p class="note">Le probabilità del teacher sono scelte a mano per un esempio leggibile (in un sistema reale sono i veri logit del teacher sul testo dello student), ma la logica delle tre modalità è esatta: chi genera il testo, e quanti numeri di feedback arrivano per sequenza.</p>
+  </div>
+  <div class="scroll-x">
+  <table class="sum" style="min-width:560px">
+    <thead><tr><th></th><th>Chi genera il testo</th><th>Feedback</th><th>Pregio</th><th>Difetto</th></tr></thead>
+    <tbody>
+      <tr><td>Distillazione off-policy (SFT sul teacher)</td><td>Il teacher</td><td>Ogni token</td><td>Denso, economico</td><td>Exposure bias: lo student non vede i propri errori</td></tr>
+      <tr><td>RL con verificatore</td><td>Lo student</td><td>1 numero per sequenza</td><td>Sui propri errori</td><td>Sparso: molti tentativi per capire dove si sbaglia</td></tr>
+      <tr><td>OPD</td><td>Lo student</td><td>Ogni token, dal teacher</td><td>Sui propri errori <i>e</i> denso</td><td>Serve un teacher migliore, e farlo girare su ogni token</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose stack">
+    <p><b>Il limite.</b> Lo student non supererà il teacher: la distillazione comprime, non scopre. E il teacher deve essere interrogato su ogni token generato dallo student, il che costa, anche se molto meno di generare i rollout dell'RL. In pratica le fasi si combinano: RL sul modello grande per <i>scoprire</i>, OPD per <i>trasferire</i> ai modelli piccoli.</p>
   </div>
 
-  <div class="prose stack">
-    <p><b>Il problema dell'off-policy</b> è l'<i>exposure bias</i> (distorsione da esposizione): in training lo student vede solo le traiettorie perfette del teacher. In inferenza, quando sbaglia un passo, si trova in un territorio mai visto e l'errore si propaga.</p>
-    <p><b>OPD unisce il meglio dei due mondi:</b> come nell'RL, lo student impara sui <i>propri</i> errori. Come nella distillazione, riceve un segnale <b>denso</b>: per ogni token il teacher dice quale distribuzione avrebbe usato. La loss è la divergenza <i>reverse KL</i> (Kullback-Leibler inversa) tra student e teacher, calcolata sulle sequenze dello student. Il risultato è molto più efficiente in termini di calcolo rispetto all'RL puro.</p>
+  <div class="recap">
+    <p class="recap-title">In sintesi · fase 5</p>
+    <ul>
+      <li><strong>Problema</strong> — il modello che ragiona è grande e caro; l'RL diretto sul piccolo funziona male</li>
+      <li><strong>Tre vie</strong> — SFT sulle soluzioni del teacher (denso, off-policy), RL sullo student (on-policy, sparso), OPD (on-policy e denso)</li>
+      <li><strong>Loss di OPD</strong> — reverse KL tra student e teacher, token per token, sulle sequenze dello student</li>
+      <li><strong>Limite</strong> — non supera il teacher; costa interrogare il teacher su ogni token</li>
+    </ul>
   </div>
 </section>
 
 <!-- ============ SUMMARY ============ -->
 <section class="st" id="sum">
-  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Cinque fasi a confronto</h2></div>
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Un solo meccanismo, cinque modi di scegliere gli esempi e misurare l'errore</h2></div>
+  <div class="prose stack" style="margin-bottom:18px">
+    <p>Ogni fase esegue lo stesso ciclo del capitolo 2: forward pass, un numero che misura l'errore, backpropagation, un passo sui pesi. Quello che la distingue è nelle due colonne centrali della tabella: <b>da dove arrivano gli esempi</b> e <b>come si calcola l'errore</b>. La colonna «densità» dice quanti numeri di feedback arrivano per sequenza, ed è la ragione per cui le fasi costano in modo così diverso.</p>
+  </div>
   <div class="scroll-x">
   <table class="sum">
-    <thead><tr><th>Fase</th><th>Dati</th><th>Segnale</th><th>Chi genera</th><th>Densità del segnale</th><th>Insegna</th></tr></thead>
+    <thead><tr><th>Fase</th><th>Problema che risolve</th><th>Dati</th><th>Errore (loss)</th><th>Chi genera</th><th>Densità del segnale</th><th>Limite che lascia</th></tr></thead>
     <tbody>
-      <tr><td>Pre-training</td><td>Testo grezzo, trilioni di token</td><td>Next token</td><td>Nessuno (testo esistente)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token</span></td><td>Conoscenza</td></tr>
-      <tr><td>SFT</td><td>Prompt → risposta ideale</td><td>Imitazione</td><td>Persone o modello forte</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token della risposta</span></td><td>Formato, comportamento</td></tr>
-      <tr><td>DPO</td><td>Coppie chosen / rejected</td><td>Preferenza relativa</td><td>Dataset fisso (offline)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 confronto per coppia</span></td><td>Stile, utilità, sicurezza</td></tr>
-      <tr><td>GRPO + RLVR</td><td>Prompt + verificatore</td><td>Reward 0/1 per risposta</td><td>Il modello stesso (online)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 numero per sequenza</span></td><td>Ragionamento verificabile</td></tr>
-      <tr><td>OPD</td><td>Prompt + teacher</td><td>Distribuzione del teacher</td><td>Lo student (online)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token dello student</span></td><td>Comprimere il ragionamento</td></tr>
+      <tr><td>Pre-training</td><td>Pesi casuali: nessuna conoscenza</td><td>Testo grezzo, trilioni di token</td><td>Cross-entropy sul token successivo</td><td>Nessuno (testo esistente)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token</span></td><td>Continua, non risponde</td></tr>
+      <tr><td>SFT</td><td>Manca il comportamento da assistente</td><td>Prompt → risposta scritta</td><td>Cross-entropy sui soli token della risposta</td><td>Persone o modello forte</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token della risposta</span></td><td>Imita; non sa che cosa è «meglio»</td></tr>
+      <tr><td>DPO</td><td>Qualità relative: stile, utilità, sicurezza</td><td>Coppie chosen / rejected</td><td>−log σ(margine) sul reward implicito</td><td>Dataset fisso (offline)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 confronto per coppia</span></td><td>Offline, soggettivo; non insegna a cercare</td></tr>
+      <tr><td>RLVR + GRPO</td><td>Superare l'imitazione dove si può verificare</td><td>Problema + verificatore</td><td>Log-prob dei token × vantaggio nel gruppo</td><td>Il modello stesso (online)</td><td><div class="dots">%D1%</div><span class="muted" style="font-size:.78rem">1 numero per sequenza</span></td><td>Solo domini verificabili; modello grande</td></tr>
+      <tr><td>OPD</td><td>Trasferire la capacità a un modello piccolo</td><td>Prompt + teacher</td><td>Reverse KL student ‖ teacher, per token</td><td>Lo student (online)</td><td><div class="dots">%D10%</div><span class="muted" style="font-size:.78rem">ogni token dello student</span></td><td>Non supera il teacher</td></tr>
     </tbody>
   </table>
   </div>
-  <p class="prose note">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, oppure usano OPD al posto dell'RL per i modelli piccoli.</p>
+  <div class="lab" style="margin-top:18px">
+    <div class="lab-head"><h3>Lo stesso prompt, fase dopo fase</h3></div>
+    <div class="phasecard">
+      <div class="pc"><b>Base model</b>«Qual è la capitale della Germania? Qual è la capitale della Spagna? …» — continua il testo come un quiz.</div>
+      <div class="pc"><b>Dopo SFT</b>«La capitale della Francia è Parigi.» — risponde, nella forma vista negli esempi.</div>
+      <div class="pc"><b>Dopo DPO</b>«La capitale della Francia è Parigi. È anche la città più grande del Paese… Vuoi sapere altro?» — la forma che gli annotatori preferivano.</div>
+      <div class="pc"><b>Dopo RL (su un prompt verificabile)</b>«17 × 23 = 340 + 51 = 391. Verifica: 391 ÷ 17 = 23 ✓» — ragiona e controlla, perché controllare dava reward.</div>
+      <div class="pc"><b>Dopo OPD (modello piccolo)</b>Stesso stile di ragionamento del modello grande, a un decimo del costo per risposta.</div>
+    </div>
+  </div>
+  <p class="prose note" style="margin-top:18px">Nella pratica l'ordine non è rigido. Molti laboratori alternano più cicli di SFT e RL, applicano DPO dopo l'RL per sistemare lo stile, usano OPD al posto dell'RL per i modelli piccoli, e in alcune ricette recenti il post-training è una lunga fase di RL che ingloba le altre. Le fasi restano però cinque risposte alle stesse due domande: che esempi, e che misura dell'errore.</p>
 </section>
 
-<footer>Le simulazioni sono modelli giocattolo pensati per l'intuizione: le forme delle curve sono realistiche, i numeri no. La formula di DPO e il calcolo dei vantaggi in GRPO sono invece quelli reali.</footer>
+<footer>I laboratori con etichetta «matematica reale», «algoritmo reale» o «formula reale» eseguono davvero il calcolo descritto (BPE, prodotto scalare, one-hot, attention, softmax e loss, backpropagation sulla catena, discesa del gradiente, il training dal vivo, la loss di DPO, i vantaggi di GRPO). Quelli con etichetta «schema qualitativo» o «curve qualitative» riproducono la forma di un fenomeno osservato, non il risultato di un modello. I numeri citati nel testo (Llama 2: 2T token, 184k ore GPU, LR 3·10⁻⁴, 27k esempi SFT; Chinchilla: ~20 token/parametro; DPO 2023, GRPO 2024, RLVR 2024, DeepSeek-R1 2025, OPD 2024–2025) vengono dagli articoli originali.</footer>
 </div>
 
 <script>
@@ -1303,7 +1639,7 @@ function drawEmb(){const s=$("#embSent");s.innerHTML="";EMB_SENT.forEach(id=>{co
   EMB_V.forEach(([t,i])=>{const r=embRow(i);const on=i===embSel;const used=EMB_SENT.includes(i);h+=`<tr class="${on?"on":""}${used?"":" unused"}"><td class="mono">${i}</td><td class="mono">${esc(t)}</td>${r.map(v=>`<td class="mono">${v>=0?"+":""}${v.toFixed(3)}</td>`).join("")}<td class="mono">…</td><td class="mono">${(embRow(i+50)[0]).toFixed(3)}</td></tr>`;});
   h+=`<tr class="unused"><td class="mono">…</td><td class="mono" colspan="9">altre righe, fino a V = 50.000</td></tr>`;
   $("#embTable").innerHTML=h;
-  $("#embNote").innerHTML=`Il token «${esc(EMB_V[embSel][0])}» ha ID ${embSel}, quindi il suo embedding è la <b>riga ${embSel}</b> della matrice: il modello la legge e la passa agli strati successivi. Le righe in grigio appartengono a token che non compaiono in questa frase: in questo step non ricevono gradiente. I valori mostrati sono casuali, come all'inizio del training.`;}
+  $("#embNote").innerHTML=`Il token «${esc(EMB_V[embSel][0])}» ha ID ${embSel}, quindi il suo embedding è la <b>riga ${embSel}</b> della matrice: il modello la legge e la passa agli strati successivi. Le righe in grigio appartengono a token che non compaiono in questa frase: in questo step non ricevono gradiente. I valori sono quelli di una matrice inizializzata a caso, come all'inizio del training: la lettura della riga è reale, il significato arriverà con il training.`;}
 const EMB_PTS=[["gatto","a",[.25,.72]],["gatta","a",[.3,.8]],["cane","a",[.18,.64]],["pesce","a",[.36,.62]],["dorme","v",[.72,.78]],["mangia","v",[.8,.7]],["corre","v",[.7,.66]],["lunedì","g",[.62,.24]],["martedì","g",[.7,.18]],["domenica","g",[.76,.28]],["sul","p",[.2,.22]],["nel","p",[.27,.16]]];
 const EMB_COL={a:"--accent",v:"--warn",g:"--bad",p:"--muted"};
 function drawEmbChart(){const t=+$("#embT").value/100;$("#embTo").textContent=$("#embT").value+"%";const svg=$("#embChart");clear(svg);
@@ -1347,15 +1683,48 @@ function drawOH(){const f=v=>(v>=0?"+":"")+v.toFixed(1);
   const R=`<table class="mt"><caption>risultato (1 × 3)</caption><tr><th>d1</th><th>d2</th><th>d3</th></tr><tr class="hot">${OH_E[ohId].map(v=>`<td>${f(v)}</td>`).join("")}</tr></table>`;
   $("#ohOut").innerHTML=x+'<span class="op">×</span>'+E+'<span class="op">=</span>'+R;
   $("#ohF").innerHTML=`d1 = ${OH_E.map((r,i)=>`${i===ohId?1:0}×(${f(r[0])})`).join(" + ")} = <b>${f(OH_E[ohId][0])}</b>`;}
-/* attention */
+/* attention · calcolo reale su vettori d=4 scelti a mano */
 const ATT_T=["il","gatto","nero","ieri","dormiva","sul","divano"];
-const ATT_W=[[1],[.35,.65],[.1,.6,.3],[.15,.1,.05,.7],[.05,.5,.1,.25,.1],[.05,.1,.02,.03,.5,.3],[.03,.1,.02,.05,.25,.45,.1]];
-const ATT_M=["«il» è il primo token: può guardare solo sé stesso.","«gatto» guarda l'articolo «il»: impara che è un nome maschile singolare.","«nero» guarda soprattutto «gatto»: un aggettivo deve sapere a quale nome si riferisce.","«ieri» ha poco da raccogliere dai token precedenti e guarda soprattutto sé stesso.","«dormiva» guarda soprattutto «gatto» (chi dorme?) e «ieri» (quando? da qui il tempo passato).","«sul» guarda il verbo «dormiva»: la preposizione dipende dall'azione.","«divano» guarda «sul» e «dormiva»: è il posto in cui si dorme. Il suo nuovo vettore contiene un po' di tutto questo contesto."];
+const ATT_DIM=["articolo","nome","verbo","tempo"];
+const ATT_K=[[1.4,0,0,0],[0,1.5,0,0],[0,.3,0,0],[0,0,0,1.5],[0,0,1.5,0],[0,0,.4,0],[0,.8,0,0]];
+const ATT_Q=[[0,0,0,0],[1.2,0,0,0],[0,1.6,0,0],[0,0,0,.6],[0,1.6,0,1.2],[0,0,1.6,0],[0,0,1.4,0]];
+const ATT_M=["«il» è il primo token: la causal mask gli lascia solo sé stesso, quindi la softmax su un solo punteggio dà 100%.","«gatto» ha una query che cerca un articolo, e la key di «il» è alta proprio in quella dimensione: il prodotto scalare è grande e il peso si sposta su «il». È così che il nome «impara» di essere maschile singolare.","«nero» cerca un nome: un aggettivo deve sapere a che cosa si riferisce. Il prodotto scalare con la key di «gatto» domina.","«ieri» cerca poco e trova poco: i punteggi sono quasi tutti zero, quindi la softmax li rende quasi uniformi. Un token che non ha bisogno di contesto si comporta così.","«dormiva» ha una query con due componenti: cerca un nome (chi dorme?) e un'indicazione di tempo (quando?). Trova «gatto» e «ieri», e il suo nuovo vettore contiene un po' di entrambi: è così che il verbo «sa» di avere un soggetto e un tempo.","«sul» cerca un verbo: la preposizione dipende dall'azione, e la key di «dormiva» è alta nella dimensione verbo.","«divano» cerca un verbo e trova «dormiva» (e un po' «sul», che ha una piccola componente verbo): è il posto in cui si dorme."];
 let attSel=4;
+const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
 function drawAtt(){const s=$("#attSent");s.innerHTML="";ATT_T.forEach((t,i)=>{const b=document.createElement("button");b.className="tok"+(i===attSel?" sel resp":"");b.textContent=t;b.onclick=()=>{attSel=i;drawAtt();};s.appendChild(b);});
-  $("#attBars").innerHTML=ATT_W[attSel].map((w,j)=>`<div class="barrow"><span>«${ATT_T[attSel]}» → «${ATT_T[j]}»${j===attSel?" (sé stesso)":""}</span><div class="track"><div class="fill" style="width:${w*100}%"></div></div><span class="v">${Math.round(w*100)}%</span></div>`).join("")+(attSel<ATT_T.length-1?`<p class="muted" style="font-size:.82rem">I token successivi (${ATT_T.slice(attSel+1).map(t=>"«"+t+"»").join(", ")}) sono esclusi dalla causal mask.</p>`:"");
+  const q=ATT_Q[attSel],sq=Math.sqrt(ATT_DIM.length);
+  const raw=ATT_K.slice(0,attSel+1).map(k=>dot(q,k)),sc=raw.map(v=>v/sq),w=softmax(sc,1);
+  const out=ATT_DIM.map((_,d)=>w.reduce((acc,wi,j)=>acc+wi*ATT_K[j][d],0));
+  const f=v=>(v>=0?"":"−")+Math.abs(v).toFixed(2);
+  let h=`<div class="st-row"><b>query di «${ATT_T[attSel]}»</b><span class="mono">[${q.map(f).join(" ; ")}]</span></div>`;
+  h+=`<div class="st-row"><b>dimensioni</b><span class="mono">[${ATT_DIM.join(" ; ")}]</span></div>`;
+  h+=`<div class="scroll-x"><table class="mt small"><tr><th>token j</th><th>key k<sub>j</sub></th><th>q · k<sub>j</sub></th><th>÷ √d</th><th>softmax</th></tr>`;
+  ATT_T.slice(0,attSel+1).forEach((t,j)=>{h+=`<tr class="${j===attSel?"hot":""}"><td>${t}</td><td class="mono">[${ATT_K[j].map(f).join(";")}]</td><td class="mono">${f(raw[j])}</td><td class="mono">${f(sc[j])}</td><td class="mono">${(w[j]*100).toFixed(0)}%</td></tr>`;});
+  h+=`</table></div>`;
+  h+=`<div class="st-row"><b>nuovo vettore</b><span class="mono">Σ peso<sub>j</sub> · value<sub>j</sub> = [${out.map(f).join(" ; ")}]</span></div>`;
+  $("#attSteps").innerHTML=h;
+  $("#attBars").innerHTML=w.map((wi,j)=>`<div class="barrow"><span>«${ATT_T[attSel]}» → «${ATT_T[j]}»${j===attSel?" (sé stesso)":""}</span><div class="track"><div class="fill" style="width:${wi*100}%"></div></div><span class="v">${Math.round(wi*100)}%</span></div>`).join("")+(attSel<ATT_T.length-1?`<p class="muted" style="font-size:.82rem">I token successivi (${ATT_T.slice(attSel+1).map(t=>"«"+t+"»").join(", ")}) sono esclusi dalla causal mask: non entrano nella softmax.</p>`:"")+`<p class="muted" style="font-size:.82rem">Qui value = key, per leggibilità: il nuovo vettore dice quali «caratteristiche» dei token precedenti sono confluite in «${ATT_T[attSel]}».</p>`;
   $("#attMsg").innerHTML=ATT_M[attSel];}
-function drawBase(){drawDP();drawOH();drawAtt();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+/* backprop su una catena */
+const chW1=$("#chW1"),chW2=$("#chW2"),chEta=$("#chEta");
+function drawChain(){const w1=+chW1.value,w2=+chW2.value,eta=+chEta.value,x=1,t=1;
+  $("#chW1o").textContent=w1.toFixed(2);$("#chW2o").textContent=w2.toFixed(2);$("#chEtao").textContent=eta.toFixed(2);
+  const a=w1*x,hh=Math.max(0,a),y=w2*hh,loss=.5*(y-t)**2;
+  const dy=y-t,dw2=dy*hh,dh=dy*w2,da=a>0?dh:0,dw1=da*x;
+  const f=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(3);
+  const node=(lab,val,grad,hot)=>`<div class="cn${hot?" hot":""}"><b>${lab}</b>valore <span class="val">${val.toFixed(3)}</span>${grad==null?"":`<span class="grad">∂loss/∂ = ${f(grad)}</span>`}</div>`;
+  $("#chNodes").innerHTML=node("w₁ (peso)",w1,dw1,true)+node("a = w₁·x",a,da)+node("h = ReLU(a)",hh,dh)+node("w₂ (peso)",w2,dw2,true)+node("y = w₂·h",y,dy)+node("loss = ½(y−t)²",loss,null);
+  $("#chF").innerHTML=`∂loss/∂y = y − t = ${f(dy)}<br>∂loss/∂w₂ = ∂loss/∂y · h = ${f(dy)} × ${hh.toFixed(3)} = <b>${f(dw2)}</b><br>∂loss/∂h = ∂loss/∂y · w₂ = ${f(dy)} × ${w2.toFixed(3)} = ${f(dh)}<br>∂loss/∂a = ∂loss/∂h · ReLU′(a) = ${f(dh)} × ${a>0?1:0} = ${f(da)}<br>∂loss/∂w₁ = ∂loss/∂a · x = ${f(da)} × 1 = <b>${f(dw1)}</b>`;
+  const nw1=w1-eta*dw1,nw2=w2-eta*dw2,na=nw1*x,ny=nw2*Math.max(0,na),nl=.5*(ny-t)**2;
+  let m;
+  if(a<=0)m=`<b>La ReLU è spenta</b> (a = ${a.toFixed(2)} ≤ 0): h vale 0, quindi y vale 0 qualunque sia w₂, e il gradiente di w₁ è zero. Il gradiente di w₂ è anche lui zero perché h = 0. Questo esempio non può più insegnare nulla a questi pesi: è il «neurone morto». Riporta w₁ sopra zero.`;
+  else if(loss<1e-4)m=`<b>Convergenza:</b> y ≈ t, la loss è praticamente zero e i gradienti sono quasi nulli. Non c'è più nulla da correggere su questo esempio.`;
+  else m=`<b>Il segno dice il verso, la grandezza dice quanto.</b> y vale ${y.toFixed(2)} contro un obiettivo di 1, quindi ∂loss/∂y è ${dy>0?"positivo: y va abbassato":"negativo: y va alzato"}. Risalendo la catena, w₂ riceve ${f(dw2)} e w₁ riceve ${f(dw1)}: ${Math.abs(dw1)>Math.abs(dw2)?"w₁ conta di più per questo errore (passa attraverso w₂ = "+w2.toFixed(2)+")":"w₂ conta di più per questo errore (moltiplica h = "+hh.toFixed(2)+")"}. Un passo con η = ${eta.toFixed(2)} porterebbe a w₁ = ${nw1.toFixed(3)}, w₂ = ${nw2.toFixed(3)} e la loss da ${loss.toFixed(3)} a ${nl.toFixed(3)}${nl>loss?" — peggio: il passo è troppo lungo per la pendenza locale, abbassa η":""}.`;
+  $("#chMsg").innerHTML=m;
+  $("#chStep").onclick=()=>{chW1.value=Math.max(-2,Math.min(2,nw1)).toFixed(2);chW2.value=Math.max(-2,Math.min(2,nw2)).toFixed(2);drawChain();};}
+[chW1,chW2,chEta].forEach(i=>i.addEventListener("input",drawChain));
+$("#chReset").onclick=()=>{chW1.value=.5;chW2.value=.6;chEta.value=.3;drawChain();};
+function drawBase(){drawDP();drawOH();drawAtt();drawChain();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
 
 /* init */
 function all(){drawBase();drawLR();drawSFT();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
@@ -1368,27 +1737,32 @@ new MutationObserver(all).observe(document.documentElement,{attributes:true,attr
 <!-- xpl:config (riferimenti incrociati di questa guida) -->
 <script>
 window.XREF_CONFIG={
-  skip:".lab,.thesis,.map,.flowline,.status,",
-  ids:[{sel:"h3",text:"Il ciclo di uno step, e il learning rate",id:"c-step"},{sel:"h3",text:"Glossario dei termini che ritornano",id:"c-gloss"},{sel:".lab-head h3",text:"Laboratorio: schedule del learning rate",id:"lab-lr"}],
+  skip:".lab,.thesis,.map,.flowline,.status,.recap,.bridge,.phasecard,",
+  ids:[{sel:"h3",text:"Glossario dei termini che ritornano",id:"c-gloss"},{sel:".lab-head h3",text:"Laboratorio: schedule del learning rate",id:"lab-lr"},{sel:".lab-head h3",text:"Laboratorio: backpropagation su una catena di due pesi",id:"lab-chain"}],
   rules:[
-    {re:"capitolo 0a",to:"#base",flags:"i",first:false},
-    {re:"capitolo 0b",to:"#live",flags:"i",first:false},
+    {re:"capitolo 1",to:"#base",flags:"i",first:false},
+    {re:"capitolo 2",to:"#learn",flags:"i",first:false},
+    {re:"capitolo 3",to:"#live",flags:"i",first:false},
     {re:"training dal vivo",to:"#live",flags:"i"},
-    {re:"SFT",to:"#sft"},{re:"DPO",to:"#dpo"},{re:"RLHF",to:"#dpo"},{re:"PPO",to:"#dpo"},
-    {re:"GRPO",to:"#grpo"},{re:"RLVR",to:"#grpo"},{re:"OPD",to:"#opd"},
-    {re:"distillazione",to:"#opd",flags:"i"},
+    {re:"fase 1",to:"#pre",flags:"i",first:false},{re:"fase 2",to:"#sft",flags:"i",first:false},{re:"fase 3",to:"#dpo",flags:"i",first:false},{re:"fase 4",to:"#grpo",flags:"i",first:false},{re:"fase 5",to:"#opd",flags:"i",first:false},
+    {re:"SFT",to:"#sft"},{re:"DPO",to:"#dpo"},{re:"RLHF",to:"#dpo"},{re:"PPO",to:"#dpo"},{re:"reward model",to:"#dpo",flags:"i"},
+    {re:"GRPO",to:"#grpo"},{re:"RLVR",to:"#grpo"},{re:"policy gradient",to:"#grpo",flags:"i"},{re:"verificatore",to:"#grpo",flags:"i"},
+    {re:"OPD",to:"#opd"},{re:"distillazione",to:"#opd",flags:"i"},{re:"exposure bias",to:"#opd",flags:"i"},
     {re:"BPE",to:"#c-token"},{re:"tokenizer",to:"#c-token",flags:"i"},
-    {re:"embedding",to:"#c-emb",flags:"i"},
-    {re:"cross-entropy",to:"#c-loss",flags:"i"},{re:"softmax",to:"#c-loss",flags:"i"},{re:"logit",to:"#c-loss",flags:"i"},
-    {re:"learning rate",to:"#c-step",flags:"i"},{re:"gradient descent",to:"#c-step",flags:"i"},{re:"backpropagation",to:"#c-step",flags:"i"},
-    {re:"warm-up",to:"#pre",flags:"i"},
-    {re:"attention",to:"#c-layer",flags:"i"},{re:"MLP",to:"#c-layer"},{re:"strat[oi]",to:"#c-layer",flags:"i"},
-    {re:"RoPE",to:"#c-emb"},
-    {re:"dataset",to:"#c-dataset",flags:"i"},
-    {re:"pre-training",to:"#pre",flags:"i"},{re:"token",to:"#c-token",flags:"i"},{re:"loss",to:"#c-loss",flags:"i"},{re:"pesi",to:"#c-pesi",flags:"i"}
+    {re:"embedding",to:"#c-emb",flags:"i"},{re:"RoPE",to:"#c-emb"},
+    {re:"cross-entropy",to:"#c-ce",flags:"i"},{re:"perplexity",to:"#c-ce",flags:"i"},
+    {re:"softmax",to:"#c-loss",flags:"i"},{re:"logit",to:"#c-loss",flags:"i"},{re:"temperatura",to:"#c-loss",flags:"i"},
+    {re:"backpropagation",to:"#c-grad",flags:"i"},{re:"backward pass",to:"#c-grad",flags:"i"},{re:"regola della catena",to:"#c-grad",flags:"i"},{re:"gradiente",to:"#c-grad",flags:"i"},
+    {re:"learning rate",to:"#c-step",flags:"i"},{re:"gradient descent",to:"#c-step",flags:"i"},{re:"AdamW",to:"#c-step"},
+    {re:"warm-up",to:"#pre-lr",flags:"i"},{re:"base model",to:"#pre-out",flags:"i"},
+    {re:"attention",to:"#c-layer",flags:"i"},{re:"MLP",to:"#c-layer"},{re:"strat[oi]",to:"#c-layer",flags:"i"},{re:"residual stream",to:"#c-layer",flags:"i"},
+    {re:"forward pass",to:"#c-layer",flags:"i"},
+    {re:"dataset",to:"#c-dataset",flags:"i"},{re:"auto-supervision",to:"#c-dataset",flags:"i"},
+    {re:"pre-training",to:"#pre",flags:"i"},{re:"token",to:"#c-token",flags:"i"},{re:"loss",to:"#c-ce",flags:"i"},{re:"pesi",to:"#c-pesi",flags:"i"},
+    {re:"batch",to:"#c-batch",flags:"i"},{re:"epoch",to:"#c-batch",flags:"i"}
   ],
-  gloss:{selector:"dl.gloss",skip:["Scalare","Vettore","Matrice","Esempio (una previsione)","Esempio","Sequenza","Matrice × vettore","Matrice × matrice","Funzione non lineare","Train","validation","Reward","Policy","Batch di token","Base model","modello di riferimento"],
-    extra:{"Vettore one-hot":["one-hot"],"Divergenza KL":["KL"],"Full fine-tuning vs LoRA":["LoRA"],"Norma e similarità coseno":["similarità coseno"],"Prodotto scalare (dot product)":["prodotto scalare"]}}
+  gloss:{selector:"dl.gloss",skip:["Scalare","Vettore","Matrice","Esempio (una previsione)","Esempio","Sequenza","Matrice × vettore","Matrice × matrice","Funzione non lineare","Train","validation","Reward","Policy","Batch di token","Base model","modello di riferimento","Attivazioni","Iperparametro"],
+    extra:{"Vettore one-hot":["one-hot"],"Divergenza KL":["KL"],"Full fine-tuning vs LoRA":["LoRA"],"Norma e similarità coseno":["similarità coseno"],"Prodotto scalare (dot product)":["prodotto scalare"],"Vantaggio (advantage)":["vantaggio"],"Rollout":["rollout"]}}
 };
 </script>
 <!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
