@@ -1,0 +1,1535 @@
+<title>Dentro l'inferenza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============ TEMA EXPLORABLES ============
+   Token di colore: stessi nomi in tutte le guide. Ogni guida sceglie SOLO il proprio accento
+   (--accent, --accent-soft) dalla palette in AUTHORING.md; tutto il resto resta identico. */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E7EAEF; --ink:#161B24; --muted:#565E6C;
+  --line:#CDD2DA; --grid:#E0E4EA; --accent:#4A5A7A; --accent-soft:#E0E5EE;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+    --line:#2C3441; --grid:#232A35; --accent:#A6B4D4; --accent-soft:#232B3A;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+  --line:#2C3441; --grid:#232A35; --accent:#A6B4D4; --accent-soft:#232B3A;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+
+/* nav */
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-inline:-20px;padding:10px 20px;overflow-x:auto;white-space:nowrap}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+
+/* sections */
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+
+/* token strip */
+.tokens{display:flex;flex-wrap:wrap;gap:4px}
+.tok{font-family:var(--mono);font-size:.85rem;padding:4px 7px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.tok.prompt{color:var(--muted);background:var(--surface-2);border-style:dashed}
+.tok.resp{border-color:var(--accent);background:var(--accent-soft)}
+button.tok{cursor:pointer;color:var(--ink)}
+button.tok.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr 52px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .25s}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.sample{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;white-space:pre-wrap}
+
+/* diagram boxes */
+.diag{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.box.hot{border-color:var(--accent);background:var(--accent-soft)}
+.box.dead{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.arr{color:var(--muted);font-family:var(--mono)}
+.diag-title{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* grpo table */
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.scroll-x{overflow-x:auto}
+
+/* summary */
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* concetti base */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.loop .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.loop .box b{font-family:var(--serif);font-size:1rem}
+.loop .box span{color:var(--muted);font-size:.82rem}
+.loop .box em{font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+@media (max-width:760px){.loop{grid-template-columns:1fr 1fr}}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+
+/* componenti comuni */
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif)}
+.grid3 .box span{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s}
+.cards a:hover{border-color:var(--accent)}
+.cards a b{font-family:var(--serif);font-size:1.05rem}
+.cards a span{font-size:.84rem;color:var(--muted)}
+.cards a small{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+</style>
+
+<style>
+/* ============ componenti di questa guida ============ */
+.pbars{display:flex;flex-direction:column;gap:6px}
+.pbar{display:grid;grid-template-columns:minmax(84px,150px) minmax(0,1fr) 116px;gap:10px;align-items:center;font-size:.84rem}
+.pbar .lbl{font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar .track{height:14px;background:var(--surface-2);border-radius:3px;position:relative;overflow:hidden}
+.pbar .orig{position:absolute;left:0;top:0;bottom:0;background:var(--line);transition:width .25s}
+.pbar .fill{position:absolute;left:0;top:3px;bottom:3px;background:var(--accent);border-radius:2px;transition:width .25s}
+.pbar .v{font-family:var(--mono);font-size:.76rem;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pbar.off .lbl{color:var(--muted);text-decoration:line-through}
+.pbar.off .v{color:var(--muted)}
+.pbar.pick .lbl{font-weight:600}
+.pbar.pick .track{outline:2px solid var(--ink);outline-offset:1px}
+.pbar.bad .lbl{color:var(--bad)}
+@media (max-width:560px){.pbar{grid-template-columns:78px minmax(0,1fr) 92px;gap:6px;font-size:.78rem}.pbar .v{font-size:.68rem}}
+.tok.eos{border-color:var(--warn);background:var(--warn-soft)}
+.tok.now{outline:2px solid var(--ink);outline-offset:1px}
+.tok.bad{border-color:var(--bad);background:var(--bad-soft)}
+.tok.dim{opacity:.45}
+.draws{display:flex;flex-wrap:wrap;gap:4px;min-height:30px}
+.tline{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--line);font-family:var(--mono);font-size:.7rem}
+.tline span{display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden;min-width:3px;transition:flex-basis .25s}
+.tline .pf{background:var(--accent);color:var(--bg)}
+.tline .dc{background:var(--accent-soft);color:var(--ink)}
+.tline .ca{background:var(--good-soft);color:var(--ink)}
+.tline .ou{background:var(--warn-soft);color:var(--ink)}
+.tline .fr{background:var(--surface-2);color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+.legend .k-pf{background:var(--accent)}.legend .k-dc{background:var(--accent-soft);border:1px solid var(--accent)}
+.legend .k-ca{background:var(--good-soft);border:1px solid var(--good)}.legend .k-ou{background:var(--warn-soft);border:1px solid var(--warn)}
+.legend .k-fr{background:var(--surface-2);border:1px solid var(--line)}
+.legend .k-l1{background:var(--accent)}.legend .k-l2{background:transparent;border:2px dashed var(--muted)}
+.chart .l-acc{stroke:var(--accent);fill:none;stroke-width:2.2}
+.chart .l-mut{stroke:var(--muted);fill:none;stroke-width:1.8;stroke-dasharray:5 4}
+.chart .l-bad{stroke:var(--bad);stroke-width:1.5;stroke-dasharray:3 3}
+.chart .f-acc{fill:var(--accent)}
+.chart .f-soft{fill:var(--accent-soft);stroke:var(--accent)}
+.chart .f-bar{fill:var(--surface-2);stroke:var(--line)}
+.chart text.ink{fill:var(--ink)}
+.chart text.bad{fill:var(--bad)}
+@media (max-width:560px){#s5Chart text,#s5Spec text{font-size:19px}}
+.state-line{font-family:var(--mono);font-size:.8rem;background:var(--surface-2);border-radius:6px;padding:10px 12px;overflow-wrap:anywhere}
+.state-line b{color:var(--accent)}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Inferenza dei modelli linguistici · guida interattiva</span>
+  <h1>Un token alla volta: perché la risposta costa più della domanda</h1>
+  <p class="lede">Un modello linguistico legge il prompt tutto insieme, come chi scorre una pagina con lo sguardo, ma scrive la risposta come chi detta: una parola, poi la successiva, e ogni parola richiede di rileggere a memoria tutto il modello. Da questa asimmetria discendono quasi tutti i numeri che si vedono usando un LLM (Large Language Model, modello linguistico di grandi dimensioni): il tempo prima del primo token, la velocità di scrittura, la memoria occupata, il prezzo diverso per i token in ingresso e in uscita. Questa guida segue il ciclo di generazione, le regole con cui si sceglie ogni token, la cache che evita di ricalcolare il passato, e come un server riesce a servire migliaia di utenti insieme.</p>
+  <aside class="vx vx-prereq" aria-label="Letture consigliate prima">
+    <span class="eyebrow">Letture consigliate prima</span>
+    <ul>
+      <li><a href="https://pericle82.github.io/explorables/training-llm/#c-loss">Anatomia del Training LLM · La loss</a> <span>— che cosa sono logit e softmax, e che cosa fa la temperatura: qui si parte da lì per parlare di campionamento.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/training-llm/#c-layer">Anatomia del Training LLM · Gli strati</a> <span>— attenzione con query, key e value: la cache del capitolo 3 conserva proprio key e value.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/architetture-llm/#cap-3">Encoder, decoder, esperti · BERT contro GPT</a> <span>— il decoder con maschera causale, cioè il motivo per cui il passato si può mettere in cache, che lì è solo citata.</span></li>
+    </ul>
+  </aside>
+  <div class="cards">
+    <a href="#cap-1"><small>1</small><b>Il ciclo di generazione</b><span>Logit, scelta, si riaccoda, si ripete</span></a>
+    <a href="#cap-2"><small>2</small><b>Scegliere il token</b><span>Greedy, top-k, top-p, min-p, penalità, seed</span></a>
+    <a href="#cap-3"><small>3</small><b>La cache KV</b><span>Che cosa si salva e quanta memoria occupa</span></a>
+    <a href="#cap-4"><small>4</small><b>Prefill e decode</b><span>Primo token, token successivi, listini</span></a>
+    <a href="#cap-5"><small>5</small><b>Servire molti utenti</b><span>Batching, PagedAttention, speculativa, quantizzazione</span></a>
+    <a href="#cap-6"><small>6</small><b>Output strutturato</b><span>Una maschera sui logit per rispettare uno schema</span></a>
+    <a href="#sum"><small>Riepilogo</small><b>A confronto</b><span>Ogni tecnica, dove agisce e che cosa cambia</span></a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#cap-1">1 · Ciclo</a><a href="#cap-2">2 · Campionamento</a><a href="#cap-3">3 · Cache KV</a><a href="#cap-4">4 · Prefill/decode</a><a href="#cap-5">5 · Servire</a><a href="#cap-6">6 · Strutturato</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 1 ============ -->
+<section class="st" id="cap-1">
+  <div class="sec-head">
+    <span class="eyebrow">1 · Il ciclo di generazione</span>
+    <h2>Il modello non scrive una risposta: prevede un token, lo aggiunge e ricomincia</h2>
+  </div>
+  <div class="prose stack">
+    <p>Pensate al completamento automatico della tastiera del telefono, usato premendo sempre il primo suggerimento: ogni parola scelta diventa parte del testo su cui si calcola il suggerimento successivo. Un modello linguistico decoder fa esattamente questo, con una rete molto più grande e un vocabolario di decine o centinaia di migliaia di token. Non c'è un piano della frase da qualche parte: c'è solo la domanda «dato tutto il testo fin qui, quale token viene dopo?», ripetuta.</p>
+    <p>Ogni giro del ciclo ha quattro passi. Una <b>passata in avanti</b> (forward pass) attraversa tutti gli strati e produce un <b>logit</b>, un punteggio grezzo, per ciascun token del vocabolario. La softmax trasforma i logit in una distribuzione di probabilità. Una regola di scelta, il campionamento del capitolo 2, estrae un token da quella distribuzione. Il token scelto si accoda al testo e il giro riparte. Che cosa siano logit e softmax, e come si arriva a quei punteggi, è spiegato nella guida sul training: qui interessa che cosa se ne fa quando il modello genera.</p>
+  </div>
+
+  <div class="loop">
+    <div class="box"><em>passo 1</em><b>Passata in avanti</b><span>tutti gli strati, sull'ultimo token</span></div>
+    <div class="box"><em>passo 2</em><b>Logit → probabilità</b><span>softmax su tutto il vocabolario</span></div>
+    <div class="box"><em>passo 3</em><b>Scelta</b><span>greedy o campionamento</span></div>
+    <div class="box hot"><em>passo 4</em><b>Si riaccoda</b><span>il token entra nel contesto, si torna al passo 1</span></div>
+  </div>
+
+  <h3 id="c1-fine" class="anchor">Quando si ferma</h3>
+  <div class="prose stack">
+    <p>Il ciclo non ha una lunghezza prefissata. Si ferma in tre casi: il modello sceglie un <b>token di fine</b> (un token speciale che durante l'addestramento chiudeva ogni risposta, spesso chiamato EOS, End Of Sequence), il testo prodotto contiene una <b>sequenza di stop</b> indicata da chi chiama, oppure si raggiunge il <b>limite massimo di token</b> in uscita. Nel terzo caso la risposta è semplicemente tagliata: le API (Application Programming Interface, interfacce di programmazione) lo segnalano con un motivo di arresto diverso, ed è buona pratica controllarlo.</p>
+  </div>
+
+  <h3 id="c1-parallelo" class="anchor">Il prompt in parallelo, la risposta in fila</h3>
+  <div class="prose stack">
+    <p>Il prompt è già tutto noto prima di cominciare. Grazie alla maschera causale, che impedisce a ogni token di guardare quelli successivi, il modello può elaborare tutti i token del prompt <b>nella stessa passata</b>: ogni posizione calcola il proprio vettore guardando solo quelle precedenti, e i calcoli di posizioni diverse non dipendono l'uno dall'altro. È la fase di <b>prefill</b>, e la sua ultima posizione produce già i logit del primo token di risposta.</p>
+    <p>La risposta invece non si può parallelizzare: il token 5 non esiste finché il token 4 non è stato scelto. È la fase di <b>decode</b>: una passata per ogni token in uscita. Mille token di risposta sono mille passate in sequenza, mentre mille token di prompt sono una passata sola. Il capitolo 4 mostra perché questa differenza pesa su tempi e prezzi.</p>
+  </div>
+
+  <div class="vx vx-svg">
+    <svg viewBox="0 0 640 170" role="img" aria-label="Prefill: sei token del prompt elaborati in una passata. Decode: un token per passata.">
+      <text x="10" y="18" font-size="11" class="mut">PREFILL · 1 passata</text>
+      <rect x="10" y="28" width="250" height="56" rx="8" class="bxa"/>
+      <g font-size="11">
+        <rect x="20" y="40" width="26" height="30" rx="4" class="bx"/><text x="33" y="59" text-anchor="middle">La</text>
+        <rect x="52" y="40" width="60" height="30" rx="4" class="bx"/><text x="82" y="59" text-anchor="middle">capitale</text>
+        <rect x="118" y="40" width="20" height="30" rx="4" class="bx"/><text x="128" y="59" text-anchor="middle">d</text>
+        <rect x="144" y="40" width="16" height="30" rx="4" class="bx"/><text x="152" y="59" text-anchor="middle">'</text>
+        <rect x="166" y="40" width="48" height="30" rx="4" class="bx"/><text x="190" y="59" text-anchor="middle">Italia</text>
+        <rect x="220" y="40" width="30" height="30" rx="4" class="bx"/><text x="235" y="59" text-anchor="middle">è</text>
+      </g>
+      <text x="135" y="104" text-anchor="middle" font-size="10" class="mut">6 token insieme → logit del 1º token</text>
+      <text x="300" y="18" font-size="11" class="mut">DECODE · 1 passata per token</text>
+      <g font-size="11">
+        <rect x="300" y="28" width="62" height="56" rx="8" class="bx"/><text x="331" y="52" text-anchor="middle">Roma</text><text x="331" y="70" text-anchor="middle" font-size="9" class="mut">passata 2</text>
+        <rect x="380" y="28" width="62" height="56" rx="8" class="bx"/><text x="411" y="52" text-anchor="middle">,</text><text x="411" y="70" text-anchor="middle" font-size="9" class="mut">passata 3</text>
+        <rect x="460" y="28" width="62" height="56" rx="8" class="bx"/><text x="491" y="52" text-anchor="middle">una</text><text x="491" y="70" text-anchor="middle" font-size="9" class="mut">passata 4</text>
+        <rect x="540" y="28" width="62" height="56" rx="8" class="bx"/><text x="571" y="52" text-anchor="middle">città</text><text x="571" y="70" text-anchor="middle" font-size="9" class="mut">passata 5</text>
+      </g>
+      <line x1="262" y1="56" x2="296" y2="56" class="ac" stroke-width="1.5"/>
+      <line x1="364" y1="56" x2="378" y2="56" class="ac" stroke-width="1.5"/>
+      <line x1="444" y1="56" x2="458" y2="56" class="ac" stroke-width="1.5"/>
+      <line x1="524" y1="56" x2="538" y2="56" class="ac" stroke-width="1.5"/>
+      <text x="612" y="60" font-size="14" class="mut">…</text>
+      <line x1="10" y1="128" x2="630" y2="128" class="ln"/>
+      <rect x="10" y="138" width="40" height="14" rx="3" class="acf"/>
+      <rect x="54" y="138" width="40" height="14" rx="3" class="bx"/><rect x="98" y="138" width="40" height="14" rx="3" class="bx"/><rect x="142" y="138" width="40" height="14" rx="3" class="bx"/><rect x="186" y="138" width="40" height="14" rx="3" class="bx"/>
+      <text x="236" y="150" font-size="10" class="mut">tempo: la prima passata fa più lavoro, ma le successive sono tante e non si possono sovrapporre</text>
+    </svg>
+    <p class="vx-sr">Schema: nella fase di prefill i sei token del prompt «La capitale d'Italia è» entrano in una sola passata, che produce i logit del primo token di risposta. Nella fase di decode ogni token successivo, «Roma», «,», «una», «città», richiede una passata propria, in sequenza.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il ciclo, passata dopo passata</h3><span class="tag">simulazione</span></div>
+    <p>Premi «Passata successiva» e guarda quanti token entra in ogni passata e come cresce il contesto; prova poi a togliere la cache KV (key-value, capitolo 3).</p>
+    <div class="row">
+      <button class="btn" id="s1Step" type="button">Passata successiva</button>
+      <button class="btn ghost" id="s1All" type="button">Fino alla fine</button>
+      <button class="btn ghost" id="s1Reset" type="button">Ricomincia</button>
+      <div class="seg" id="s1Cache"><button type="button" aria-pressed="true" data-c="1">con cache KV</button><button type="button" aria-pressed="false" data-c="0">senza cache</button></div>
+    </div>
+    <div class="tokens" id="s1Toks" aria-live="polite"></div>
+    <div class="diag-title" id="s1Dt">Distribuzione del token scelto in questa passata</div>
+    <div class="pbars" id="s1Bars"></div>
+    <div class="readout">
+      <div><small>Passate in avanti</small><strong id="s1Pass">–</strong></div>
+      <div><small>Token elaborati in questa passata</small><strong id="s1Now">–</strong></div>
+      <div><small>Token elaborati in totale</small><strong id="s1Tot">–</strong></div>
+      <div><small>Contesto</small><strong id="s1Ctx">–</strong></div>
+    </div>
+    <p class="callout" id="s1Msg"></p>
+    <p class="note">Le probabilità sono inventate e si mostrano solo i quattro candidati migliori su un vocabolario che ne ha decine di migliaia; la scelta è sempre quella più probabile (greedy). I conteggi di token elaborati sono quelli reali di un decoder: con la cache ogni passata di decode elabora il solo token nuovo; senza, rielabora ogni volta tutto il testo.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Passata in avanti</dt><dd>Un attraversamento completo della rete, dagli embedding ai logit. Nel decode ne serve una per ogni token generato.</dd><span class="ex">32 strati in un modello da 8 miliardi di parametri</span></div>
+    <div><dt>Prefill</dt><dd>La prima fase della generazione: tutti i token del prompt elaborati insieme, in una passata.</dd><span class="ex">2.000 token di prompt → 1 passata</span></div>
+    <div><dt>Decode</dt><dd>La seconda fase: un token per passata, in sequenza, fino al token di fine o al limite.</dd><span class="ex">500 token di risposta → 500 passate</span></div>
+    <div><dt>Token di fine</dt><dd>Token speciale che il modello ha imparato a emettere per chiudere la risposta; quando viene scelto, il ciclo si ferma.</dd><span class="ex">&lt;|eot_id|&gt; in Llama 3</span></div>
+  </dl>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="st" id="cap-2">
+  <div class="sec-head">
+    <span class="eyebrow">2 · Scegliere il token</span>
+    <h2>La distribuzione la decide il modello, la scelta la decidono poche regole fuori dal modello</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il modello restituisce una distribuzione; quale token prendere è una decisione separata, fatta da poche righe di codice nel server, e cambia molto il carattere del testo. È come una giuria che dà un voto a ogni candidato: si può proclamare sempre il primo, oppure estrarre a sorte pesando i voti, magari dopo aver escluso chi ha preso troppo poco.</p>
+    <p><b>Greedy</b> (avido) significa prendere sempre il token più probabile. È deterministico e va bene per risposte brevi e fattuali, ma su testi lunghi tende a ripetersi e a scegliere la strada più banale. <b>Campionare</b> significa estrarre a caso secondo le probabilità: il testo diventa più vario, al prezzo di qualche scelta improbabile. La <b>temperatura</b>, già vista nella guida sul training, divide i logit prima della softmax: sotto 1 accentua le differenze e avvicina il greedy, sopra 1 le appiattisce. A temperatura 0 la maggior parte delle librerie passa direttamente al greedy.</p>
+  </div>
+
+  <h3 id="c2-filtri" class="anchor">Tagliare la coda: top-k, top-p, min-p</h3>
+  <div class="prose stack">
+    <p>Il problema del campionamento puro è la <b>coda</b>: decine di migliaia di token con probabilità minuscole che, sommate, pesano. Estrarre spesso significa prima o poi pescare dalla coda, e un solo token assurdo può far deragliare il resto della frase. I filtri tolgono la coda e <b>rinormalizzano</b> ciò che resta, cioè dividono per la somma rimasta in modo che le probabilità tornino a sommare 1.</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Regola</th><th>Che cosa tiene</th><th>Pregio</th><th>Limite</th></tr></thead>
+    <tbody>
+      <tr><td>Top-k</td><td>i <i>k</i> token più probabili</td><td>semplice, costo fisso</td><td>numero rigido: troppi candidati quando il modello è sicuro, troppo pochi quando è incerto</td></tr>
+      <tr><td>Top-p (nucleus)</td><td>i token più probabili fino a superare una probabilità cumulata <i>p</i></td><td>si adatta: pochi candidati se la distribuzione è appuntita, molti se è piatta</td><td>con temperature alte la coda si gonfia e il nucleo si allarga molto</td></tr>
+      <tr><td>Min-p</td><td>i token con probabilità almeno <i>p</i><sub>min</sub> × quella del token migliore</td><td>soglia relativa alla sicurezza del modello, regge meglio le temperature alte</td><td>più recente, non tutte le API lo espongono</td></tr>
+    </tbody></table></div>
+    <p class="vx-foot">Top-p è stato proposto da Holtzman e colleghi (2019), che hanno mostrato come il testo generato con greedy o beam search tenda alla ripetizione e quello campionato senza filtri all'incoerenza; min-p da Nguyen e colleghi (2024).</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: temperatura e filtri su una distribuzione vera</h3><span class="tag">matematica reale</span></div>
+    <p>Muovi temperatura, top-k, top-p e min-p: le barre grigie sono le probabilità originali, quelle colorate le probabilità dopo i filtri, già rinormalizzate.</p>
+    <div class="sample">Contesto: «Il gatto si è seduto sul» → prossimo token?</div>
+    <div class="controls">
+      <div class="ctl"><label for="s2T">Temperatura <output id="s2To"></output></label><input id="s2T" type="range" min="0" max="2" step="0.05" value="1"></div>
+      <div class="ctl"><label for="s2K">Top-k <output id="s2Ko"></output></label><input id="s2K" type="range" min="1" max="12" step="1" value="12"></div>
+      <div class="ctl"><label for="s2P">Top-p <output id="s2Po"></output></label><input id="s2P" type="range" min="0.05" max="1" step="0.05" value="0.9"></div>
+      <div class="ctl"><label for="s2M">Min-p <output id="s2Mo"></output></label><input id="s2M" type="range" min="0" max="0.5" step="0.01" value="0"></div>
+      <div class="ctl"><label for="s2R">Penalità di presenza su «divano» <output id="s2Ro"></output></label><input id="s2R" type="range" min="0" max="2" step="0.1" value="0"></div>
+    </div>
+    <div class="pbars" id="s2Bars"></div>
+    <div class="readout">
+      <div><small>Token rimasti</small><strong id="s2Left">–</strong></div>
+      <div><small>Probabilità del primo</small><strong id="s2Top">–</strong></div>
+      <div><small>Entropia</small><strong id="s2H">–</strong></div>
+    </div>
+    <div class="row">
+      <div class="ctl" style="flex:0 1 160px;min-width:120px"><label for="s2Seed">Seed</label><input id="s2Seed" type="number" min="1" max="99999" value="42" style="font:inherit;font-family:var(--mono);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);width:100%"></div>
+      <button class="btn" id="s2Draw" type="button">Estrai 20 token</button>
+      <button class="btn ghost" id="s2New" type="button">Seed nuovo</button>
+    </div>
+    <div class="draws" id="s2Draws" aria-live="polite"></div>
+    <p class="callout" id="s2Msg"></p>
+    <p class="note">Dodici candidati con logit inventati ma plausibili; un vocabolario vero ha una coda di decine di migliaia di token, che rende i filtri ancora più importanti. L'ordine applicato qui è: penalità, temperatura, top-k, top-p, min-p. Le librerie non usano tutte lo stesso ordine, e il risultato può cambiare un po'. Le 20 estrazioni sono indipendenti, tutte dallo stesso contesto: servono a vedere la frequenza, non a generare una frase.</p>
+  </div>
+
+  <h3 id="c2-penalita" class="anchor">Penalità di ripetizione, di frequenza e di presenza</h3>
+  <div class="prose stack">
+    <p>Un altro modo di correggere i logit è guardare il testo già scritto. La <b>penalità di presenza</b> sottrae un valore fisso al logit di ogni token che è già comparso almeno una volta; la <b>penalità di frequenza</b> sottrae un valore proporzionale a quante volte è comparso. È la forma usata, per esempio, dalle API (interfacce di programmazione) di OpenAI. La <b>penalità di ripetizione</b> introdotta con il modello CTRL (Keskar e colleghi, 2019) invece divide i logit positivi dei token già visti per un fattore (1,2 nel lavoro originale) e moltiplica quelli negativi.</p>
+    <p>Sono strumenti grossolani: il modello non distingue una ripetizione noiosa da una necessaria, come il nome di una variabile in un codice o un termine tecnico in una spiegazione. Con i modelli moderni addestrati a seguire istruzioni si usano poco, e valori alti peggiorano la qualità.</p>
+  </div>
+
+  <h3 id="c2-determinismo" class="anchor">Seed e non determinismo, anche a temperatura 0</h3>
+  <div class="prose stack">
+    <p>Il campionamento usa un generatore di numeri pseudocasuali: fissando il <b>seed</b> (il seme da cui il generatore parte) si ottengono le stesse estrazioni, come mostra il laboratorio. Ci si aspetterebbe allora che a temperatura 0, o con lo stesso seed, la stessa domanda dia sempre la stessa risposta. Nei servizi reali spesso non succede, per ragioni numeriche più che casuali.</p>
+  </div>
+  <div class="vx"><ol class="vx-steps">
+    <li><span><b>La virgola mobile non è associativa.</b> In aritmetica a precisione finita (a + b) + c può differire di poco da a + (b + c). Una somma di migliaia di termini dà risultati leggermente diversi se cambia l'ordine.</span></li>
+    <li><span><b>L'ordine dipende dal carico.</b> Il server mette insieme le richieste di più utenti nello stesso batch (capitolo 5); a seconda di quante sono, le librerie scelgono strategie di calcolo diverse, che sommano in ordine diverso. La vostra richiesta non è calcolata sempre nello stesso modo.</span></li>
+    <li class="hot"><span><b>Basta un pareggio quasi perfetto.</b> Se due token hanno logit vicinissimi, una differenza nell'ultima cifra cambia il vincitore. Da lì la risposta prosegue su un'altra strada, e le differenze si accumulano.</span></li>
+  </ol></div>
+  <div class="prose stack">
+    <p>Per questo alcuni provider offrono il seed come garanzia «per quanto possibile», non assoluta. Ottenere un'inferenza davvero riproducibile richiede calcoli che diano lo stesso risultato qualunque sia la dimensione del batch, e costa un po' di velocità.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Greedy</dt><dd>Scelta che prende sempre il token con la probabilità più alta. Equivale a temperatura 0.</dd><span class="ex">«divano» al 41% → «divano», sempre</span></div>
+    <div><dt>Top-p (nucleus)</dt><dd>Filtro che tiene il gruppo più piccolo di token la cui probabilità cumulata supera p, poi rinormalizza.</dd><span class="ex">p = 0,9: si scarta l'ultimo 10% di coda</span></div>
+    <div><dt>Min-p</dt><dd>Filtro che tiene i token con probabilità almeno uguale a una frazione di quella del token migliore.</dd><span class="ex">min-p 0,1 con il primo al 40% → soglia 4%</span></div>
+    <div><dt>Rinormalizzare</dt><dd>Dividere le probabilità rimaste per la loro somma, così che tornino a sommare 1.</dd><span class="ex">30% e 20% rimasti → 60% e 40%</span></div>
+    <div><dt>Seed</dt><dd>Valore iniziale del generatore pseudocasuale: stesso seed, stesse estrazioni, se il resto del calcolo è identico.</dd><span class="ex">seed = 42</span></div>
+  </dl>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="st" id="cap-3">
+  <div class="sec-head">
+    <span class="eyebrow">3 · La cache KV (key-value)</span>
+    <h2>Il passato non cambia, quindi si calcola una volta sola e si tiene in memoria</h2>
+  </div>
+  <div class="prose stack">
+    <p>Nell'attenzione ogni token produce tre vettori: una query, una key e un value. Il token corrente confronta la propria query con le key di tutti i token precedenti e mescola i loro value secondo quei punteggi (il meccanismo è descritto nel capitolo sugli strati della guida sul training). Per generare il token 501 servono quindi le key e i value dei 500 token precedenti, in ogni strato.</p>
+    <p>Il punto chiave è la maschera causale. Siccome un token non guarda mai quelli che vengono dopo, il suo vettore in ogni strato non cambia quando la risposta si allunga: le key e i value del token 37 sono gli stessi alla passata 40 e alla passata 400. Ricalcolarli ogni volta sarebbe puro spreco. La <b>cache KV</b> (key-value, chiavi e valori) li conserva: a ogni passata di decode si calcolano query, key e value del solo token nuovo, si aggiungono key e value alla cache e si legge la cache per l'attenzione. Il decoder con maschera causale, e il perché un encoder come BERT non può farlo, è il tema della guida sulle architetture.</p>
+  </div>
+
+  <h3 id="c3-perche" class="anchor">Quanto lavoro si risparmia</h3>
+  <div class="prose stack">
+    <p>Prendiamo un prompt di 1.000 token e una risposta di 500. Con la cache il modello elabora 1.000 token nel prefill e poi uno per passata: circa 1.500 elaborazioni di token in tutto. Senza cache, ogni passata rielabora l'intero testo: 1.000 la prima volta, 1.001 la seconda, fino a 1.499.</p>
+  </div>
+  <div class="vx"><div class="vx-formula">senza cache: 500 × 1.000 <span class="op">+</span> (0 + 1 + … + 499) = 500.000 + 124.750 = 624.750<small>circa 400 volte il lavoro fatto con la cache (1.500 token), e il rapporto cresce con la lunghezza</small></div></div>
+  <div class="prose stack">
+    <p>Il prezzo si paga in memoria. La query del token corrente serve una volta e si butta; key e value invece restano per tutta la conversazione, per ogni strato e per ogni testa che ne ha di proprie.</p>
+  </div>
+
+  <h3 id="c3-formula" class="anchor">Quanta memoria occupa</h3>
+  <div class="vx"><div class="vx-formula">byte per token <span class="op">=</span> 2 × strati × teste KV × d<sub>testa</sub> × byte per numero<small>il 2 conta key e value; bf16 (bfloat16, virgola mobile a 16 bit) usa 2 byte per numero</small></div></div>
+  <div class="prose stack">
+    <p>Per Llama 3 8B: 32 strati, 8 teste KV, ogni testa di dimensione 128, numeri in bf16. Il conto dà 2 × 32 × 8 × 128 × 2 = 131.072 byte, cioè <b>128 KiB per token</b>. Un contesto di 8.192 token occupa 1 GiB per conversazione; uno di 128.000 token, il massimo di Llama 3.1, circa 16 GiB, quanto i pesi del modello stesso. La memoria della cache cresce in modo <b>lineare</b> con i token e con il numero di conversazioni servite insieme.</p>
+  </div>
+
+  <h3 id="c3-gqa" class="anchor">Condividere key e value tra le teste: MQA e GQA</h3>
+  <div class="prose stack">
+    <p>Nell'attenzione originale a più teste (MHA, Multi-Head Attention) ogni testa ha query, key e value propri: Llama 2 7B, con 32 teste, mette in cache 32 coppie di key e value per strato, cioè 512 KiB per token. La <b>MQA</b> (Multi-Query Attention, Shazeer 2019) fa condividere a tutte le teste di query una sola coppia di key e value; la <b>GQA</b> (Grouped-Query Attention, Ainslie e colleghi 2023) sta in mezzo: le teste di query sono divise in gruppi e ogni gruppo condivide una coppia. Llama 3 8B ha 32 teste di query e 8 teste KV, quindi gruppi da quattro, e una cache quattro volte più piccola di quella di un'attenzione completa delle stesse dimensioni.</p>
+    <p>Le query restano tutte: ogni testa continua a cercare cose diverse, ma lo fa negli stessi archivi. La perdita di qualità della GQA è piccola rispetto alla MQA, che ne ha una più evidente; per questo la GQA è diventata la scelta più comune. Altre strade riducono ancora la cache: comprimerla in un vettore latente più piccolo (MLA, Multi-head Latent Attention, in DeepSeek-V2 e V3), limitare alcuni strati a una finestra degli ultimi token, oppure quantizzarla a 8 bit.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: calcolatore della cache KV</h3><span class="tag">matematica reale</span></div>
+    <p>Scegli un modello oppure muovi strati, teste KV e contesto, e guarda quanta memoria serve per token, per conversazione e per tutte le conversazioni servite insieme.</p>
+    <div class="row"><div class="seg" id="s3Pre">
+      <button type="button" aria-pressed="true" data-p="l3">Llama 3 8B · GQA</button><button type="button" aria-pressed="false" data-p="l2">Llama 2 7B · MHA</button><button type="button" aria-pressed="false" data-p="l70">Llama 3 70B · GQA</button><button type="button" aria-pressed="false" data-p="fa">Falcon 7B · MQA</button>
+    </div></div>
+    <div class="controls">
+      <div class="ctl"><label for="s3L">Strati <output id="s3Lo"></output></label><input id="s3L" type="range" min="1" max="128" step="1" value="32"></div>
+      <div class="ctl"><label for="s3H">Teste KV <output id="s3Ho"></output></label><input id="s3H" type="range" min="1" max="64" step="1" value="8"></div>
+      <div class="ctl"><label for="s3D">Dimensione di una testa <output id="s3Do"></output></label><input id="s3D" type="range" min="32" max="256" step="32" value="128"></div>
+      <div class="ctl"><label for="s3C">Token di contesto <output id="s3Co"></output></label><input id="s3C" type="range" min="0" max="8" step="1" value="4"></div>
+      <div class="ctl"><label for="s3N">Conversazioni insieme <output id="s3No"></output></label><input id="s3N" type="range" min="1" max="64" step="1" value="8"></div>
+      <div class="ctl"><label>Precisione della cache</label><div class="seg" id="s3B"><button type="button" aria-pressed="true" data-b="2">16 bit</button><button type="button" aria-pressed="false" data-b="1">8 bit</button></div></div>
+    </div>
+    <div class="readout">
+      <div><small>Per token</small><strong id="s3Tok">–</strong></div>
+      <div><small>Per conversazione</small><strong id="s3Seq">–</strong></div>
+      <div><small>Totale cache</small><strong id="s3All">–</strong></div>
+      <div><small>Token per GiB</small><strong id="s3Per">–</strong></div>
+    </div>
+    <div class="diag-title">Su una GPU (Graphics Processing Unit, scheda acceleratrice) da 80 GB: pesi del modello (se noti) e cache</div>
+    <div class="tline" id="s3Bar"></div>
+    <div class="legend"><span><i class="k-pf"></i>pesi in bf16</span><span><i class="k-dc"></i>cache KV</span><span><i class="k-ou"></i>oltre gli 80 GB</span><span><i class="k-fr"></i>libero</span></div>
+    <p class="callout" id="s3Msg"></p>
+    <p class="note">La formula è esatta per l'attenzione standard, MHA, GQA e MQA; non vale per varianti come MLA o le finestre scorrevoli. I numeri reali di un server sono un po' più alti: frammentazione (capitolo 5), attivazioni temporanee e memoria riservata dalla libreria. 1 GiB = 2³⁰ byte; GPU da 80 GB = 80·10⁹ byte, come si dichiarano le schede.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Cache KV</dt><dd>Key e value dell'attenzione dei token già elaborati, conservati per ogni strato e testa KV per non ricalcolarli a ogni nuovo token.</dd><span class="ex">128 KiB per token in Llama 3 8B</span></div>
+    <div><dt>GQA (Grouped-Query Attention)</dt><dd>Attenzione in cui gruppi di teste di query condividono la stessa coppia di key e value: cache più piccola, qualità quasi invariata.</dd><span class="ex">32 teste di query, 8 teste KV</span></div>
+    <div><dt>MQA (Multi-Query Attention)</dt><dd>Caso estremo della GQA: una sola coppia di key e value per tutte le teste di uno strato.</dd><span class="ex">Falcon 7B, PaLM</span></div>
+  </dl>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="st" id="cap-4">
+  <div class="sec-head">
+    <span class="eyebrow">4 · Prefill e decode</span>
+    <h2>Il prompt consuma calcolo, la risposta consuma memoria e tempo</h2>
+  </div>
+  <div class="prose stack">
+    <p>Una GPU (Graphics Processing Unit) può fare due cose lentamente: calcolare e spostare dati dalla propria memoria ai circuiti di calcolo. Quale delle due fa da collo di bottiglia dipende da quante operazioni si fanno per ogni byte letto, la cosiddetta <b>intensità aritmetica</b>. Pensate a un cuoco con un dispensa lontana: se per ogni ingrediente preso fa cento piatti, conta la sua velocità ai fornelli; se per ogni ingrediente fa un piatto solo, conta quanto in fretta va e torna dalla dispensa.</p>
+  </div>
+
+  <h3 id="c4-roofline" class="anchor">Prefill limitato dal calcolo, decode limitato dalla memoria</h3>
+  <div class="prose stack">
+    <p>Ogni passata deve leggere tutti i pesi dalla memoria: 16 GB per un modello da 8 miliardi di parametri in bf16 (bfloat16, 2 byte per numero). Nel <b>prefill</b>, quella lettura serve a elaborare migliaia di token insieme: ogni peso letto viene usato migliaia di volte, e il limite è la potenza di calcolo. Si dice che il prefill è <b>compute-bound</b>.</p>
+    <p>Nel <b>decode</b> con una sola conversazione, invece, la stessa lettura di 16 GB serve per <em>un</em> token: circa due operazioni per ogni peso, cioè per ogni due byte. I circuiti di calcolo aspettano quasi sempre la memoria: il decode è <b>memory-bound</b>. In più ogni passata rilegge l'intera cache KV (key-value) della conversazione, che cresce token dopo token. Con una banda di memoria di qualche TB/s (terabyte al secondo), leggere 16 GB richiede alcuni millisecondi: è il tempo minimo per token, qualunque sia la potenza di calcolo della scheda.</p>
+  </div>
+  <div class="vx vx-cards">
+    <div class="vx-card"><h5><small>prefill</small>Tanti token, una passata</h5>
+      <div class="vx-line"><b>usa</b><span>migliaia di operazioni per ogni peso letto</span></div>
+      <div class="vx-line"><b>limite</b><span>potenza di calcolo (FLOPS, operazioni in virgola mobile al secondo)</span></div>
+      <div class="vx-line"><b>cresce</b><span>con i token del prompt; per prompt molto lunghi anche col quadrato, per via dell'attenzione</span></div>
+      <div class="vx-out acc"><b>si misura nel</b> tempo al primo token</div></div>
+    <div class="vx-card"><h5><small>decode</small>Un token per passata</h5>
+      <div class="vx-line"><b>usa</b><span>circa un'operazione per byte letto</span></div>
+      <div class="vx-line"><b>limite</b><span>banda di memoria: pesi + cache KV a ogni token</span></div>
+      <div class="vx-line"><b>cresce</b><span>con i token in uscita, in modo lineare, e un po' con la lunghezza del contesto</span></div>
+      <div class="vx-out wait"><b>si misura nel</b> tempo per token in uscita</div></div>
+  </div>
+
+  <h3 id="c4-metriche" class="anchor">Le metriche: TTFT, TPOT, ITL</h3>
+  <div class="prose stack">
+    <p>Il <b>TTFT</b> (Time To First Token, tempo al primo token) è quanto si aspetta prima di vedere comparire qualcosa: rete, coda sul server e prefill. Cresce con la lunghezza del prompt. Il <b>TPOT</b> (Time Per Output Token, tempo per token in uscita) è il tempo medio tra un token e il successivo dopo il primo; l'<b>ITL</b> (Inter-Token Latency, latenza tra token) è la stessa grandezza misurata token per token, utile per vedere gli scatti. La latenza totale è circa TTFT + (token in uscita − 1) × TPOT. In una chat con streaming conta molto il TTFT; in un'elaborazione in batch di documenti conta il numero totale di token al secondo.</p>
+    <p>Un caso che sorprende: i modelli che «ragionano» prima di rispondere generano token di ragionamento, visibili o no. Sono token in uscita a tutti gli effetti: allungano l'attesa e si pagano come output.</p>
+  </div>
+
+  <h3 id="c4-prezzi" class="anchor">Perché nei listini l'uscita costa di più</h3>
+  <div class="prose stack">
+    <p>I provider fanno pagare a milione di token, e il token in uscita costa di solito alcune volte quello in ingresso (rapporti tra 3 e 8 sono comuni). Non è arbitrario: un token di prompt è una piccola frazione di una passata eseguita a pieno regime di calcolo, mentre un token di risposta occupa una passata intera, limitata dalla memoria, e tiene occupata per tutto il tempo la cache KV della conversazione. Per lo stesso motivo alcuni listini alzano il prezzo oltre una certa lunghezza del contesto.</p>
+  </div>
+
+  <h3 id="c4-prompt-cache" class="anchor">Prompt caching: riusare il prefill di un prefisso</h3>
+  <div class="prose stack">
+    <p>Molte richieste cominciano allo stesso modo: lo stesso prompt di sistema, le stesse definizioni dei tool, lo stesso documento lungo su cui si fanno più domande. La cache KV di quel prefisso è identica ogni volta, perché dipende solo dai token che vengono prima. Il <b>prompt caching</b> dei provider la conserva per qualche minuto dall'ultimo uso: la richiesta successiva che inizia con <em>esattamente</em> lo stesso prefisso salta quella parte del prefill. Il TTFT scende e i token letti dalla cache costano una frazione del prezzo normale (per alcuni provider un decimo); scriverli in cache può costare un po' di più.</p>
+    <p>Due conseguenze pratiche. Il prefisso deve coincidere token per token: basta un orario o un identificativo all'inizio del prompt di sistema per invalidare tutto, quindi le parti che cambiano vanno in fondo. E non va confuso con la <b>cache delle risposte</b>, che un'applicazione o un gateway tiene per restituire una risposta già data a una domanda uguale o simile, senza chiamare il modello: quella è descritta nella guida sull'ingegneria dei sistemi basati su LLM (Large Language Model). Il prompt caching risparmia il prefill, ma la risposta viene generata ogni volta.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: dove va il tempo, dove vanno i soldi</h3><span class="tag">valori illustrativi</span></div>
+    <p>Muovi i token in ingresso e in uscita e la parte di prompt già in cache: guarda come si dividono il tempo (prefill contro decode) e il costo.</p>
+    <div class="row">
+      <div class="seg" id="s4Mod"><button type="button" aria-pressed="true" data-m="8">8B · 1 GPU</button><button type="button" aria-pressed="false" data-m="70">70B · 4 GPU</button></div>
+      <div class="seg" id="s4Q"><button type="button" aria-pressed="true" data-q="2">pesi bf16</button><button type="button" aria-pressed="false" data-q="1">int8</button><button type="button" aria-pressed="false" data-q="0.5">int4</button></div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="s4In">Token in ingresso <output id="s4Ino"></output></label><input id="s4In" type="range" min="0" max="9" step="1" value="3"></div>
+      <div class="ctl"><label for="s4Out">Token in uscita <output id="s4Outo"></output></label><input id="s4Out" type="range" min="0" max="7" step="1" value="4"></div>
+      <div class="ctl"><label for="s4C">Prompt già in cache <output id="s4Co"></output></label><input id="s4C" type="range" min="0" max="90" step="10" value="0"></div>
+    </div>
+    <div class="diag-title">Tempo della richiesta</div>
+    <div class="tline" id="s4Time"></div>
+    <div class="diag-title">Costo della richiesta</div>
+    <div class="tline" id="s4Cost"></div>
+    <div class="legend"><span><i class="k-pf"></i>prefill / ingresso</span><span><i class="k-ca"></i>ingresso letto dalla cache</span><span><i class="k-dc"></i>decode / uscita</span></div>
+    <div class="readout">
+      <div><small>TTFT (tempo al primo token)</small><strong id="s4Ttft">–</strong></div>
+      <div><small>TPOT (tempo per token)</small><strong id="s4Tpot">–</strong></div>
+      <div><small>Latenza totale</small><strong id="s4Tot">–</strong></div>
+      <div><small>Costo</small><strong id="s4Eur">–</strong></div>
+    </div>
+    <p class="callout" id="s4Msg"></p>
+    <p class="note">Modello a «tetto» semplificato. GPU ipotetica con 3,35 TB/s di banda e 989 TFLOPS (mille miliardi di operazioni al secondo) in bf16, gli ordini di grandezza di una scheda da datacenter recente, usata all'80% della banda e al 50% del calcolo; con 4 GPU tutto moltiplicato per 4, come se la divisione fosse perfetta. Una sola richiesta, senza coda né rete. La quantizzazione accorcia il decode (meno byte da leggere) ma qui non il prefill. Prezzi inventati: 3 $ per milione di token in ingresso, 0,30 $ letti dalla cache, 15 $ in uscita.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>TTFT (Time To First Token)</dt><dd>Tempo tra l'invio della richiesta e l'arrivo del primo token: coda, rete e prefill.</dd><span class="ex">cresce con la lunghezza del prompt</span></div>
+    <div><dt>TPOT (Time Per Output Token)</dt><dd>Tempo medio tra due token in uscita consecutivi, dopo il primo. Il suo inverso è la velocità di scrittura vista dall'utente.</dd><span class="ex">10 ms → 100 token al secondo</span></div>
+    <div><dt>Memory-bound</dt><dd>Calcolo limitato dalla velocità con cui i dati arrivano dalla memoria, non dalla potenza di calcolo.</dd><span class="ex">il decode con poche conversazioni</span></div>
+    <div><dt>Prompt caching</dt><dd>Riuso, da parte del provider, della cache KV di un prefisso identico già visto di recente: meno prefill, prezzo ridotto per quei token.</dd><span class="ex">prompt di sistema e tool sempre uguali</span></div>
+  </dl>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="st" id="cap-5">
+  <div class="sec-head">
+    <span class="eyebrow">5 · Servire molti utenti</span>
+    <h2>Il decode spreca la GPU, quindi si servono tante conversazioni nella stessa passata</h2>
+  </div>
+  <div class="prose stack">
+    <p>Se nel decode la GPU (Graphics Processing Unit) passa il tempo a leggere i pesi, la mossa ovvia è usare ogni lettura per più conversazioni. Leggere 16 GB di pesi e usarli per 64 token di 64 utenti diversi costa quasi quanto usarli per uno solo. È come un autobus: il viaggio costa più o meno lo stesso con un passeggero o con cinquanta. Il <b>batching</b> fa salire più passeggeri; tutto il resto di questo capitolo serve a farne salire di più, o a far andare l'autobus più veloce.</p>
+  </div>
+
+  <h3 id="c5-batching" class="anchor">Batching continuo</h3>
+  <div class="prose stack">
+    <p>Il batching statico raccoglie un gruppo di richieste e le porta avanti insieme fino alla fine: chi ha chiesto una risposta di 20 token aspetta chi ne ha chiesta una di 2.000, e i posti liberati restano vuoti. Il <b>batching continuo</b>, introdotto dal sistema Orca (Yu e colleghi, 2022), decide la composizione del batch <em>a ogni passata</em>: una conversazione che finisce esce subito, una richiesta nuova entra al suo posto. Oggi è il comportamento normale dei motori di inferenza come vLLM, SGLang e TensorRT-LLM. Una variante, il <b>prefill a blocchi</b> (chunked prefill), spezza i prompt lunghi in pezzi da mescolare alle passate di decode, così l'arrivo di un documento enorme non blocca la scrittura degli altri utenti.</p>
+  </div>
+
+  <h3 id="c5-paged" class="anchor">PagedAttention: la cache a pagine</h3>
+  <div class="prose stack">
+    <p>Il limite al numero di conversazioni insieme è la memoria della cache KV (key-value, capitolo 3). I primi sistemi riservavano a ogni richiesta uno spazio contiguo per la lunghezza massima possibile, perché non si sa in anticipo quanto sarà lunga la risposta. Kwon e colleghi (2023) hanno misurato che in quei sistemi solo il 20–40% circa della memoria della cache conteneva davvero dati utili: il resto era prenotato e mai usato, o frammentato.</p>
+    <p><b>PagedAttention</b>, il cuore di vLLM, applica l'idea della memoria virtuale dei sistemi operativi: la cache è divisa in blocchi di dimensione fissa (16 token per impostazione predefinita) assegnati man mano che servono, anche non contigui, con una tabella che dice dove sta ogni blocco. Lo spreco scende sotto il 4%, nel batch entrano molte più conversazioni e il throughput, il numero di token prodotti al secondo dal server, nel lavoro originale cresce di 2–4 volte a parità di latenza. I blocchi si possono anche <b>condividere</b>: più richieste con lo stesso prefisso puntano agli stessi blocchi, che è un modo di realizzare il prompt caching del capitolo 4.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: batch, throughput e velocità per utente</h3><span class="tag">valori illustrativi</span></div>
+    <p>Aumenta le conversazioni nel batch e confronta la prenotazione per la lunghezza massima con la cache a pagine: guarda quante entrano davvero e come cambiano throughput e velocità di ciascuno.</p>
+    <div class="row"><div class="seg" id="s5Alloc"><button type="button" aria-pressed="false" data-a="static">prenotazione per 8.192 token</button><button type="button" aria-pressed="true" data-a="paged">a pagine (PagedAttention)</button></div></div>
+    <div class="controls">
+      <div class="ctl"><label for="s5B">Richieste attive <output id="s5Bo"></output></label><input id="s5B" type="range" min="1" max="256" step="1" value="32"></div>
+      <div class="ctl"><label for="s5L">Lunghezza media di una conversazione <output id="s5Lo"></output></label><input id="s5L" type="range" min="0" max="3" step="1" value="1"></div>
+    </div>
+    <svg class="chart" id="s5Chart" viewBox="0 0 640 230" role="img" aria-label="Throughput totale e velocità per utente in funzione delle richieste nel batch"></svg>
+    <p class="vx-sr" id="s5Sr"></p>
+    <div class="legend"><span><i class="k-l1"></i>throughput totale (token/s del server)</span><span><i class="k-l2"></i>velocità per utente (token/s)</span></div>
+    <div class="readout">
+      <div><small>Nel batch / in coda</small><strong id="s5In">–</strong></div>
+      <div><small>Throughput totale</small><strong id="s5Thr">–</strong></div>
+      <div><small>Velocità per utente</small><strong id="s5Usr">–</strong></div>
+      <div><small>Limite</small><strong id="s5Lim">–</strong></div>
+    </div>
+    <p class="callout" id="s5Msg"></p>
+    <p class="note">Modello da 8 miliardi di parametri in bf16 (bfloat16, 2 byte per peso) con cache di Llama 3 8B (128 KiB per token) su una GPU ipotetica da 80 GB con le stesse prestazioni del capitolo 4; 4 GB lasciati alla libreria. Ogni passata dura il massimo tra il tempo per leggere pesi e cache e il tempo per calcolare. Si ignorano il prefill delle richieste nuove, la crescita delle conversazioni durante la generazione e lo spreco residuo della cache a pagine.</p>
+  </div>
+
+  <h3 id="c5-spec" class="anchor">Decodifica speculativa: un modello piccolo propone, quello grande verifica</h3>
+  <div class="prose stack">
+    <p>Il batching aumenta i token al secondo del server, non quelli della singola conversazione. Per accelerare la singola risposta si sfrutta la stessa asimmetria in un altro modo: siccome il decode è limitato dalla memoria, una passata del modello grande su 5 token costa quasi quanto una su un token solo. La <b>decodifica speculativa</b> (Leviathan e colleghi, 2023; in parallelo Chen e colleghi, DeepMind) usa un <b>modello bozza</b> piccolo e veloce che propone γ token in sequenza; il modello grande li controlla tutti in una passata sola, come fosse un pezzetto di prefill.</p>
+    <p>La verifica accetta ogni token proposto <i>x</i> con probabilità min(1, p(<i>x</i>) / q(<i>x</i>)), dove p è la probabilità del modello grande e q quella della bozza. Al primo rifiuto si ricampiona da una distribuzione corretta e il resto della bozza si butta; se tutti vengono accettati, la stessa passata regala un token in più. Il risultato notevole è che il testo prodotto ha <b>esattamente la stessa distribuzione</b> che avrebbe dato il modello grande da solo: si guadagna velocità senza perdere qualità. Il guadagno dipende da quanto spesso la bozza indovina, cioè dal tasso di accettazione α, e varia con il tipo di testo: alto per codice e testo prevedibile, basso per testo creativo. Esistono varianti senza modello separato, che aggiungono al modello grande piccole teste che indovinano più token in avanti (per esempio Medusa).</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: quanto accelera la decodifica speculativa</h3><span class="tag">matematica reale</span></div>
+    <p>Muovi il tasso di accettazione, il numero di token proposti e il costo della bozza: le barre mostrano l'accelerazione attesa per ogni lunghezza della bozza.</p>
+    <div class="controls">
+      <div class="ctl"><label for="s5A">Tasso di accettazione α <output id="s5Ao"></output></label><input id="s5A" type="range" min="0.3" max="0.95" step="0.05" value="0.8"></div>
+      <div class="ctl"><label for="s5G">Token proposti γ <output id="s5Go"></output></label><input id="s5G" type="range" min="1" max="10" step="1" value="4"></div>
+      <div class="ctl"><label for="s5Cc">Costo della bozza rispetto al modello grande <output id="s5Cco"></output></label><input id="s5Cc" type="range" min="0.01" max="0.5" step="0.01" value="0.05"></div>
+    </div>
+    <svg class="chart" id="s5Spec" viewBox="0 0 640 200" role="img" aria-label="Accelerazione attesa in funzione del numero di token proposti"></svg>
+    <p class="vx-sr" id="s5SpecSr"></p>
+    <div class="readout">
+      <div><small>Token per passata del modello grande</small><strong id="s5E">–</strong></div>
+      <div><small>Accelerazione</small><strong id="s5X">–</strong></div>
+      <div><small>γ migliore</small><strong id="s5Best">–</strong></div>
+    </div>
+    <p class="callout" id="s5SpecMsg"></p>
+    <p class="note">Formule del lavoro di Leviathan e colleghi: token attesi per passata (1 − α<sup>γ+1</sup>) / (1 − α); accelerazione = token attesi / (γ·c + 1), con c il costo di una passata della bozza in unità del modello grande. Assumono che ogni token sia accettato in modo indipendente con la stessa probabilità α e che verificare γ + 1 token costi come una passata normale, cosa vera solo finché il decode resta limitato dalla memoria: con batch molto grandi il vantaggio cala.</p>
+  </div>
+
+  <h3 id="c5-quant" class="anchor">Quantizzazione dei pesi: meno byte da leggere</h3>
+  <div class="prose stack">
+    <p>Se il decode è limitato dai byte letti, dimezzare i byte dei pesi accelera quasi della metà il decode e libera memoria per la cache. La <b>quantizzazione</b> rappresenta i pesi con meno bit: da 16 (bf16, bfloat16) a 8 (int8 o FP8, virgola mobile a 8 bit) o a 4, con un fattore di scala per ogni gruppo di pesi per non perdere l'ordine di grandezza. Metodi come GPTQ (quantizzazione post-addestramento per modelli GPT) e AWQ (Activation-aware Weight Quantization, quantizzazione che tiene conto delle attivazioni) scelgono come arrotondare guardando dati di esempio, per sbagliare meno proprio sui pesi che contano di più.</p>
+  </div>
+  <div class="vx"><div class="scroll-x"><table class="vx-table">
+    <thead><tr><th>Precisione</th><th>Byte per peso</th><th>Pesi di un 8B</th><th>Pesi di un 70B</th><th>Qualità, di solito</th></tr></thead>
+    <tbody>
+      <tr><td>bf16</td><td class="m">2</td><td class="m">16 GB</td><td class="m">140 GB</td><td>riferimento</td></tr>
+      <tr><td>int8 / FP8</td><td class="m">1</td><td class="m">8 GB</td><td class="m">70 GB</td><td>differenze minime nella maggior parte dei test</td></tr>
+      <tr><td>int4</td><td class="m">0,5 (più le scale)</td><td class="m">≈ 4–5 GB</td><td class="m">≈ 35–40 GB</td><td>perdita piccola ma misurabile, più evidente nei modelli piccoli e nei compiti difficili</td></tr>
+    </tbody></table></div>
+    <p class="vx-foot">Si quantizza anche la cache KV, di solito a 8 bit, con la stessa logica: più conversazioni nella stessa memoria. Prima di adottare una versione quantizzata conviene misurarla sui propri compiti.</p>
+  </div>
+
+  <dl class="gloss">
+    <div><dt>Batching continuo</dt><dd>Composizione del batch ricalcolata a ogni passata: chi finisce esce, chi arriva entra, senza aspettare il gruppo.</dd><span class="ex">iteration-level scheduling in Orca</span></div>
+    <div><dt>PagedAttention</dt><dd>Gestione della cache KV a blocchi di dimensione fissa, allocati su richiesta e anche condivisi tra richieste, come le pagine della memoria virtuale.</dd><span class="ex">vLLM, blocchi da 16 token</span></div>
+    <div><dt>Throughput</dt><dd>Token prodotti al secondo dal server, sommando tutte le conversazioni. Cresce con il batch, mentre la velocità di ciascuno cala.</dd><span class="ex">token/s per GPU</span></div>
+    <div><dt>Decodifica speculativa</dt><dd>Un modello bozza propone più token, il modello grande li verifica in una passata: stessa distribuzione d'uscita, meno passate.</dd><span class="ex">α = 0,8, γ = 4 → circa 2,8 volte</span></div>
+    <div><dt>Quantizzazione</dt><dd>Rappresentare pesi (o cache) con meno bit per numero, accettando un piccolo errore di arrotondamento.</dd><span class="ex">bf16 → int4: un quarto dei byte</span></div>
+  </dl>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="st" id="cap-6">
+  <div class="sec-head">
+    <span class="eyebrow">6 · Output strutturato e decodifica vincolata</span>
+    <h2>Per avere JSON valido non si chiede al modello di essere bravo: si vietano i token sbagliati</h2>
+  </div>
+  <div class="prose stack">
+    <p>Un'applicazione spesso non vuole prosa ma dati: un oggetto JSON (JavaScript Object Notation) con certi campi, la chiamata a un tool con argomenti validi. Chiederlo nelle istruzioni funziona quasi sempre, e «quasi» è il problema: basta un «Certo! Ecco il JSON:» davanti, una virgola in più o un valore fuori elenco per far fallire il parser. La <b>decodifica vincolata</b> risolve il problema nel punto in cui nasce, la scelta del token.</p>
+    <p>A ogni passata, prima del campionamento, il server calcola quali token sono compatibili con lo schema dato il testo prodotto fin lì, e porta a meno infinito il logit di tutti gli altri. Dopo la softmax quei token hanno probabilità zero; i token ammessi si dividono la probabilità rimasta, rinormalizzata come nei filtri del capitolo 2. Il modello sceglie liberamente, ma solo tra le continuazioni valide.</p>
+  </div>
+
+  <h3 id="c6-maschera" class="anchor">Dalla grammatica alla maschera</h3>
+  <div class="prose stack">
+    <p>Lo schema, per esempio un JSON Schema o una grammatica, viene tradotto in un automa: una macchina a stati che sa, in ogni punto, quali caratteri possono venire dopo. Il lavoro difficile è passare dai caratteri ai token, perché un token può contenere più caratteri e attraversare più stati dell'automa. Librerie come Outlines (Willard e Louf, 2023), XGrammar e le grammatiche di llama.cpp precalcolano per ogni stato l'insieme dei token ammessi, così la maschera costa poco a ogni passata. Le modalità di output strutturato «stretto» delle API (interfacce di programmazione) dei provider e il function calling vincolato si basano su questo meccanismo: è il motivo per cui una chiamata a tool ha argomenti sintatticamente validi, come si vede nella guida da assistente ad agente.</p>
+  </div>
+  <div class="vx vx-code"><div class="vx-code-h"><span>JSON Schema · il ticket del laboratorio</span><button class="vx-copy" type="button">Copia</button></div>
+<pre><code><span class="ln">{
+</span><span class="ln">  <span class="tk-str">"type"</span>: <span class="tk-str">"object"</span>,
+</span><span class="ln">  <span class="tk-str">"properties"</span>: {
+</span><span class="ln">    <span class="tk-str">"stato"</span>: {
+</span><span class="ln hl">      <span class="tk-str">"enum"</span>: [<span class="tk-str">"aperto"</span>, <span class="tk-str">"chiuso"</span>]
+</span><span class="ln">    },
+</span><span class="ln">    <span class="tk-str">"priorita"</span>: {
+</span><span class="ln">      <span class="tk-str">"type"</span>: <span class="tk-str">"integer"</span>,
+</span><span class="ln hl">      <span class="tk-str">"minimum"</span>: <span class="tk-num">1</span>, <span class="tk-str">"maximum"</span>: <span class="tk-num">5</span>
+</span><span class="ln">    }
+</span><span class="ln">  },
+</span><span class="ln">  <span class="tk-str">"required"</span>: [<span class="tk-str">"stato"</span>, <span class="tk-str">"priorita"</span>],
+</span><span class="ln">  <span class="tk-str">"additionalProperties"</span>: <span class="tk-kw">false</span>
+</span><span class="ln">}
+</span></code></pre></div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la maschera sui logit, token per token</h3><span class="tag">simulazione</span></div>
+    <p>Avanza una passata alla volta con e senza vincolo: con il vincolo i token incompatibili con lo schema spariscono e gli altri si dividono la loro probabilità.</p>
+    <div class="row">
+      <div class="seg" id="s6Mode"><button type="button" aria-pressed="true" data-m="on">con vincolo</button><button type="button" aria-pressed="false" data-m="off">senza vincolo</button></div>
+      <button class="btn" id="s6Step" type="button">Passata successiva</button>
+      <button class="btn ghost" id="s6All" type="button">Fino alla fine</button>
+      <button class="btn ghost" id="s6Reset" type="button">Ricomincia</button>
+    </div>
+    <div class="state-line" id="s6Out" aria-live="polite"></div>
+    <div class="diag-title" id="s6Dt">Candidati di questa passata</div>
+    <div class="pbars" id="s6Bars"></div>
+    <p class="callout" id="s6Msg"></p>
+    <p class="note">Probabilità inventate e solo quattro o cinque candidati per passata; per semplicità i candidati sono gli stessi nei due modi, mentre un modello vero, dopo un «Certo», continuerebbe con altra prosa. La maschera e la rinormalizzazione sono quelle reali: probabilità zero ai token vietati, divisione per la somma dei rimasti.</p>
+  </div>
+
+  <h3 id="c6-limiti" class="anchor">Che cosa garantisce e che cosa no</h3>
+  <div class="vx"><ol class="vx-steps">
+    <li class="good"><span><b>Garantisce la forma.</b> Il risultato rispetta la sintassi e lo schema: campi richiesti, valori di un elenco, tipi. Il parser non fallisce.</span></li>
+    <li class="bad"><span><b>Non garantisce il contenuto.</b> «priorita»: 4 è valido anche quando la priorità giusta era 1. Lo schema vieta l'impossibile, non lo sbagliato.</span></li>
+    <li><span><b>Può peggiorare la risposta.</b> Il vincolo spinge il modello lontano dalle continuazioni che preferiva. Se una risposta richiede ragionamento, conviene lasciargli un campo di testo libero prima del campo con la conclusione: i token si generano nell'ordine dei campi.</span></li>
+    <li><span><b>Ha un costo di preparazione.</b> Schemi molto grandi o ricorsivi richiedono tempo per costruire l'automa; i provider di solito lo mettono in cache dopo il primo uso e non supportano ogni parola chiave del JSON Schema.</span></li>
+  </ol></div>
+
+  <dl class="gloss">
+    <div><dt>Decodifica vincolata</dt><dd>Generazione in cui, a ogni passata, i logit dei token incompatibili con una grammatica o uno schema vengono azzerati in probabilità prima della scelta.</dd><span class="ex">logit → −∞ per «Certo» quando serve «{»</span></div>
+    <div><dt>JSON Schema</dt><dd>Linguaggio standard per descrivere la forma di un documento JSON: tipi, campi obbligatori, valori ammessi.</dd><span class="ex">"enum": ["aperto", "chiuso"]</span></div>
+  </dl>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Dove agisce ogni tecnica, e che cosa cambia</h2></div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Concetto</th><th>Dove agisce</th><th>Che cosa cambia</th><th>Che cosa costa o rischia</th></tr></thead>
+    <tbody>
+      <tr><td>Generazione autoregressiva</td><td>il ciclo intero</td><td>prompt in una passata, risposta in una passata per token</td><td>la risposta non si parallelizza</td></tr>
+      <tr><td>Temperatura, top-k, top-p, min-p</td><td>la scelta, dopo i logit</td><td>quanto è vario o prevedibile il testo</td><td>troppo alti: incoerenza; troppo bassi: ripetizione</td></tr>
+      <tr><td>Penalità</td><td>i logit dei token già usati</td><td>meno ripetizioni</td><td>penalizza anche le ripetizioni necessarie</td></tr>
+      <tr><td>Cache KV (key-value)</td><td>attenzione, ogni strato</td><td>il decode elabora solo il token nuovo</td><td>memoria lineare in token e conversazioni</td></tr>
+      <tr><td>GQA, MQA (attenzione a query raggruppate o a query multiple)</td><td>architettura dell'attenzione</td><td>cache più piccola, da alcune a decine di volte rispetto all'attenzione completa</td><td>piccola perdita di qualità, maggiore con MQA</td></tr>
+      <tr><td>Prefill contro decode</td><td>uso della GPU (scheda acceleratrice)</td><td>TTFT (tempo al primo token) dal prompt, TPOT (tempo per token) dalla banda di memoria</td><td>uscita più cara dell'ingresso nei listini</td></tr>
+      <tr><td>Prompt caching</td><td>prefill di un prefisso identico</td><td>TTFT e costo dell'ingresso più bassi</td><td>serve un prefisso stabile; dura pochi minuti</td></tr>
+      <tr><td>Batching continuo, PagedAttention</td><td>il server</td><td>più conversazioni per passata, throughput più alto</td><td>ogni utente scrive un po' più lento</td></tr>
+      <tr><td>Decodifica speculativa</td><td>il decode della singola conversazione</td><td>meno passate del modello grande, stessa distribuzione</td><td>serve una bozza che indovini spesso</td></tr>
+      <tr><td>Quantizzazione</td><td>pesi e cache in memoria</td><td>meno byte da leggere, più spazio per la cache</td><td>perdita di qualità crescente sotto gli 8 bit</td></tr>
+      <tr><td>Decodifica vincolata</td><td>maschera sui logit</td><td>output sempre conforme allo schema</td><td>forma garantita, contenuto no</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <p><b>Fonti principali.</b> Holtzman e colleghi, <i>The Curious Case of Neural Text Degeneration</i> (2019, top-p); Nguyen e colleghi, <i>Turning Up the Heat: Min-p Sampling for Creative and Coherent LLM Outputs</i> (2024); Keskar e colleghi, <i>CTRL: A Conditional Transformer Language Model for Controllable Generation</i> (2019, penalità di ripetizione); Shazeer, <i>Fast Transformer Decoding: One Write-Head is All You Need</i> (2019, MQA); Ainslie e colleghi, <i>GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</i> (2023); Yu e colleghi, <i>Orca: A Distributed Serving System for Transformer-Based Generative Models</i> (2022); Kwon e colleghi, <i>Efficient Memory Management for Large Language Model Serving with PagedAttention</i> (2023, vLLM); Leviathan, Kalman, Matias, <i>Fast Inference from Transformers via Speculative Decoding</i> (2023); Chen e colleghi, <i>Accelerating Large Language Model Decoding with Speculative Sampling</i> (2023); Willard e Louf, <i>Efficient Guided Generation for Large Language Models</i> (2023); configurazioni pubblicate di Llama 2 7B, Llama 3 8B e 70B, Falcon 7B.</p>
+  <p style="margin-top:8px">I laboratori dei capitoli 2, 3 e la decodifica speculativa del capitolo 5 usano le formule reali su dati scelti a mano. Il ciclo del capitolo 1 e la maschera del capitolo 6 sono simulazioni con probabilità inventate. I tempi e i prezzi dei capitoli 4 e 5 vengono da un modello semplificato con valori illustrativi: indicano proporzioni e ordini di grandezza, non le prestazioni di un servizio reale.</p>
+</footer>
+</div>
+
+<script>
+/* Script della guida: scroll spy e laboratori */
+(function(){
+  const $=s=>document.querySelector(s);
+  const links=[...document.querySelectorAll("nav.toc a")],secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+  function spy(){let c=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)c=i;});links.forEach((a,i)=>a.classList.toggle("on",i===c));}
+  addEventListener("scroll",spy,{passive:true});spy();
+
+  const NS="http://www.w3.org/2000/svg";
+  function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function seg(box,cb){box.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));cb(b);}));}
+  const nf=(n,d)=>n.toLocaleString("it-IT",{maximumFractionDigits:d==null?0:d});
+  const pct=(p,d)=>(p*100).toLocaleString("it-IT",{maximumFractionDigits:d==null?1:d,minimumFractionDigits:0})+"%";
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const showTok=t=>t==="\n"?"↵":(t.trim()===""?"␣":t.trim());
+  const fmtT=s=>s<1?nf(s*1000,s<0.01?1:0)+" ms":nf(s,s<10?2:1)+" s";
+  function fmtB(b){const K=1024,M=K*K,G=M*K;if(b<M)return nf(b/K,b<10*K?1:0)+" KiB";if(b<G)return nf(b/M,b<10*M?1:0)+" MiB";return nf(b/G,b<10*G?2:1)+" GiB";}
+  function bars(box,rows){ // rows: {lbl, orig, p, off, pick, bad, v}
+    box.innerHTML=rows.map(r=>`<div class="pbar${r.off?" off":""}${r.pick?" pick":""}${r.bad?" bad":""}"><span class="lbl">${esc(r.lbl)}</span><div class="track"><div class="orig" style="width:${(r.orig*100).toFixed(2)}%"></div><div class="fill" style="width:${(r.p*100).toFixed(2)}%"></div></div><span class="v">${r.v}</span></div>`).join("");
+  }
+
+  /* ---------- cap. 1 · il ciclo ---------- */
+  const P1=["La"," capitale"," d","'","Italia"," è"];
+  const S1=[
+    [[" Roma",.86],[" la",.05],[" una",.03],[" Milano",.02]],
+    [[",",.48],[".",.41],[" e",.06],["\n",.02]],
+    [[" una",.37],[" la",.22],[" che",.18],[" città",.09]],
+    [[" città",.71],[" metropoli",.12],[" delle",.05],[" capitale",.03]],
+    [[" di",.44],[" con",.31],[" antica",.12],[" che",.06]],
+    [[" quasi",.39],[" circa",.33],[" oltre",.15],[" due",.05]],
+    [[" tre",.82],[" 3",.09],[" due",.05],[" quattro",.01]],
+    [[" milioni",.97],[" mila",.01],[" miliardi",.005],[" volte",.002]],
+    [[" di",.93],[" e",.03],[".",.02],[",",.01]],
+    [[" abitanti",.95],[" persone",.04],[" residenti",.007],[" anime",.002]],
+    [[".",.88],[",",.07],[" e",.03],[" (",.01]],
+    [["⟨fine⟩",.74],["\n",.15],[" È",.06],[" La",.02]]
+  ];
+  let n1=1,cache1=true;
+  function tot1(n){return cache1?P1.length+(n-1):P1.length*n+n*(n-1)/2;}
+  function draw1(){
+    const out=S1.slice(0,n1).map(s=>s[0][0]);
+    const nowIn=cache1?(n1===1?P1.length:1):P1.length+n1-1; // token elaborati in questa passata
+    const all=P1.concat(out.slice(0,-1)); // ingresso di questa passata
+    let h="";
+    P1.forEach((t,i)=>{const now=i>=all.length-nowIn;h+=`<span class="tok prompt${now?" now":""}">${esc(showTok(t))}</span>`;});
+    out.forEach((t,i)=>{const isLast=i===out.length-1;const now=!isLast&&(P1.length+i)>=all.length-nowIn;
+      h+=`<span class="tok ${t==="⟨fine⟩"?"eos":"resp"}${now?" now":""}">${esc(showTok(t))}</span>`;});
+    $("#s1Toks").innerHTML=h;
+    const st=S1[n1-1];
+    $("#s1Dt").textContent=`Passata ${n1}: i quattro candidati migliori per il token ${n1} della risposta`;
+    bars($("#s1Bars"),st.map((c,i)=>({lbl:showTok(c[0]),orig:c[1],p:c[1],pick:i===0,v:pct(c[1])})));
+    $("#s1Pass").textContent=n1;
+    $("#s1Now").textContent=nowIn+" token";
+    $("#s1Tot").textContent=nf(tot1(n1));
+    $("#s1Ctx").textContent=(P1.length+n1-1)+" + 1 nuovo";
+    const ch=showTok(st[0][0]);const fin=n1===S1.length;
+    let m;
+    if(n1===1)m=`<b>Prefill.</b> I ${P1.length} token del prompt (bordo nero) entrano tutti nella stessa passata. L'ultima posizione produce i logit del primo token: «${ch}» all'${pct(st[0][1],0)}. Da qui in poi si va un token alla volta.`;
+    else if(fin)m=`<b>Token di fine.</b> Alla passata ${n1} il modello sceglie «⟨fine⟩» e il ciclo si ferma: ${n1-1} token di risposta, ${n1} passate. ${cache1?`Con la cache KV il modello ha elaborato ${tot1(n1)} token in tutto, ognuno una volta sola.`:`Senza cache ha elaborato ${tot1(n1)} token, contro i ${P1.length+n1-1} che bastano con la cache: ogni passata ha rifatto il lavoro delle precedenti.`}`;
+    else m=cache1?`<b>Passata ${n1}, decode.</b> Entra solo il token appena scelto; key e value dei ${P1.length+n1-2} precedenti sono già nella cache KV. Esce «${ch}» (${pct(st[0][1],0)}), che diventerà l'ingresso della passata ${n1+1}.`
+      :`<b>Passata ${n1}, senza cache.</b> Per produrre «${ch}» il modello rielabora tutti i ${nowIn} token del testo, anche quelli già visti: il risultato è identico, il lavoro no. Totale finora: ${tot1(n1)} token elaborati.`;
+    $("#s1Msg").innerHTML=m;
+    $("#s1Step").disabled=fin;$("#s1All").disabled=fin;
+  }
+  $("#s1Step").addEventListener("click",()=>{if(n1<S1.length){n1++;draw1();}});
+  $("#s1All").addEventListener("click",()=>{n1=S1.length;draw1();});
+  $("#s1Reset").addEventListener("click",()=>{n1=1;draw1();});
+  seg($("#s1Cache"),b=>{cache1=b.dataset.c==="1";draw1();});
+  draw1();
+
+  /* ---------- cap. 2 · campionamento ---------- */
+  const C2=[["divano",3.2],["tappeto",2.6],["letto",2.3],["davanzale",1.9],["tetto",1.5],["cuscino",1.2],["pavimento",1.0],["muretto",0.4],["pianoforte",-0.3],["frigorifero",-1.0],["tostapane",-2.0],["Giove",-3.0]];
+  const softmax=z=>{const m=Math.max(...z);const e=z.map(x=>Math.exp(x-m));const s=e.reduce((a,b)=>a+b,0);return e.map(x=>x/s);};
+  const renorm=q=>{const s=q.reduce((a,b)=>a+b,0);return q.map(x=>x/s);};
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  const s2={T:$("#s2T"),K:$("#s2K"),P:$("#s2P"),M:$("#s2M"),R:$("#s2R")};
+  function dist2(){
+    const T=+s2.T.value,k=+s2.K.value,p=+s2.P.value,mp=+s2.M.value,pen=+s2.R.value;
+    const z=C2.map((c,i)=>c[1]-(i===0?pen:0));
+    const orig=softmax(C2.map(c=>c[1]));
+    let q;
+    if(T===0){const am=z.indexOf(Math.max(...z));q=z.map((_,i)=>i===am?1:0);}
+    else{
+      q=softmax(z.map(x=>x/T));
+      const order=[...q.keys()].sort((a,b)=>q[b]-q[a]);
+      if(k<q.length){const keep=new Set(order.slice(0,k));q=renorm(q.map((x,i)=>keep.has(i)?x:0));}
+      if(p<1){const o=[...q.keys()].sort((a,b)=>q[b]-q[a]);let c=0;const keep=new Set();for(const i of o){if(q[i]<=0)break;keep.add(i);c+=q[i];if(c>=p-1e-12)break;}q=renorm(q.map((x,i)=>keep.has(i)?x:0));}
+      if(mp>0){const mx=Math.max(...q);q=renorm(q.map(x=>x>=mp*mx?x:0));}
+    }
+    return {orig,q,T,k,p,mp,pen};
+  }
+  function draw2(){
+    const d=dist2();
+    $("#s2To").textContent=d.T===0?"0 (greedy)":nf(d.T,2);
+    $("#s2Ko").textContent=d.k>=C2.length?"spento":d.k;
+    $("#s2Po").textContent=d.p>=1?"spento":nf(d.p,2);
+    $("#s2Mo").textContent=d.mp===0?"spento":nf(d.mp,2);
+    $("#s2Ro").textContent=d.pen===0?"0":"−"+nf(d.pen,1)+" sul logit";
+    const best=d.q.indexOf(Math.max(...d.q));
+    bars($("#s2Bars"),C2.map((c,i)=>({lbl:c[0],orig:d.orig[i],p:d.q[i],off:d.q[i]===0,pick:i===best,v:pct(d.orig[i])+" → "+(d.q[i]===0?"0":pct(d.q[i]))})));
+    const left=d.q.filter(x=>x>0).length;
+    const H=-d.q.reduce((a,x)=>a+(x>0?x*Math.log2(x):0),0);
+    $("#s2Left").textContent=left+" su "+C2.length;
+    $("#s2Top").textContent=C2[best][0]+" · "+pct(d.q[best]);
+    $("#s2H").textContent=nf(H,2)+" bit";
+    // estrazioni con seed
+    const seed=Math.max(1,Math.floor(+$("#s2Seed").value||1));const r=mulberry32(seed);const cnt=new Array(C2.length).fill(0);let h="";
+    for(let j=0;j<20;j++){let u=r(),i=0,c=0;for(;i<d.q.length;i++){c+=d.q[i];if(u<c)break;}if(i>=d.q.length)i=best;cnt[i]++;h+=`<span class="tok resp">${esc(C2[i][0])}</span>`;}
+    $("#s2Draws").innerHTML=h;
+    const distinct=cnt.filter(x=>x>0).length;
+    let m;
+    if(d.T===0)m=`<b>Greedy.</b> A temperatura 0 resta un solo candidato, «${C2[best][0]}»: le 20 estrazioni sono tutte uguali e il seed non conta più. Comodo per risposte fattuali, monotono su testi lunghi.`;
+    else if(left===1)m=`<b>I filtri hanno lasciato un solo token.</b> Anche con temperatura ${nf(d.T,2)} il risultato è ora deterministico: «${C2[best][0]}».`;
+    else m=`<b>Restano ${left} candidati su ${C2.length}</b>, il primo al ${pct(d.q[best],0)}. In 20 estrazioni con seed ${seed} escono ${distinct} parole diverse; «${C2[best][0]}» esce ${cnt[best]} volte. `+(d.T>1.3&&d.p>=1&&d.mp===0&&d.k>=C2.length?`Con temperatura alta e nessun filtro anche «Giove» e «tostapane» diventano possibili: è la coda che i filtri servono a tagliare.`:d.mp>0?`Min-p taglia tutto ciò che sta sotto il ${pct(d.mp,0)} della probabilità del primo token: la soglia si alza quando il modello è sicuro e si abbassa quando è incerto.`:d.p<1?`Top-p tiene i token più probabili finché la loro somma raggiunge il ${pct(d.p,0)}; prova ad alzare la temperatura e guarda il nucleo allargarsi.`:`Ripeti con lo stesso seed: le estrazioni sono identiche. Cambia seed e cambiano.`)+(d.pen>0?` La penalità di presenza abbassa «divano» come se fosse già comparso nel testo.`:"");
+    $("#s2Msg").innerHTML=m;
+  }
+  Object.values(s2).forEach(x=>x.addEventListener("input",draw2));
+  $("#s2Seed").addEventListener("change",draw2);
+  $("#s2Draw").addEventListener("click",draw2);
+  $("#s2New").addEventListener("click",()=>{$("#s2Seed").value=1+Math.floor(Math.random()*99999);draw2();});
+  draw2();
+
+  /* ---------- cap. 3 · cache KV ---------- */
+  const CTX=[512,1024,2048,4096,8192,16384,32768,65536,131072];
+  const PRE3={l3:{L:32,H:8,D:128,Q:32,W:8.03e9,n:"Llama 3 8B"},l2:{L:32,H:32,D:128,Q:32,W:6.74e9,n:"Llama 2 7B"},l70:{L:80,H:8,D:128,Q:64,W:70.6e9,n:"Llama 3 70B"},fa:{L:32,H:1,D:64,Q:71,W:7.2e9,n:"Falcon 7B"}};
+  const s3={L:$("#s3L"),H:$("#s3H"),D:$("#s3D"),C:$("#s3C"),N:$("#s3N")};let b3=2,pre3="l3";
+  function draw3(){
+    const L=+s3.L.value,H=+s3.H.value,D=+s3.D.value,ctx=CTX[+s3.C.value],N=+s3.N.value;
+    const P=pre3&&PRE3[pre3];const match=P&&P.L===L&&P.H===H&&P.D===D;
+    if(!match){pre3=null;$("#s3Pre").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false"));}
+    $("#s3Lo").textContent=L;$("#s3Ho").textContent=H;$("#s3Do").textContent=D;$("#s3Co").textContent=nf(ctx);$("#s3No").textContent=N;
+    const tok=2*L*H*D*b3,seq=tok*ctx,all=seq*N;
+    $("#s3Tok").textContent=fmtB(tok);$("#s3Seq").textContent=fmtB(seq);$("#s3All").textContent=fmtB(all);
+    $("#s3Per").textContent=nf(Math.floor(1073741824/tok));
+    const GPU=80e9,W=match?P.W*2:0,used=W+all,scale=Math.max(GPU,used);
+    const gb=x=>nf(x/1e9,x<1e10?1:0)+" GB";
+    let bar="";
+    if(W)bar+=`<span class="pf" style="flex:0 0 ${W/scale*100}%">pesi ${gb(W)}</span>`;
+    const kvIn=Math.min(all,Math.max(0,GPU-W));
+    bar+=`<span class="dc" style="flex:0 0 ${kvIn/scale*100}%">cache ${gb(all)}</span>`;
+    if(used>GPU)bar+=`<span class="ou" style="flex:0 0 ${(used-GPU)/scale*100}%">+${gb(used-GPU)}</span>`;
+    else bar+=`<span class="fr" style="flex:1">libero ${gb(GPU-used)}</span>`;
+    $("#s3Bar").innerHTML=bar;
+    let m=`<b>${fmtB(tok)} per token.</b> ${N} ${N===1?"conversazione":"conversazioni"} da ${nf(ctx)} token occupano ${fmtB(all)} di cache. `;
+    if(match){
+      const full=2*L*P.Q*D*b3;
+      if(P.H<P.Q)m+=`${P.n} ha ${P.Q} teste di query ma solo ${P.H} ${P.H===1?"testa":"teste"} KV: con un'attenzione completa servirebbero ${fmtB(full)} per token, ${nf(P.Q/P.H,1)} volte tanto. `;
+      else m+=`${P.n} usa l'attenzione completa: una coppia key-value per ognuna delle ${P.Q} teste. È il motivo per cui i modelli successivi sono passati alla GQA. `;
+      m+=used>GPU?`Insieme ai pesi (${gb(W)}) <b>non entra</b> in una GPU da 80 GB: bisogna servire meno conversazioni, accorciarle, quantizzare la cache o usare più GPU.`:`Con i pesi (${gb(W)}) restano liberi ${gb(GPU-used)}.`;
+    } else m+=used>GPU?`Da sola supera gli 80 GB di una GPU.`:`Configurazione personalizzata: il peso del modello non è noto, la barra mostra solo la cache.`;
+    $("#s3Msg").innerHTML=m;
+  }
+  $("#s3Pre").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const P=PRE3[b.dataset.p];pre3=b.dataset.p;s3.L.value=P.L;s3.H.value=P.H;s3.D.value=P.D;$("#s3Pre").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw3();}));
+  Object.values(s3).forEach(x=>x.addEventListener("input",draw3));
+  seg($("#s3B"),b=>{b3=+b.dataset.b;draw3();});
+  draw3();
+
+  /* ---------- cap. 4 · prefill e decode ---------- */
+  const MOD4={8:{P:8.03e9,L:32,d:4096,kv:131072,G:1},70:{P:70.6e9,L:80,d:8192,kv:327680,G:4}};
+  const IN4=[100,500,1000,2000,5000,10000,20000,50000,100000],OUT4=[10,50,100,250,500,1000,2000,4000];
+  let m4="8",q4=2;
+  function calc4(){
+    const M=MOD4[m4],nin=IN4[+$("#s4In").value],nout=OUT4[+$("#s4Out").value],c=+$("#s4C").value;
+    const BW=3.35e12*0.8*M.G,F=989e12*0.5*M.G;
+    const cached=Math.round(nin*c/100),unc=nin-cached;
+    const flPre=2*M.P*unc+2*M.L*M.d*(nin*nin-cached*cached);
+    const attnShare=(2*M.L*M.d*(nin*nin-cached*cached))/flPre;
+    const ttft=Math.max(flPre/F,M.P*q4/BW);
+    const ctx=nin+nout/2;
+    const tpot=Math.max((M.P*q4+M.kv*ctx)/BW,(2*M.P+4*M.L*M.d*ctx)/F);
+    const total=ttft+(nout-1)*tpot;
+    const cU=unc*3e-6,cC=cached*0.3e-6,cO=nout*15e-6,cost=cU+cC+cO;
+    return {nin,nout,c,cached,unc,ttft,tpot,total,cU,cC,cO,cost,attnShare,kvShare:M.kv*ctx/(M.P*q4+M.kv*ctx)};
+  }
+  function draw4(){
+    const r=calc4();
+    $("#s4Ino").textContent=nf(r.nin);$("#s4Outo").textContent=nf(r.nout);$("#s4Co").textContent=r.c+"%";
+    const dec=r.total-r.ttft;
+    $("#s4Time").innerHTML=`<span class="pf" style="flex:0 0 ${Math.max(r.ttft/r.total*100,0.6)}%">prefill ${fmtT(r.ttft)}</span><span class="dc" style="flex:1">decode ${fmtT(dec)}</span>`;
+    const usd=x=>x<0.01?nf(x*100,3)+" ¢":nf(x,3)+" $";
+    $("#s4Cost").innerHTML=`<span class="pf" style="flex:0 0 ${r.cU/r.cost*100}%">ingresso ${usd(r.cU)}</span>`+(r.cC>0?`<span class="ca" style="flex:0 0 ${r.cC/r.cost*100}%">cache ${usd(r.cC)}</span>`:"")+`<span class="dc" style="flex:1">uscita ${usd(r.cO)}</span>`;
+    $("#s4Ttft").textContent=fmtT(r.ttft);$("#s4Tpot").textContent=fmtT(r.tpot)+" · "+nf(1/r.tpot)+" tok/s";
+    $("#s4Tot").textContent=fmtT(r.total);$("#s4Eur").textContent=usd(r.cost);
+    const decShare=dec/r.total,outShare=r.cO/r.cost;
+    let m=`<b>${pct(decShare,0)} del tempo è decode, ${pct(outShare,0)} del costo è uscita</b>, anche se i token in ingresso sono ${r.nin>=r.nout?nf(r.nin/r.nout,1)+" volte quelli in uscita":"meno di quelli in uscita"}. `;
+    if(r.c>0)m+=`Con il ${r.c}% del prompt in cache il prefill elabora solo ${nf(r.unc)} token: il TTFT (tempo al primo token) scende, il costo dell'ingresso pure, il decode resta identico. `;
+    else if(decShare>0.8)m+=`Il prefill di ${nf(r.nin)} token dura ${fmtT(r.ttft)}; ogni token di risposta, invece, richiede una lettura completa dei pesi. Per una risposta più veloce conta più accorciare l'uscita che il prompt. `;
+    else m+=`Con prompt così lunghi anche il prefill pesa: il primo token arriva dopo ${fmtT(r.ttft)}. `;
+    if(r.attnShare>0.25)m+=`A questa lunghezza l'attenzione, che cresce con il quadrato dei token, fa il ${pct(r.attnShare,0)} del calcolo del prefill.`;
+    else if(r.kvShare>0.3)m+=`Nel decode la cache KV di un contesto così lungo è il ${pct(r.kvShare,0)} dei byte letti a ogni token.`;
+    $("#s4Msg").innerHTML=m;
+  }
+  ["#s4In","#s4Out","#s4C"].forEach(s=>$(s).addEventListener("input",draw4));
+  seg($("#s4Mod"),b=>{m4=b.dataset.m;draw4();});
+  seg($("#s4Q"),b=>{q4=+b.dataset.q;draw4();});
+  draw4();
+
+  /* ---------- cap. 5 · batch ---------- */
+  const P5=8.03e9,W5=P5*2,KV5=131072,BW5=3.35e12*0.8,F5=989e12*0.5,FREE5=80e9-W5-4e9,LD5=32*4096;
+  const LEN5=[1000,2000,4000,8000];let alloc5="paged";
+  function per5(L){return alloc5==="static"?8192*KV5:Math.ceil(L/16)*16*KV5;}
+  function step5(b,L){return Math.max((W5+b*L*KV5)/BW5,(2*P5*b+4*LD5*L*b)/F5);}
+  function draw5(){
+    const B=+$("#s5B").value,L=LEN5[+$("#s5L").value];
+    $("#s5Bo").textContent=B;$("#s5Lo").textContent=nf(L)+" token";
+    const maxB=Math.floor(FREE5/per5(L)),Be=Math.min(B,maxB),st=step5(Be,L),thr=Be/st,usr=1/st;
+    $("#s5In").textContent=Be+" / "+(B-Be);
+    $("#s5Thr").textContent=nf(thr)+" tok/s";$("#s5Usr").textContent=nf(usr)+" tok/s";
+    const memT=(W5+Be*L*KV5)/BW5,cmpT=(2*P5*Be+4*LD5*L*Be)/F5;
+    $("#s5Lim").textContent=B>maxB?"memoria piena":memT>=cmpT?"banda di memoria":"calcolo";
+    // grafico
+    const svg=$("#s5Chart");svg.innerHTML="";const X0=60,X1=626,Y0=196,Y1=16;
+    const xs=b=>X0+(b-1)/255*(X1-X0),ys=v=>Y0-v*(Y0-Y1);
+    const T=[],U=[];for(let b=1;b<=256;b++){const e=Math.min(b,maxB),s=step5(e,L);T.push(e/s);U.push(1/s);}
+    const tM=Math.max(...T),uM=Math.max(...U);
+    [0,.25,.5,.75,1].forEach(v=>{el("line",{x1:X0,x2:X1,y1:ys(v),y2:ys(v),class:"gl"},svg);el("text",{x:X0-6,y:ys(v)+4,"text-anchor":"end"},svg).textContent=Math.round(v*100)+"%";});
+    [1,64,128,192,256].forEach(b=>{el("text",{x:xs(b),y:Y0+16,"text-anchor":"middle"},svg).textContent=b;});
+    el("text",{x:X1,y:Y0+30,"text-anchor":"end"},svg).textContent="richieste attive";
+    if(maxB<256){el("line",{x1:xs(maxB),x2:xs(maxB),y1:Y1,y2:Y0,class:"l-bad"},svg);const t=el("text",{x:xs(maxB)+(maxB>200?-6:6),y:Y1+12,"text-anchor":maxB>200?"end":"start",class:"bad"},svg);t.textContent="memoria piena: "+maxB;}
+    const path=a=>a.map((v,i)=>(i?"L":"M")+xs(i+1).toFixed(1)+","+ys(v).toFixed(1)).join("");
+    el("path",{d:path(T.map(v=>v/tM)),class:"l-acc"},svg);
+    el("path",{d:path(U.map(v=>v/uM)),class:"l-mut"},svg);
+    el("circle",{cx:xs(B),cy:ys(T[B-1]/tM),r:5,class:"f-acc"},svg);
+    el("circle",{cx:xs(B),cy:ys(U[B-1]/uM),r:5,class:"f-soft"},svg);
+    $("#s5Sr").textContent=`Grafico: con ${B} richieste attive il throughput totale è ${nf(thr)} token al secondo, il ${Math.round(thr/tM*100)}% del massimo, e ogni utente riceve ${nf(usr)} token al secondo, il ${Math.round(usr/uM*100)}% della velocità con una sola richiesta. In memoria entrano al massimo ${maxB} conversazioni.`;
+    const other=alloc5==="static"?Math.floor(FREE5/(Math.ceil(L/16)*16*KV5)):Math.floor(FREE5/(8192*KV5));
+    let m;
+    if(B>maxB)m=`<b>La memoria della cache è piena.</b> Entrano ${maxB} conversazioni da ${nf(L)} token; le altre ${B-maxB} aspettano in coda, e il loro tempo al primo token cresce. `+(alloc5==="static"?`Con la cache a pagine ne entrerebbero ${other}: oggi lo spazio è prenotato per 8.192 token anche se se ne usano ${nf(L)}.`:`Con la prenotazione per la lunghezza massima ne entrerebbero solo ${other}.`);
+    else m=`<b>${B} ${B===1?"richiesta":"richieste"} nella stessa passata.</b> Il server produce ${nf(thr)} token al secondo, ${nf(thr/(1/step5(1,L)),1)} volte quelli di una richiesta sola, mentre ognuno vede scendere la propria velocità a ${nf(usr)} token al secondo (${pct(usr/uM,0)} di quella in solitaria). `+(memT>=cmpT?`La passata è ancora limitata dalla lettura di pesi e cache: oltre ai pesi, ogni conversazione aggiunge la propria cache KV da leggere.`:`Ora il limite è il calcolo: aggiungere richieste non aumenta più il throughput.`);
+    $("#s5Msg").innerHTML=m;
+  }
+  ["#s5B","#s5L"].forEach(s=>$(s).addEventListener("input",draw5));
+  seg($("#s5Alloc"),b=>{alloc5=b.dataset.a;draw5();});
+  draw5();
+
+  /* ---------- cap. 5 · decodifica speculativa ---------- */
+  const Eacc=(a,g)=>(1-Math.pow(a,g+1))/(1-a);
+  function drawSpec(){
+    const a=+$("#s5A").value,g=+$("#s5G").value,c=+$("#s5Cc").value;
+    $("#s5Ao").textContent=nf(a,2);$("#s5Go").textContent=g;$("#s5Cco").textContent=nf(c,2)+" ×";
+    const S=[];for(let k=1;k<=10;k++)S.push(Eacc(a,k)/(k*c+1));
+    const best=S.indexOf(Math.max(...S))+1;
+    const svg=$("#s5Spec");svg.innerHTML="";const X0=60,X1=626,Y0=168,Y1=14;
+    const top=Math.max(2,Math.ceil(Math.max(...S)));
+    const ys=v=>Y0-v/top*(Y0-Y1);
+    for(let v=0;v<=top;v++){el("line",{x1:X0,x2:X1,y1:ys(v),y2:ys(v),class:"gl"},svg);el("text",{x:X0-6,y:ys(v)+4,"text-anchor":"end"},svg).textContent=v+"×";}
+    el("line",{x1:X0,x2:X1,y1:ys(1),y2:ys(1),class:"l-bad"},svg);
+    const bw=(X1-X0)/10;
+    S.forEach((v,i)=>{const k=i+1,x=X0+i*bw+6;
+      el("rect",{x,y:ys(v),width:bw-12,height:Math.max(0,Y0-ys(v)),rx:3,class:k===g?"f-acc":"f-bar"},svg);
+      el("text",{x:x+(bw-12)/2,y:Y0+16,"text-anchor":"middle",class:k===g?"ink":""},svg).textContent="γ="+k;
+      if(k===best)el("text",{x:x+(bw-12)/2,y:ys(v)-6,"text-anchor":"middle",class:"ink"},svg).textContent=nf(v,1)+"×";
+    });
+    const E=Eacc(a,g),X=S[g-1];
+    $("#s5E").textContent=nf(E,2);$("#s5X").textContent=nf(X,2)+"×";$("#s5Best").textContent=best+" ("+nf(S[best-1],2)+"×)";
+    $("#s5SpecSr").textContent=`Grafico a barre: accelerazione attesa per γ da 1 a 10 con α = ${nf(a,2)} e costo della bozza ${nf(c,2)}. Con γ = ${g} vale ${nf(X,2)} volte; il massimo è ${nf(S[best-1],2)} volte con γ = ${best}.`;
+    let m=`<b>Ogni passata del modello grande produce in media ${nf(E,2)} token invece di 1.</b> Tolto il tempo della bozza (${g} passate da ${nf(c,2)}), la risposta arriva ${nf(X,2)} volte più in fretta, con la stessa distribuzione d'uscita. `;
+    if(X<1)m+=`Qui la bozza costa più di quanto fa risparmiare: meglio non usarla.`;
+    else if(g>best)m+=`Proporre più di ${best} token non conviene: le proposte lontane vengono quasi sempre scartate e il costo della bozza cresce.`;
+    else if(g<best)m+=`Con questo tasso di accettazione conviene proporre di più: il massimo è con γ = ${best}.`;
+    else m+=`È la lunghezza di bozza migliore per questi valori.`;
+    $("#s5SpecMsg").innerHTML=m;
+  }
+  ["#s5A","#s5G","#s5Cc"].forEach(s=>$(s).addEventListener("input",drawSpec));
+  drawSpec();
+
+  /* ---------- cap. 6 · decodifica vincolata ---------- */
+  const S6=[
+    {allow:['{"'],cand:[['{"',.52],["Certo",.31],["```",.12],["Ecco",.05]]},
+    {allow:["stato"],cand:[["stato",.62],["status",.21],["Stato",.11],["tipo",.06]]},
+    {allow:['": "'],cand:[['": "',.88],['":"',.07],['" : "',.03],['":',.02]]},
+    {allow:["aperto","chiuso"],cand:[["urgente",.38],["aperto",.27],["chiuso",.21],["Aperto",.14]]},
+    {allow:['", "'],cand:[['", "',.91],['",',.05],['"}',.03],['" ,',.01]]},
+    {allow:["priorita"],cand:[["priorita",.58],["priorità",.31],["priority",.08],["prio",.03]]},
+    {allow:['": '],cand:[['": ',.64],['": "',.31],['":',.03],['" :',.02]]},
+    {allow:["1","2","3","4","5"],cand:[["10",.34],["4",.27],["5",.21],["3",.12],["1",.06]]},
+    {allow:["}"],cand:[["}",.72],[",",.2],["}\n",.06],[" }",.02]]},
+    {allow:["⟨fine⟩"],cand:[["⟨fine⟩",.66],["\n",.21],["Spero",.1],[" ",.03]]}
+  ];
+  let mode6="on",n6=1;
+  function choose6(i){const st=S6[i];
+    if(mode6==="on"){const ok=st.cand.filter(c=>st.allow.includes(c[0]));return ok.reduce((a,b)=>b[1]>a[1]?b:a)[0];}
+    return st.cand.reduce((a,b)=>b[1]>a[1]?b:a)[0];}
+  function validate6(o){const e=[];if(!["aperto","chiuso"].includes(o.stato))e.push(`«stato» vale "${o.stato}", che non è tra i valori ammessi`);
+    if(!Number.isInteger(o.priorita)||o.priorita<1||o.priorita>5)e.push(`«priorita» vale ${o.priorita}, fuori dall'intervallo 1–5`);
+    Object.keys(o).forEach(k=>{if(!["stato","priorita"].includes(k))e.push(`campo non previsto «${k}»`);});return e;}
+  function draw6(){
+    const chosen=[];for(let i=0;i<n6;i++)chosen.push(choose6(i));
+    const bad=chosen.map((t,i)=>!S6[i].allow.includes(t));
+    $("#s6Out").innerHTML=chosen.map((t,i)=>{const s=esc(t==="⟨fine⟩"?" ⟨fine⟩":t);return i===n6-1?`<b>${s}</b>`:(bad[i]?`<span style="color:var(--bad)">${s}</span>`:s);}).join("")||"&nbsp;";
+    const i=n6-1,st=S6[i],pick=chosen[i];
+    const okSum=st.cand.filter(c=>st.allow.includes(c[0])).reduce((a,c)=>a+c[1],0);
+    bars($("#s6Bars"),st.cand.map(c=>{const ok=st.allow.includes(c[0]);const p=mode6==="on"?(ok?c[1]/okSum:0):c[1];
+      return {lbl:showTok(c[0])==="␣"?"␣":c[0].replace(/\n/g,"↵"),orig:c[1],p,off:mode6==="on"&&!ok,pick:c[0]===pick,bad:mode6==="off"&&c[0]===pick&&!ok,v:mode6==="on"?pct(c[1],0)+" → "+(ok?pct(p,0):"0"):pct(c[1],0)+(ok?"":" ✗")};}));
+    $("#s6Dt").textContent=`Passata ${n6}: ammessi dallo schema ${st.allow.map(a=>"«"+a.replace(/\n/g,"↵")+"»").join(", ")}`;
+    const fin=n6===S6.length;let m;
+    if(fin){
+      const txt=chosen.slice(0,-1).join("");let obj=null,err=null;try{obj=JSON.parse(txt);}catch(e){err=e.message;}
+      if(err)m=`<b>JSON non valido.</b> ${esc(err)}`;
+      else{const e=validate6(obj);m=e.length?`<b>JSON.parse riesce, lo schema no.</b> Il testo è JSON sintatticamente corretto, ma ${e.join("; ")}. Un'applicazione che si fidasse del formato riceverebbe dati sbagliati. Passa a «con vincolo» e ripeti.`
+        :`<b>JSON.parse riesce e lo schema è rispettato:</b> <code>${esc(txt)}</code>. Nessun token incompatibile ha mai potuto essere scelto. Se 4 sia la priorità giusta, però, il vincolo non lo sa.`;}
+    } else if(mode6==="on"){
+      const removed=st.cand.filter(c=>!st.allow.includes(c[0]));
+      m=removed.length?`<b>La maschera toglie ${removed.map(c=>"«"+c[0].replace(/\n/g,"↵")+"»").join(", ")}</b> (${pct(1-okSum,0)} della probabilità). Gli altri si dividono il resto: «${esc(pick)}» passa dal ${pct(st.cand.find(c=>c[0]===pick)[1],0)} al ${pct(st.cand.find(c=>c[0]===pick)[1]/okSum,0)}. `+(i===3?`Il modello preferiva «urgente», plausibile ma fuori elenco.`:i===7?`Il modello preferiva 10, che lo schema non ammette.`:"")
+        :`<b>Il candidato migliore è già valido.</b> Qui la maschera non cambia nulla; costa comunque un controllo a ogni passata.`;
+    } else {
+      m=bad[i]?`<b>Senza vincolo il modello sceglie «${esc(pick)}».</b> Il testo resta JSON ben formato, ma il valore viola lo schema: nessuno se ne accorge finché il programma non usa il dato.`
+        :`<b>Senza vincolo:</b> il token più probabile, «${esc(pick.replace(/\n/g,"↵"))}», è anche valido. Le istruzioni nel prompt bastano quasi sempre; il problema sono le eccezioni.`;
+    }
+    $("#s6Msg").innerHTML=m;
+    $("#s6Step").disabled=fin;$("#s6All").disabled=fin;
+  }
+  $("#s6Step").addEventListener("click",()=>{if(n6<S6.length){n6++;draw6();}});
+  $("#s6All").addEventListener("click",()=>{n6=S6.length;draw6();});
+  $("#s6Reset").addEventListener("click",()=>{n6=1;draw6();});
+  seg($("#s6Mode"),b=>{mode6=b.dataset.m;n6=1;draw6();});
+  draw6();
+})();
+</script>
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,",
+  ids:[],
+  rules:[
+    {re:"capitolo 1",to:"#cap-1",flags:"i",first:false},
+    {re:"capitolo 2",to:"#cap-2",flags:"i",first:false},
+    {re:"capitolo 3",to:"#cap-3",flags:"i",first:false},
+    {re:"capitolo 4",to:"#cap-4",flags:"i",first:false},
+    {re:"capitolo 5",to:"#cap-5",flags:"i",first:false},
+    {re:"capitolo 6",to:"#cap-6",flags:"i",first:false},
+    {re:"capitolo sugli strati della guida sul training",to:"https://pericle82.github.io/explorables/training-llm/#c-layer",k:"Altra guida",t:"Anatomia del Training LLM · Gli strati",body:"<p>Che cosa succede in un blocco: attenzione con query, key e value, maschera causale, MLP, connessione residua e normalizzazione, con il conto dei pesi di Llama 2 7B.</p>",flags:"i",first:false},
+    {re:"guida sul training",to:"https://pericle82.github.io/explorables/training-llm/#c-loss",k:"Altra guida",t:"Anatomia del Training LLM · La loss",body:"<p>Logit, softmax e cross-entropy sul token successivo, con un laboratorio sulla temperatura che divide i logit prima della softmax.</p>",flags:"i",first:false},
+    {re:"guida sulle architetture",to:"https://pericle82.github.io/explorables/architetture-llm/#cap-3",k:"Altra guida",t:"Encoder, decoder, esperti · BERT contro GPT",body:"<p>La maschera causale del decoder contro l'attenzione bidirezionale dell'encoder: perché GPT genera un token alla volta riusando la cache KV e BERT no.</p>",flags:"i",first:false},
+    {re:"guida da assistente ad agente",to:"https://pericle82.github.io/explorables/assistente-agente/#tools",k:"Altra guida",t:"Da assistente ad agente · Tools",body:"<p>Il function calling: il modello genera una richiesta di chiamata con nome e argomenti secondo uno schema JSON, l'applicazione la esegue e rimette il risultato nel contesto.</p>",flags:"i",first:false},
+    {re:"guida sull'ingegneria dei sistemi basati su LLM",to:"https://pericle82.github.io/explorables/ai-engineering/#s1",k:"Altra guida",t:"Ingegneria dei sistemi LLM · Costo e latenza",body:"<p>Il gateway tra applicazione e modello: conteggio di token e costi, cache esatta e semantica delle risposte, percentili di latenza, retry e circuit breaker.</p>",flags:"i",first:false},
+    {re:"maschera causale",to:"https://pericle82.github.io/explorables/architetture-llm/#cap-3",k:"Altra guida",t:"Encoder, decoder, esperti · Maschera causale",body:"<p>Nel decoder ogni token guarda solo sé stesso e i precedenti: la matrice «chi vede chi» è un triangolo.</p>",flags:"i"},
+    {re:"PagedAttention",to:"#c5-paged"},
+    {re:"batching continuo",to:"#c5-batching",flags:"i"},
+    {re:"decodifica speculativa",to:"#c5-spec",flags:"i"},
+    {re:"temperatura",to:"https://pericle82.github.io/explorables/training-llm/#c-loss",k:"Altra guida",t:"Anatomia del Training LLM · Temperatura",body:"<p>La temperatura divide i logit prima della softmax: sotto 1 rende l'output più deterministico, sopra 1 più vario. Si usa solo in generazione.</p>",flags:"i"},
+    {re:"MHA",to:"#c3-gqa"},
+    {re:"ITL",to:"#c4-metriche"}
+  ],
+  gloss:{selector:"dl.gloss",skip:["Seed","Throughput","Rinormalizzare","Passata in avanti"],extra:{"Cache KV":["cache KV","KV cache"],"Decodifica vincolata":["decodifica vincolata"],"Top-p (nucleus)":["top-p"],"Token di fine":["token di fine"]}}
+};
+</script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+/* letture consigliate prima della guida: <aside class="vx-prereq"> nell'intestazione, dopo la .lede */
+.vx.vx-prereq{margin:0;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.vx-prereq ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.vx-prereq li{font-size:.92rem}
+.vx-prereq li a{font-weight:600}
+.vx-prereq li span{color:var(--muted)}
+.vx-prereq p{font-size:.92rem;color:var(--muted)}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->
+<!-- xpl:shared xref:start (non modificare: generato da shared/xref.html con scripts/sync-shared.mjs) -->
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+.xref-pop .xp-ex{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+a.xref.ext::after{content:" ↗";font-size:.8em}
+</style>
+<script>
+/* Riferimenti incrociati con anteprima (motore generico).
+   Configurazione in window.XREF_CONFIG = {
+     rules:    [{re:"regex", to:"#id" | "https://…", k:"etichetta", t:"titolo", body:"html", first:true, flags:"g" | "gi"}],
+     gloss:    {selector:"dl.gloss", skip:["Termine", …], extra:{"Termine":["alias", …]}},
+     ids:      [{sel:"css", text:"testo contenuto", id:"id-da-assegnare"}]
+   } */
+(function(){
+  const C=window.XREF_CONFIG||{};const main=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // id aggiuntivi su elementi senza id
+  (C.ids||[]).forEach(r=>{const el=[...document.querySelectorAll(r.sel)].find(e=>txt(e).includes(r.text));if(el&&!el.id)el.id=r.id;});
+
+  /* anteprima automatica di un elemento del documento */
+  function preview(el){
+    if(!el)return null;
+    if(el.tagName==="DIV"&&el.parentElement&&el.parentElement.tagName==="DL"){const dt=el.querySelector("dt"),dd=el.querySelector("dd"),ex=el.querySelector(".ex");
+      return{k:"Definizione",t:txt(dt),body:(dd?`<p>${dd.innerHTML}</p>`:"")+(ex?`<p class="xp-ex">${ex.innerHTML}</p>`:"")};}
+    if(el.tagName==="SECTION"){const eb=el.querySelector(".sec-head .eyebrow"),h=el.querySelector("h2"),p=el.querySelector(".prose p, p");
+      return{k:txt(eb),t:txt(h),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(/^H[2-4]$/.test(el.tagName)){let n=el.nextElementSibling;while(n&&!/^(P|DIV)$/.test(n.tagName))n=n.nextElementSibling;
+      const p=n&&(n.tagName==="P"?n:n.querySelector("p"));const sec=el.closest("section");
+      return{k:sec?txt(sec.querySelector(".sec-head .eyebrow")):"",t:txt(el),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(el.tagName==="TR"){const c=[...el.children];return{k:"",t:txt(c[0]),body:c.slice(1).map(x=>`<p>${x.innerHTML}</p>`).join("")};}
+    const b=el.querySelector("b,h3,h4"),rest=el.cloneNode(true);if(b){const bb=rest.querySelector("b,h3,h4");bb&&bb.remove();}
+    return{k:"",t:txt(b),body:`<p>${rest.innerHTML}</p>`};
+  }
+
+  /* regole: espressioni → bersaglio */
+  const rules=[];
+  (C.rules||[]).forEach(r=>rules.push({re:new RegExp("^(?:"+r.re+")$",r.flags&&r.flags.includes("i")?"i":""),src:r.re,to:r.to,k:r.k,t:r.t,body:r.body,first:r.first!==false,flags:r.flags||""}));
+  // glossario automatico da <dl class="gloss">
+  const G=C.gloss;
+  if(G){const skip=new Set(G.skip||[]);let gi=0;
+    document.querySelectorAll(G.selector||"dl.gloss").forEach(dl=>dl.querySelectorAll(":scope > div").forEach(div=>{const dt=div.querySelector("dt");if(!dt)return;
+      const name=txt(dt);if(skip.has(name))return;div.id=div.id||"def-"+(++gi);div.classList.add("xref-target");
+      let aliases=[];name.split(/\s*\/\s*|\s+vs\s+/).forEach(part=>{const m=part.match(/^(.*?)\s*\((.*?)\)\s*$/);if(m){aliases.push(m[1]);if(!/\s/.test(m[2])||m[2].length<22)aliases.push(m[2]);}else aliases.push(part);});
+      aliases=aliases.concat((G.extra||{})[name]||[]).map(a=>a.trim()).filter(a=>a.length>=3&&!skip.has(a));
+      aliases.forEach(a=>{const acr=/^[A-Z0-9][A-Za-z0-9-]*[A-Z0-9]$/.test(a)&&a!==a.toLowerCase()&&/[A-Z].*[A-Z]|\d/.test(a);
+        rules.push({re:new RegExp("^"+escRe(a).replace(/\s+/g,"\\s+")+"$",acr?"":"i"),src:escRe(a).replace(/\s+/g,"\\s+"),to:"#"+div.id,first:true,flags:acr?"":"i",gloss:true});});}));}
+  if(!rules.length)return;
+  rules.sort((a,b)=>b.src.length-a.src.length);
+
+  const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const seen=new Map();let count=0;
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const s=node.nodeValue;big.lastIndex=0;let m,last=0,changed=false;const frag=document.createDocumentFragment();
+    const sec=node.parentElement.closest("section")||main;if(!seen.has(sec))seen.set(sec,new Set());const S=seen.get(sec);
+    while((m=big.exec(s))){const w=m[0];
+      const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+      if(/[\wÀ-ÿ]/.test(before)||/[\wÀ-ÿ]/.test(after)){continue;}
+      const r=rules.find(r=>r.re.test(w));if(!r)continue;
+      if(r.to.startsWith("#")){const tgt=document.getElementById(r.to.slice(1));if(!tgt||tgt.contains(node))continue;}
+      const key=r.to+"|"+r.src;if(r.first&&S.has(key))continue;S.add(key);
+      const a=document.createElement("a");a.href=r.to;a.className="xref"+(r.gloss?" term":"")+(r.to.startsWith("#")?"":" ext");a.textContent=w;a._xr=r;
+      frag.append(s.slice(last,m.index),a);last=m.index+w.length;changed=true;count++;}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+
+  /* popup */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.id="xref-pop";pop.setAttribute("role","tooltip");document.body.appendChild(pop);
+  let cur=null,tShow=0,tHide=0,ptr="mouse";const touch=matchMedia("(hover: none)").matches;
+  addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  function info(a){const r=a._xr;if(!r.to.startsWith("#"))return{k:r.k||"Altra guida",t:r.t||"",body:r.body||"",ext:true};
+    const el=document.getElementById(r.to.slice(1));const p=preview(el)||{};return{k:r.k||p.k,t:r.t||p.t,body:r.body||p.body};}
+  function show(a){const I=info(a);cur=a;
+    pop.innerHTML=`${I.k?`<span class="xp-k">${escH(I.k)}</span>`:""}${I.t?`<p class="xp-t">${escH(I.t)}</p>`:""}${I.body||""}<a class="xp-go" href="${a.getAttribute("href")}">${I.ext?"Apri la guida →":"Vai alla sezione →"}</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(href){if(!href.startsWith("#")){location.href=href;return;}const el=document.getElementById(href.slice(1));if(!el)return;
+    el.classList.add("xref-target");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"",href);}
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.getAttribute("href"));});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const h=g.getAttribute("href");hide();go(h);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=count;
+})();
+</script>
+<!-- xpl:shared xref:end -->

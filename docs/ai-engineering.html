@@ -146,6 +146,10 @@ html{scroll-behavior:smooth}
 .rec .r.in>*{background:var(--accent-soft);border-radius:4px;padding:3px 6px}
 .rec .r.out>*{color:var(--muted);padding:3px 6px}
 .rec .m{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.diag-title{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-bottom:6px}
+.tok{all:unset;cursor:pointer;font-family:var(--mono);font-size:.8rem;padding:4px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.tok.resp{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.tok:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:640px){.rec{grid-template-columns:1fr auto auto}.rec .h:nth-child(3),.rec .h:nth-child(4),.rec .r>*:nth-child(3),.rec .r>*:nth-child(4){display:none}}
 </style>
 
@@ -154,6 +158,15 @@ html{scroll-behavior:smooth}
   <span class="eyebrow">Ingegneria dei sistemi LLM · guida interattiva</span>
   <h1>Un modello non è un sistema: le sei cose che stanno intorno a una chiamata</h1>
   <p class="lede">Chiamare un LLM (Large Language Model, modello linguistico di grandi dimensioni) sono tre righe di codice. Farlo in produzione, per utenti veri, con un costo che sai prevedere, una latenza che sai misurare, una memoria che non esplode e un modo per accorgerti quando peggiora, è ingegneria. Questa guida percorre i sei strati che il portfolio <em>ai-engineering-portfolio</em> costruisce uno alla volta, dal gateway di inferenza al deploy con utenti reali, e per ogni strato ti fa toccare con mano il meccanismo che conta: percentili e cache, fusione di ranking, macchina a stati di un agente, punteggio dei ricordi, accordo tra giudice e umano.</p>
+  <aside class="vx vx-prereq" aria-label="Letture consigliate prima">
+    <span class="eyebrow">Letture consigliate prima</span>
+    <ul>
+      <li><a href="https://pericle82.github.io/explorables/assistente-agente/#tools">Da assistente ad agente · Tools e ciclo dell'agente</a> <span>— function calling, structured output e ciclo pensa-agisci-osserva: la sezione 3 parte da lì per costruire il runtime.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/training-llm/#c-token">Anatomia del Training LLM · Token, embedding e temperatura</a> <span>— costi e budget si contano in token, la cache semantica e il RAG usano gli embedding, la cache esatta dipende dalla temperatura.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/inferenza-llm/#cap-4">Dentro l'inferenza · Prefill e decode</a> <span>— perché TTFT, latenza e costo dipendono dai token in ingresso e in uscita, e che cos'è il prompt caching: la sezione 1 misura proprio questi numeri.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/transazioni/#cap-3">Quando il COMMIT non basta più · WAL e recovery</a> <span>— l'esecuzione durevole della sezione 3 riusa le stesse idee: log scritto prima, ripresa dall'ultimo passo registrato.</span></li>
+    </ul>
+  </aside>
   <div class="cards">
     <a href="#s0"><small>0</small><b>Concorrenza strutturata</b><span>Perché tre chiamate in parallelo costano quanto una, e quando no</span></a>
     <a href="#s1"><small>1</small><b>Costo e latenza</b><span>Percentili, cache esatta e semantica, circuit breaker</span></a>
@@ -177,7 +190,7 @@ html{scroll-behavior:smooth}
     <h2>Un servizio LLM aspetta quasi sempre qualcun altro: la concorrenza è la prima competenza, non l'ultima</h2>
   </div>
   <div class="prose stack">
-    <p>Immagina di chiedere «com'è il tempo a Bologna?» a un servizio che deve prima trasformare «Bologna» in coordinate, poi chiedere meteo e fuso orario. Le ultime due chiamate non dipendono l'una dall'altra: farle una dopo l'altra costa il doppio, lanciarle insieme costa quanto la più lenta. Un sistema LLM è fatto quasi solo di attese di questo tipo: verso il provider del modello, verso il vector database, verso i tool di un agente. Il tempo di CPU è trascurabile; il tempo di attesa è tutto.</p>
+    <p>Immagina di chiedere «com'è il tempo a Bologna?» a un servizio che deve prima trasformare «Bologna» in coordinate, poi chiedere meteo e fuso orario. Le ultime due chiamate non dipendono l'una dall'altra: farle una dopo l'altra costa il doppio, lanciarle insieme costa quanto la più lenta. Un sistema LLM è fatto quasi solo di attese di questo tipo: verso il provider del modello, verso il vector database, verso i tool di un agente. Il tempo di CPU (Central Processing Unit, il processore) è trascurabile; il tempo di attesa è tutto.</p>
     <p>Per questo il percorso comincia da <code>asyncio</code>, e in particolare dalla <b>concorrenza strutturata</b>: un task figlio non sopravvive allo scope che lo ha creato, e se un figlio fallisce i fratelli vengono cancellati e l'errore risale al padre. In Python 3.11+ lo scope è <code>asyncio.TaskGroup</code>; chi arriva da Kotlin lo riconosce come <code>coroutineScope</code>. È la stessa idea, e le differenze sono di dettaglio: una coroutine Python è inerte finché non la si attende, <code>CancelledError</code> è una <code>BaseException</code> che un <code>except Exception</code> non cattura, e gli errori dei figli arrivano raggruppati in un <code>ExceptionGroup</code> da intercettare con <code>except*</code>.</p>
   </div>
 
@@ -205,7 +218,7 @@ html{scroll-behavior:smooth}
     </div>
     <div class="bars" id="s0bars"></div>
     <p class="callout" id="s0msg"></p>
-    <p class="note">Modello ideale: latenze identiche e nessun overhead di rete o di event loop. Nella realtà il tempo del parallelo è quello della chiamata più lenta, non della media: è il motivo per cui il capitolo 1 ragiona in percentili.</p>
+    <p class="note">Modello ideale: latenze identiche e nessun overhead di rete o di event loop. Nella realtà il tempo del parallelo è quello della chiamata più lenta, non della media: è il motivo per cui la sezione 1 ragiona in percentili.</p>
   </div>
 
   <dl class="gloss">
@@ -231,12 +244,13 @@ html{scroll-behavior:smooth}
 
   <h3 id="s1-percentili" class="anchor">La media mente: p50, p95, p99</h3>
   <div class="prose stack">
-    <p>Se dieci richieste durano 200 ms e una dura 6 secondi, la media dice 730 ms e non descrive nessuna delle undici. I <b>percentili</b> descrivono tutte: il <b>p50</b> (mediana) è il tempo sotto cui cade metà delle richieste, il <b>p95</b> quello sotto cui ne cade il 95 %, il <b>p99</b> il 99 %. Il p50 racconta l'utente tipico; il p95 gli utenti sfortunati, che sono tanti se hai molto traffico; il p99 le code: retry, breaker che si apre, provider lento a partire. Per lo streaming si misura a parte il <b>TTFT</b> (Time To First Token): il tempo fino al primo token è ciò che l'utente percepisce come «sta rispondendo».</p>
+    <p>Se dieci richieste durano 200 ms e una dura 6 secondi, la media dice 730 ms e non descrive nessuna delle undici. I <b>percentili</b> descrivono tutte: il <b>p50</b> (mediana) è il tempo sotto cui cade metà delle richieste, il <b>p95</b> quello sotto cui ne cade il 95 %, il <b>p99</b> il 99 %. Il p50 racconta l'utente tipico; il p95 gli utenti sfortunati, che sono tanti se hai molto traffico; il p99 le code: retry, breaker che si apre, provider lento a partire. Per lo streaming si misura a parte il <b>TTFT</b> (Time To First Token): il tempo fino al primo token è ciò che l'utente percepisce come «sta rispondendo». Una parte del TTFT non dipende dalla rete: prima di emettere il primo token il modello deve elaborare tutto il prompt in ingresso (la fase di <em>prefill</em>), quindi il TTFT cresce con la lunghezza del contesto, mentre il resto della risposta arriva un token alla volta (la fase di <em>decode</em>). Perché le due fasi si comportano in modo così diverso, e perché i token in uscita costano più di quelli in ingresso, lo spiega la guida sull'inferenza.</p>
   </div>
 
   <h3 id="s1-cache" class="anchor">Due cache, due promesse diverse</h3>
   <div class="prose stack">
-    <p>La <b>cache esatta</b> riusa la risposta se la richiesta è identica byte per byte dopo normalizzazione (stesso modello, stessi messaggi, stessa temperatura): la chiave è un hash. È sicura solo con temperatura zero, perché altrimenti l'API prometteva una risposta diversa a ogni chiamata. La <b>cache semantica</b> riusa la risposta se la nuova domanda è <em>abbastanza simile</em> a una già vista: si calcola l'embedding dell'ultimo messaggio e si cerca il più vicino per similarità coseno sopra una soglia. È qui che sta il compromesso che vale un ADR (Architecture Decision Record): una soglia bassa aumenta gli hit ma riusa risposte non pertinenti (<b>falsi positivi</b>), una soglia alta riduce entrambi. I falsi positivi non compaiono in nessuna metrica automatica: si contano a mano su un campione di hit, e chi non li misura non sa quanto la cache sta sbagliando.</p>
+    <p>La <b>cache esatta</b> riusa la risposta se la richiesta è identica byte per byte dopo normalizzazione (stesso modello, stessi messaggi, stessa temperatura): la chiave è un hash. È coerente con ciò che l'API (Application Programming Interface) offre solo a temperatura zero: con temperatura maggiore di zero ogni chiamata campiona una risposta potenzialmente diversa, mentre la cache restituisce sempre la stessa (e anche a temperatura zero molti provider non garantiscono un output identico byte per byte). La <b>cache semantica</b> riusa la risposta se la nuova domanda è <em>abbastanza simile</em> a una già vista: si calcola l'embedding dell'ultimo messaggio e si cerca il più vicino per similarità coseno sopra una soglia. È qui che sta il compromesso che vale un ADR (Architecture Decision Record): una soglia bassa aumenta gli hit ma riusa risposte non pertinenti (<b>falsi positivi</b>), una soglia alta riduce entrambi. I falsi positivi non compaiono in nessuna metrica automatica: si contano a mano su un campione di hit, e chi non li misura non sa quanto la cache sta sbagliando.</p>
+    <p>Nessuna delle due va confusa con il <b>prompt caching</b> del provider. Le cache del gateway riusano una <em>risposta</em> e il modello non viene chiamato; il prompt caching invece riusa il lavoro già fatto su un <em>prefisso</em> identico tra una richiesta e l'altra (system prompt, definizioni dei tool, documenti fissi): il modello genera comunque una risposta nuova, ma il TTFT scende e i token in ingresso letti dalla cache sono fatturati a una frazione del prezzo pieno (alcuni provider fanno pagare un sovrapprezzo alla prima scrittura). Funziona solo se il prefisso è identico byte per byte, quindi conviene mettere in testa al prompt ciò che non cambia e in coda ciò che cambia.</p>
   </div>
 
   <div class="lab">
@@ -256,7 +270,7 @@ html{scroll-behavior:smooth}
       <div><small>falsi positivi stimati</small><strong id="s1fp"></strong></div>
     </div>
     <p class="callout" id="s1msg"></p>
-    <p class="note">Latenze generate da una distribuzione log-normale (un miss ≈ 900 ms di mediana con coda lunga; un hit ≈ 40 ms); prezzi indicativi per token e falsi positivi che crescono al calare della soglia. I numeri veri li produce il load test del gateway con k6; qui conta la forma delle curve, non il valore.</p>
+    <p class="note">Latenze generate da una distribuzione log-normale (un miss ≈ 700 ms di mediana con il modello piccolo e ≈ 1400 ms con il grande, con coda lunga; un hit ≈ 40 ms); prezzi indicativi per token e falsi positivi che crescono al calare della soglia. I numeri veri li produce il load test del gateway con k6; qui conta la forma delle curve, non il valore.</p>
   </div>
 
   <h3 id="s1-breaker" class="anchor">Resilienza: retry con jitter, timeout per fase, circuit breaker</h3>
@@ -313,7 +327,7 @@ html{scroll-behavior:smooth}
 
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: RRF, recall@k e MRR su un caso minimo</h3><span class="tag">matematica reale</span></div>
-    <p>Sei chunk (A–F), due classifiche. Trascina le posizioni con i menu, segna quali chunk sono davvero pertinenti e guarda come cambiano la lista fusa e le metriche.</p>
+    <p>Sei chunk (A–F), due classifiche. Clicca un chunk per portarlo in cima alla sua classifica, segna quali chunk sono davvero pertinenti e guarda come cambiano la lista fusa e le metriche.</p>
     <div class="grid2">
       <div>
         <div class="diag-title">Classifica dense (coseno)</div>
@@ -343,6 +357,7 @@ html{scroll-behavior:smooth}
   <h3 id="s2-nontrovato" class="anchor">Citazioni verificate e «non ho trovato la risposta»</h3>
   <div class="prose stack">
     <p>Due dettagli separano un RAG dimostrativo da uno affidabile. Le <b>citazioni</b>: il modello risponde in structured output con l'elenco degli id dei chunk usati, e un passo deterministico controlla che ogni id esista nel contesto passato e che il testo citato sia contenuto nel chunk; una citazione inventata è un errore misurabile, non un dettaglio di presentazione. Il <b>«non trovato»</b>: due segnali combinati, il punteggio massimo di retrieval sotto una soglia calibrata e il campo <code>found: false</code> nello structured output; il benchmark include domande senza risposta nel corpus proprio per misurare quante volte il sistema inventa invece di ammettere.</p>
+    <p>Entrambi i controlli contengono un difetto che ha un nome preciso: l'<b>allucinazione</b>, una risposta plausibile, scritta con sicurezza, ma non supportata da nessuna fonte. Non è un guasto occasionale: il modello genera il testo più probabile dato il contesto, non un testo verificato, e una frase inventata può essere probabile quanto una vera. Il rimedio del RAG si chiama <b>grounding</b> (ancoraggio al contesto): ogni affermazione della risposta deve essere supportata dai chunk recuperati, e la proprietà che lo misura è la <b>fedeltà</b> (<em>faithfulness</em>). Si misura in due modi complementari: le citazioni verificabili descritte sopra, controllate da codice, e un giudice LLM (Large Language Model) che scompone la risposta in affermazioni e per ciascuna dice se il contesto la sostiene. È lo stesso giudice della sezione 5, e va calibrato allo stesso modo prima di fidarsi del suo punteggio. Fedeltà e correttezza non coincidono: una risposta può essere fedele a un chunk sbagliato o superato, e quello è un errore di retrieval, non di generazione.</p>
   </div>
 
   <dl class="gloss">
@@ -351,6 +366,8 @@ html{scroll-behavior:smooth}
     <div><dt>RRF</dt><dd>Reciprocal Rank Fusion: fusione di più classifiche sommando 1/(k+rank); non richiede di normalizzare i punteggi.</dd><span class="ex">k = 60</span></div>
     <div><dt>Reranking</dt><dd>Riordino dei primi candidati con un cross-encoder che legge domanda e chunk insieme.</dd><span class="ex">top 20–50, poi top n</span></div>
     <div><dt>HyDE</dt><dd>Hypothetical Document Embeddings: si cerca con l'embedding di una risposta ipotetica scritta dal modello, spesso più vicina ai documenti della domanda stessa.</dd><span class="ex">componente opzionale, da misurare in ablation</span></div>
+    <div><dt>Allucinazione</dt><dd>Risposta plausibile e sicura ma non supportata dalle fonti: il modello genera il testo probabile, non quello verificato.</dd><span class="ex">una citazione a un chunk che non esiste</span></div>
+    <div><dt>Grounding (ancoraggio al contesto)</dt><dd>Ogni affermazione della risposta è supportata dal contesto recuperato; si misura come fedeltà (faithfulness) con citazioni verificate e un giudice calibrato.</dd><span class="ex">affermazioni supportate / affermazioni totali</span></div>
     <div><dt>Porta VectorStore</dt><dd>Interfaccia (<code>Protocol</code>) con upsert, search, delete, count; tre adapter (pgvector, Qdrant, FAISS) passano la stessa suite di test di contratto.</dd><span class="ex">architettura esagonale</span></div>
   </dl>
 </section>
@@ -362,7 +379,7 @@ html{scroll-behavior:smooth}
     <h2>Un agente non è un <code>while True</code> con un prompt: è una macchina a stati con un budget, che deve poter morire e ripartire</h2>
   </div>
   <div class="prose stack">
-    <p>Un agente è un modello che, invece di rispondere subito, decide di usare un <em>tool</em> (una ricerca web, una query, l'esecuzione di codice), guarda il risultato e decide di nuovo, finché non ha abbastanza per rispondere. La versione minima è un ciclo di trenta righe che funziona finché non lo si rompe: un tool che va in timeout, un tool che non esiste, argomenti invalidi, un modello che chiede lo stesso tool all'infinito, un processo che muore al settimo passo. Ognuna di queste rotture insegna un requisito, e i requisiti messi insieme sono un <b>runtime</b>.</p>
+    <p>Un agente è un modello che, invece di rispondere subito, decide di usare un <em>tool</em> (una ricerca web, una query, l'esecuzione di codice), guarda il risultato e decide di nuovo, finché non ha abbastanza per rispondere. La versione minima è un ciclo di trenta righe che funziona finché non lo si rompe: un tool che va in timeout, un tool che non esiste, argomenti invalidi, un modello che chiede lo stesso tool all'infinito, un processo che muore al settimo passo. Ognuna di queste rotture insegna un requisito, e i requisiti messi insieme sono un <b>runtime</b>. Che cosa sia un tool, come il modello lo chiede e perché il ciclo pensa-agisci-osserva funziona è il tema della guida sugli agenti; qui si parte da lì e si guarda che cosa serve perché quel ciclo regga in produzione.</p>
     <p>Il cuore è una <b>macchina a stati esplicita</b>: <code>plan</code> (il modello produce un piano in structured output), <code>act</code> (chiede il prossimo passo; il modello risponde con una o più chiamate a tool, che il runtime esegue in parallelo con un <code>TaskGroup</code>), <code>observe</code> (i risultati, o gli errori <em>strutturati</em>, vengono appesi alla conversazione e il budget aggiornato), <code>reflect</code> (ogni N passi il modello valuta se il piano regge), <code>stop</code> o <code>failed</code>. Ogni transizione è una funzione pura <code>(stato, evento) → nuovo stato</code>; i side effect, cioè chiamare il modello, eseguire i tool, scrivere sul database, stanno in un layer separato. È questa separazione a rendere il runtime testabile con tool finti e senza modello, e ripristinabile dopo un crash.</p>
   </div>
 
@@ -410,7 +427,7 @@ html{scroll-behavior:smooth}
 
   <dl class="gloss">
     <div><dt>Tool calling</dt><dd>Il modello risponde con una richiesta strutturata di eseguire una funzione con certi argomenti; il runtime la esegue e restituisce il risultato come messaggio.</dd><span class="ex">tool_calls: [web_search(q)]</span></div>
-    <div><dt>Structured output</dt><dd>Risposta del modello vincolata a uno schema JSON (generato da un modello pydantic) e validata; mattone di piano e riflessione.</dd><span class="ex">Plan(sub_questions, tools)</span></div>
+    <div><dt>Structured output</dt><dd>Risposta del modello vincolata a uno schema JSON (JavaScript Object Notation) generato da una classe Pydantic e validata; mattone di piano e riflessione.</dd><span class="ex">Plan(sub_questions, tools)</span></div>
     <div><dt>Budget</dt><dd>Limiti di passi, token e tempo per run; esauriti, la run termina in <code>failed</code> con motivo.</dd><span class="ex">BudgetExceeded(kind="steps")</span></div>
     <div><dt>Esecuzione durevole</dt><dd>Stato persistito a ogni passo e ripresa idempotente dopo crash o pausa per approvazione.</dd><span class="ex">agent resume run_42</span></div>
     <div><dt>MCP</dt><dd>Model Context Protocol: standard per esporre tool e risorse a un agente; il runtime è client e server.</dd><span class="ex">tools/mcp_source.py</span></div>
@@ -478,7 +495,7 @@ html{scroll-behavior:smooth}
 
   <h3 id="s5-kappa" class="anchor">Un giudice sembra funzionare finché non lo confronti con un umano</h3>
   <div class="prose stack">
-    <p>Il punto che distingue «ho usato un tool di eval» da «so valutare» è la <b>calibrazione</b>. Prima di mettere il giudice in CI, si etichettano a mano 150 risposte (e 50 due volte, per sapere quanto due umani concordano tra loro), si fa giudicare al modello e si confrontano i verdetti. L'<b>accordo percentuale</b> inganna: se il 90 % delle risposte è buono, un giudice che dice sempre «buona» concorda con l'umano il 90 % delle volte senza aver capito nulla. Il <b>kappa di Cohen</b> corregge per l'accordo che ci si aspetterebbe per caso: <code>κ = (p<sub>o</sub> − p<sub>e</sub>) / (1 − p<sub>e</sub>)</code>, dove <code>p<sub>o</sub></code> è l'accordo osservato e <code>p<sub>e</sub></code> quello atteso dalle frequenze marginali. Un κ vicino a 0 dice «tira a indovinare», sopra 0,6 «accordo sostanziale». Si itera sulla rubrica (criteri binari, esempi ancorati) finché il κ è accettabile, e lo si registra: da lì in poi il giudice ha un numero che dice quanto fidarsi.</p>
+    <p>Il punto che distingue «ho usato un tool di eval» da «so valutare» è la <b>calibrazione</b>. Prima di mettere il giudice in CI, si etichettano a mano 150 risposte (e 50 due volte, per sapere quanto due umani concordano tra loro), si fa giudicare al modello e si confrontano i verdetti. L'<b>accordo percentuale</b> inganna: se il 90 % delle risposte è buono, un giudice che dice sempre «buona» concorda con l'umano il 90 % delle volte senza aver capito nulla. Il <b>kappa di Cohen</b> corregge per l'accordo che ci si aspetterebbe per caso: <code>κ = (p<sub>o</sub> − p<sub>e</sub>) / (1 − p<sub>e</sub>)</code>, dove <code>p<sub>o</sub></code> è l'accordo osservato e <code>p<sub>e</sub></code> quello atteso dalle frequenze marginali. Un κ vicino a 0 dice «tira a indovinare», tra 0,6 e 0,8 «accordo sostanziale», oltre 0,8 «quasi perfetto». Si itera sulla rubrica (criteri binari, esempi ancorati) finché il κ è accettabile, e lo si registra: da lì in poi il giudice ha un numero che dice quanto fidarsi.</p>
   </div>
 
   <div class="lab">
@@ -554,11 +571,11 @@ html{scroll-behavior:smooth}
     <p>La frase di partenza è vaga («voglio un coach che mi conosca»). Il <b>DESIGN.md</b> la trasforma, <em>prima</em> di scrivere codice, in requisiti verificabili, rischi con mitigazione, milestone datate e target numerici dichiarati (p95, costo per utente, uptime). Il <b>POSTMORTEM.md</b>, scritto <em>dopo</em> due settimane con 5–10 utenti reali, mette accanto ai target i numeri veri: costo del mese (modelli e infrastruttura), latenza, uptime, retention, il momento in cui la memoria ha ricordato qualcosa di sbagliato e se il cancello di eval lo avrebbe intercettato, l'incidente e il runbook, tre decisioni da rifare. La distanza tra i due documenti è il contenuto del capstone. Gli ADR (Architecture Decision Record) di tutti i repo sono la stessa idea a grana più fine: per ogni scelta non ovvia, contesto, opzioni, decisione, conseguenze, e un ADR non si modifica, si supera con uno nuovo.</p>
   </div>
 
-  <div class="vx"><div class="vx-pair"><div class="vx-box "><h5>DESIGN.md <span>prima</span></h5><div class="vx-rec "><span>requisiti verificabili dalla frase vaga</span></div><div class="vx-rec "><span>rischi e mitigazioni</span></div><div class="vx-rec "><span>milestone datate</span></div><div class="vx-rec new"><span>target dichiarati: p95, €/utente, uptime, retention</span></div></div><div class="vx-arrow"><span>→</span>4 settimane, utenti reali</div><div class="vx-box "><h5>POSTMORTEM.md <span>dopo</span></h5><div class="vx-rec new"><span>numeri veri accanto ai target</span></div><div class="vx-rec "><span>rischi materializzati / previsti</span></div><div class="vx-rec "><span>l'incidente, il runbook, l'MTTR (Mean Time To Recovery)</span></div><div class="vx-rec old"><span>tre decisioni da rifare</span></div></div></div></div>
+  <div class="vx"><div class="vx-pair"><div class="vx-box "><h5>DESIGN.md <span>prima</span></h5><div class="vx-rec "><span>requisiti verificabili dalla frase vaga</span></div><div class="vx-rec "><span>rischi e mitigazioni</span></div><div class="vx-rec "><span>milestone datate</span></div><div class="vx-rec new"><span>target dichiarati: p95, €/utente, uptime, retention</span></div></div><div class="vx-arrow"><span>→</span>2 settimane, utenti reali</div><div class="vx-box "><h5>POSTMORTEM.md <span>dopo</span></h5><div class="vx-rec new"><span>numeri veri accanto ai target</span></div><div class="vx-rec "><span>rischi materializzati / previsti</span></div><div class="vx-rec "><span>l'incidente, il runbook, l'MTTR (Mean Time To Recovery)</span></div><div class="vx-rec old"><span>tre decisioni da rifare</span></div></div></div></div>
 
   <h3 id="s6-etica" class="anchor">Un coach che ricorda è un coach da cui si può dipendere</h3>
   <div class="prose stack">
-    <p>Un prodotto conversazionale «relazionale» ha implicazioni che un CRUD non ha, e il portfolio le tratta come requisiti, non come disclaimer: trasparenza sull'essere un'AI (intelligenza artificiale), categorie di informazioni mai memorizzate, cancellazione mirata ed export completo funzionanti prima del primo utente reale, un prompt di policy dedicato per gli argomenti sensibili, e una pagina <code>ethics.md</code> che spiega dipendenza e limiti. Il consenso informato fa parte dell'onboarding.</p>
+    <p>Un prodotto conversazionale «relazionale» ha implicazioni che un CRUD (Create, Read, Update, Delete: un'applicazione che si limita a gestire dati) non ha, e il portfolio le tratta come requisiti, non come disclaimer: trasparenza sull'essere un'AI (intelligenza artificiale), categorie di informazioni mai memorizzate, cancellazione mirata ed export completo funzionanti prima del primo utente reale, un prompt di policy dedicato per gli argomenti sensibili, e una pagina <code>ethics.md</code> che spiega dipendenza e limiti. Il consenso informato fa parte dell'onboarding.</p>
   </div>
 
   <dl class="gloss">
@@ -572,7 +589,7 @@ html{scroll-behavior:smooth}
 
 <!-- ============ RIEPILOGO ============ -->
 <section class="st" id="sum">
-  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Sei strati, sei domande, sei numeri</h2></div>
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Le fondamenta e sei strati: sette domande, sette numeri</h2></div>
   <div class="prose stack"><p>Ogni strato del portfolio risponde a una domanda da colloquio con un meccanismo e con un numero riproducibile da un comando. La tabella è anche una lista di controllo: se di uno strato non sai enunciare la domanda, il meccanismo e il numero, è lì che conviene tornare.</p></div>
   <div class="scroll-x"><table class="sum">
     <thead><tr><th>Strato</th><th>La domanda</th><th>Il meccanismo che conta</th><th>Il numero che lo dimostra</th></tr></thead>
@@ -588,7 +605,7 @@ html{scroll-behavior:smooth}
   </table></div>
 </section>
 
-<footer>Guida costruita sui piani di fase del repository <em>ai-engineering-portfolio</em> (README, roadmap, convenzioni e i sette documenti in <code>docs/phases/</code>). I laboratori etichettati «simulazione» usano distribuzioni sintetiche e sceneggiature fisse: mostrano la forma dei fenomeni, non i numeri del portfolio, che vengono prodotti dai comandi <code>make bench</code>, <code>make loadtest</code> ed <code>make eval</code> dei singoli repo. Riferimenti: documentazione asyncio e FastAPI; Nygard, <em>Release It!</em> (circuit breaker); Brooker, <em>Exponential Backoff and Jitter</em>; Cormack et al., <em>Reciprocal Rank Fusion</em> (2009); Park et al., <em>Generative Agents</em> (2023); Landis e Koch (1977) per l'interpretazione del kappa.</footer>
+<footer>Guida costruita sui piani di fase del repository <em>ai-engineering-portfolio</em> (README, roadmap, convenzioni e i sette documenti in <code>docs/phases/</code>). I laboratori etichettati «simulazione» usano distribuzioni sintetiche e sceneggiature fisse: mostrano la forma dei fenomeni, non i numeri del portfolio, che vengono prodotti dai comandi <code>make bench</code>, <code>make loadtest</code> e <code>make eval</code> dei singoli repo. Riferimenti: documentazione asyncio e FastAPI; Nygard, <em>Release It!</em> (circuit breaker); Brooker, <em>Exponential Backoff and Jitter</em>; Cormack et al., <em>Reciprocal Rank Fusion</em> (2009); Park et al., <em>Generative Agents</em> (2023); Landis e Koch (1977) per l'interpretazione del kappa.</footer>
 </div>
 
 <script>
@@ -644,8 +661,8 @@ html{scroll-behavior:smooth}
       $("#s1chart").innerHTML=svg;
       let m=`<b>p50 ${fmt(p50)} ms, p99 ${fmt(p99)} ms, ${fmt(cost,2)} € per 1000 richieste.</b> `;
       if(H===0)m+="Senza cache il p99 è quasi "+(p99/p50).toFixed(1)+" volte il p50: la coda lunga è il provider nelle sue giornate no. Alza l'hit rate e guarda quale percentile si muove per primo.";
-      else if(H<0.5)m+="Il p50 scende poco (la mediana è ancora un miss), ma il costo scende in proporzione agli hit. La cache paga prima in euro che in latenza.";
-      else m+="Ora la maggioranza è un hit: il p50 crolla, il p99 no, perché il 1 % peggiore resta un miss verso il provider. Un p99 basso lo ottieni con timeout e fallback, non con la cache. E a soglia 0."+TH+" circa il "+fmt(fp,1)+" % degli hit sarebbe una risposta non pertinente: quello è il costo che nessuna metrica automatica mostra.";
+      else if(H<0.5)m+="Il p50 è ancora un miss (gli hit sono meno della metà) e scende solo perché gli hit occupano il fondo della distribuzione; il costo invece scende esattamente in proporzione agli hit. La cache paga in euro da subito, in latenza mediana solo quando gli hit diventano la maggioranza.";
+      else m+="Ora la maggioranza è un hit: il p50 crolla, il p99 scende molto meno, perché l'1 % peggiore resta un miss verso il provider. Un p99 basso lo ottieni con timeout e fallback, non con la cache. E a soglia 0."+TH+" circa il "+fmt(fp,1)+" % degli hit sarebbe una risposta non pertinente: quello è il costo che nessuna metrica automatica mostra.";
       $("#s1msg").innerHTML=m;
     }
     [h,t].forEach(x=>x.addEventListener("input",draw));draw();
@@ -693,7 +710,7 @@ html{scroll-behavior:smooth}
       $("#s2rd").textContent=rd.toFixed(2);$("#s2rb").textContent=rb.toFixed(2);$("#s2rh").textContent=rh.toFixed(2);$("#s2mrr").textContent=mrr(hyb).toFixed(2);
       let m=`<b>Hybrid: recall@${T} = ${rh.toFixed(2)}, MRR = ${mrr(hyb).toFixed(2)}.</b> `;
       m+=rh>Math.max(rd,rb)?"La fusione batte entrambe le liste da sole: un chunk mediamente buono in tutte e due supera uno ottimo in una sola. È il caso tipico in cui hybrid vince.":rh<Math.max(rd,rb)?"Qui la fusione perde contro la lista migliore: succede quando una delle due classifiche è molto più informativa dell'altra e la RRF, che le pesa uguali, la diluisce. Anche questo è un risultato da misurare, non da presumere.":"Pareggio con la lista migliore. Prova a promuovere un chunk pertinente in una sola delle due liste per vedere quanto pesa un singolo rank.";
-      m+=` Con k = ${K}: ${K<10?"un k piccolo esagera le differenze tra le prime posizioni.":K>80?"un k grande appiattisce le posizioni: la fusione tende a contare solo in quante liste compare un chunk.":"il valore classico, 60, bilancia le due cose."}`;
+      m+=` Con k = ${K}: ${K<10?"un k piccolo esagera le differenze tra le prime posizioni.":K>80?"un k grande appiattisce le posizioni: la fusione tende a contare solo in quante liste compare un chunk.":"valori vicini al classico 60 bilanciano le due cose."}`;
       $("#s2msg").innerHTML=m;
     }
     [k,top].forEach(x=>x.addEventListener("input",draw));draw();
@@ -810,7 +827,7 @@ html{scroll-behavior:smooth}
       const path=(m,col)=>{let d="";for(let x=0;x<=100;x++){const px=pad+x/100*(W-pad-8),py=H-22-pdf(x,m,sd)/pk*(H-40);d+=(x?"L":"M")+px.toFixed(1)+" "+py.toFixed(1)+" ";}return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>`;};
       const tx=pad+T/100*(W-pad-8);
       $("#s5chart").innerHTML=`<line class="ax" x1="${pad}" y1="${H-22}" x2="${W-8}" y2="${H-22}"/>${path(mL,"var(--good)")}${path(mA,"var(--bad)")}<line x1="${tx}" y1="8" x2="${tx}" y2="${H-22}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${tx+4}" y="14">soglia</text><text x="${pad+mL/100*(W-pad-8)}" y="${H-6}" text-anchor="middle" fill="var(--good)">legittimo</text><text x="${Math.min(W-40,pad+mA/100*(W-pad-8))}" y="${H-6}" text-anchor="middle" fill="var(--bad)">attacco</text>`;
-      $("#s5gmsg").innerHTML=`<b>Recall ${(rec*100).toFixed(0)} %, falsi positivi ${(fp*100).toFixed(1)} %.</b> ${fp>0.1?"Più di un utente su dieci viene bloccato senza motivo: in un prodotto conversazionale è un incidente, non una misura di sicurezza.":rec<0.8?"Un attacco su cinque passa: la soglia è troppo prudente verso il traffico legittimo.":"Un compromesso accettabile per questa separazione."} ${S<25?"Le due popolazioni si sovrappongono molto: nessuna soglia va bene, serve un classificatore migliore, non una soglia diversa.":"Con questa separazione esiste una finestra di soglie ragionevoli: il lavoro è trovarla con il dataset, non a occhio."}`;
+      $("#s5gmsg").innerHTML=`<b>Recall ${(rec*100).toFixed(0)} %, falsi positivi ${(fp*100).toFixed(1)} %.</b> ${fp>0.1?"Più di un utente su dieci viene bloccato senza motivo: in un prodotto conversazionale è un incidente, non una misura di sicurezza.":rec<0.8?"Più di un attacco su cinque passa: la soglia è troppo prudente verso il traffico legittimo.":"Un compromesso accettabile per questa separazione."} ${S<25?"Le due popolazioni si sovrappongono molto: nessuna soglia va bene, serve un classificatore migliore, non una soglia diversa.":"Con questa separazione esiste una finestra di soglie ragionevoli: il lavoro è trovarla con il dataset, non a occhio."}`;
     }
     [th,sep].forEach(x=>x.addEventListener("input",draw));draw();
   })();
@@ -823,6 +840,9 @@ window.XREF_CONFIG={
   skip:".lab,.cards,",
   ids:[],
   rules:[
+    {re:"temperatura",to:"https://pericle82.github.io/explorables/training-llm/#c-loss",k:"Altra guida",t:"Anatomia del Training LLM · La loss",body:"<p>Logit, softmax e temperatura: con temperatura zero si sceglie sempre il token più probabile, sopra zero si campiona.</p>",flags:"i"},
+    {re:"guida sugli agenti",to:"https://pericle82.github.io/explorables/assistente-agente/#agente",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Function calling, il ciclo pensa-agisci-osserva, workflow contro agente, rischi e controlli.</p>",flags:"i",first:false},
+    {re:"guida sull'inferenza",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-4",k:"Altra guida",t:"Dentro l'inferenza · Prefill e decode",body:"<p>Perché il primo token arriva dopo il prefill, perché i token in uscita costano di più, e come il provider riusa un prefisso già elaborato.</p>",flags:"i",first:false},
     {re:"sezione 0",to:"#s0",flags:"i",first:false},
     {re:"sezione 1",to:"#s1",flags:"i",first:false},
     {re:"sezione 2",to:"#s2",flags:"i",first:false},
@@ -856,7 +876,7 @@ window.XREF_CONFIG={
     {re:"POSTMORTEM\\.md",to:"#s6-design"},
     {re:"guida sulle transazioni",to:"https://pericle82.github.io/explorables/transazioni/",k:"Altra guida",t:"Quando il COMMIT non basta più",body:"<p>Transazioni, ACID, WAL e recovery, isolamento, lock, saga e outbox: la persistenza su cui poggiano memoria e stato durevole.</p>",flags:"i",first:false},
     {re:"guida sui database vettoriali",to:"https://pericle82.github.io/explorables/transazioni/#cap-16",k:"Altra guida",t:"Le altre famiglie di database",body:"<p>Redis, documentali, wide-column e vettoriali: embedding, distanze, indici ANN e il confine transazionale di ciascuna famiglia.</p>",flags:"i",first:false},
-    {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
+    {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/#json-valido",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
   ],
   gloss:{selector:"dl.gloss",skip:["Budget","Falso positivo"],extra:{"Percentile":["percentili"],"Kappa di Cohen":["kappa"],"RRF":["Reciprocal Rank Fusion"],"MCP":["Model Context Protocol"]}}
 };
@@ -1042,6 +1062,13 @@ window.XREF_CONFIG={
 .vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
 .vx-map .to{display:none}.vx-map code{margin-top:6px}}
+/* letture consigliate prima della guida: <aside class="vx-prereq"> nell'intestazione, dopo la .lede */
+.vx.vx-prereq{margin:0;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.vx-prereq ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.vx-prereq li{font-size:.92rem}
+.vx-prereq li a{font-weight:600}
+.vx-prereq li span{color:var(--muted)}
+.vx-prereq p{font-size:.92rem;color:var(--muted)}
 .xref-pop .vx{margin:8px 0}
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}

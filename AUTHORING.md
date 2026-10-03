@@ -21,6 +21,7 @@ Nell'ordine, sempre:
 | Blocco | Markup | Regola |
 |---|---|---|
 | Intestazione | `<header class="hero">` con `.eyebrow`, `h1`, `.lede`, `.cards` | Il titolo è una tesi («Dal testo grezzo al modello che ragiona»), non un'etichetta. Le `.cards` sono la mappa delle sezioni. |
+| Letture consigliate | `<aside class="vx vx-prereq">` nell'intestazione, subito dopo la `.lede` | Le guide da leggere prima, con il link al capitolo preciso e una riga su che cosa serve. Se non ce ne sono, una `<p>` lo dice («Nessuna lettura obbligatoria…»). Va aggiornato quando una nuova guida spiega un concetto che questa dà per scontato. |
 | Barra delle sezioni | `<nav class="toc"><div class="in">…</div></nav>` | **Figlia diretta di `.wrap`, fuori dall'`header`**, altrimenti non resta fissa. Un link breve per sezione (`1 · Nome`). |
 | Sezioni | `<section class="st" id="…">` con `.sec-head` (`.eyebrow` + `h2`) | `id` brevi e stabili: servono ai link dall'esterno. Eyebrow = numero e nome esteso; h2 = la tesi della sezione. |
 | Sottosezioni | `<h3 id="…" class="anchor">` | Entrano da sole nell'indice. Gli `h3` dentro `.lab` no. |

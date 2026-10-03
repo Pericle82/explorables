@@ -16,23 +16,48 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.2",
+      "version": "1.16",
       "updated": "2026-10-03",
       "history": [
         {
-          "version": "2.2",
+          "version": "1.16",
           "date": "2026-10-03",
-          "notes": "Capitolo 1 ricostruito dal basso prima del laboratorio: il modello a conteggi (bigrammi), perché non basta (esplosione V^n con calcolatore, nessuna generalizzazione), che cos'è una rete neurale e il modello a finestra fissa (Bengio 2003), le reti ricorrenti e i loro tre limiti, l'attention come media pesata con pesi calcolati dal contenuto (esempio numerico), che cos'è un transformer (2017)."
+          "notes": "«Da zero» punto 7: le domande che vengono a tutti (ingressi e pesi, strato d'ingresso, dove stanno gli embedding e KV cache, ordine e posizione con il laboratorio «chi morde chi?», finestra di contesto)"
         },
         {
-          "version": "2.1",
-          "date": "2026-10-03",
-          "notes": "Capitolo 1 riscritto in chiave intuitiva: i cinque passi dalla frase al token successivo, con un transformer in miniatura (12 token, 8 dimensioni, 1 strato, pesi scritti a mano) eseguibile numero per numero su ogni prefisso, con generazione autoregressiva. Tokenizer BPE, algebra, matrice E e RoPE, attention a tre matrici, MLP, softmax e conti dei 7B spostati nel nuovo capitolo 9 «Approfondimenti»."
+          "version": "1.15",
+          "date": "2026-10-02",
+          "notes": "«Da zero» punto 6: da 7B a 4.096, cosa vuol dire entrare nella rete, come si parlano le schede (laboratorio sull'attenzione)"
         },
         {
-          "version": "2.0",
-          "date": "2026-10-03",
-          "notes": "Riscrittura completa guidata da domande. Parte I: che cosa succede a un prompt dentro il modello (token, embedding, attention con calcolo reale, logit e softmax, conti dei 7B); come impara (auto-supervisione, cross-entropy, gradiente e backpropagation con laboratorio sulla catena, learning rate, batch/step/epoch, memoria di training); training dal vivo. Parte II: le cinque fasi con filo problema → dati → loss → esempio → limite e lo stesso prompt seguito fase per fase; vocabolario RL e DPO introdotti dove servono; riepiloghi e autodiagnosi per capitolo."
+          "version": "1.14",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione «Da zero»: neurone, rete, apprendimento, parole come numeri (re/regina con assi etichettati), perché entrano tutti i token insieme"
+        },
+        {
+          "version": "1.13",
+          "date": "2026-10-02",
+          "notes": "Capitolo 0 per chi parte da zero: quadro d'insieme con laboratorio sul percorso di un token; percorso di algebra riscritto con esempi numerici semplici e approfondimenti in riquadri richiudibili «Dove ritorna nel modello»"
+        },
+        {
+          "version": "1.12",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione sui tensori (rango, shape, fette, broadcasting, reshape e transpose delle teste) con schema e laboratorio; le formule principali della guida in riquadri dedicati"
+        },
+        {
+          "version": "1.11",
+          "date": "2026-10-02",
+          "notes": "Richiamo di algebra approfondito: vettori e residual stream, prodotto scalare e √d_k, norma e alte dimensioni, matrici come trasformazioni, shape e FLOP, non linearità, basso rango e LoRA; sette laboratori a matematica reale"
+        },
+        {
+          "version": "1.10",
+          "date": "2026-10-02",
+          "notes": "Nuove sottosezioni: backpropagation e regola della catena con laboratorio; basi di RL e reward model (Bradley-Terry) prima di DPO; glossario con scaling laws e benchmark"
+        },
+        {
+          "version": "1.9",
+          "date": "2026-10-02",
+          "notes": "Revisione: «migliaia di miliardi» al posto di «trilioni», MLP SwiGLU coerente con il conto di Llama 2 7B, AdamW, notazione DPO, reward hacking anche con RLVR; letture consigliate in testa; rimando alla guida sulle architetture"
         },
         {
           "version": "1.8",
@@ -91,9 +116,19 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.3",
-      "updated": "2026-09-25",
+      "version": "1.5",
+      "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.5",
+          "date": "2026-10-02",
+          "notes": "Nuova sottosezione sul prompt con laboratorio; JSON valido con structured outputs e decodifica vincolata; rimando alla guida sull'inferenza"
+        },
+        {
+          "version": "1.4",
+          "date": "2026-10-02",
+          "notes": "Revisione: correzioni di italiano e acronimi, descrizione dei tool, callout sull'accumulo degli errori; letture consigliate in testa; rimando all'ingegneria dei sistemi LLM per budget, ripresa ed evals"
+        },
         {
           "version": "1.3",
           "date": "2026-09-25",
@@ -222,13 +257,23 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-02",
+          "notes": "Rimando alla guida sull'inferenza per il ciclo di generazione e la cache KV"
+        },
+        {
+          "version": "1.1",
+          "date": "2026-10-02",
+          "notes": "Revisione: note del calcolatore corrette sui preset, capacità dei MoE, Llama 4 Maverick, bilanciamento con bias in DeepSeek-V3, rinormalizzazione non universale; letture consigliate in testa; rimando al capitolo sugli strati del training"
+        },
+        {
           "version": "1.0",
           "date": "2026-09-25",
           "notes": "Prima versione: BERT contro GPT, famiglie di architetture, modelli densi e a esperti (MoE), come sceglie il router. Laboratori su maschera di attenzione, calcolatore denso/sparso e router a 8 esperti."
         }
       ],
-      "version": "1.0",
-      "updated": "2026-09-25"
+      "version": "1.2",
+      "updated": "2026-10-02"
     },
     {
       "slug": "ai-engineering",
@@ -243,13 +288,23 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-02",
+          "notes": "Allucinazione e grounding nel RAG; prompt caching del provider distinto dalla cache del gateway; prefill e decode nel TTFT; inferenza tra le letture consigliate"
+        },
+        {
+          "version": "1.1",
+          "date": "2026-10-02",
+          "notes": "Revisione: nota e callout della cache coerenti con il laboratorio, temperatura e determinismo, laboratorio RRF, scala di Landis e Koch, durata del test con utenti; letture consigliate in testa; rimandi alle guide sugli agenti e sul training"
+        },
+        {
           "version": "1.0",
           "date": "2026-09-28",
           "notes": "Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail"
         }
       ],
-      "version": "1.0",
-      "updated": "2026-09-28"
+      "version": "1.2",
+      "updated": "2026-10-02"
     },
     {
       "slug": "neural-network-driving",
@@ -263,13 +318,38 @@
       ],
       "history": [
         {
+          "version": "1.1",
+          "date": "2026-10-02",
+          "notes": "Revisione: modello a bicicletta (il raggio non dipende dalla velocità), crossover a un punto, discesa del gradiente e apprendimento supervisionato; letture consigliate in testa"
+        },
+        {
           "version": "1.0",
           "date": "2026-09-29",
           "notes": "Prima versione: mondo simulato (modello a bicicletta), sensori a raycasting, rete 8-6-4 con grafo interattivo, neuroevoluzione con simulazione in pista, dal video al repo a tappe."
         }
       ],
+      "version": "1.1",
+      "updated": "2026-10-02"
+    },
+    {
+      "slug": "inferenza-llm",
+      "title": "Dentro l'inferenza",
+      "description": "Come un LLM genera davvero: ciclo token per token, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching, PagedAttention, decodifica speculativa e output strutturato.",
+      "tags": [
+        "LLM",
+        "inferenza",
+        "prestazioni",
+        "serving"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-10-02",
+          "notes": "Prima versione: ciclo di generazione, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching e PagedAttention, decodifica speculativa, output strutturato"
+        }
+      ],
       "version": "1.0",
-      "updated": "2026-09-29"
+      "updated": "2026-10-02"
     }
   ]
 }
