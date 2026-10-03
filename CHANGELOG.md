@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-03
+- **Anatomia del Training LLM** (`training-llm`) v2.3: Riscrittura completa (v2.0–2.3). Capitolo 1 dal basso: contare, perché non basta, rete neurale (neurone dell'ombrello, rete 3→2→1), finestra fissa, reti ricorrenti, attention, che cos'è un transformer, un transformer in miniatura eseguibile numero per numero, re − uomo + donna, le domande che vengono a tutti (chi morde chi, KV cache, finestra di contesto). Capitolo 2: dall'errore ai pesi (cross-entropy, gradiente p − y, backpropagation con laboratorio, learning rate, batch/epoch, memoria di training). Parte II: cinque fasi con filo problema → dati → loss → esempio → limite e lo stesso prompt seguito fase per fase. Capitolo 9 di approfondimento: BPE, algebra in otto passi, matrice E e RoPE, attention a tre matrici, softmax e temperatura, conti dei 7B, backprop a due strati.
 - **Anatomia del Training LLM** (`training-llm`) v1.16: «Da zero» punto 7: le domande che vengono a tutti (ingressi e pesi, strato d'ingresso, dove stanno gli embedding e KV cache, ordine e posizione con il laboratorio «chi morde chi?», finestra di contesto)
 
 ## 2026-10-02
