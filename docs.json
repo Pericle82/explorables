@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.15",
-      "updated": "2026-10-02",
+      "version": "1.16",
+      "updated": "2026-10-03",
       "history": [
+        {
+          "version": "1.16",
+          "date": "2026-10-03",
+          "notes": "«Da zero» punto 7: le domande che vengono a tutti (ingressi e pesi, strato d'ingresso, dove stanno gli embedding e KV cache, ordine e posizione con il laboratorio «chi morde chi?», finestra di contesto)"
+        },
         {
           "version": "1.15",
           "date": "2026-10-02",

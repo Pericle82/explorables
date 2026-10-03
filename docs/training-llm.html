@@ -340,6 +340,22 @@ table.mt tr.dim td{color:var(--muted)}
 .za-mix{font-size:.92rem;line-height:1.5;padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 6px 6px 0}
 .za-mix ul{margin:4px 0 0;padding-left:18px}
 @media (max-width:560px){.za-row{grid-template-columns:minmax(0,1fr) 46px;grid-template-areas:"t v" "c c" "b b";row-gap:4px}.za-row .t{grid-area:t}.za-row .v{grid-area:v}.za-row .c{grid-area:c}.za-row .track{grid-area:b}}
+/* 7 · domande frequenti e laboratorio sulla posizione */
+.zq-q{margin:0;font-weight:650;color:var(--ink);padding-left:10px;border-left:3px solid var(--accent)}
+.zp-frs{display:flex;flex-direction:column;gap:8px}
+.zp-fr{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 12px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.zp-fr.sel{border-color:var(--accent);background:var(--accent-soft)}
+.zp-fr>b{font-family:var(--mono);font-size:.84rem}
+.zp-fr>b small{display:block;font-family:var(--sans);font-weight:400;font-size:.74rem;color:var(--muted)}
+.zp-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;min-width:0;max-width:480px}
+.zp-chip{display:flex;flex-direction:column;gap:1px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:var(--surface);min-width:0}
+.zp-chip b{font-family:var(--mono);font-size:.85rem}
+.zp-chip small{color:var(--muted);font-size:.72rem}
+.zp-chip i{font-style:normal;font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--accent)}
+.zp-same{margin:0;font-size:.9rem;padding:8px 12px;border-radius:6px}
+.zp-same.eq{background:var(--warn-soft)}
+.zp-same.ne{background:var(--good-soft)}
+@media (max-width:560px){.zp-fr{grid-template-columns:1fr}}
 </style>
 
 <div class="wrap">
@@ -408,7 +424,7 @@ table.mt tr.dim td{color:var(--muted)}
   <!-- DA ZERO -->
   <h3 id="c-zero" class="anchor">Da zero: neuroni, reti, token, senza formule</h3>
   <div class="prose stack">
-    <p>Questa sottosezione è il punto di partenza per chi non ha mai visto una rete neurale. Non ci sono formule: solo moltiplicazioni e somme con numeri piccoli. Sei idee, una alla volta, ognuna con un esempio da provare: un neurone, una rete, come impara, come le parole diventano numeri, perché la frase entra tutta insieme e che cosa succede alle schede dentro la rete.</p>
+    <p>Questa sottosezione è il punto di partenza per chi non ha mai visto una rete neurale. Non ci sono formule: solo moltiplicazioni e somme con numeri piccoli. Sei idee, una alla volta, ognuna con un esempio da provare: un neurone, una rete, come impara, come le parole diventano numeri, perché la frase entra tutta insieme e che cosa succede alle schede dentro la rete. Il punto 7, alla fine, raccoglie le domande che vengono a tutti, con risposte brevi.</p>
   </div>
 
   <h4 class="z-h">1 · Un neurone è un piccolo votante</h4>
@@ -634,6 +650,66 @@ table.mt tr.dim td{color:var(--muted)}
     <p><b>Poi ognuna ragiona da sola.</b> Dopo aver raccolto il miscuglio, ogni scheda passa, per conto suo, in una piccola rete fatta come quella dell'ombrello: moltiplica, somma, applica la piega «mai sotto 0», ma con 11.008 neuroni nel mezzo invece di 2. Qui le schede non si parlano: ognuna elabora quello che ha appena raccolto. Si pensa che in questi pesi stia buona parte di quello che il modello «sa» sui fatti del mondo.</p>
     <p><b>Mettendo tutto insieme.</b> Un giro del punto 5 è uno strato: le schede si parlano con l'attenzione, poi ognuna ragiona da sola. Dopo 32 strati la scheda di «sul» contiene il contesto di tutta la frase, e da quella sola scheda si calcolano le percentuali della parola successiva.</p>
   </div>
+
+  <h4 class="z-h" id="c-zero-7">7 · Le domande che vengono a tutti</h4>
+  <div class="prose stack">
+    <p>Arrivati qui, quasi tutti si fanno le stesse cinque domande. Le risposte sono brevi; non servono per andare avanti, ma tolgono di mezzo i dubbi più comuni.</p>
+
+    <p class="zq-q">«I tre numeri dell'ombrello sono i pesi?»</p>
+    <p>No, sono gli <b>ingressi</b>: quante nuvole ci sono, quanta pioggia è prevista, quanto vento tira. Cambiano ogni giorno, perché ogni giorno il tempo è diverso.</p>
+    <p>I <b>pesi</b> stanno sulle frecce e dicono quanto conta ogni ingresso. Sono della rete, non della giornata, e finito l'allenamento restano fissi. Lunedì e martedì il neurone riceve ingressi diversi, ma li moltiplica per gli stessi pesi.</p>
+    <p>Con il testo è lo stesso. Le schede dei token sono gli ingressi: quali schede entrano dipende dalla frase che scrivi. I pesi sono la rete: le tabelle del punto 6, sempre le stesse qualunque frase entri.</p>
+
+    <p class="zq-q">«La rete ha tanti nodi d'ingresso quanti numeri hanno tutte le schede della frase?»</p>
+    <p>No. Una frase di 4 token porta 4 × 4.096 = 16.384 numeri, ma la rete non ha 16.384 ingressi. È un insieme di pesi fatto per <b>una sola scheda</b> da 4.096 numeri, e lo stesso insieme si applica a ogni scheda, tutte nello stesso momento: sono le quattro calcolatrici uguali del punto 6.</p>
+    <p>Anche dentro la rete la larghezza resta quella. Tra uno strato e l'altro ogni scheda ha sempre 4.096 numeri. L'unico punto in cui si allarga è la parte in cui ogni scheda «ragiona da sola»: lì passa a 11.008 numeri e poi torna a 4.096. Non esiste un ingresso più grande o più piccolo della scheda: la rete è costruita su misura per lei.</p>
+    <p>Per questo una frase più lunga non cambia la rete. Con 4 token ci sono 4 schede, con 400 ce ne sono 400: più schede, stessi pesi. Cambia solo quanto lavoro c'è da fare.</p>
+
+    <p class="zq-q">«Dove stanno gli embedding? In memoria?»</p>
+    <p>La parola «embedding» indica due cose diverse, e stanno in posti diversi.</p>
+    <p>La prima è la <b>tabella delle schede</b>: una riga per ogni token del vocabolario, 32.000 righe da 4.096 numeri, circa 131 milioni di numeri. Fa parte dei pesi del modello: sta su disco insieme a tutti gli altri pesi e viene caricata in memoria quando il modello si avvia. Durante l'uso non cambia mai.</p>
+    <p>La seconda sono le <b>schede del tuo prompt</b>: le righe copiate dalla tabella per i token che hai scritto, poi trasformate strato dopo strato. Queste esistono solo mentre il modello fa i conti, nella memoria della GPU, e alla fine non vengono salvate.</p>
+    <p>C'è una riserva che dura un po' di più. Mentre scrive la risposta, un token alla volta, il modello conserva una parte dei conti già fatti per i token passati: le etichette e i contenuti del punto 6, per ogni strato. Quando arriva un token nuovo non deve ricalcolarli: li rilegge. Le domande invece non si conservano, perché servono una volta sola.</p>
+    <p>Questa riserva si chiama <b>KV cache</b> (key-value cache, la memoria delle key e dei value: le etichette e i contenuti) e viene buttata quando la risposta è finita; alcuni servizi la tengono per qualche minuto, per riusarla se il messaggio successivo comincia allo stesso modo. Quanto lavoro fa risparmiare e quanta memoria occupa lo spiega la guida sull'inferenza, nel capitolo sulla cache KV: è un approfondimento facoltativo.</p>
+
+    <p class="zq-q">«Spezzando la frase in token, non si perde l'ordine e la relazione tra le parole?»</p>
+    <p>No, per due motivi: la posizione e l'attenzione.</p>
+    <p><b>La posizione.</b> Se ogni token diventasse solo la sua scheda, «cane morde uomo» e «uomo morde cane» darebbero le stesse tre schede, in un ordine diverso, e i conti dell'attenzione, che pesano e sommano, non avrebbero un modo diretto per sapere chi viene prima. Per questo a ogni scheda si aggiunge l'informazione su <b>dove</b> si trova nella frase: si chiama <b>codifica posizionale</b>.</p>
+    <p>In Llama si usa RoPE (Rotary Position Embedding, codifica della posizione per rotazione): le domande e le etichette del punto 6 vengono ruotate di un angolo che dipende dalla posizione del token. Così il punteggio tra due token dipende anche da quanto sono lontani l'uno dall'altro.</p>
+    <p><b>L'attenzione.</b> La relazione tra le parole non è scritta da nessuna parte all'ingresso: la rete la ricostruisce. In ogni strato le schede si scambiano informazioni guardando a sinistra, come nel punto 6, e quello che ciascuna raccoglie finisce dentro la sua scheda. Alla fine la scheda di «sul» «contiene» anche il gatto e il dormire. Spezzare in token non perde la relazione, perché ogni scheda se la porta dietro.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: chi morde chi?</h3><span class="tag">valori illustrativi</span></div>
+    <p>Accendi e spegni la posizione e cambia frase: guarda se le schede delle due frasi restano uguali e se la domanda «chi morde?» riesce a rispondere.</p>
+    <div class="row">
+      <span class="diag-title">Posizione</span>
+      <div class="seg" id="zpPos" role="group" aria-label="Informazione di posizione"><button aria-pressed="true" data-v="0">spenta</button><button aria-pressed="false" data-v="1">accesa</button></div>
+    </div>
+    <div class="row">
+      <span class="diag-title">Domanda sulla frase</span>
+      <div class="seg" id="zpFr" role="group" aria-label="Frase su cui si fa la domanda"><button aria-pressed="true" data-v="0">cane morde uomo</button><button aria-pressed="false" data-v="1">uomo morde cane</button></div>
+    </div>
+    <div class="zp-frs" id="zpFrs"></div>
+    <p class="zp-same" id="zpSame"></p>
+    <div class="za-q" id="zpQ"></div>
+    <div class="za-rows" id="zpRows"></div>
+    <p class="callout" id="zpMsg" aria-live="polite"></p>
+    <p class="note">Le schede sono scritte a parole perché si possano leggere, e i punteggi sono inventati: il bonus di 2,2 per «viene prima di morde» è scelto perché esca 90%. Il passaggio dai punteggi alle percentuali è invece il conto vero del punto 6, fatto solo tra «cane» e «uomo». In Llama la posizione non è un'etichetta attaccata alla scheda: RoPE ruota domande ed etichette di un angolo che dipende dalla posizione, in ogni strato. In un modello vero, dove ogni scheda guarda solo a sinistra, un indizio d'ordine trapela anche senza posizione (chi sta più a sinistra vede meno schede), ma è debole e indiretto: per questo tutti i modelli moderni la aggiungono in modo esplicito.</p>
+  </div>
+  <div class="prose stack">
+    <p class="zq-q">«Se la frase è lunghissima, viene spezzata in pezzi?»</p>
+    <p>Il limite non è lo strato d'ingresso: come hai visto, la rete accetta quante schede vuoi, sempre con gli stessi pesi. Il limite è la <b>finestra di contesto</b> (context window): il numero massimo di token che il modello può guardare insieme, prompt e risposta compresi. Per Llama 2 è di 4.096 token.</p>
+    <p>Attenzione a una coincidenza scomoda: anche la scheda di ogni token, in Llama 2 7B, ha 4.096 numeri. Sono due cose diverse che per caso hanno lo stesso valore. La larghezza della scheda dice quanti numeri descrivono <i>un</i> token; la finestra dice quanti token possono stare <i>insieme</i>. In altri modelli i due numeri sono diversi: Llama 3.1 8B ha ancora schede da 4.096 numeri, ma una finestra da 128.000 token.</p>
+    <p><b>Perché c'è un limite.</b> Il primo motivo è il costo. Nell'attenzione ogni token confronta la sua domanda con le etichette di tutti i token che lo precedono, lui compreso. Con 4 token i confronti sono 1 + 2 + 3 + 4 = 10; con 1.000 token sono circa mezzo milione.</p>
+  </div>
+  <div class="vx vx-formula">1.000 token: 1 + 2 + … + 1.000 <span class="op">≈</span> 500.000 confronti<br>2.000 token: 1 + 2 + … + 2.000 <span class="op">≈</span> 2.000.000 confronti <small>Il doppio dei token, circa quattro volte i confronti, in ogni strato. Si dice che i conti dell'attenzione crescono con il quadrato della lunghezza.</small></div>
+  <div class="prose stack">
+    <p>Il secondo motivo è l'allenamento. Il modello ha imparato su testi lunghi al massimo quanto la sua finestra, e oltre non sa usare bene posizioni che non ha mai visto.</p>
+    <p><b>Che cosa succede se il testo non ci sta.</b> Il modello non lo spezza in pezzi collegati tra loro: guarda una finestra sola. Quello che avanza viene tagliato, oppure il programma rifiuta il testo troppo lungo. Sono i programmi costruiti intorno al modello a decidere che cosa farci stare: per esempio riassumere le parti più vecchie di una conversazione, oppure cercare nei documenti solo i pezzi utili alla domanda e mettere nel prompt quelli. Questo secondo metodo si chiama RAG (Retrieval-Augmented Generation, generazione aiutata dalla ricerca).</p>
+    <p>Se vuoi vedere come si fa in pratica, c'è la guida sull'ingegneria dei sistemi basati sui modelli linguistici: il capitolo sul retrieval per il RAG, il capitolo sulla memoria per i riassunti e per la scelta di che cosa tenere. È un approfondimento facoltativo.</p>
+    <p>I modelli più recenti hanno finestre molto più ampie: da 128.000 a oltre un milione di token. Il principio non cambia: la finestra è grande ma finita, e quello che non ci entra il modello non lo vede.</p>
+  </div>
+
   <div class="prose stack">
     <p><b>Come si chiamano queste cose nel resto della guida.</b> Da qui in poi le stesse idee tornano con il loro nome tecnico. Questa tabella fa da ponte.</p>
   </div>
@@ -643,6 +719,7 @@ table.mt tr.dim td{color:var(--muted)}
       <tbody>
         <tr><td>pezzo di testo</td><td><b>token</b> · <a href="#c-token">Token e BPE</a></td></tr>
         <tr><td>scheda di numeri di un token</td><td><b>embedding</b> (un vettore) · <a href="#c-emb">Embedding</a></td></tr>
+        <tr><td>l'informazione su dove sta ogni token nella frase</td><td><b>codifica posizionale</b> (in Llama: RoPE, Rotary Position Embedding) · <a href="#c-emb">Embedding</a></td></tr>
         <tr><td>quanto conta un ingresso, spessore della freccia, manopola</td><td><b>peso</b> (parametro) · <a href="#c-pesi">I pesi</a></td></tr>
         <tr><td>neurone, nodo</td><td><b>neurone</b> o unità · <a href="#c-backprop">Backpropagation</a> (una rete a due strati)</td></tr>
         <tr><td>«mai sotto 0»: la piega del regolatore</td><td><b>funzione non lineare</b> (ReLU) · <a href="#c-alg-nonlin">Non linearità</a></td></tr>
@@ -656,6 +733,8 @@ table.mt tr.dim td{color:var(--muted)}
         <tr><td>i punteggi che diventano percentuali</td><td><b>softmax</b> e distribuzione di probabilità · <a href="#c-loss">La loss</a></td></tr>
         <tr><td>quanto la risposta è sbagliata</td><td><b>loss</b> · <a href="#c-loss">La loss</a></td></tr>
         <tr><td>spostare un poco ogni peso</td><td><b>step</b> di discesa del gradiente · <a href="#c-step">Il ciclo di uno step</a></td></tr>
+        <tr><td>quanti token il modello può guardare insieme</td><td><b>finestra di contesto</b> (context window) · <a href="https://pericle82.github.io/explorables/ai-engineering/#s4">Ingegneria dei sistemi · La memoria</a></td></tr>
+        <tr><td>la riserva dei conti già fatti: etichette e contenuti dei token passati</td><td><b>KV cache</b> (key-value cache) · <a href="https://pericle82.github.io/explorables/inferenza-llm/#cap-3">Dentro l'inferenza · La cache KV</a></td></tr>
       </tbody>
     </table>
   </div>
@@ -3003,7 +3082,40 @@ function drawZA(){
 }
 seg("zaWho",v=>{zaJ=v;drawZA();});
 
-drawZN();drawZR();drawZW();drawZT();drawZA();
+/* ===== 7 · chi morde chi? (posizione) ===== */
+const ZP_F=[["cane","morde","uomo"],["uomo","morde","cane"]];
+const ZP_D={cane:"animale · può agire",uomo:"persona · può agire",morde:"azione: mordere"};
+const ZP_B=2.2;
+const ZP_M=[
+  [`<b>Senza posizione, la rete non sa chi morde.</b> «cane» e «uomo» possono agire tutti e due e prendono lo stesso punteggio, 1: la risposta è 50% e 50%. Passa all'altra frase: il risultato non cambia, perché le schede sono le stesse.`,
+   `<b>Stesso risultato dell'altra frase: 50% e 50%.</b> Per la rete, senza posizione, «uomo morde cane» e «cane morde uomo» sono la stessa cosa: tre schede uguali, e nessun modo di sapere quale viene prima. Accendi la posizione.`],
+  [`<b>Con la posizione, ogni scheda sa dove sta.</b> «cane» è in posizione 1, prima di «morde» (posizione 2): prende il bonus e arriva a 3,2 contro 1. In percentuale, 90% cane e 10% uomo. Cambia frase e guarda le percentuali scambiarsi.`,
+   `<b>Stesse parole, risposta opposta.</b> Ora «uomo» è in posizione 1 e «cane» in posizione 3: il bonus passa all'uomo, 90% contro 10%. Le parole sono le stesse: a decidere chi morde è solo l'ordine, e la rete lo vede perché ogni scheda porta la sua posizione.`]
+];
+let zpOn=0,zpS=0;
+function drawZP(){
+  $("zpFrs").innerHTML=ZP_F.map((f,k)=>`<div class="zp-fr${k===zpS?" sel":""}"><b>«${f.join(" ")}»<small>${k===zpS?"la frase della domanda":"l'altra frase"}</small></b> <div class="zp-chips">${f.map((w,i)=>`<span class="zp-chip"><b>${w}</b> <small>${ZP_D[w]}</small>${zpOn?` <i>posizione ${i+1}</i>`:""}</span>`).join(" ")}</div></div>`).join("");
+  const same=$("zpSame");
+  same.className="zp-same "+(zpOn?"ne":"eq");
+  same.innerHTML=zpOn
+    ?`<b>Schede diverse.</b> «cane» in posizione 1 e «cane» in posizione 3 non sono più la stessa scheda: le due frasi arrivano alla rete in modo diverso.`
+    :`<b>Stesse tre schede in tutte e due le frasi:</b> «cane», «morde», «uomo». Le abbiamo scritte in ordine diverso, ma senza posizione quell'ordine alla rete non arriva.`;
+  const f=ZP_F[zpS],pm=f.indexOf("morde");
+  $("zpQ").innerHTML=`Domanda a fine frase: <b>chi morde?</b> · cerca chi può agire${zpOn?" <i>e</i> viene prima di «morde»":" (la posizione è spenta: prima e dopo non esistono)"}`;
+  const names=f.filter(w=>w!=="morde");
+  const sc=names.map(w=>1+(zpOn&&f.indexOf(w)<pm?ZP_B:0));
+  const ex=sc.map(s=>Math.exp(s)),tot=ex[0]+ex[1],pc=ex.map(e=>e/tot*100);
+  $("zpRows").innerHTML=names.map((w,i)=>{
+    const p=f.indexOf(w);
+    const why=zpOn?(p<pm?`viene prima di «morde» <b>+${zf(ZP_B)}</b>`:`viene dopo «morde» <b>+0</b>`):`prima o dopo? non si sa <b>+0</b>`;
+    return `<div class="za-row${pc[i]>60?" me":""}"><span class="t">«${w}»</span> <span class="c">può agire <b>+1</b> · ${why} → punteggio <b>${zf(sc[i])}</b></span> <span class="track"><span class="fill" style="display:block;width:${pc[i].toFixed(1)}%"></span></span> <span class="v">${Math.round(pc[i])}%</span></div>`;
+  }).join("");
+  $("zpMsg").innerHTML=ZP_M[zpOn][zpS];
+}
+seg("zpPos",v=>{zpOn=v;drawZP();});
+seg("zpFr",v=>{zpS=v;drawZP();});
+
+drawZN();drawZR();drawZW();drawZT();drawZA();drawZP();
 })();
 </script>
 
@@ -3034,6 +3146,11 @@ window.XREF_CONFIG={
     {re:"sottosezione su batch, step ed epoch",to:"#c-batch",flags:"i",first:false},
     {re:"sottosezione «Da zero»",to:"#c-zero",flags:"i",first:false},
     {re:"punto 6 della sottosezione «Da zero»|punto 6",to:"#c-zero-6",flags:"i",first:false},
+    {re:"punto 7",to:"#c-zero-7",flags:"i",first:false},
+    {re:"guida sull'inferenza, nel capitolo sulla cache KV",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3",k:"Altra guida",t:"Dentro l'inferenza · La cache KV",body:"<p>Le key e i value dei token passati non cambiano, quindi si calcolano una volta e si tengono in memoria: quanto lavoro si risparmia, quanta memoria occupa per token e come la si riduce facendo condividere key e value tra le teste.</p>",flags:"i",first:false},
+    {re:"guida sull'ingegneria dei sistemi basati sui modelli linguistici",to:"https://pericle82.github.io/explorables/ai-engineering/",k:"Altra guida",t:"Ingegneria dei sistemi LLM",body:"<p>Un modello non è un sistema: gateway con costi e cache, retrieval misurato, agenti durevoli, memoria con budget, giudice calibrato e guardrail.</p>",flags:"i",first:false},
+    {re:"capitolo sul retrieval",to:"https://pericle82.github.io/explorables/ai-engineering/#s2",k:"Altra guida",t:"Ingegneria dei sistemi LLM · Retrieval",body:"<p>RAG (Retrieval-Augmented Generation): prima di rispondere si cercano nei documenti i passaggi pertinenti e si mettono nel prompt. Chunking, ricerca densa e lessicale, e come si misura quale configurazione vince.</p>",flags:"i",first:false},
+    {re:"capitolo sulla memoria",to:"https://pericle82.github.io/explorables/ai-engineering/#s4",k:"Altra guida",t:"Ingegneria dei sistemi LLM · Memoria",body:"<p>La finestra di contesto non è memoria: i turni vecchi si riassumono, i fatti importanti si estraggono e si salvano, e a ogni turno si sceglie che cosa far entrare dentro un budget di token.</p>",flags:"i",first:false},
     {re:"tabella «Dove sono i 7 miliardi di pesi»",to:"#lab-7b",k:"Laboratorio · Gli strati",t:"Dove sono i 7 miliardi di pesi",body:"<p>Il conto dei pesi di Llama 2 7B riga per riga: embedding, attention e MLP di ogni blocco, 32 blocchi, testa di output. Totale ≈ 6,74 miliardi.</p>",flags:"i",first:false},
     {re:"quadro d'insieme",to:"#c-quadro",flags:"i"},
     {re:"richiamo di algebra",to:"#c-alg",flags:"i"},
