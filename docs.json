@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.0",
+      "version": "2.1",
       "updated": "2026-10-03",
       "history": [
+        {
+          "version": "2.1",
+          "date": "2026-10-03",
+          "notes": "Capitolo 1 riscritto in chiave intuitiva: i cinque passi dalla frase al token successivo, con un transformer in miniatura (12 token, 8 dimensioni, 1 strato, pesi scritti a mano) eseguibile numero per numero su ogni prefisso, con generazione autoregressiva. Tokenizer BPE, algebra, matrice E e RoPE, attention a tre matrici, MLP, softmax e conti dei 7B spostati nel nuovo capitolo 9 «Approfondimenti»."
+        },
         {
           "version": "2.0",
           "date": "2026-10-03",

@@ -289,7 +289,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
 <header class="hero">
   <span class="eyebrow">Come si costruisce un <abbr title="Large Language Model">LLM</abbr> (Large Language Model, modello linguistico di grandi dimensioni)</span>
   <h1>Dal testo grezzo al modello che ragiona</h1>
-  <p class="lede">Un LLM è una funzione che riceve del testo e restituisce una probabilità per ogni possibile token successivo. Tutto il resto — il «sapere», la capacità di rispondere, il ragionamento — è il risultato di come quella funzione viene aggiustata, numero per numero, su quantità enormi di esempi. Questa guida risponde a quattro domande, nell'ordine in cui conviene farsele: <b>che cosa succede a un prompt dentro il modello</b>; <b>come un errore su un singolo token diventa una modifica a miliardi di pesi</b>; <b>come sono fatti i dati, davvero</b>; <b>perché servono più fasi di addestramento</b> e che problema risolve ciascuna.</p>
+  <p class="lede">Un LLM è una funzione che riceve del testo e restituisce una probabilità per ogni possibile token successivo. Tutto il resto — il «sapere», la capacità di rispondere, il ragionamento — è il risultato di come quella funzione viene aggiustata, numero per numero, su quantità enormi di esempi. La guida risponde a quattro domande, nell'ordine in cui conviene farsele: <b>come una frase entra nel modello e ne esce il token successivo</b>, con un modello in miniatura da seguire numero per numero; <b>come un errore su un singolo token diventa una modifica a miliardi di pesi</b>; <b>come sono fatti i dati</b>; <b>perché servono più fasi di addestramento</b> e che problema risolve ciascuna. I dettagli tecnici (tokenizer, attention, RoPE, i conti dei 7 miliardi) stanno in una parte di approfondimento alla fine, da leggere quando il quadro è chiaro.</p>
 
   <div class="pipeline" aria-label="Pipeline di training">
     <div>
@@ -314,7 +314,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
 </header>
 
 <nav class="toc" aria-label="Sezioni"><div class="in">
-  <a href="#base">1 · Dentro il modello</a><a href="#learn">2 · Come impara</a><a href="#live">3 · Dal vivo</a><a href="#pre">4 · Pre-training</a><a href="#sft">5 · SFT</a><a href="#dpo">6 · Preferenze</a><a href="#grpo">7 · RL</a><a href="#opd">8 · Distillazione</a><a href="#sum">Riepilogo</a>
+  <a href="#base">1 · La frase</a><a href="#learn">2 · Come impara</a><a href="#live">3 · Dal vivo</a><a href="#pre">4 · Pre-training</a><a href="#sft">5 · SFT</a><a href="#dpo">6 · Preferenze</a><a href="#grpo">7 · RL</a><a href="#opd">8 · Distillazione</a><a href="#deep">9 · Approfondimenti</a><a href="#sum">Riepilogo</a>
 </div></nav>
 
 <div class="part">
@@ -322,309 +322,132 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
   <h2 class="part-title" id="toc-i">Il meccanismo: una funzione che prevede il token successivo, e come la si corregge</h2>
 </div>
 
-<!-- ============ 1. DENTRO IL MODELLO ============ -->
+<!-- ============ 1. LA FRASE ============ -->
 <section class="st" id="base">
   <div class="sec-head">
-    <span class="eyebrow">Capitolo 1 · Dentro il modello</span>
-    <h2>Che cosa succede a un prompt, dal testo al token successivo</h2>
+    <span class="eyebrow">Capitolo 1 · La frase</span>
+    <h2>Come una frase entra nel modello e ne esce il token successivo</h2>
   </div>
   <div class="prose stack">
-    <p class="q">Scrivo <b>«La capitale della Francia è»</b> e il modello risponde <b>«Parigi»</b>. Che cosa è successo, concretamente, tra la mia frase e quella parola?</p>
-    <p>Partiamo da qui perché tutto il training, in ogni fase, lavora su questo percorso: lo esegue, misura dove ha sbagliato, e lo corregge. Senza avere chiaro il percorso, le fasi di addestramento sembrano riti; con il percorso chiaro, ognuna diventa una scelta ovvia. Seguiremo la frase passo per passo: viene spezzata in <b>token</b>, ogni token diventa un <b>vettore di numeri</b>, i vettori attraversano una pila di <b>strati</b> che li mescolano tra loro, e alla fine esce un <b>punteggio per ogni token del vocabolario</b>, trasformato in probabilità. «Parigi» è semplicemente il token con la probabilità più alta.</p>
-  </div>
-
-  <div class="map" aria-label="Percorso di un prompt">
-    <a href="#c-pesi" class="box">La funzione<small>pesi</small></a><span class="arr">→</span>
-    <a href="#c-token" class="box">Token<small>BPE</small></a><span class="arr">→</span>
-    <a href="#c-emb" class="box">Embedding<small>da ID a vettore</small></a><span class="arr">→</span>
-    <a href="#c-layer" class="box">Strati<small>attention + MLP</small></a><span class="arr">→</span>
-    <a href="#c-loss" class="box">Logit → probabilità<small>softmax</small></a><span class="arr">→</span>
-    <a href="#c-conti" class="box hot">I conti<small>dove sono i 7B</small></a>
-  </div>
-
-  <!-- PESI -->
-  <h3 id="c-pesi" class="anchor">Il modello è una funzione fatta di numeri</h3>
-  <div class="prose stack">
-    <p>Un LLM non contiene testo, regole grammaticali né una base di fatti. Contiene <b>numeri</b>, chiamati <b>pesi</b> o <b>parametri</b>, organizzati in grandi tabelle (matrici), e una ricetta fissa che dice in che ordine moltiplicarli con l'input. Un modello «7B» ha circa 7 miliardi di questi numeri. Dato un testo, la ricetta produce 7 miliardi di moltiplicazioni e somme e, alla fine, un punteggio per ciascuna delle decine di migliaia di voci del vocabolario: «quanto è plausibile che il prossimo token sia questo». La ricetta non cambia mai; il training cambia solo i numeri.</p>
-    <p>Un'analogia utile: un mixer audio con miliardi di manopole. All'inizio le manopole sono in posizione casuale e il suono è rumore. Il training gira ogni manopola di una frazione, miliardi di volte, finché il suono è quello giusto. Nessuno regola una manopola a mano, e nessuno sa che cosa rappresenti la singola manopola: hanno senso solo tutte insieme. Nel capitolo 3 c'è un modello con 225 manopole, e le puoi vedere tutte mentre si muovono.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Dove stanno i pesi in un transformer</h3></div>
-    <div class="grid3">
-      <div class="box"><b>Embedding</b><span>Una riga di numeri per ogni token del vocabolario: il punto di partenza di ciascun token.</span><em>vocabolario × dimensione</em></div>
-      <div class="box"><b>Attention</b><span>Matrici che decidono quali token precedenti guardare e quanto pesano per quello attuale.</span><em>ripetuto per ogni strato</em></div>
-      <div class="box"><b>MLP (Multi-Layer Perceptron, percettrone multistrato)</b><span>Matrici che elaborano, token per token, l'informazione raccolta. Qui si pensa sia immagazzinata buona parte della conoscenza fattuale.</span><em>circa 2/3 dei parametri</em></div>
-      <div class="box"><b>Testa di output</b><span>Trasforma l'ultimo vettore in un punteggio (logit) per ogni token del vocabolario.</span><em>dimensione × vocabolario</em></div>
-    </div>
-    <p class="note">In formato bf16 (brain floating point a 16 bit, 2 byte per numero) i 7 miliardi di pesi occupano circa 14 GB: è il file che si scarica quando si «scarica un modello». I conti esatti, matrice per matrice, sono alla fine di questo capitolo.</p>
-  </div>
-
-  <!-- TOKEN / BPE -->
-  <h3 id="c-token" class="anchor">Primo passo: dal testo ai token</h3>
-  <div class="prose stack">
-    <p class="q">Il modello riceve «La capitale della Francia è». Ma una funzione fatta di numeri non può moltiplicare delle lettere: che cosa riceve, esattamente?</p>
-    <p>Riceve una lista di <b>numeri interi</b>. Il testo viene prima spezzato in <b>token</b>, frammenti presi da un vocabolario fisso (tipicamente 30.000–250.000 voci), e ogni frammento è sostituito dal suo <b>ID</b>, la sua posizione nel vocabolario. La nostra frase diventa qualcosa come <span class="k">[1529, 8871, 503, 9412, 1032]</span>: «La», «·capitale», «·della», «·Francia», «·è» (il punto · segna lo spazio, che fa parte del token seguente). In italiano un token corrisponde in media a 3–4 caratteri: le parole comuni restano intere, quelle rare si spezzano in pezzi.</p>
-    <p>Perché token e non parole o lettere? Con le lettere le sequenze sarebbero lunghissime e ogni simbolo direbbe pochissimo; con le parole il vocabolario sarebbe sterminato e qualsiasi parola nuova, errore di battitura o nome proprio sarebbe irrappresentabile. I token sono il compromesso: frequenti abbastanza da avere un significato, piccoli abbastanza da comporre qualsiasi testo.</p>
-    <p><b>Chi decide quali frammenti entrano nel vocabolario?</b> Un algoritmo, il <b>BPE</b> (Byte Pair Encoding, codifica per coppie di byte), che si «allena» sul corpus <i>prima</i> del modello, una volta sola:</p>
+    <p class="q">Scrivo <b>«il gatto nero dorme sul»</b> e il modello completa con <b>«divano»</b>. Per farlo deve aver usato <i>tutta</i> la frase: «dorme» gli dice che si parla di un posto in cui si dorme, «sul» che manca un nome di luogo. <b>In che modo, concretamente, cinque parole diventano quella previsione?</b></p>
+    <p>In cinque passi, sempre gli stessi, per qualsiasi frase e qualsiasi modello. Li elenchiamo prima a parole, poi li eseguiamo con numeri veri su un modello in miniatura costruito apposta, abbastanza piccolo da leggere ogni cifra e abbastanza fedele da avere la stessa struttura di un modello da 7 miliardi di parametri.</p>
     <ol class="steps">
-      <li>Si parte dai simboli più piccoli: i singoli caratteri (nei tokenizer moderni, i singoli byte, così qualsiasi testo è rappresentabile).</li>
-      <li>Si conta quale <b>coppia di simboli adiacenti</b> compare più spesso in tutto il corpus.</li>
-      <li>Quella coppia viene <b>fusa</b> in un nuovo simbolo, che entra nel vocabolario. La regola di fusione (<i>merge</i>) viene salvata.</li>
-      <li>Si ripete finché il vocabolario raggiunge la dimensione desiderata.</li>
+      <li><b>Spezza la frase in token</b> e sostituisci ogni token con il suo numero d'ordine (ID) in un vocabolario fisso. Da qui in poi non esiste più testo, solo una lista di interi.</li>
+      <li><b>Sostituisci ogni ID con un vettore</b>, una lista di numeri letta da una tabella: la riga numero ID della <i>matrice di embedding</i> E. Ogni token diventa un punto in uno spazio a d dimensioni. All'ingresso ogni vettore descrive solo il suo token, senza sapere nulla dei vicini.</li>
+      <li><b>Mescola il contesto.</b> È il passo decisivo. Il vettore dell'ultimo token viene ricalcolato come <i>media pesata</i> dei vettori di tutti i token della frase, se stesso compreso. I pesi non sono fissi: il modello li calcola dal contenuto, chiedendo a ogni token precedente «quanto sei rilevante per me?» con un prodotto scalare. Dopo questo passo il vettore di «sul» contiene un po' di «dorme» e un po' di se stesso, nelle proporzioni decise dai pesi.</li>
+      <li><b>Elabora il vettore mescolato</b> con un piccolo blocco di calcolo che vale per tutti i token: trasforma «dormire + preposizione di luogo» in «ci vuole un luogo». In un modello vero i passi 3 e 4 si ripetono decine di volte in fila (gli <i>strati</i>), ciascuno con i propri pesi.</li>
+      <li><b>Confronta il risultato con ogni riga del vocabolario.</b> Il prodotto scalare tra il vettore finale e il vettore di ciascun token dà un punteggio (<i>logit</i>); la funzione <i>softmax</i> trasforma i punteggi in probabilità che sommano a 1. «divano» è il token con la probabilità più alta.</li>
     </ol>
-    <p>Il risultato: le sequenze frequenti («gatt», «ione», «·della») diventano un token solo, mentre le parole rare vengono composte da pezzi. Per tokenizzare un testo nuovo si applicano le stesse regole di fusione, nello stesso ordine in cui sono state imparate. Il laboratorio qui sotto esegue l'algoritmo vero su un corpus minuscolo.</p>
+    <p>Due cose vanno dette subito, perché sono il cuore di tutto il documento. Primo: in questi cinque passi <b>non c'è una sola regola scritta a mano</b>; ci sono solo moltiplicazioni e somme tra la frase e un insieme di numeri fissi, i <b>pesi</b> (la tabella E, la matrice che calcola i pesi del mescolamento, il blocco di elaborazione). Secondo: <b>il training cambia solo quei numeri</b>, mai i cinque passi. Nel modello in miniatura i pesi li abbiamo scritti noi, a mano, perché si capisse che cosa fanno; in un modello vero li trova il procedimento del capitolo 2.</p>
+  </div>
+
+  <div class="map" aria-label="I cinque passi">
+    <span class="box">1 · Token<small>testo → ID</small></span><span class="arr">→</span>
+    <span class="box">2 · Vettori<small>riga di E</small></span><span class="arr">→</span>
+    <span class="box hot">3 · Mescola il contesto<small>media pesata</small></span><span class="arr">→</span>
+    <span class="box">4 · Elabora<small>blocco di calcolo</small></span><span class="arr">→</span>
+    <span class="box">5 · Confronta<small>logit → probabilità</small></span>
+  </div>
+
+  <h3 id="c-toy" class="anchor">Un modello in miniatura, numero per numero</h3>
+  <div class="prose stack">
+    <p>Il modello qui sotto ha un vocabolario di 12 token, vettori di 8 numeri e un solo strato. Per renderlo leggibile, le 8 dimensioni hanno un nome (animale, dormire, mangiare, luogo, preposizione, fine, articolo, cibo) e i pesi sono scelti a mano in modo che le dimensioni significhino qualcosa: in un modello vero le dimensioni sono 4.096, nessuna ha un nome, e i pesi li trova il training. Ma il calcolo è lo stesso: scegli una frase, clicca un token per vedere la previsione fatta <i>in quel punto</i> della frase, e segui i cinque pannelli.</p>
   </div>
   <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: BPE passo per passo</h3><span class="tag">algoritmo reale</span></div>
-    <label for="bpeIn" class="muted" style="font-size:.8rem">Corpus di allenamento (puoi modificarlo)</label>
-    <textarea id="bpeIn" rows="2">il gatto dorme. il gatto mangia. la gatta dorme. il cane mangia 1500 pasti. il gatto mangia 150 pasti.</textarea>
+    <div class="lab-head"><h3>Laboratorio: dalla frase al token successivo</h3><span class="tag">calcolo reale · pesi scritti a mano</span></div>
     <div class="controls">
-      <div class="ctl" style="flex:0 1 auto"><label>Pre-tokenizzazione</label>
-        <div class="seg" id="bpePre" role="group" aria-label="Pre-tokenizzazione">
-          <button aria-pressed="true" data-v="on">Attiva (come nei tokenizer reali)</button><button aria-pressed="false" data-v="off">Disattivata</button>
+      <div class="ctl" style="flex:0 1 auto"><label>Frase</label>
+        <div class="seg" id="tySent" role="group" aria-label="Frase">
+          <button aria-pressed="true" data-v="0">il gatto nero dorme sul divano</button><button aria-pressed="false" data-v="1">il cane mangia il pesce</button><button aria-pressed="false" data-v="2">il cane dorme nel letto</button>
         </div>
       </div>
-      <div class="ctl" style="max-width:260px"><label for="bpeMax">Lunghezza massima del token <output id="bpeMaxo"></output></label><input id="bpeMax" type="range" min="0" max="10" value="0"></div>
     </div>
-    <div class="row">
-      <button class="btn" id="bpe1">Esegui 1 merge</button>
-      <button class="btn ghost" id="bpe5">Esegui 5 merge</button>
-      <button class="btn ghost" id="bpe20">Esegui 20 merge</button>
-      <button class="btn ghost" id="bpeR">Ricomincia</button>
+    <div class="diag-title">1 · Token e ID — clicca un token: il modello prevede che cosa viene <i>dopo</i> di lui, usando tutto ciò che lo precede</div>
+    <div class="tokens" id="tyTokens"></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">2 · Ogni ID diventa un vettore: la riga di E (12 righe × 8 colonne)</div>
+        <div class="scroll-x"><table class="gtable emb-table" id="tyE"></table></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">3 · Mescola il contesto: quanto pesa ogni token per l'ultimo</div>
+        <div class="bars" id="tyMix"></div>
+        <div class="formula" id="tyMixed"></div>
+      </div>
     </div>
     <div class="grid2">
       <div class="stack">
-        <div class="diag-title">Coppie adiacenti più frequenti</div>
-        <div class="bars" id="bpePairs"></div>
+        <div class="diag-title">4 · Elabora: il blocco di calcolo legge il vettore mescolato e aggiunge una correzione</div>
+        <div class="att-steps" id="tyRules"></div>
+        <div class="formula" id="tyOut"></div>
       </div>
       <div class="stack">
-        <div class="diag-title">Regole di merge imparate, in ordine</div>
-        <div class="tokens" id="bpeMerges"></div>
+        <div class="diag-title">5 · Confronta con ogni riga di E: punteggio (logit) → probabilità</div>
+        <div class="bars" id="tyLogits"></div>
       </div>
     </div>
-    <div class="stack">
-      <div class="diag-title">Vocabolario attuale: <span id="bpeVocN"></span> token con il loro ID</div>
-      <div class="tokens" id="bpeVocab"></div>
-      <div class="row" style="gap:14px;font-size:.8rem"><span class="row" style="gap:6px"><span class="tok spec">sp</span> token speciale</span><span class="row" style="gap:6px"><span class="tok base">a</span> simbolo di base</span><span class="row" style="gap:6px"><span class="tok merged">ab</span> creato da un merge</span><span class="row" style="gap:6px"><span class="tok resp">ab</span> ultimo merge</span></div>
-      <p class="note">Il vocabolario parte dai simboli di base (i singoli caratteri presenti nel corpus) più i token speciali, e ogni merge aggiunge <b>un</b> token con un nuovo ID. I simboli di base non vengono mai tolti, anche quando nel corpus non compaiono più da soli: servono per scrivere parole mai viste. Il training del tokenizer si ferma quando il vocabolario raggiunge la dimensione scelta; da lì in poi ID e token non cambiano più.</p>
+    <p class="callout" id="tyMsg"></p>
+    <div class="row"><button class="btn" id="tyGen">Aggiungi il token previsto e ricalcola</button><button class="btn ghost" id="tyReset">Torna alla frase intera</button></div>
+    <p class="note">Che cosa è reale e che cosa no. Reali: la lettura delle righe di E, i pesi del mescolamento (prodotto scalare tra la «domanda» dell'ultimo token e il vettore di ciascun token, poi softmax), la media pesata, il blocco di elaborazione (sette regole del tipo «se c'è X senza Y, aggiungi Z», realizzate come ReLU di un prodotto scalare, cioè esattamente come un neurone), i logit come prodotto scalare con le righe di E, la softmax. Scritti a mano: i valori di tutti questi pesi, e i nomi delle dimensioni. In un modello vero le dimensioni non si leggono e le regole non si elencano, perché emergono dal training distribuite su miliardi di numeri; ma la forma del calcolo è questa.</p>
+  </div>
+
+  <h3 id="c-pesi" class="anchor">Dove sono i pesi, e che cosa fa il modello vero in più</h3>
+  <div class="prose stack">
+    <p>Nel modello in miniatura i pesi sono di tre tipi, e in un modello vero sono gli stessi tre, solo enormemente più grandi.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>I pesi del modello</h3></div>
+    <div class="grid3">
+      <div class="box"><b>Tabella E (embedding)</b><span>Una riga di numeri per ogni token del vocabolario. Qui 12 × 8 = 96 numeri; in un 7B 32.000 × 4.096 = 131 milioni. Usata all'ingresso (passo 2) e, qui, anche all'uscita (passo 5).</span><em>vocabolario × dimensione</em></div>
+      <div class="box"><b>Pesi del mescolamento (attention)</b><span>La matrice che trasforma il vettore dell'ultimo token nella «domanda» con cui pesa i precedenti. Qui 8 × 8; in un 7B quattro matrici 4.096 × 4.096 per strato, per 32 strati.</span><em>ripetuto per ogni strato</em></div>
+      <div class="box"><b>Pesi del blocco di elaborazione (MLP)</b><span>Le regole «se X senza Y, aggiungi Z»: qui 7 regole su 8 dimensioni; in un 7B due matrici 4.096 × 11.008 per strato. È qui che si pensa stia la maggior parte della conoscenza fattuale.</span><em>circa 2/3 dei parametri</em></div>
     </div>
-    <div class="stack">
-      <div class="diag-title" id="bpeWordsTitle"></div>
-      <div id="bpeWords" class="bpe-words"></div>
-    </div>
-    <div class="readout" id="bpeStats"></div>
-    <div class="stack">
-      <label for="bpeNew" class="muted" style="font-size:.8rem">Applica le regole imparate a un testo nuovo</label>
-      <input id="bpeNew" type="text" value="il gatto mangia 1500 pesci." class="txt">
-      <div class="tokens" id="bpeNewOut"></div>
-    </div>
-    <p class="callout" id="bpeMsg"></p>
-    <p class="note">Il simbolo · rappresenta lo spazio: come nei tokenizer reali (GPT, Llama) lo spazio fa parte del token che lo segue, quindi «·gatto» e «gatto» sono token diversi. I tokenizer reali lavorano sui byte UTF-8 (Unicode Transformation Format, 8 bit) e fanno decine di migliaia di merge su gigabyte di testo, ma l'algoritmo è esattamente questo. Le coppie che compaiono una volta sola non vengono fuse (frequenza minima 2). Cambiando i due vincoli il laboratorio ripete da capo lo stesso numero di merge, così puoi confrontare i risultati.</p>
   </div>
   <div class="prose stack">
-    <p><b>Il vocabolario dipende dal corpus, e poi si congela.</b> Il tokenizer si allena su un campione rappresentativo dei dati di pre-training, una volta sola. Dopo, cambiarlo è impossibile senza riaddestrare il modello: ogni token ha la sua riga nella matrice di embedding e la sua uscita nell'ultimo strato, quindi un vocabolario diverso renderebbe inutili quei pesi. Un modello multilingua usa <b>un solo vocabolario condiviso</b>, allenato su una miscela bilanciata di lingue; per questo i vocabolari multilingua sono più grandi (128.000–256.000 token).</p>
-    <p><b>Che cosa si configura.</b> L'iperparametro principale è la <b>dimensione del vocabolario</b>, cioè quanti merge fare. La lunghezza dei singoli token non si fissa: emerge dalle frequenze. Nei fatti però è limitata dalla <b>pre-tokenizzazione</b>: prima del BPE un'espressione regolare divide il testo in blocchi (parole con lo spazio iniziale, numeri, punteggiatura) e i merge non superano mai quei confini. Alcune librerie offrono anche un tetto esplicito, facoltativo: <span class="k">max_sentencepiece_length</span> in SentencePiece (default 16 caratteri) e <span class="k">max_token_length</span> nel BpeTrainer di Hugging Face (default nessun limite).</p>
+    <p><b>Un'analogia per i pesi.</b> Un mixer audio con miliardi di manopole. All'inizio le manopole sono in posizione casuale e il suono è rumore. Il training gira ogni manopola di una frazione, miliardi di volte, finché il suono è quello giusto. Nessuno regola una manopola a mano, e nessuno sa che cosa rappresenti la singola manopola: hanno senso solo tutte insieme. Nel modello in miniatura le abbiamo regolate noi, 96 + 64 + 56 manopole, ed è per questo che le dimensioni hanno un nome; nel capitolo 3 c'è un modello con 225 manopole che si regolano da sole, e le puoi guardare mentre si muovono.</p>
+    <p><b>Che cosa fa in più un modello vero.</b> Quattro cose, nessuna delle quali cambia la logica dei cinque passi:</p>
+    <ul>
+      <li><b>Ripete i passi 3 e 4 molte volte.</b> Un 7B ha 32 strati, ciascuno con i propri pesi di mescolamento e di elaborazione; l'uscita di uno strato è l'ingresso del successivo. Ogni strato aggiunge una correzione al vettore invece di sostituirlo (uscita = ingresso + contributo), così l'informazione si accumula strato dopo strato. I primi strati raccolgono grammatica e vicinanze, quelli centrali i fatti, gli ultimi preparano la scelta del token.</li>
+      <li><b>Mescola in parallelo con molte «teste».</b> Nel passo 3 un modello vero non calcola un solo insieme di pesi ma 32 insiemi indipendenti per strato, ciascuno con la sua domanda: una testa segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura.</li>
+      <li><b>Sa dove sta ogni token.</b> La media pesata, da sola, non distingue «il cane morde l'uomo» da «l'uomo morde il cane». Il modello aggiunge un'informazione di posizione prima del mescolamento, così «quanto sei rilevante per me» può dipendere anche dalla distanza.</li>
+      <li><b>Calcola tutte le posizioni insieme.</b> Qui abbiamo seguito un solo token alla volta; il modello vero esegue i cinque passi per <i>ogni</i> posizione della frase in un colpo solo (ogni posizione vede solo i token alla sua sinistra), il che conta moltissimo per il training, come vedremo nel capitolo 2.</li>
+    </ul>
+    <p>Ciascuno di questi punti ha una sezione nel capitolo 9, con il calcolo completo dell'attention (query, key e value), la codifica della posizione (RoPE), il blocco MLP, la normalizzazione e i conti esatti dei 7 miliardi di pesi.</p>
+  </div>
+
+  <h3 id="c-gen" class="anchor">Dal token successivo al testo: la generazione</h3>
+  <div class="prose stack">
+    <p class="q">Il modello prevede <i>un</i> token. Come fa a scrivere una risposta di cento parole?</p>
+    <p>Ripetendo i cinque passi cento volte. Il token scelto viene aggiunto in fondo alla frase, e la frase allungata rientra nel modello dal passo 1: è ciò che fa il pulsante «Aggiungi il token previsto» del laboratorio. Si chiama generazione <b>autoregressiva</b>: ogni token prodotto diventa contesto per il successivo, finché il modello produce il token speciale di fine (<span class="k">&lt;eos&gt;</span>, end of sequence). A ogni passo si può prendere il token più probabile (<i>greedy</i>) oppure estrarne uno a caso secondo le probabilità, eventualmente dopo averle rese più piatte o più appuntite con un parametro detto <b>temperatura</b>; è per questo che la stessa domanda può ricevere risposte diverse. Il costo è proporzionale: cento token, cento passaggi completi.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: tokenizzatore</h3><span class="tag">approssimazione</span></div>
-    <label for="tokIn" class="muted" style="font-size:.8rem">Scrivi un testo</label>
+    <label for="tokIn" class="muted" style="font-size:.8rem">Un assaggio del passo 1 su un testo vero: scrivi qualcosa</label>
     <textarea id="tokIn" rows="2">Il fine-tuning dell'LLM è straordinariamente efficace!</textarea>
     <div class="tokens" id="tokOut"></div>
     <div class="readout" id="tokStats"></div>
-    <p class="note">Qui la divisione è simulata con una regola semplice, non con un vero vocabolario BPE, ma si vede l'effetto: parole corte e frequenti restano intere, parole lunghe vengono spezzate. Il numero accanto a ogni token è il suo ID.</p>
-  </div>
-
-  <!-- ALGEBRA (dove serve) -->
-  <h3 id="c-alg" class="anchor">Le operazioni che servono da qui in poi</h3>
-  <div class="prose stack">
-    <p>Da questo punto la frase è una lista di ID, e tutto ciò che accade dopo è algebra: vettori, matrici e tre o quattro operazioni ripetute miliardi di volte. Non serve altro per seguire il resto del documento; ogni voce indica dove la incontrerai.</p>
-  </div>
-  <dl class="gloss">
-    <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
-    <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
-    <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati uno sopra l'altro.</dd><span class="ex">E: V × d, una riga per token</span></div>
-    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
-    <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è «acceso» (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è «più grande» dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0] · usato nell'embedding e nella loss</span></div>
-    <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1 · è il cuore dell'attention e dei logit</span></div>
-    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
-    <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato «trasforma» un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
-    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
-    <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
-    <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2] · dentro l'MLP</span></div>
-    <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso · capitolo 2</span></div>
-  </dl>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: il prodotto scalare come misura di somiglianza</h3><span class="tag">matematica reale</span></div>
-    <div class="grid2">
-      <div class="stack">
-        <div class="ctl"><label for="dpA">Direzione di a <output id="dpAo"></output></label><input id="dpA" type="range" min="0" max="359" value="30"></div>
-        <div class="ctl"><label for="dpB">Direzione di b <output id="dpBo"></output></label><input id="dpB" type="range" min="0" max="359" value="70"></div>
-        <div class="ctl"><label for="dpL">Lunghezza di b <output id="dpLo"></output></label><input id="dpL" type="range" min="0.2" max="1.5" step="0.05" value="1"></div>
-        <div class="formula" id="dpF"></div>
-        <p class="callout" id="dpMsg"></p>
-      </div>
-      <svg id="dpChart" class="chart" viewBox="0 0 300 300" style="max-width:340px;justify-self:center" role="img" aria-label="Due vettori nel piano"></svg>
-    </div>
-    <p class="note">Tienilo a mente: quando tra poco l'attention «decide quanto un token guarda un altro», o la testa di output «confronta» un vettore con ogni riga del vocabolario, l'operazione che esegue è esattamente questa.</p>
-  </div>
-
-  <!-- EMBEDDING -->
-  <h3 id="c-emb" class="anchor">Secondo passo: da ID a vettore (embedding)</h3>
-  <div class="prose stack">
-    <p class="q">Il token «·Francia» ora è l'ID 9412. Ma un ID è un'etichetta arbitraria, non un numero con cui ha senso fare conti: come fa il modello a lavorarci?</p>
-    <p>Non ci lavora direttamente. Il primo strato di ogni LLM sostituisce ciascun ID con un <b>vettore</b> di d numeri (d = 4.096 in un modello da 7B), cioè un punto in uno spazio a d dimensioni. Quel vettore è l'<b>embedding</b> del token. Da questo momento il testo non esiste più: esistono L punti in uno spazio a 4.096 dimensioni, uno per token, e il resto del modello sposta e mescola questi punti.</p>
-    <p><b>Come si calcola: non si calcola, si legge.</b> Il modello contiene una <b>matrice di embedding</b> E con una riga per ogni token del vocabolario (V righe × d colonne). L'embedding del token con ID 9412 è semplicemente la riga 9412 di E. Matematicamente equivale a moltiplicare un vettore one-hot (tutti zeri, con un 1 in posizione 9412) per E, come mostra il laboratorio seguente; nella pratica si fa una lettura diretta (<i>lookup</i>), molto più veloce. La matrice di input [B × L] di ID diventa così un tensore [B × L × d] di vettori.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: one-hot × matrice = una riga</h3><span class="tag">matematica reale</span></div>
-    <div class="seg" id="ohSel" role="group" aria-label="Token"></div>
-    <div class="scroll-x"><div class="ohrow" id="ohOut"></div></div>
-    <p class="formula" id="ohF"></p>
-    <p class="note">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È per questo che l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot tornerà nel capitolo 2 con un altro ruolo: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
-  </div>
-  <div class="prose stack">
-    <p><b>Da dove vengono i numeri di E?</b> Non esiste un embedding «giusto» da assegnare a un token: nessuno li sceglie. Il procedimento è puramente meccanico:</p>
-    <ol class="steps">
-      <li>Il BPE finisce e il vocabolario viene <b>congelato</b>: una lista di V token, ciascuno con il suo ID da 0 a V − 1 (compresi i token speciali come <span class="k">&lt;eos&gt;</span> e i simboli di base).</li>
-      <li>Si crea la matrice E con <b>V righe</b> e <b>d colonne</b>. La riga i appartiene al token con ID i: l'abbinamento è solo per posizione, come l'indice di un array.</li>
-      <li>Si riempie E di <b>numeri casuali piccoli</b>, per esempio estratti da una distribuzione normale con media 0 e deviazione standard 0,02. A questo punto le righe non significano nulla: «·Francia» e «·martedì» sono vettori casuali qualsiasi.</li>
-      <li>Il training aggiorna le righe a ogni step, insieme a tutti gli altri pesi, e il significato emerge poco a poco (lo vedremo nel capitolo 2).</li>
-    </ol>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: dal vocabolario BPE alla matrice E</h3><span class="tag">inizializzazione reale</span></div>
-    <p>Questa matrice è costruita sul vocabolario del laboratorio BPE qui sopra: se esegui altri merge, compaiono nuove righe. Qui d = 4 per leggibilità.</p>
-    <div class="row"><button class="btn ghost" id="eiSeed">Ri-inizializza con un altro seme casuale</button><span class="muted" id="eiInfo" style="font-size:.85rem"></span></div>
-    <div class="scroll-x fwbox"><table class="gtable emb-table" id="eiTable"></table></div>
-    <p class="note">Premendo «Ri-inizializza» i numeri cambiano completamente, e va bene così: all'inizio servono solo valori piccoli e diversi tra loro, così che ogni riga parta da un punto diverso. Anche i simboli di base (le singole lettere) hanno la loro riga, perché restano nel vocabolario per rappresentare le parole mai viste.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: il lookup nella matrice E</h3><span class="tag">lookup reale · pesi iniziali casuali</span></div>
-    <div class="diag-title">Frase in input (clicca un token)</div>
-    <div class="tokens" id="embSent"></div>
-    <div class="scroll-x"><table class="gtable emb-table" id="embTable"></table></div>
-    <p class="note" id="embNote"></p>
-  </div>
-  <div class="prose stack">
-    <p><b>Statico all'ingresso, contestuale dopo.</b> La riga di E è identica ogni volta che il token compare: «banca» ha lo stesso embedding in «la banca del fiume» e in «il conto in banca». Sono gli strati successivi a mescolarlo con i token vicini, finché all'ultimo strato i due «banca» sono vettori diversi, uno vicino a «fiume», l'altro vicino a «conto». Il nostro «·Francia», all'ingresso, non sa ancora di trovarsi dopo «capitale della».</p>
-    <p><b>La posizione si aggiunge a parte.</b> La riga di E non sa <i>dove</i> si trova il token: «il cane morde l'uomo» e «l'uomo morde il cane» avrebbero gli stessi cinque vettori. I primi transformer sommavano un secondo vettore, l'embedding posizionale; i modelli attuali usano quasi tutti RoPE (Rotary Position Embedding, embedding posizionale rotazionale), che codifica la posizione ruotando i vettori dentro l'attention, in modo che il prodotto scalare tra due token dipenda dalla loro distanza.</p>
-  </div>
-  <div class="diag">
-    <span class="box">ID del token</span><span class="arr">→</span>
-    <span class="box hot">riga di E<br><small class="muted">embedding statico</small></span><span class="arr">→</span>
-    <span class="box">+ informazione di posizione<br><small class="muted">RoPE</small></span><span class="arr">→</span>
-    <span class="box">N strati di attention + MLP</span><span class="arr">→</span>
-    <span class="box hot">vettore contestuale<br><small class="muted">dipende dalla frase</small></span><span class="arr">→</span>
-    <span class="box">confronto con il vocabolario<br><small class="muted">logit</small></span>
-  </div>
-  <div class="scroll-x">
-  <table class="sum" style="min-width:600px">
-    <thead><tr><th></th><th>Embedding di token</th><th>Embedding semantico (retrieval)</th></tr></thead>
-    <tbody>
-      <tr><td>Rappresenta</td><td>Un singolo token, senza contesto</td><td>Un'intera frase o un documento</td></tr>
-      <tr><td>Si ottiene</td><td>Leggendo una riga di E, all'ingresso del modello</td><td>Dall'ultimo strato di un modello, facendo la media (pooling) dei vettori contestuali di tutti i token</td></tr>
-      <tr><td>Si allena</td><td>Insieme all'LLM, prevedendo il token successivo</td><td>Con training contrastivo: frasi simili vicine, frasi diverse lontane</td></tr>
-      <tr><td>Dimensioni tipiche</td><td>V × d, es. 128.000 × 4.096 ≈ 524 milioni di pesi</td><td>Un vettore da 384–3.072 numeri per testo</td></tr>
-    </tbody>
-  </table>
-  </div>
-  <p class="prose note">La parola «embedding» indica entrambe le cose e genera confusione: quello di cui parla questo documento è il primo, la riga di E. Il secondo, usato nei sistemi di retrieval, è trattato nella guida sulle architetture LLM.</p>
-
-  <!-- STRATI -->
-  <h3 id="c-layer" class="anchor">Terzo passo: gli strati, dove i token si parlano</h3>
-  <div class="prose stack">
-    <p class="q">Ora ho cinque vettori, uno per token, ciascuno ignaro degli altri. Per prevedere «Parigi» il vettore finale deve sapere che si parla di una <i>capitale</i>, della <i>Francia</i>, e che la frase aspetta un nome. Come si trasferisce questa informazione da un token all'altro?</p>
-    <p>Attraverso una pila di <b>strati</b> (layer). Uno strato è un blocco di calcoli con i <b>propri pesi</b>: riceve un vettore per ogni token e restituisce un vettore per ogni token, della stessa dimensione. Entra una matrice [L × d], esce una matrice [L × d]. Siccome ingresso e uscita hanno la stessa forma, gli strati si possono <b>impilare</b>: l'uscita di uno è l'ingresso del successivo. «Deep» in <i>deep learning</i> significa proprio questo: molti strati in fila. Un modello da 7B ne ha 32, i modelli più grandi oltre 100.</p>
-  </div>
-  <div class="stackdiag">
-    <div class="sd io">ID dei token <small>[L]</small></div>
-    <div class="sd">Embedding: lettura delle righe di E <small>[L × d]</small></div>
-    <div class="sd blk"><b>Blocco 1</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
-    <div class="sd blk"><b>Blocco 2</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
-    <div class="sd sdots">⋮</div>
-    <div class="sd blk"><b>Blocco N</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
-    <div class="sd">Testa di output: × W<sub>out</sub> <small>[L × V] logit</small></div>
-    <div class="sd io">softmax → una distribuzione su V token per ogni posizione</div>
-  </div>
-  <div class="prose stack">
-    <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi e complementari.</p>
-    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token «guarda» gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> («che cosa sto cercando»), una <i>key</i> («che cosa offro») e un <i>value</i> («che cosa passo se vengo scelto»). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; i punteggi vengono divisi per √d (per tenerli su una scala stabile) e una softmax li trasforma in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La <i>causal mask</i> esclude i token successivi: ogni posizione vede solo il passato, perché in generazione il futuro non esiste ancora. Nel nostro esempio, la query di «·è» cerca «di che cosa si predica» e trova la key di «·capitale» e di «·Francia»: il vettore di «·è» esce dall'attention contenendo un po' di entrambi.</p>
-    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token. Qui, si ritiene, avviene gran parte del «ricordare»: un vettore che contiene «capitale» e «Francia» viene trasformato in uno che contiene «Parigi». Gli studi di interpretabilità mostrano che i fatti sono distribuiti su molti pesi degli MLP dei blocchi centrali, non in una cella precisa.</p>
-    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un «flusso» (il <i>residual stream</i>) che si arricchisce strato dopo strato; è anche ciò che permette ai gradienti del capitolo 2 di risalire cento strati senza spegnersi. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: il calcolo dell'attention</h3><span class="tag">matematica reale · vettori d = 4 scelti a mano</span></div>
-    <div class="diag-title">Clicca un token: vedi come si calcola quanto peso dà a sé stesso e ai token precedenti</div>
-    <div class="tokens" id="attSent"></div>
-    <div class="att-grid">
-      <div class="stack">
-        <div class="att-steps" id="attSteps"></div>
-      </div>
-      <div class="stack">
-        <div class="bars" id="attBars"></div>
-        <p class="callout" id="attMsg"></p>
-      </div>
-    </div>
-    <p class="note">Il calcolo (prodotto scalare query · key, divisione per √d, softmax, media pesata dei value) è quello vero di una testa di attention. I vettori query e key dei sette token sono scelti a mano, con 4 dimensioni invece di 128, per imitare una testa che ha imparato a collegare verbi e soggetti: in un modello reale li producono le matrici W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> moltiplicate per il vettore del token, e il training le aggiusta. Un blocco ha molte teste in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
-  </div>
-
-  <!-- LOGIT → PROB -->
-  <h3 id="c-loss" class="anchor">Ultimo passo: dai logit alla probabilità di «Parigi»</h3>
-  <div class="prose stack">
-    <p class="q">Dopo 32 blocchi il vettore nella posizione di «·è» contiene tutto il contesto. Come diventa la parola «Parigi»?</p>
-    <p>Con un ultimo prodotto scalare, ripetuto V volte. La <b>testa di output</b> è una matrice con una colonna per ogni token del vocabolario: il vettore finale viene moltiplicato per ciascuna colonna, e ogni prodotto scalare è un <b>logit</b>, il punteggio grezzo di quel token come candidato. Un vettore finale «vicino» alla colonna di «·Parigi» produce un logit alto per «·Parigi». Alcuni modelli (GPT-2, Gemma) usano come testa di output la stessa matrice E dell'ingresso (<i>weight tying</i>, condivisione dei pesi): prevedere il token successivo diventa letteralmente «cercare la riga di E più simile al vettore prodotto». La maggior parte dei modelli grandi attuali, Llama compreso, tiene invece una matrice separata.</p>
-    <p>I logit possono essere qualsiasi numero, positivo o negativo. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1: eleva e a ciascun logit e divide per la somma. Il token più probabile è la «risposta» del modello; in generazione si può sceglierlo sempre (<i>greedy</i>) oppure estrarre a caso secondo le probabilità, eventualmente dopo averle rese più o meno piatte con la <b>temperatura</b>. E poi? Il token scelto viene aggiunto alla frase, e tutto il percorso riparte da capo per prevedere il token dopo: un LLM genera <b>un token alla volta</b>, in modo autoregressivo. «La capitale della Francia è Parigi» ha richiesto un passaggio completo; il punto che segue ne richiederà un altro.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">matematica reale · logit di esempio</span></div>
-    <div class="sample">Contesto: «La capitale della Francia è» → token corretto: «Parigi»</div>
-    <div class="controls">
-      <div class="ctl"><label for="smT">Avanzamento del training <output id="smTo"></output></label><input id="smT" type="range" min="0" max="100" value="60"></div>
-      <div class="ctl"><label for="smTemp">Temperatura (solo in generazione) <output id="smTempo"></output></label><input id="smTemp" type="range" min="0.2" max="2" step="0.1" value="1"></div>
-    </div>
-    <div class="bars" id="smBars"></div>
-    <div class="readout" id="smStats"></div>
-    <p class="note">La softmax e la loss sono calcolate davvero sui sei logit mostrati (il vocabolario vero ne ha decine di migliaia; qui sei candidati bastano). Il cursore «avanzamento» scala i logit per simulare che cosa fa il training: all'inizio sono quasi uguali, ogni token ha probabilità ≈ 1/6 e la loss vale log 6 ≈ 1,79; il training li separa. La <b>temperatura</b> divide i logit prima della softmax e si usa solo quando il modello genera: sotto 1 rende l'output più deterministico, sopra 1 più vario. La riga «loss» anticipa il capitolo 2: è il numero che il training cercherà di abbassare.</p>
-  </div>
-
-  <!-- CONTI -->
-  <h3 id="c-conti" class="anchor">I conti: dove sono i 7 miliardi di pesi</h3>
-  <div class="prose stack">
-    <p>Ora che il percorso è chiaro, i numeri di un modello reale si possono leggere componente per componente. Llama 2 7B ha d = 4.096, 32 blocchi, vocabolario di 32.000 token, MLP interno di 11.008.</p>
-  </div>
-  <div class="lab">
-    <div class="lab-head"><h3>Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
-    <div class="scroll-x"><table class="gtable">
-      <tr><th>Componente</th><th>Matrici</th><th>Pesi</th></tr>
-      <tr><td>Embedding E</td><td class="mono">32.000 × 4.096</td><td class="mono">131 milioni</td></tr>
-      <tr><td>Attention (per blocco)</td><td class="mono">4 matrici 4.096 × 4.096 (query, key, value, output)</td><td class="mono">67 milioni</td></tr>
-      <tr><td>MLP (per blocco)</td><td class="mono">3 matrici 4.096 × 11.008</td><td class="mono">135 milioni</td></tr>
-      <tr><td>Un blocco completo</td><td class="mono">attention + MLP</td><td class="mono">≈ 202 milioni</td></tr>
-      <tr><td>32 blocchi</td><td class="mono">32 × 202 milioni</td><td class="mono">≈ 6,48 miliardi</td></tr>
-      <tr><td>Testa di output</td><td class="mono">4.096 × 32.000 (non condivisa con E)</td><td class="mono">131 milioni</td></tr>
-      <tr><td><b>Totale</b></td><td></td><td class="mono"><b>≈ 6,74 miliardi → «7B»</b></td></tr>
-    </table></div>
-    <p class="note">Oltre il 95% dei pesi sta negli strati, non nell'embedding; l'MLP ne contiene circa due terzi. Per generare <b>un</b> token il modello esegue circa 2 operazioni per peso, cioè ~14 miliardi di moltiplicazioni-somme: una GPU moderna le fa in pochi millisecondi, e il tempo di risposta è dominato dal leggere i 14 GB di pesi dalla memoria, non dal calcolo.</p>
+    <p class="note">I token di un modello vero non sono parole intere: sono frammenti presi da un vocabolario di 30.000–250.000 voci costruito con un algoritmo (BPE) che fonde le sequenze di caratteri più frequenti. Le parole comuni restano intere, quelle rare si spezzano, lo spazio fa parte del token che lo segue. Qui la divisione è simulata con una regola semplice; l'algoritmo vero, eseguibile passo per passo, è nel capitolo 9.</p>
   </div>
 
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 1</p>
-    <p>Un LLM è una funzione fissa con miliardi di numeri regolabili. Il prompt viene spezzato in token (BPE), ogni ID diventa un vettore leggendo una riga della matrice E, i vettori attraversano N blocchi in cui l'attention mescola l'informazione tra token e l'MLP la elabora token per token, e il vettore finale viene confrontato con ogni token del vocabolario producendo i logit, che la softmax trasforma in probabilità. «Parigi» è il token con la probabilità più alta; generare un testo significa ripetere tutto questo un token alla volta. Questo percorso, il <b>forward pass</b>, è ciò che il training esegue, misura e corregge.</p>
+    <p>Una frase attraversa il modello in cinque passi: diventa una lista di ID; ogni ID diventa un vettore letto da una tabella; il vettore dell'ultimo token viene ricalcolato come media pesata di tutti i vettori della frase, con pesi che dipendono dal contenuto (è così che «tutto il contesto» entra nella previsione); un blocco di calcolo lo elabora; il risultato viene confrontato con ogni riga della tabella e la softmax trasforma i punteggi in probabilità. Non ci sono regole scritte a mano, solo pesi; un modello vero ha gli stessi tre tipi di pesi, miliardi invece di duecento, e ripete i passi centrali decine di volte. Generare testo significa ripetere tutto questo un token alla volta.</p>
     <p class="recap-sub">Concetti chiave</p>
     <ul>
-      <li><strong>Pesi (parametri)</strong> — i numeri del modello, organizzati in matrici; l'unica cosa che il training cambia</li>
-      <li><strong>Token, ID, BPE</strong> — il testo diventa una lista di interi tramite un vocabolario costruito una volta sola per fusione delle coppie frequenti</li>
-      <li><strong>Embedding</strong> — la riga di E letta per ogni ID: statica all'ingresso, resa contestuale dagli strati</li>
-      <li><strong>Attention e MLP</strong> — i token si scambiano informazione (prodotto scalare query·key, softmax, media dei value) e poi la elaborano ciascuno per sé</li>
-      <li><strong>Residual stream</strong> — ogni strato aggiunge una correzione al vettore invece di sostituirlo</li>
-      <li><strong>Logit e softmax</strong> — punteggi grezzi per ogni token del vocabolario, trasformati in probabilità; la generazione è autoregressiva</li>
+      <li><strong>Token e ID</strong> — il testo diventa una lista di interi tramite un vocabolario fisso</li>
+      <li><strong>Embedding</strong> — la riga di E letta per ogni ID: un punto in uno spazio a d dimensioni, che all'ingresso non sa nulla dei vicini</li>
+      <li><strong>Mescolamento del contesto (attention)</strong> — media pesata dei vettori precedenti, con pesi calcolati da un prodotto scalare e una softmax</li>
+      <li><strong>Blocco di elaborazione (MLP)</strong> — regole «se X, aggiungi Z» realizzate con ReLU di prodotti scalari, uguali per tutti i token</li>
+      <li><strong>Logit e softmax</strong> — punteggi per ogni token del vocabolario, trasformati in probabilità</li>
+      <li><strong>Pesi</strong> — i soli numeri che il training cambia; i passi restano fissi</li>
+      <li><strong>Generazione autoregressiva</strong> — un token alla volta, ognuno diventa contesto del successivo</li>
     </ul>
     <p class="recap-sub">Autodiagnosi · dovresti saper rispondere senza rileggere</p>
     <ol>
-      <li>Perché «·gatto» e «gatto» sono due token diversi, e perché il vocabolario non si può cambiare dopo il training?</li>
-      <li>L'embedding di «banca» è lo stesso in «banca del fiume» e «conto in banca»? E all'ultimo strato?</li>
-      <li>Qual è l'unico punto del modello in cui un token riceve informazione dagli altri, e perché non può guardare i token successivi?</li>
-      <li>Che cos'è un logit, e che cosa fa la softmax?</li>
+      <li>Nel laboratorio, perché dopo «il gatto nero dorme» il modello propone «sul» e «nel», e dopo «sul» propone «divano» e «letto»? Quale passo porta l'informazione da «dorme» a «sul»?</li>
+      <li>Che cosa cambia nel vettore di «sul» tra il passo 2 e il passo 3?</li>
+      <li>Quali sono i tre tipi di pesi, e che cosa fa il training con i cinque passi?</li>
+      <li>Perché la stessa domanda può ricevere risposte diverse dallo stesso modello?</li>
     </ol>
   </div>
 </section>
@@ -1242,6 +1065,285 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
   </div>
 </section>
 
+
+<div class="part">
+  <p class="part-label">Parte III</p>
+  <h2 class="part-title" id="toc-iii">Approfondimenti: dentro il modello, in dettaglio</h2>
+</div>
+
+<!-- ============ 9. APPROFONDIMENTI ============ -->
+<section class="st" id="deep">
+  <div class="sec-head">
+    <span class="eyebrow">Capitolo 9 · Approfondimenti</span>
+    <h2>Che cosa c'è dietro i cinque passi di un transformer vero</h2>
+  </div>
+  <div class="prose stack">
+    <p>Il capitolo 1 ha mostrato i cinque passi su un modello in miniatura con pesi scritti a mano. Questo capitolo apre ciascun passo come è realizzato in un modello reale: come si costruisce il vocabolario (A), l'algebra che serve (B), la matrice di embedding e la posizione (C), il calcolo completo di uno strato con attention a tre matrici, MLP, connessioni residue e normalizzazione (D), la testa di output con softmax e temperatura (E), e i conti esatti di un modello da 7 miliardi di parametri (F). Si può leggere in qualsiasi ordine; ogni sezione è autonoma.</p>
+  </div>
+  <div class="map" aria-label="Sezioni di approfondimento">
+    <a href="#c-token" class="box">A · Tokenizer<small>BPE</small></a><span class="arr">→</span>
+    <a href="#c-alg" class="box">B · Algebra<small>vettori e matrici</small></a><span class="arr">→</span>
+    <a href="#c-emb" class="box">C · Embedding<small>E e posizione</small></a><span class="arr">→</span>
+    <a href="#c-layer" class="box">D · Lo strato<small>attention, MLP</small></a><span class="arr">→</span>
+    <a href="#c-loss" class="box">E · Output<small>softmax</small></a><span class="arr">→</span>
+    <a href="#c-conti" class="box hot">F · I conti<small>7B</small></a>
+  </div>
+
+<!-- TOKEN / BPE -->
+  <h3 id="c-token" class="anchor">A · Il tokenizer: come nasce il vocabolario (BPE)</h3>
+  <div class="prose stack">
+    <p class="q">Nel modello in miniatura il vocabolario era di 12 parole intere. Un modello vero ne ha 30.000–250.000, e non sono parole: chi decide quali frammenti di testo diventano token?</p>
+    <p>Nel capitolo 1 il passo 1 era dato per scontato: il testo viene spezzato in <b>token</b>, frammenti presi da un vocabolario fisso (tipicamente 30.000–250.000 voci), e ogni frammento è sostituito dal suo <b>ID</b>, la sua posizione nel vocabolario. Una frase come «La capitale della Francia è» diventa qualcosa come <span class="k">[1529, 8871, 503, 9412, 1032]</span>: «La», «·capitale», «·della», «·Francia», «·è» (il punto · segna lo spazio, che fa parte del token seguente). In italiano un token corrisponde in media a 3–4 caratteri: le parole comuni restano intere, quelle rare si spezzano in pezzi.</p>
+    <p>Perché token e non parole o lettere? Con le lettere le sequenze sarebbero lunghissime e ogni simbolo direbbe pochissimo; con le parole il vocabolario sarebbe sterminato e qualsiasi parola nuova, errore di battitura o nome proprio sarebbe irrappresentabile. I token sono il compromesso: frequenti abbastanza da avere un significato, piccoli abbastanza da comporre qualsiasi testo.</p>
+    <p><b>Chi decide quali frammenti entrano nel vocabolario?</b> Un algoritmo, il <b>BPE</b> (Byte Pair Encoding, codifica per coppie di byte), che si «allena» sul corpus <i>prima</i> del modello, una volta sola:</p>
+    <ol class="steps">
+      <li>Si parte dai simboli più piccoli: i singoli caratteri (nei tokenizer moderni, i singoli byte, così qualsiasi testo è rappresentabile).</li>
+      <li>Si conta quale <b>coppia di simboli adiacenti</b> compare più spesso in tutto il corpus.</li>
+      <li>Quella coppia viene <b>fusa</b> in un nuovo simbolo, che entra nel vocabolario. La regola di fusione (<i>merge</i>) viene salvata.</li>
+      <li>Si ripete finché il vocabolario raggiunge la dimensione desiderata.</li>
+    </ol>
+    <p>Il risultato: le sequenze frequenti («gatt», «ione», «·della») diventano un token solo, mentre le parole rare vengono composte da pezzi. Per tokenizzare un testo nuovo si applicano le stesse regole di fusione, nello stesso ordine in cui sono state imparate. Il laboratorio qui sotto esegue l'algoritmo vero su un corpus minuscolo.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: BPE passo per passo</h3><span class="tag">algoritmo reale</span></div>
+    <label for="bpeIn" class="muted" style="font-size:.8rem">Corpus di allenamento (puoi modificarlo)</label>
+    <textarea id="bpeIn" rows="2">il gatto dorme. il gatto mangia. la gatta dorme. il cane mangia 1500 pasti. il gatto mangia 150 pasti.</textarea>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>Pre-tokenizzazione</label>
+        <div class="seg" id="bpePre" role="group" aria-label="Pre-tokenizzazione">
+          <button aria-pressed="true" data-v="on">Attiva (come nei tokenizer reali)</button><button aria-pressed="false" data-v="off">Disattivata</button>
+        </div>
+      </div>
+      <div class="ctl" style="max-width:260px"><label for="bpeMax">Lunghezza massima del token <output id="bpeMaxo"></output></label><input id="bpeMax" type="range" min="0" max="10" value="0"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="bpe1">Esegui 1 merge</button>
+      <button class="btn ghost" id="bpe5">Esegui 5 merge</button>
+      <button class="btn ghost" id="bpe20">Esegui 20 merge</button>
+      <button class="btn ghost" id="bpeR">Ricomincia</button>
+    </div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">Coppie adiacenti più frequenti</div>
+        <div class="bars" id="bpePairs"></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">Regole di merge imparate, in ordine</div>
+        <div class="tokens" id="bpeMerges"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="diag-title">Vocabolario attuale: <span id="bpeVocN"></span> token con il loro ID</div>
+      <div class="tokens" id="bpeVocab"></div>
+      <div class="row" style="gap:14px;font-size:.8rem"><span class="row" style="gap:6px"><span class="tok spec">sp</span> token speciale</span><span class="row" style="gap:6px"><span class="tok base">a</span> simbolo di base</span><span class="row" style="gap:6px"><span class="tok merged">ab</span> creato da un merge</span><span class="row" style="gap:6px"><span class="tok resp">ab</span> ultimo merge</span></div>
+      <p class="note">Il vocabolario parte dai simboli di base (i singoli caratteri presenti nel corpus) più i token speciali, e ogni merge aggiunge <b>un</b> token con un nuovo ID. I simboli di base non vengono mai tolti, anche quando nel corpus non compaiono più da soli: servono per scrivere parole mai viste. Il training del tokenizer si ferma quando il vocabolario raggiunge la dimensione scelta; da lì in poi ID e token non cambiano più.</p>
+    </div>
+    <div class="stack">
+      <div class="diag-title" id="bpeWordsTitle"></div>
+      <div id="bpeWords" class="bpe-words"></div>
+    </div>
+    <div class="readout" id="bpeStats"></div>
+    <div class="stack">
+      <label for="bpeNew" class="muted" style="font-size:.8rem">Applica le regole imparate a un testo nuovo</label>
+      <input id="bpeNew" type="text" value="il gatto mangia 1500 pesci." class="txt">
+      <div class="tokens" id="bpeNewOut"></div>
+    </div>
+    <p class="callout" id="bpeMsg"></p>
+    <p class="note">Il simbolo · rappresenta lo spazio: come nei tokenizer reali (GPT, Llama) lo spazio fa parte del token che lo segue, quindi «·gatto» e «gatto» sono token diversi. I tokenizer reali lavorano sui byte UTF-8 (Unicode Transformation Format, 8 bit) e fanno decine di migliaia di merge su gigabyte di testo, ma l'algoritmo è esattamente questo. Le coppie che compaiono una volta sola non vengono fuse (frequenza minima 2). Cambiando i due vincoli il laboratorio ripete da capo lo stesso numero di merge, così puoi confrontare i risultati.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Il vocabolario dipende dal corpus, e poi si congela.</b> Il tokenizer si allena su un campione rappresentativo dei dati di pre-training, una volta sola. Dopo, cambiarlo è impossibile senza riaddestrare il modello: ogni token ha la sua riga nella matrice di embedding e la sua uscita nell'ultimo strato, quindi un vocabolario diverso renderebbe inutili quei pesi. Un modello multilingua usa <b>un solo vocabolario condiviso</b>, allenato su una miscela bilanciata di lingue; per questo i vocabolari multilingua sono più grandi (128.000–256.000 token).</p>
+    <p><b>Che cosa si configura.</b> L'iperparametro principale è la <b>dimensione del vocabolario</b>, cioè quanti merge fare. La lunghezza dei singoli token non si fissa: emerge dalle frequenze. Nei fatti però è limitata dalla <b>pre-tokenizzazione</b>: prima del BPE un'espressione regolare divide il testo in blocchi (parole con lo spazio iniziale, numeri, punteggiatura) e i merge non superano mai quei confini. Alcune librerie offrono anche un tetto esplicito, facoltativo: <span class="k">max_sentencepiece_length</span> in SentencePiece (default 16 caratteri) e <span class="k">max_token_length</span> nel BpeTrainer di Hugging Face (default nessun limite).</p>
+  </div>
+  
+
+  <!-- ALGEBRA (dove serve) -->
+  <h3 id="c-alg" class="anchor">B · Le operazioni di algebra che il modello usa</h3>
+  <div class="prose stack">
+    <p>Tutto ciò che il modello fa dopo il passo 1 è algebra: vettori, matrici e tre o quattro operazioni ripetute miliardi di volte. Queste definizioni bastano per leggere qualsiasi articolo sui transformer; ogni voce indica dove la si incontra in questa guida.</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Scalare</dt><dd>Un singolo numero.</dd><span class="ex">0,5 · il learning rate η · la loss</span></div>
+    <div><dt>Vettore</dt><dd>Una lista ordinata di n numeri; n è la sua <b>dimensione</b>. Geometricamente è una freccia (o un punto) in uno spazio a n dimensioni. Un embedding è un vettore di d numeri.</dd><span class="ex">[0,2 ; −1,3 ; 0,7] → dimensione 3</span></div>
+    <div><dt>Matrice</dt><dd>Una tabella di numeri con m righe e n colonne (si scrive m × n). Si può vedere come m vettori-riga impilati uno sopra l'altro.</dd><span class="ex">E: V × d, una riga per token</span></div>
+    <div><dt>Tensore e shape</dt><dd>Generalizzazione a più indici. [B × L × d] sono B matrici L × d, cioè B sequenze di L token, ciascuno con un vettore di d numeri. La <i>shape</i> (forma) elenca le dimensioni.</dd><span class="ex">in PyTorch tutto è un tensore</span></div>
+    <div><dt>Vettore one-hot</dt><dd>Un vettore lungo quanto il vocabolario, con tutti 0 tranne un 1 nella posizione dell'ID del token: uno solo è «acceso» (<i>hot</i>). Rappresenta una scelta tra V categorie senza introdurre un ordine: l'ID 7 non è «più grande» dell'ID 3.</dd><span class="ex">ID 2 su V = 5 → [0, 0, 1, 0, 0] · usato nell'embedding e nella loss</span></div>
+    <div><dt>Prodotto scalare (dot product)</dt><dd>a · b = a₁b₁ + a₂b₂ + … + aₙbₙ: si moltiplicano gli elementi a coppie e si sommano. Misura quanto due vettori puntano nella stessa direzione: grande e positivo = simili, circa 0 = non correlati, negativo = opposti.</dd><span class="ex">[1, 2] · [3, −1] = 3 − 2 = 1 · è il cuore dell'attention e dei logit</span></div>
+    <div><dt>Norma e similarità coseno</dt><dd>La norma |a| = √(a · a) è la lunghezza del vettore. La similarità coseno a · b / (|a| |b|) confronta solo la direzione e va da −1 a 1. È la misura usata nel retrieval.</dd><span class="ex">cos = 1 → stessa direzione</span></div>
+    <div><dt>Matrice × vettore</dt><dd>Ogni elemento del risultato è il prodotto scalare di una riga della matrice con il vettore. Una matrice m × n trasforma un vettore di n numeri in un vettore di m numeri: è così che uno strato «trasforma» un vettore.</dd><span class="ex">(3 × 4) · (4) → (3)</span></div>
+    <div><dt>Matrice × matrice</dt><dd>A (m × n) · B (n × p) = C (m × p); l'elemento (i, j) è riga i di A · colonna j di B. Le dimensioni interne (n) devono coincidere. Serve a trasformare tutti i token di una sequenza in un colpo solo: è l'operazione che le GPU eseguono velocissime.</dd><span class="ex">(L × d) · (d × d) → (L × d)</span></div>
+    <div><dt>Trasposta</dt><dd>Aᵀ scambia righe e colonne: una matrice m × n diventa n × m.</dd><span class="ex">Eᵀ: d × V</span></div>
+    <div><dt>Funzione non lineare</dt><dd>Applicata a ogni elemento separatamente, per esempio ReLU(x) = max(0, x), o le versioni più morbide GELU e SiLU. Senza, impilare tante matrici equivarrebbe a una sola matrice, e il modello non potrebbe rappresentare relazioni complesse.</dd><span class="ex">ReLU([−1, 2]) = [0, 2] · dentro l'MLP</span></div>
+    <div><dt>Gradiente</dt><dd>Il vettore delle derivate parziali della loss: per ogni peso, di quanto cambia la loss se lo sposti di pochissimo. Ha la stessa shape dei pesi.</dd><span class="ex">un numero per ogni peso · capitolo 2</span></div>
+  </dl>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il prodotto scalare come misura di somiglianza</h3><span class="tag">matematica reale</span></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="ctl"><label for="dpA">Direzione di a <output id="dpAo"></output></label><input id="dpA" type="range" min="0" max="359" value="30"></div>
+        <div class="ctl"><label for="dpB">Direzione di b <output id="dpBo"></output></label><input id="dpB" type="range" min="0" max="359" value="70"></div>
+        <div class="ctl"><label for="dpL">Lunghezza di b <output id="dpLo"></output></label><input id="dpL" type="range" min="0.2" max="1.5" step="0.05" value="1"></div>
+        <div class="formula" id="dpF"></div>
+        <p class="callout" id="dpMsg"></p>
+      </div>
+      <svg id="dpChart" class="chart" viewBox="0 0 300 300" style="max-width:340px;justify-self:center" role="img" aria-label="Due vettori nel piano"></svg>
+    </div>
+    <p class="note">È l'operazione del passo 3 e del passo 5 del modello in miniatura: «quanto sei rilevante per me» e «quanto somigli a questo token del vocabolario» sono entrambi prodotti scalari.</p>
+  </div>
+
+  <!-- EMBEDDING -->
+  <h3 id="c-emb" class="anchor">C · La matrice di embedding, da vicino</h3>
+  <div class="prose stack">
+    <p class="q">Nel capitolo 1 ogni ID diventava una riga di una tabella di 12 × 8 numeri scritti a mano. Da dove vengono i 131 milioni di numeri della tabella di un modello vero?</p>
+    <p>Il primo strato di ogni LLM sostituisce ciascun ID con un <b>vettore</b> di d numeri (d = 4.096 in un modello da 7B), cioè un punto in uno spazio a d dimensioni: l'<b>embedding</b> del token. Da questo momento il testo non esiste più: esistono L punti in uno spazio a 4.096 dimensioni, uno per token, e il resto del modello sposta e mescola questi punti.</p>
+    <p><b>Come si calcola: non si calcola, si legge.</b> Il modello contiene una <b>matrice di embedding</b> E con una riga per ogni token del vocabolario (V righe × d colonne). L'embedding del token con ID 9412 è semplicemente la riga 9412 di E. Matematicamente equivale a moltiplicare un vettore one-hot (tutti zeri, con un 1 in posizione 9412) per E, come mostra il laboratorio seguente (è lo stesso lookup del passo 2 del modello in miniatura); nella pratica si fa una lettura diretta (<i>lookup</i>), molto più veloce. La matrice di input [B × L] di ID diventa così un tensore [B × L × d] di vettori.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: one-hot × matrice = una riga</h3><span class="tag">matematica reale</span></div>
+    <div class="seg" id="ohSel" role="group" aria-label="Token"></div>
+    <div class="scroll-x"><div class="ohrow" id="ohOut"></div></div>
+    <p class="formula" id="ohF"></p>
+    <p class="note">Il vettore one-hot «seleziona» una riga: moltiplicando, tutti i termini con lo 0 si annullano e resta solo la riga dell'ID acceso. È per questo che l'embedding si ottiene con una lettura diretta invece che con una vera moltiplicazione. Il one-hot compare anche nel capitolo 2 con un altro ruolo: è il vettore «obiettivo» y con cui si confronta la distribuzione del modello (gradiente = p − y).</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Da dove vengono i numeri di E?</b> Non esiste un embedding «giusto» da assegnare a un token: nessuno li sceglie. Il procedimento è puramente meccanico:</p>
+    <ol class="steps">
+      <li>Il BPE finisce e il vocabolario viene <b>congelato</b>: una lista di V token, ciascuno con il suo ID da 0 a V − 1 (compresi i token speciali come <span class="k">&lt;eos&gt;</span> e i simboli di base).</li>
+      <li>Si crea la matrice E con <b>V righe</b> e <b>d colonne</b>. La riga i appartiene al token con ID i: l'abbinamento è solo per posizione, come l'indice di un array.</li>
+      <li>Si riempie E di <b>numeri casuali piccoli</b>, per esempio estratti da una distribuzione normale con media 0 e deviazione standard 0,02. A questo punto le righe non significano nulla: «·Francia» e «·martedì» sono vettori casuali qualsiasi.</li>
+      <li>Il training aggiorna le righe a ogni step, insieme a tutti gli altri pesi, e il significato emerge poco a poco (lo vedremo nel capitolo 2).</li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: dal vocabolario BPE alla matrice E</h3><span class="tag">inizializzazione reale</span></div>
+    <p>Questa matrice è costruita sul vocabolario del laboratorio BPE qui sopra: se esegui altri merge, compaiono nuove righe. Qui d = 4 per leggibilità.</p>
+    <div class="row"><button class="btn ghost" id="eiSeed">Ri-inizializza con un altro seme casuale</button><span class="muted" id="eiInfo" style="font-size:.85rem"></span></div>
+    <div class="scroll-x fwbox"><table class="gtable emb-table" id="eiTable"></table></div>
+    <p class="note">Premendo «Ri-inizializza» i numeri cambiano completamente, e va bene così: all'inizio servono solo valori piccoli e diversi tra loro, così che ogni riga parta da un punto diverso. Anche i simboli di base (le singole lettere) hanno la loro riga, perché restano nel vocabolario per rappresentare le parole mai viste.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il lookup nella matrice E</h3><span class="tag">lookup reale · pesi iniziali casuali</span></div>
+    <div class="diag-title">Frase in input (clicca un token)</div>
+    <div class="tokens" id="embSent"></div>
+    <div class="scroll-x"><table class="gtable emb-table" id="embTable"></table></div>
+    <p class="note" id="embNote"></p>
+  </div>
+  <div class="prose stack">
+    <p><b>Statico all'ingresso, contestuale dopo.</b> La riga di E è identica ogni volta che il token compare: «banca» ha lo stesso embedding in «la banca del fiume» e in «il conto in banca». Sono gli strati successivi a mescolarlo con i token vicini, finché all'ultimo strato i due «banca» sono vettori diversi, uno vicino a «fiume», l'altro vicino a «conto». Nel modello in miniatura del capitolo 1 era il passo 3 a produrre questa differenza.</p>
+    <p><b>La posizione si aggiunge a parte.</b> La riga di E non sa <i>dove</i> si trova il token: «il cane morde l'uomo» e «l'uomo morde il cane» avrebbero gli stessi cinque vettori. I primi transformer sommavano un secondo vettore, l'embedding posizionale; i modelli attuali usano quasi tutti RoPE (Rotary Position Embedding, embedding posizionale rotazionale), che codifica la posizione ruotando i vettori dentro l'attention, in modo che il prodotto scalare tra due token dipenda dalla loro distanza.</p>
+  </div>
+  <div class="diag">
+    <span class="box">ID del token</span><span class="arr">→</span>
+    <span class="box hot">riga di E<br><small class="muted">embedding statico</small></span><span class="arr">→</span>
+    <span class="box">+ informazione di posizione<br><small class="muted">RoPE</small></span><span class="arr">→</span>
+    <span class="box">N strati di attention + MLP</span><span class="arr">→</span>
+    <span class="box hot">vettore contestuale<br><small class="muted">dipende dalla frase</small></span><span class="arr">→</span>
+    <span class="box">confronto con il vocabolario<br><small class="muted">logit</small></span>
+  </div>
+  <div class="scroll-x">
+  <table class="sum" style="min-width:600px">
+    <thead><tr><th></th><th>Embedding di token</th><th>Embedding semantico (retrieval)</th></tr></thead>
+    <tbody>
+      <tr><td>Rappresenta</td><td>Un singolo token, senza contesto</td><td>Un'intera frase o un documento</td></tr>
+      <tr><td>Si ottiene</td><td>Leggendo una riga di E, all'ingresso del modello</td><td>Dall'ultimo strato di un modello, facendo la media (pooling) dei vettori contestuali di tutti i token</td></tr>
+      <tr><td>Si allena</td><td>Insieme all'LLM, prevedendo il token successivo</td><td>Con training contrastivo: frasi simili vicine, frasi diverse lontane</td></tr>
+      <tr><td>Dimensioni tipiche</td><td>V × d, es. 128.000 × 4.096 ≈ 524 milioni di pesi</td><td>Un vettore da 384–3.072 numeri per testo</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="prose note">La parola «embedding» indica entrambe le cose e genera confusione: quello di cui parla questo documento è il primo, la riga di E. Il secondo, usato nei sistemi di retrieval, è trattato nella guida sulle architetture LLM.</p>
+
+  <!-- STRATI -->
+  <h3 id="c-layer" class="anchor">D · Dentro uno strato: attention, MLP, residual stream</h3>
+  <div class="prose stack">
+    <p class="q">Nel capitolo 1 il passo 3 «mescola il contesto» e il passo 4 «elabora». Come sono fatti davvero, in un transformer?</p>
+    <p>Attraverso una pila di <b>strati</b> (layer). Uno strato è un blocco di calcoli con i <b>propri pesi</b>: riceve un vettore per ogni token e restituisce un vettore per ogni token, della stessa dimensione. Entra una matrice [L × d], esce una matrice [L × d]. Siccome ingresso e uscita hanno la stessa forma, gli strati si possono <b>impilare</b>: l'uscita di uno è l'ingresso del successivo. «Deep» in <i>deep learning</i> significa proprio questo: molti strati in fila. Un modello da 7B ne ha 32, i modelli più grandi oltre 100.</p>
+  </div>
+  <div class="stackdiag">
+    <div class="sd io">ID dei token <small>[L]</small></div>
+    <div class="sd">Embedding: lettura delle righe di E <small>[L × d]</small></div>
+    <div class="sd blk"><b>Blocco 1</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd blk"><b>Blocco 2</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd sdots">⋮</div>
+    <div class="sd blk"><b>Blocco N</b><span>attention → MLP</span><small>[L × d] → [L × d]</small></div>
+    <div class="sd">Testa di output: × W<sub>out</sub> <small>[L × V] logit</small></div>
+    <div class="sd io">softmax → una distribuzione su V token per ogni posizione</div>
+  </div>
+  <div class="prose stack">
+    <p>Ogni blocco del transformer contiene due sotto-strati, con ruoli diversi e complementari.</p>
+    <p><b>1 · Attention: i token si scambiano informazioni.</b> È l'unico punto del modello in cui un token «guarda» gli altri. Per ogni token il modello calcola tre vettori moltiplicando il suo vettore per tre matrici di pesi: una <i>query</i> («che cosa sto cercando»), una <i>key</i> («che cosa offro») e un <i>value</i> («che cosa passo se vengo scelto»). Il prodotto scalare tra la query di un token e la key di ciascun token precedente dice quanto quel token è rilevante; i punteggi vengono divisi per √d (per tenerli su una scala stabile) e una softmax li trasforma in pesi che sommano a 1; il nuovo vettore è la media pesata dei value. La <i>causal mask</i> esclude i token successivi: ogni posizione vede solo il passato, perché in generazione il futuro non esiste ancora. Nel modello in miniatura del capitolo 1 la «domanda» dell'ultimo token era la query, il vettore di ogni token faceva da key e da value insieme, e la matrice 8 × 8 era W<sub>q</sub>: un transformer vero separa i tre ruoli con tre matrici distinte, così «che cosa cerco», «che cosa offro» e «che cosa passo» possono essere diversi.</p>
+    <p><b>2 · MLP: ogni token elabora ciò che ha raccolto.</b> Ogni vettore, da solo, viene moltiplicato per una matrice che lo allarga (d → circa 4d numeri), passa per una funzione non lineare e viene moltiplicato per una seconda matrice che lo riporta a d numeri. Gli stessi pesi valgono per tutti i token. Le sette regole «se X senza Y, aggiungi Z» del modello in miniatura sono un MLP con 7 neuroni nascosti: la prima matrice calcola i gate (prodotto scalare + ReLU), la seconda aggiunge i contributi. Qui, si ritiene, avviene gran parte del «ricordare»: un vettore che contiene «capitale» e «Francia» viene trasformato in uno che contiene «Parigi». Gli studi di interpretabilità mostrano che i fatti sono distribuiti su molti pesi degli MLP dei blocchi centrali, non in una cella precisa.</p>
+    <p><b>Connessione residua e normalizzazione.</b> Ogni sotto-strato non sostituisce il vettore, ma gli <b>aggiunge una correzione</b>: uscita = ingresso + contributo. Il vettore di ogni token attraversa così tutti i blocchi come un «flusso» (il <i>residual stream</i>) che si arricchisce strato dopo strato; è anche ciò che permette ai gradienti del capitolo 2 di risalire cento strati senza spegnersi. Prima di ogni sotto-strato una normalizzazione (RMSNorm, Root Mean Square Normalization) riporta i numeri su una scala stabile.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il calcolo dell'attention</h3><span class="tag">matematica reale · vettori d = 4 scelti a mano</span></div>
+    <div class="diag-title">Clicca un token: vedi come si calcola quanto peso dà a sé stesso e ai token precedenti</div>
+    <div class="tokens" id="attSent"></div>
+    <div class="att-grid">
+      <div class="stack">
+        <div class="att-steps" id="attSteps"></div>
+      </div>
+      <div class="stack">
+        <div class="bars" id="attBars"></div>
+        <p class="callout" id="attMsg"></p>
+      </div>
+    </div>
+    <p class="note">Il calcolo (prodotto scalare query · key, divisione per √d, softmax, media pesata dei value) è quello vero di una testa di attention. I vettori query e key dei sette token sono scelti a mano, con 4 dimensioni invece di 128, per imitare una testa che ha imparato a collegare verbi e soggetti: in un modello reale li producono le matrici W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> moltiplicate per il vettore del token, e il training le aggiusta. Un blocco ha molte teste in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
+  </div>
+
+  <!-- LOGIT → PROB -->
+  <h3 id="c-loss" class="anchor">E · La testa di output: logit, softmax, temperatura</h3>
+  <div class="prose stack">
+    <p class="q">Dopo 32 blocchi il vettore dell'ultimo token contiene tutto il contesto. Come diventa esattamente una probabilità per ogni token del vocabolario?</p>
+    <p>Con un ultimo prodotto scalare, ripetuto V volte. La <b>testa di output</b> è una matrice con una colonna per ogni token del vocabolario: il vettore finale viene moltiplicato per ciascuna colonna, e ogni prodotto scalare è un <b>logit</b>, il punteggio grezzo di quel token come candidato. Un vettore finale «vicino» alla colonna di «·Parigi» produce un logit alto per «·Parigi». Alcuni modelli (GPT-2, Gemma) usano come testa di output la stessa matrice E dell'ingresso (<i>weight tying</i>, condivisione dei pesi): prevedere il token successivo diventa letteralmente «cercare la riga di E più simile al vettore prodotto». La maggior parte dei modelli grandi attuali, Llama compreso, tiene invece una matrice separata.</p>
+    <p>I logit possono essere qualsiasi numero, positivo o negativo. La funzione <b>softmax</b> li trasforma in probabilità che sommano a 1: eleva e a ciascun logit e divide per la somma; sottraendo prima il massimo si evita l'overflow, senza cambiare il risultato. La <b>temperatura</b> T divide i logit prima della softmax: T &lt; 1 esagera le differenze (il token migliore prende quasi tutto), T &gt; 1 le appiattisce. Si usa solo in generazione: il training e la misura della loss lavorano sempre a T = 1. Il laboratorio qui sotto mostra entrambe le cose su sei candidati.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: softmax, temperatura e loss</h3><span class="tag">matematica reale · logit di esempio</span></div>
+    <div class="sample">Contesto: «La capitale della Francia è» → token corretto: «Parigi»</div>
+    <div class="controls">
+      <div class="ctl"><label for="smT">Avanzamento del training <output id="smTo"></output></label><input id="smT" type="range" min="0" max="100" value="60"></div>
+      <div class="ctl"><label for="smTemp">Temperatura (solo in generazione) <output id="smTempo"></output></label><input id="smTemp" type="range" min="0.2" max="2" step="0.1" value="1"></div>
+    </div>
+    <div class="bars" id="smBars"></div>
+    <div class="readout" id="smStats"></div>
+    <p class="note">La softmax e la loss sono calcolate davvero sui sei logit mostrati (il vocabolario vero ne ha decine di migliaia; qui sei candidati bastano). Il cursore «avanzamento» scala i logit per simulare che cosa fa il training: all'inizio sono quasi uguali, ogni token ha probabilità ≈ 1/6 e la loss vale log 6 ≈ 1,79; il training li separa. La <b>temperatura</b> divide i logit prima della softmax e si usa solo quando il modello genera: sotto 1 rende l'output più deterministico, sopra 1 più vario. La riga «loss» è il numero del capitolo 2, −log p(token corretto).</p>
+  </div>
+
+  <!-- CONTI -->
+  <h3 id="c-conti" class="anchor">F · I conti: dove sono i 7 miliardi di pesi</h3>
+  <div class="prose stack">
+    <p>Ora che il percorso è chiaro, i numeri di un modello reale si possono leggere componente per componente. Llama 2 7B ha d = 4.096, 32 blocchi, vocabolario di 32.000 token, MLP interno di 11.008.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Dove sono i 7 miliardi di pesi</h3><span class="tag">conti reali · Llama 2 7B</span></div>
+    <div class="scroll-x"><table class="gtable">
+      <tr><th>Componente</th><th>Matrici</th><th>Pesi</th></tr>
+      <tr><td>Embedding E</td><td class="mono">32.000 × 4.096</td><td class="mono">131 milioni</td></tr>
+      <tr><td>Attention (per blocco)</td><td class="mono">4 matrici 4.096 × 4.096 (query, key, value, output)</td><td class="mono">67 milioni</td></tr>
+      <tr><td>MLP (per blocco)</td><td class="mono">3 matrici 4.096 × 11.008</td><td class="mono">135 milioni</td></tr>
+      <tr><td>Un blocco completo</td><td class="mono">attention + MLP</td><td class="mono">≈ 202 milioni</td></tr>
+      <tr><td>32 blocchi</td><td class="mono">32 × 202 milioni</td><td class="mono">≈ 6,48 miliardi</td></tr>
+      <tr><td>Testa di output</td><td class="mono">4.096 × 32.000 (non condivisa con E)</td><td class="mono">131 milioni</td></tr>
+      <tr><td><b>Totale</b></td><td></td><td class="mono"><b>≈ 6,74 miliardi → «7B»</b></td></tr>
+    </table></div>
+    <p class="note">Oltre il 95% dei pesi sta negli strati, non nell'embedding; l'MLP ne contiene circa due terzi. Per generare <b>un</b> token il modello esegue circa 2 operazioni per peso, cioè ~14 miliardi di moltiplicazioni-somme: una GPU moderna le fa in pochi millisecondi, e il tempo di risposta è dominato dal leggere i 14 GB di pesi dalla memoria, non dal calcolo.</p>
+  </div>
+
+  
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 9</p>
+    <ul>
+      <li><strong>BPE</strong> — il vocabolario nasce fondendo le coppie di simboli più frequenti del corpus, una volta sola, poi si congela</li>
+      <li><strong>Matrice E</strong> — V × d numeri inizializzati a caso e aggiornati dal training; il lookup equivale a one-hot × E; la posizione si aggiunge con RoPE</li>
+      <li><strong>Attention</strong> — tre matrici (query, key, value); punteggi q·k/√d, softmax con causal mask, media pesata dei value; molte teste in parallelo</li>
+      <li><strong>MLP, residual, norm</strong> — allarga, non-linearità, restringe; ogni sotto-strato aggiunge una correzione; RMSNorm stabilizza</li>
+      <li><strong>Testa di output</strong> — un prodotto scalare per ogni token del vocabolario; softmax; temperatura solo in generazione; weight tying in alcuni modelli</li>
+      <li><strong>7B</strong> — 32 strati da ~202 milioni di pesi ciascuno, più E e la testa di output; oltre il 95% dei pesi sta negli strati</li>
+    </ul>
+  </div>
+</section>
+
 <!-- ============ SUMMARY ============ -->
 <section class="st" id="sum">
   <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Un solo meccanismo, cinque modi di scegliere gli esempi e misurare l'errore</h2></div>
@@ -1724,7 +1826,46 @@ function drawChain(){const w1=+chW1.value,w2=+chW2.value,eta=+chEta.value,x=1,t=
   $("#chStep").onclick=()=>{chW1.value=Math.max(-2,Math.min(2,nw1)).toFixed(2);chW2.value=Math.max(-2,Math.min(2,nw2)).toFixed(2);drawChain();};}
 [chW1,chW2,chEta].forEach(i=>i.addEventListener("input",drawChain));
 $("#chReset").onclick=()=>{chW1.value=.5;chW2.value=.6;chEta.value=.3;drawChain();};
-function drawBase(){drawDP();drawOH();drawAtt();drawChain();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
+/* ---------- modello in miniatura (capitolo 1) ---------- */
+const TY_V=["<eos>","il","gatto","cane","nero","dorme","mangia","sul","nel","divano","letto","pesce"];
+const TY_D=8,TY_DIMS=["animale","dormire","mangiare","luogo","prep.","fine","articolo","cibo"];
+const TY_E={"<eos>":[0,0,0,0,0,1,0,0],il:[0,0,0,0,0,0,1,0],gatto:[1,0,0,0,0,0,0,0],cane:[0.9,0,0,0,0,0,0,0],nero:[0.4,0,0,0,0,0,0,0],dorme:[0,1,0,0,0,0,0,0],mangia:[0,0,1,0,0,0,0,0],sul:[0,0.3,0,0.6,1,0,0,0],nel:[0,0.25,0,0.6,1,0,0,0],divano:[0,0.2,0,1,0,0,0,0],letto:[0,0.3,0,0.9,0,0,0,0],pesce:[0.1,0,0,0,0,0,0,1]};
+const TY_WQ=[[1,0,0,0,0,0,0,0],[0,3,0,0,0,0,0,0],[0,0,3,0,0,0,0,0],[0,1,0,3,0,0,0,0],[0,1,0,0,1.5,0,0,0],[0,0,0,0,0,0,0,0],[0,2,2,0,0,0,0.5,0],[0,0,1,0,0,0,0,2]];
+const TY_RULES=[["articolo senza nome → nome",[-1,0,0,0,0,0,1,0],[1.0,0,0,0,0,0,-1,0.3]],["animale senza azione → azione",[1,-1,-1,0,0,0,0,0],[-0.9,0.7,0.6,0,0,0,0,0]],["dormire senza luogo → preposizione di luogo",[0,1,0,-1,-1,0,0,0],[0,-0.5,0,0.4,1.0,0,0,0]],["preposizione → luogo",[0,0,0,0.5,1,0,0,0],[0,0,0,1.0,-1.8,0,0,0]],["luogo senza preposizione → fine frase",[0,0,0,1,-1.2,0,0,0],[0,-0.6,0,-1.2,0,3.0,0,0]],["mangiare senza cibo → cibo",[0,0,1,0,0,0,0,-1],[-0.4,0,-0.8,0,0,0,0.5,1.0]],["cibo senza mangiare → fine frase",[0,0,-1,0,0,0,0,1],[0,0,0,0,0,2.5,0,-1.2]]];
+const TY_SENTS=[["il","gatto","nero","dorme","sul","divano"],["il","cane","mangia","il","pesce"],["il","cane","dorme","nel","letto"]];
+const tyDot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+let tyToks=[...TY_SENTS[0]],tyPos=TY_SENTS[0].length-1;
+function tyRun(toks){const xs=toks.map(t=>TY_E[t]),last=xs[xs.length-1];const q=Array(TY_D).fill(0);last.forEach((v,i)=>TY_WQ[i].forEach((m,j)=>q[j]+=v*m));
+  const sc=xs.map(e=>tyDot(q,e));const w=softmax(sc,1);const mixed=Array(TY_D).fill(0);xs.forEach((e,j)=>e.forEach((v,i)=>mixed[i]+=w[j]*v));
+  const out=[...mixed];const gates=TY_RULES.map(([n,a,b])=>{const g=Math.max(0,tyDot(a,mixed));b.forEach((v,i)=>out[i]+=g*v);return g;});
+  const logits=TY_V.map(t=>6*tyDot(TY_E[t],out));const p=softmax(logits,1);return {q,sc,w,mixed,gates,out,logits,p};}
+function tyVec(v){return "["+v.map(x=>(x<0?"−":"")+Math.abs(x).toFixed(2)).join(" ; ")+"]";}
+function drawToy(){const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);
+  const tk=$("#tyTokens");tk.innerHTML="";tyToks.forEach((t,i)=>{const b=document.createElement("button");b.className="tok"+(i===tyPos?" sel resp":i<tyPos?"":" ghost");b.innerHTML=`${esc(t)}<small>${TY_V.indexOf(t)}</small>`;b.title=i<=tyPos?"prevedi il token dopo «"+t+"»":"non ancora letto";b.onclick=()=>{tyPos=i;drawToy();};tk.appendChild(b);});
+  let h=`<tr><th>ID</th><th>token</th>${TY_DIMS.map(d=>`<th>${d}</th>`).join("")}</tr>`;
+  TY_V.forEach((t,i)=>{const inPre=pre.includes(t),isLast=t===pre[pre.length-1];h+=`<tr class="${isLast?"on":inPre?"":"unused"}"><td class="mono">${i}</td><td class="mono">${esc(t)}</td>${TY_E[t].map(v=>`<td class="mono">${v?v.toFixed(2):"·"}</td>`).join("")}</tr>`;});
+  $("#tyE").innerHTML=h;
+  $("#tyMix").innerHTML=`<p class="muted" style="font-size:.82rem;margin-bottom:4px">«domanda» di «${esc(pre[pre.length-1])}» = suo vettore × W<sub>q</sub> = <span class="mono">${tyVec(r.q)}</span>; punteggio = domanda · vettore del token; pesi = softmax dei punteggi</p>`+pre.map((t,j)=>`<div class="barrow"><span>«${esc(pre[pre.length-1])}» → «${esc(t)}»${j===pre.length-1?" (sé stesso)":""} <span class="muted mono" style="font-size:.74rem">${r.sc[j].toFixed(2)}</span></span><div class="track"><div class="fill" style="width:${r.w[j]*100}%"></div></div><span class="v">${Math.round(r.w[j]*100)}%</span></div>`).join("");
+  $("#tyMixed").innerHTML=`vettore mescolato = Σ peso<sub>j</sub> · vettore<sub>j</sub> = <b>${tyVec(r.mixed)}</b>`;
+  const fmtC=(g,b)=>b.map((v,i)=>v?`<span style="white-space:nowrap">${TY_DIMS[i]} ${g*v>=0?"+":"−"}${Math.abs(g*v).toFixed(2)}</span>`:"").filter(Boolean).join(" · ");
+  $("#tyRules").innerHTML=`<div class="scroll-x"><table class="mt small" style="width:100%"><tr><th style="text-align:left">regola (un neurone ciascuna)</th><th>gate</th><th style="text-align:left">aggiunge al vettore</th></tr>${TY_RULES.map(([n,a,b],k)=>{const g=r.gates[k];return `<tr class="${g>0.05?"hot":"dim"}"><td style="text-align:left">${g>0.05?"✔ ":""}${n}</td><td class="mono">${g.toFixed(2)}</td><td style="text-align:left;font-size:.76rem">${g>1e-3?fmtC(g,b):"—"}</td></tr>`;}).join("")}</table></div><p class="muted" style="font-size:.8rem">gate = ReLU(a · vettore mescolato): a è un vettore di pesi che «legge» le dimensioni (positivo = richiesta, negativo = esclusa); se il gate è &gt; 0 la regola aggiunge gate × b. Due matrici di pesi (gli a e i b), una ReLU: è un MLP a 7 neuroni.</p>`;
+  $("#tyOut").innerHTML=`vettore finale = mescolato + Σ gate · contributo = <b>${tyVec(r.out)}</b>`;
+  const order=TY_V.map((t,i)=>i).sort((a,b)=>r.p[b]-r.p[a]);
+  $("#tyLogits").innerHTML=order.slice(0,6).map((i,k)=>`<div class="barrow"><span>«${esc(TY_V[i])}» <span class="muted mono" style="font-size:.74rem">logit ${r.logits[i].toFixed(2)}</span></span><div class="track"><div class="fill" style="width:${r.p[i]*100}%;${k?"background:var(--muted)":""}"></div></div><span class="v">${(r.p[i]*100).toFixed(0)}%</span></div>`).join("")+`<p class="muted" style="font-size:.82rem">logit = 6 × (vettore finale · riga di E del token); probabilità = softmax dei 12 logit. Gli altri ${TY_V.length-6} token hanno probabilità minori.</p>`;
+  const top=TY_V[order[0]],last=pre[pre.length-1];const wj=r.w.map((v,j)=>[v,j]).sort((a,b)=>b[0]-a[0]);const fired=TY_RULES.map((x,k)=>[x[0],r.gates[k]]).filter(x=>x[1]>0.05).sort((a,b)=>b[1]-a[1]);
+  const ctx=wj.filter(([v,j])=>j!==pre.length-1&&v>0.1).map(([v,j])=>`«${esc(pre[j])}» (${Math.round(v*100)}%)`);
+  let m=`<b>Dopo «${esc(pre.join(" "))}» il modello prevede «${esc(top)}» (${(r.p[order[0]]*100).toFixed(0)}%)`+(order[1]!=null?`, poi «${esc(TY_V[order[1]])}» (${(r.p[order[1]]*100).toFixed(0)}%)`:"")+`.</b> `;
+  if(pre.length===1)m+=`Con un solo token non c'è contesto da mescolare: il vettore di «${esc(last)}» resta com'è. `;
+  else if(ctx.length)m+=`Nel passo 3 il vettore di «${esc(last)}» ha assorbito soprattutto ${ctx.join(" e ")}: è così che l'informazione di un token precedente arriva alla previsione. `;
+  else m+=`Nel passo 3 «${esc(last)}» ha dato quasi tutto il peso a sé stesso: in questo punto il contesto conta poco. `;
+  if(fired.length)m+=`Nel passo 4 ${fired.length>1?"si attivano le regole":"si attiva la regola"} ${fired.map(f=>`«${f[0]}»`).join(" e ")}, che ${fired.length>1?"spostano":"sposta"} il vettore verso le dimensioni dei token poi premiati nel passo 5.`;
+  if(top==="<eos>")m+=` «&lt;eos&gt;» significa che la frase è finita: la generazione si ferma qui.`;
+  $("#tyMsg").innerHTML=m;$("#tyGen").disabled=(top==="<eos>"&&tyPos===tyToks.length-1);
+  $("#tyGen").textContent=tyPos<tyToks.length-1?`Prosegui con «${top}» al posto del resto della frase`:`Aggiungi «${top}» e ricalcola`;}
+seg("#tySent",v=>{tyToks=[...TY_SENTS[+v]];tyPos=tyToks.length-1;drawToy();});
+$("#tyGen").onclick=()=>{const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);let best=0;r.p.forEach((v,i)=>{if(v>r.p[best])best=i;});const top=TY_V[best];if(top==="<eos>"&&tyPos===tyToks.length-1)return;tyToks=[...pre,top];tyPos=tyToks.length-1;drawToy();};
+$("#tyReset").onclick=()=>{const v=+document.querySelector('#tySent [aria-pressed="true"]').dataset.v;tyToks=[...TY_SENTS[v]];tyPos=tyToks.length-1;drawToy();};
+function drawBase(){drawToy();drawDP();drawOH();drawAtt();drawChain();drawEmb();drawEmbChart();drawTok();drawSM();drawGD();calc();if(!bpe.words)bpeInit();else bpeDraw();if(!lv.W)lvReset();else lvRender();}
 
 /* init */
 function all(){drawBase();drawLR();drawSFT();drawDPO();reset();$("#gno").textContent=gn.value;drawOPD(getMode());}
@@ -1743,6 +1884,7 @@ window.XREF_CONFIG={
     {re:"capitolo 1",to:"#base",flags:"i",first:false},
     {re:"capitolo 2",to:"#learn",flags:"i",first:false},
     {re:"capitolo 3",to:"#live",flags:"i",first:false},
+    {re:"capitolo 9",to:"#deep",flags:"i",first:false},{re:"modello in miniatura",to:"#c-toy",flags:"i"},{re:"generazione autoregressiva|autoregressiv[oa]",to:"#c-gen",flags:"i"},
     {re:"training dal vivo",to:"#live",flags:"i"},
     {re:"fase 1",to:"#pre",flags:"i",first:false},{re:"fase 2",to:"#sft",flags:"i",first:false},{re:"fase 3",to:"#dpo",flags:"i",first:false},{re:"fase 4",to:"#grpo",flags:"i",first:false},{re:"fase 5",to:"#opd",flags:"i",first:false},
     {re:"SFT",to:"#sft"},{re:"DPO",to:"#dpo"},{re:"RLHF",to:"#dpo"},{re:"PPO",to:"#dpo"},{re:"reward model",to:"#dpo",flags:"i"},
