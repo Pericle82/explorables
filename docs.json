@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "1.14",
+      "version": "1.15",
       "updated": "2026-10-02",
       "history": [
+        {
+          "version": "1.15",
+          "date": "2026-10-02",
+          "notes": "«Da zero» punto 6: da 7B a 4.096, cosa vuol dire entrare nella rete, come si parlano le schede (laboratorio sull'attenzione)"
+        },
         {
           "version": "1.14",
           "date": "2026-10-02",

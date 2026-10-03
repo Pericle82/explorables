@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-02
+- **Anatomia del Training LLM** (`training-llm`) v1.15: «Da zero» punto 6: da 7B a 4.096, cosa vuol dire entrare nella rete, come si parlano le schede (laboratorio sull'attenzione)
 - **Anatomia del Training LLM** (`training-llm`) v1.14: Nuova sottosezione «Da zero»: neurone, rete, apprendimento, parole come numeri (re/regina con assi etichettati), perché entrano tutti i token insieme
 - **Anatomia del Training LLM** (`training-llm`) v1.13: Capitolo 0 per chi parte da zero: quadro d'insieme con laboratorio sul percorso di un token; percorso di algebra riscritto con esempi numerici semplici e approfondimenti in riquadri richiudibili «Dove ritorna nel modello»
 - **Anatomia del Training LLM** (`training-llm`) v1.12: Nuova sottosezione sui tensori (rango, shape, fette, broadcasting, reshape e transpose delle teste) con schema e laboratorio; le formule principali della guida in riquadri dedicati
