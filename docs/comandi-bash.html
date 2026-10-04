@@ -1,0 +1,939 @@
+<title>La shell, un comando alla volta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============ TEMA EXPLORABLES ============
+   Token di colore: stessi nomi in tutte le guide. Ogni guida sceglie SOLO il proprio accento
+   (--accent, --accent-soft) dalla palette in AUTHORING.md; tutto il resto resta identico. */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --surface-2:#E7EAEF; --ink:#161B24; --muted:#565E6C;
+  --line:#CDD2DA; --grid:#E0E4EA; --accent:#5E6B1E; --accent-soft:#E6EAD0;
+  --good:#2C7A4C; --good-soft:#D8EEDF; --bad:#B03838; --bad-soft:#F5DCDC; --warn:#9A6210; --warn-soft:#F3E5CC;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+    --line:#2C3441; --grid:#232A35; --accent:#B7C45A; --accent-soft:#2E3316;
+    --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1218; --surface:#161B23; --surface-2:#1E2530; --ink:#E3E7EE; --muted:#97A0AE;
+  --line:#2C3441; --grid:#232A35; --accent:#B7C45A; --accent-soft:#2E3316;
+  --good:#62C98E; --good-soft:#18352A; --bad:#EE7B7B; --bad-soft:#3C1E1E; --warn:#E2AA4E; --warn-soft:#3A2D14;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+code,.k{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.hero{padding-block:48px 28px;display:flex;flex-direction:column;gap:16px}
+.lede{font-size:1.1rem;max-width:62ch}
+
+/* nav */
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-inline:-20px;padding:10px 20px;overflow-x:auto;white-space:nowrap}
+nav.toc .in{max-width:980px;margin:0 auto;display:flex;gap:6px}
+nav.toc a{font-family:var(--mono);font-size:.76rem;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid transparent}
+nav.toc a.on{color:var(--ink);border-color:var(--line);background:var(--surface)}
+
+/* sections */
+section.st{padding-block:56px 8px;display:flex;flex-direction:column;gap:22px;scroll-margin-top:60px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head h3{font-family:var(--serif)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:170px;flex:1}
+.ctl label{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label output{font-family:var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{all:unset;cursor:pointer;font-size:.82rem;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.btn{all:unset;cursor:pointer;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:7px;background:var(--accent);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.note{font-size:.9rem;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:.95rem}
+.callout b{font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.readout{display:flex;flex-wrap:wrap;gap:22px}
+.readout div{display:flex;flex-direction:column}
+.readout small{font-size:.74rem;color:var(--muted)}
+.readout strong{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;white-space:nowrap}
+
+/* token strip */
+.tokens{display:flex;flex-wrap:wrap;gap:4px}
+.tok{font-family:var(--mono);font-size:.85rem;padding:4px 7px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.tok.prompt{color:var(--muted);background:var(--surface-2);border-style:dashed}
+.tok.resp{border-color:var(--accent);background:var(--accent-soft)}
+button.tok{cursor:pointer;color:var(--ink)}
+button.tok.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(120px,210px) 1fr 52px;gap:10px;align-items:center;font-size:.86rem}
+.barrow .track{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);transition:width .25s}
+.barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.sample{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;white-space:pre-wrap}
+
+/* diagram boxes */
+.diag{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
+.box.hot{border-color:var(--accent);background:var(--accent-soft)}
+.box.dead{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.arr{color:var(--muted);font-family:var(--mono)}
+.diag-title{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* grpo table */
+.gtable{width:100%;border-collapse:collapse;font-size:.86rem}
+.gtable th{text-align:left;font-weight:500;color:var(--muted);font-size:.76rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:5px 8px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.gtable td.mono{font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:.74rem;padding:1px 7px;border-radius:999px}
+.pill.ok{color:var(--good);background:var(--good-soft)}
+.pill.ko{color:var(--bad);background:var(--bad-soft)}
+.scroll-x{overflow-x:auto}
+
+/* summary */
+table.sum{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+table.sum th{text-align:left;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px;border-bottom:1px solid var(--ink)}
+table.sum td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sum td:first-child{font-family:var(--serif);font-weight:650;font-size:1rem}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* concetti base */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.loop .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.loop .box b{font-family:var(--serif);font-size:1rem}
+.loop .box span{color:var(--muted);font-size:.82rem}
+.loop .box em{font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+@media (max-width:760px){.loop{grid-template-columns:1fr 1fr}}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.gloss div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-family:var(--serif);font-weight:650}
+.gloss dd{margin:0;font-size:.88rem;color:var(--muted)}
+.gloss .ex{font-family:var(--mono);font-size:.74rem;color:var(--ink)}
+textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+
+/* componenti comuni */
+.anchor{scroll-margin-top:70px;margin-top:10px;font-size:1.35rem;font-weight:650}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3 .box{display:flex;flex-direction:column;gap:4px;padding:12px}
+.grid3 .box b{font-family:var(--serif)}
+.grid3 .box span{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;transition:border-color .15s}
+.cards a:hover{border-color:var(--accent)}
+.cards a b{font-family:var(--serif);font-size:1.05rem}
+.cards a span{font-size:.84rem;color:var(--muted)}
+.cards a small{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+
+/* aggiunte di questa guida */
+.recap{margin:36px 0 0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px}
+.recap-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.recap>p{max-width:none}
+.recap-sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.recap ul,.recap ol{max-width:none;margin:0;padding-left:20px}
+.recap li{font-size:.92rem;margin-bottom:5px}
+.q{font-family:var(--serif);font-size:1.15rem;font-weight:500;line-height:1.35;color:var(--ink);border-left:3px solid var(--accent);padding:6px 0 6px 14px;margin:6px 0}
+.q b{font-weight:650}
+.prose ul,.prose ol{margin:0;padding-left:22px}
+.prose li{margin-bottom:6px}
+.phasecard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.phasecard .pc{background:var(--surface-2);border-radius:8px;padding:12px 14px;font-size:.9rem}
+.phasecard .pc b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.grid2>*,.stack>*{min-width:0}
+/* terminale simulato */
+.term{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden;font-family:var(--mono);font-size:.86rem}
+.term-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface);font-size:.74rem;color:var(--muted);letter-spacing:.04em}
+.term-bar i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.term-bar i:first-child{background:var(--bad)} .term-bar i:nth-child(2){background:var(--warn)} .term-bar i:nth-child(3){background:var(--good)}
+.term-bar span{margin-left:auto}
+.term-out{padding:12px 14px;min-height:140px;max-height:360px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.term-out .pr{color:var(--accent);font-weight:600}
+.term-out .cmd{color:var(--ink);font-weight:600}
+.term-out .err{color:var(--bad)}
+.term-out .dir{color:var(--accent);font-weight:600}
+.term-out .exe{color:var(--good);font-weight:600}
+.term-out .dim{color:var(--muted)}
+.term-out .mac{display:block;margin-top:4px;padding:6px 10px;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--ink);font-family:var(--sans);font-size:.82rem;white-space:normal;border-radius:0 6px 6px 0}
+.term-in{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line);background:var(--surface)}
+.term-in .pr{color:var(--accent);font-weight:600;white-space:nowrap}
+.term-in input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}
+.term-try{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.term-try button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.78rem;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink)}
+.term-try button:hover{border-color:var(--accent)}
+.term-try button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Linux e macOS · la riga di comando · guida interattiva</span>
+  <h1>La shell, un comando alla volta</h1>
+  <p class="lede">La riga di comando non è un elenco di sigle da imparare a memoria: è una lingua con una grammatica piccola e regolare, in cui ogni comando è una frase fatta di un verbo, qualche aggettivo (le opzioni) e i suoi complementi (gli argomenti). Chi conosce la grammatica legge qualsiasi comando anche senza averlo mai visto. Questa guida comincia dalla grammatica — che cos'è la shell, com'è fatto un comando, dove cambia tra Linux e macOS — e poi affronta i comandi uno alla volta, ciascuno con lo stesso schema: che cosa fa, come si scrive, i tre o quattro usi che contano davvero, dove inciampa chi inizia. Ogni comando si può provare in un terminale simulato dentro la pagina, senza rischiare nulla sul proprio computer.</p>
+  <aside class="vx vx-prereq" aria-label="Letture consigliate prima">
+    <span class="eyebrow">Letture consigliate prima</span>
+    <p>Nessuna. Basta avere un terminale aperto accanto: su macOS l'app Terminale (o iTerm), su Linux il terminale della propria distribuzione.</p>
+  </aside>
+  <div class="cards">
+    <a href="#s0"><small>0</small><b>Prima dei comandi</b><span>terminale, shell, grammatica di un comando, Linux contro macOS</span></a>
+    <a href="#cmd"><small>1 →</small><b>I comandi, uno alla volta</b><span>in costruzione: ogni comando con lo stesso schema e un terminale per provarlo</span></a>
+    <a href="#sum"><small>Riepilogo</small><b>La tabella dei comandi</b><span>cresce man mano che la guida si completa</span></a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sezioni"><div class="in">
+  <a href="#s0">0 · Prima dei comandi</a><a href="#cmd">1 · I comandi</a><a href="#sum">Riepilogo</a>
+</div></nav>
+
+<!-- ============ 0 · PRIMA DEI COMANDI ============ -->
+<section class="st" id="s0">
+  <div class="sec-head">
+    <span class="eyebrow">0 · Prima dei comandi</span>
+    <h2>Che cosa stai usando quando scrivi in un terminale</h2>
+  </div>
+  <div class="prose stack">
+    <p class="q">Apro il terminale e vedo una riga che finisce con <span class="k">$</span>, in attesa. <b>Che cos'è, esattamente, il programma con cui sto parlando?</b> E perché lo stesso comando a volte funziona su Linux e non su macOS?</p>
+    <p>Sono due programmi, non uno, ed è utile tenerli distinti fin dall'inizio.</p>
+  </div>
+
+  <h3 id="s0-term" class="anchor">Terminale e shell sono due cose diverse</h3>
+  <div class="prose stack">
+    <p>Il <b>terminale</b> è la finestra: disegna i caratteri, riceve i tasti, gestisce i colori e lo scorrimento. Su macOS si chiama Terminale (o iTerm2, se lo hai installato), su Linux GNOME Terminal, Konsole, Alacritty e simili. Non capisce nulla di ciò che scrivi: passa i caratteri a un altro programma e ne mostra l'output.</p>
+    <p>La <b>shell</b> è quell'altro programma: legge la riga che hai scritto, la <i>interpreta</i> (separa il comando dalle opzioni, espande <span class="k">~</span> e <span class="k">*</span>, collega i comandi con <span class="k">|</span>) ed esegue. È la shell a stampare il <b>prompt</b>, la riga con il <span class="k">$</span>, per dirti che è pronta. Il terminale è il telefono; la shell è l'interlocutore.</p>
+  </div>
+  <div class="diag">
+    <span class="box">tasti</span><span class="arr">→</span>
+    <span class="box">Terminale<br><small class="muted">finestra, caratteri, colori</small></span><span class="arr">→</span>
+    <span class="box hot">Shell (bash, zsh)<br><small class="muted">interpreta ed esegue</small></span><span class="arr">→</span>
+    <span class="box">programmi<br><small class="muted">ls, grep, git…</small></span><span class="arr">→</span>
+    <span class="box">output<br><small class="muted">torna al terminale</small></span>
+  </div>
+
+  <h3 id="s0-bash" class="anchor">bash e zsh: quale shell hai davanti</h3>
+  <div class="prose stack">
+    <p>Le shell sono tante, ma due coprono quasi tutti i computer su cui lavorerai. <b>bash</b> (Bourne Again SHell, 1989) è la shell predefinita di quasi tutte le distribuzioni Linux e di gran parte dei server. <b>zsh</b> (Z shell) è la shell predefinita di macOS dal 2019 (Catalina): Apple ha smesso di aggiornare bash alla versione 3.2 del 2007 per una questione di licenza (la GPLv3 delle versioni successive), e ha preferito cambiare shell. Su un Mac trovi quindi zsh di default e, se la lanci, una bash vecchia di quasi vent'anni.</p>
+    <p>Per questa guida la differenza conta poco: i comandi che vedremo sono <i>programmi</i> (ls, grep, find…) o costrutti comuni alle due shell, e si comportano allo stesso modo. Le differenze vere tra bash e zsh stanno nella personalizzazione e nello scripting avanzato, e le segnaleremo dove compaiono. Per sapere quale shell stai usando: <span class="k">echo $SHELL</span>.</p>
+    <p><b>Il prompt dice tre cose.</b> La forma classica è <span class="k">utente@macchina:~$</span>: chi sei, su quale computer sei, in quale cartella ti trovi (<span class="k">~</span> è la tua cartella personale, la <i>home</i>), e infine il simbolo: <span class="k">$</span> per un utente normale, <span class="k">#</span> per l'amministratore (<i>root</i>). Il prompt è configurabile, quindi il tuo potrebbe essere diverso; zsh su macOS usa <span class="k">%</span> al posto di <span class="k">$</span>.</p>
+  </div>
+
+  <h3 id="s0-gramm" class="anchor">La grammatica di un comando</h3>
+  <div class="prose stack">
+    <p class="q">Leggo <span class="k">ls -la /etc</span>. Come lo smonto?</p>
+    <p>Ogni riga della shell ha la stessa struttura: <b>comando</b>, poi zero o più <b>opzioni</b>, poi zero o più <b>argomenti</b>, separati da spazi. Il comando è il verbo: che cosa fare. Le opzioni (dette anche <i>flag</i> o <i>switch</i>) sono gli aggettivi: <i>come</i> farlo. Gli argomenti sono i complementi: <i>su che cosa</i>.</p>
+  </div>
+  <div class="vx"><p class="vx-cap">Anatomia di una riga</p><div class="vx-cells"><span class="vx-cell hl">ls</span><span class="vx-cell">-la</span><span class="vx-cell">/etc</span></div><div class="scroll-x"><table class="vx-table"><thead><tr><th>Pezzo</th><th>Ruolo</th><th>Come si riconosce</th></tr></thead><tbody><tr><td class="m">ls</td><td>comando · «elenca»</td><td>la prima parola della riga</td></tr><tr><td class="m">-la</td><td>opzioni · «in formato lungo, anche i file nascosti»</td><td>comincia con <span class="k">-</span>; <span class="k">-la</span> è l'abbreviazione di <span class="k">-l -a</span></td></tr><tr><td class="m">/etc</td><td>argomento · «la cartella /etc»</td><td>tutto ciò che non comincia con <span class="k">-</span></td></tr></tbody></table></div></div>
+  <div class="prose stack">
+    <p><b>Opzioni corte e lunghe.</b> Le opzioni corte sono una lettera preceduta da un trattino (<span class="k">-l</span>) e si possono raggruppare (<span class="k">-l -a</span> = <span class="k">-la</span> = <span class="k">-al</span>). Quelle lunghe sono una parola preceduta da due trattini (<span class="k">--all</span>) e sono più leggibili: negli script conviene usarle. Alcune opzioni vogliono un valore: <span class="k">-n 5</span> oppure <span class="k">--lines=5</span>. Dove non è specificato, l'ordine di opzioni e argomenti è libero, ma per abitudine si scrivono prima le opzioni.</p>
+    <p><b>Lo spazio separa.</b> È la regola che genera più errori all'inizio: <span class="k">cd Documenti miei</span> sono <i>due</i> argomenti, «Documenti» e «miei». Per un nome con spazi servono le virgolette, <span class="k">cd "Documenti miei"</span>, oppure la barra inversa, <span class="k">cd Documenti\ miei</span>. Le virgolette dicono alla shell: questo è un pezzo solo.</p>
+    <p><b>Da dove viene un comando.</b> Quando scrivi <span class="k">ls</span>, la shell cerca un programma con quel nome nelle cartelle elencate nella variabile <span class="k">PATH</span> (tipicamente <span class="k">/bin</span>, <span class="k">/usr/bin</span>, <span class="k">/usr/local/bin</span>). Alcuni comandi però non sono programmi ma <b>builtin</b>, cioè parti della shell stessa: <span class="k">cd</span> è il caso classico, perché cambiare cartella è un'azione <i>della shell</i>, non di un programma esterno. <span class="k">type cd</span> e <span class="k">type ls</span> ti dicono di che tipo è ciascuno.</p>
+  </div>
+
+  <h3 id="s0-os" class="anchor">Linux e macOS: stessi nomi, programmi diversi</h3>
+  <div class="prose stack">
+    <p class="q">Perché <span class="k">ls --color</span> funziona su Linux e su macOS dà errore?</p>
+    <p>Perché <span class="k">ls</span> non è lo stesso programma. Su Linux i comandi di base (ls, cp, mv, grep, sed, date…) vengono dal progetto <b>GNU</b> (le <i>coreutils</i>), su macOS dalla tradizione <b>BSD</b> (Berkeley Software Distribution, la famiglia Unix da cui discende il sistema di Apple). Fanno la stessa cosa e accettano le stesse opzioni storiche a una lettera, ma le opzioni lunghe (<span class="k">--color</span>, <span class="k">--help</span>) sono quasi tutte GNU, e alcune opzioni corte hanno significati diversi. La guida segnala caso per caso con due etichette: <span class="pill ok">Linux · GNU</span> e <span class="pill ko">macOS · BSD</span>. Se vuoi le versioni GNU anche su Mac: <span class="k">brew install coreutils</span> le installa con il prefisso <span class="k">g</span> (<span class="k">gls</span>, <span class="k">gsed</span>…).</p>
+  </div>
+  <div class="scroll-x"><table class="vx-table"><thead><tr><th>Vuoi…</th><th>Linux · GNU</th><th>macOS · BSD</th></tr></thead><tbody>
+    <tr><td>colori in <span class="k">ls</span></td><td class="m">ls --color=auto</td><td class="m">ls -G</td></tr>
+    <tr><td>l'aiuto breve di un comando</td><td class="m">ls --help</td><td class="m">man ls <span class="muted">(--help di solito non c'è)</span></td></tr>
+    <tr><td>modificare un file sul posto con sed</td><td class="m">sed -i 's/a/b/' f</td><td class="m">sed -i '' 's/a/b/' f</td></tr>
+    <tr><td>la data di ieri</td><td class="m">date -d yesterday</td><td class="m">date -v-1d</td></tr>
+    <tr><td>copiare negli appunti</td><td class="m">xclip -selection c</td><td class="m">pbcopy</td></tr>
+  </tbody></table></div>
+
+  <h3 id="s0-help" class="anchor">Come chiedere aiuto, e come leggere la risposta</h3>
+  <div class="prose stack">
+    <p>Tre strumenti, in ordine di dettaglio crescente. <span class="k">tldr ls</span> (da installare: <span class="k">brew install tldr</span> o <span class="k">apt install tldr</span>) mostra cinque esempi pratici e basta: è il modo più veloce per ricordarsi la sintassi. <span class="k">ls --help</span> (GNU) stampa l'elenco delle opzioni. <span class="k">man ls</span> apre il <b>manuale</b> (si scorre con le frecce o la barra, si cerca con <span class="k">/parola</span>, si esce con <span class="k">q</span>): è completo, è lo stesso su ogni macchina, ed è scritto in una notazione che vale la pena saper leggere.</p>
+  </div>
+  <div class="vx"><p class="vx-cap">La riga SYNOPSIS di una pagina man, e come si legge</p><div class="vx-code"><div class="vx-code-h"><span>man ls · estratto</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-kw">SYNOPSIS</span>
+</span><span class="ln hl">       ls [OPTION]... [FILE]...
+</span></code></pre></div><div class="scroll-x"><table class="vx-table" style="margin-top:10px"><thead><tr><th>Notazione</th><th>Significa</th></tr></thead><tbody><tr><td class="m">[OPTION]</td><td>le parentesi quadre indicano un pezzo <b>facoltativo</b></td></tr><tr><td class="m">...</td><td>il pezzo precedente si può <b>ripetere</b>: più opzioni, più file</td></tr><tr><td class="m">FILE</td><td>le maiuscole sono <b>segnaposto</b>: al loro posto metti il tuo valore</td></tr><tr><td class="m">a | b</td><td>la barra verticale separa <b>alternative</b>: o l'una o l'altra</td></tr></tbody></table></div></div>
+
+  <h3 id="s0-dita" class="anchor">Quattro gesti da imparare con le dita</h3>
+  <dl class="gloss">
+    <div><dt>Tab</dt><dd>Completa il nome del comando o del file che hai cominciato a scrivere. Premuto due volte, elenca le possibilità. È il gesto che elimina la maggior parte degli errori di battitura.</dd><span class="ex">cd Doc⇥ → cd Documenti/</span></div>
+    <div><dt>Freccia su</dt><dd>Richiama il comando precedente; ripetuta, quelli prima ancora. <span class="k">history</span> li elenca tutti.</dd><span class="ex">↑ ↑ Invio</span></div>
+    <div><dt>Ctrl+C</dt><dd>Interrompe il comando in corso e torna al prompt. Non è «copia»: nel terminale copia e incolla sono Ctrl+Shift+C/V (Linux) o Cmd+C/V (macOS).</dd><span class="ex">un comando che non finisce più → Ctrl+C</span></div>
+    <div><dt>Ctrl+D</dt><dd>«Fine dell'input»: chiude la shell (come <span class="k">exit</span>) o, dentro un comando che legge da tastiera, gli dice che hai finito.</dd><span class="ex">equivale a exit</span></div>
+  </dl>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: un terminale per provare</h3><span class="tag">simulazione · file system finto</span></div>
+    <p>È una shell simulata su un piccolo albero di cartelle inventato: non tocca il tuo computer. Scrivi un comando e premi Invio; la freccia su richiama gli ultimi comandi. Per ora conosce i comandi del capitolo 0 e quelli già trattati nella guida: <span class="k">help</span> li elenca. Prova <span class="k">pwd</span>, <span class="k">ls</span>, <span class="k">ls -la</span>, <span class="k">cd Documenti</span>, <span class="k">type cd</span>, <span class="k">man ls</span>.</p>
+    <div class="term" data-term data-try="pwd|ls|ls -la|cd Documenti|echo $SHELL|type cd|man ls"></div>
+    <p class="note">Il terminale simulato riproduce il comportamento di bash su Linux (GNU) e segnala con una nota dove macOS si comporterebbe diversamente. Non supporta tutto: ciò che la guida non ha ancora spiegato risponde «command not found», esattamente come farebbe una shell vera davanti a un programma non installato.</p>
+  </div>
+
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 0</p>
+    <p>Il terminale è la finestra, la shell è il programma che interpreta ciò che scrivi: bash su Linux, zsh su macOS (con una bash vecchia a disposizione). Ogni riga è comando + opzioni + argomenti separati da spazi; le opzioni corte si raggruppano, le lunghe sono più leggibili, le virgolette tengono insieme ciò che contiene spazi. I comandi sono programmi cercati nel PATH o builtin della shell. Su Linux i comandi di base sono GNU, su macOS BSD: stessi nomi, opzioni lunghe diverse. Per l'aiuto: tldr per gli esempi, man per il manuale, con la sua notazione di parentesi quadre e puntini.</p>
+    <p class="recap-sub">Autodiagnosi · dovresti saper rispondere senza rileggere</p>
+    <ol>
+      <li>In <span class="k">grep -rn "errore" log/</span>, quali pezzi sono comando, opzioni e argomenti? E che cosa cambia tra <span class="k">-rn</span> e <span class="k">-r -n</span>?</li>
+      <li>Perché <span class="k">cd</span> deve essere un builtin della shell e <span class="k">ls</span> può essere un programma esterno?</li>
+      <li>Che cosa significa <span class="k">cp [OPTION]... SOURCE... DIRECTORY</span> in una pagina man?</li>
+      <li>Perché lo stesso <span class="k">sed -i</span> si scrive in modo diverso su Linux e su macOS?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 1 · I COMANDI (in costruzione) ============ -->
+<section class="st" id="cmd">
+  <div class="sec-head">
+    <span class="eyebrow">1 · I comandi, uno alla volta</span>
+    <h2>Ogni comando con lo stesso schema</h2>
+  </div>
+  <div class="prose stack">
+    <p>Da qui in poi la guida cresce un comando per volta. Ogni comando ha una scheda con la stessa struttura, così che dopo i primi tre si sappia già dove guardare:</p>
+  </div>
+  <div class="phasecard">
+    <div class="pc"><b>Che cosa fa</b>In una riga, con l'analogia se serve.</div>
+    <div class="pc"><b>Come si scrive</b>La sintassi essenziale, letta con la grammatica del capitolo 0.</div>
+    <div class="pc"><b>Gli usi che contano</b>I tre o quattro casi reali in cui lo userai davvero, con l'output spiegato.</div>
+    <div class="pc"><b>Linux · macOS</b>Dove GNU e BSD divergono, e come scrivere la versione che funziona su entrambi.</div>
+    <div class="pc"><b>Dove si inciampa</b>Gli errori tipici e come si leggono i messaggi.</div>
+    <div class="pc"><b>Prova</b>Il terminale simulato, con i comandi da provare già pronti.</div>
+  </div>
+  <p class="prose callout" style="margin-top:18px"><b>In costruzione.</b> I comandi vengono aggiunti uno alla volta; il terminale del capitolo 0 impara ciascun comando nel momento in cui entra nella guida.</p>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>La tabella dei comandi</h2></div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Comando</th><th>Che cosa fa</th><th>Uso tipico</th><th>Linux · macOS</th></tr></thead>
+    <tbody><tr><td class="mono">—</td><td colspan="3" class="muted">La tabella si riempie man mano che i comandi entrano nella guida.</td></tr></tbody>
+  </table></div>
+</section>
+
+<footer>Il terminale della guida è una simulazione su un file system inventato: riproduce il comportamento di bash/GNU e segnala le differenze di macOS/BSD, ma non è una shell completa. I comportamenti descritti sono quelli di bash 5 e GNU coreutils 9 su Linux e di zsh con i comandi BSD di macOS 14; le pagine man citate sono quelle dei rispettivi sistemi.</footer>
+</div>
+
+
+<script>
+/* Script della guida: scroll spy, pulsante Copia e terminale simulato */
+(function(){
+  const $=s=>document.querySelector(s);
+  const links=[...document.querySelectorAll("nav.toc a")],secs=links.map(a=>document.querySelector(a.getAttribute("href")));
+  function spy(){let c=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)c=i;});links.forEach((a,i)=>a.classList.toggle("on",i===c));}
+  addEventListener("scroll",spy,{passive:true});spy();
+
+  /* ======================================================================
+     TERMINALE SIMULATO
+     File system finto in memoria; ogni comando della guida viene aggiunto
+     alla tabella CMDS nel momento in cui entra nel testo.
+     Un elemento <div class="term" data-term data-try="cmd1|cmd2"> diventa un terminale.
+     ====================================================================== */
+  const USER="joe",HOST="guida",HOME="/home/joe";
+  /* nodo: {t:"d"|"f", c:{nome:nodo} (per d), s:testo (per f), m:"rwxr-xr-x", d:"ott  3 10:12" } */
+  const D=(c,m)=>({t:"d",c:c||{},m:m||"rwxr-xr-x",d:"ott  3 10:12"});
+  const F=(s,m,d)=>({t:"f",s:s||"",m:m||"rw-r--r--",d:d||"ott  3 10:12"});
+  function mkfs(){return D({
+    bin:D({ls:F("",'rwxr-xr-x'),cat:F("",'rwxr-xr-x'),echo:F("",'rwxr-xr-x'),pwd:F("",'rwxr-xr-x'),bash:F("",'rwxr-xr-x')}),
+    etc:D({hostname:F("guida\n"),hosts:F("127.0.0.1\tlocalhost\n"),passwd:F("root:x:0:0:root:/root:/bin/bash\njoe:x:1000:1000:Joe:/home/joe:/bin/bash\n")}),
+    home:D({joe:D({
+      ".bashrc":F("# ~/.bashrc\nalias ll='ls -la'\nexport EDITOR=nano\n"),
+      ".ssh":D({config:F("Host server\n  HostName 10.0.0.5\n  User joe\n")},"rwx------"),
+      Documenti:D({"appunti.txt":F("Comprare il latte\nChiamare Anna\nFinire la guida sulla shell\n"),"relazione.md":F("# Relazione\n\nPrima bozza.\n"),"Fatture 2026":D({"gennaio.pdf":F("%PDF-1.4 (binario)\n"),"febbraio.pdf":F("%PDF-1.4 (binario)\n")})}),
+      Scaricati:D({"foto.jpg":F("(binario)\n"),"archivio.zip":F("(binario)\n"),"installer.sh":F("#!/bin/bash\necho installo...\n","rwxr-xr-x")}),
+      progetti:D({explorables:D({"README.md":F("# Explorables\n\nGuide interattive.\n"),docs:D({"transazioni.html":F("<title>…</title>\n"),"training-llm.html":F("<title>…</title>\n")}),scripts:D({"build.mjs":F("// build\n","rwxr-xr-x")})})}),
+      "note.txt":F("Ricordati: i comandi sono frasi.\n"),
+    })}),
+    tmp:D({},"rwxrwxrwt"),
+    usr:D({bin:D({grep:F("",'rwxr-xr-x'),find:F("",'rwxr-xr-x'),man:F("",'rwxr-xr-x')})}),
+  })}
+  /* risoluzione dei percorsi */
+  function norm(cwd,p){if(!p)p=cwd;if(p==="~")p=HOME;else if(p.startsWith("~/"))p=HOME+p.slice(1);if(!p.startsWith("/"))p=cwd.replace(/\/$/,"")+"/"+p;
+    const out=[];p.split("/").forEach(s=>{if(!s||s===".")return;if(s==="..")out.pop();else out.push(s);});return "/"+out.join("/");}
+  function get(fs,path){if(path==="/")return fs;let n=fs;for(const s of path.split("/").filter(Boolean)){if(!n||n.t!=="d"||!(s in n.c))return null;n=n.c[s];}return n;}
+  const base=p=>p.split("/").filter(Boolean).pop()||"/";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const q=n=>/[ ()'"&;|]/.test(n)?"'"+n+"'":n;
+  /* parsing minimale: spazi, virgolette semplici e doppie, $VAR e ~ */
+  function tokenize(line,env){const out=[];let cur="",inS=false,inD=false,has=false;
+    for(let i=0;i<line.length;i++){const ch=line[i];
+      if(inS){if(ch==="'")inS=false;else cur+=ch;continue;}
+      if(ch==="\\"&&i+1<line.length&&!inS){cur+=line[++i];has=true;continue;}
+      if(ch==="'"&&!inD){inS=true;has=true;continue;}
+      if(ch==='"'){inD=!inD;has=true;continue;}
+      if(ch==="$"&&/[A-Za-z_]/.test(line[i+1]||"")){let j=i+1,name="";while(j<line.length&&/[A-Za-z0-9_]/.test(line[j]))name+=line[j++];cur+=(env[name]??"");i=j-1;has=true;continue;}
+      if(ch===" "&&!inD){if(cur||has){out.push(cur);cur="";has=false;}continue;}
+      cur+=ch;has=true;}
+    if(cur||has)out.push(cur);
+    return out.map(t=>(t==="~"||t.startsWith("~/"))?HOME+t.slice(1):t);}
+  function opts(args,spec){const o={},rest=[];for(const a of args){if(a==="--"){continue;}if(a.startsWith("--")&&spec.long&&spec.long[a.slice(2)]){o[spec.long[a.slice(2)]]=true;}else if(a.startsWith("--")){throw {code:2,msg:`${spec.name}: unrecognized option '${a}'\nTry '${spec.name} --help' for more information.`,mac:`su macOS le opzioni lunghe (--…) di solito non esistono: ${spec.name} risponderebbe «illegal option».`};}
+    else if(a.startsWith("-")&&a.length>1){for(const ch of a.slice(1)){if(spec.short&&spec.short.includes(ch))o[ch]=true;else throw {code:2,msg:`${spec.name}: invalid option -- '${ch}'\nTry '${spec.name} --help' for more information.`};}}else rest.push(a);}return {o,rest};}
+  /* ---- comandi: ogni voce = {help, man, run(ctx,args) → {out, code, mac?}} ---- */
+  const CMDS={};
+  CMDS.help={help:"elenca i comandi che il terminale conosce",run(ctx){return {out:"Comandi disponibili in questo terminale simulato:\n"+Object.keys(CMDS).sort().map(k=>"  "+k.padEnd(8)+" "+CMDS[k].help).join("\n")+"\n\nI comandi arrivano man mano che entrano nella guida.",code:0};}};
+  CMDS.pwd={help:"stampa la cartella corrente (print working directory)",man:"pwd - print name of current/working directory\n\nSYNOPSIS\n       pwd [OPTION]...\n\nStampa il percorso assoluto della cartella in cui ti trovi. È un builtin della shell.",run(ctx){return {out:ctx.cwd,code:0};}};
+  CMDS.cd={help:"cambia cartella (change directory)",man:"cd - change the shell working directory\n\nSYNOPSIS\n       cd [dir]\n\nSenza argomenti porta alla home (~). «cd -» torna alla cartella precedente. È un builtin: deve cambiare lo stato della shell stessa.",run(ctx,args){
+      let t=args[0]??HOME;if(t==="-")t=ctx.prev||ctx.cwd;const p=norm(ctx.cwd,t);const n=get(ctx.fs,p);
+      if(!n)return {out:`bash: cd: ${args[0]}: No such file or directory`,code:1};
+      if(n.t!=="d")return {out:`bash: cd: ${args[0]}: Not a directory`,code:1};
+      ctx.prev=ctx.cwd;ctx.cwd=p;return {out:args[0]==="-"?p:"",code:0};}};
+  CMDS.ls={help:"elenca il contenuto di una cartella (list)",man:"ls - list directory contents\n\nSYNOPSIS\n       ls [OPTION]... [FILE]...\n\n  -a, --all        non nascondere i file che iniziano con .\n  -l               formato lungo: permessi, proprietario, dimensione, data\n  -h               con -l, dimensioni leggibili (K, M)\n\nmacOS (BSD): stesse opzioni corte; i colori sono -G invece di --color.",
+    run(ctx,args){const {o,rest}=opts(args,{name:"ls",short:"alh1",long:{all:"a",help:"HELP"}});
+      if(o.HELP)return {out:"Usage: ls [OPTION]... [FILE]...\nList information about the FILEs (the current directory by default).\n  -a, --all    do not ignore entries starting with .\n  -l           use a long listing format\n  -h           with -l, print sizes like 1K 234M 2G",code:0,mac:"su macOS «ls --help» dà «illegal option»: usa «man ls»."};
+      const targets=rest.length?rest:["."];let out=[],code=0;
+      targets.forEach((t,i)=>{const p=norm(ctx.cwd,t),n=get(ctx.fs,p);
+        if(!n){out.push(`ls: cannot access '${t}': No such file or directory`);code=2;return;}
+        if(targets.length>1&&n.t==="d")out.push((i?"\n":"")+t+":");
+        const entries=n.t==="d"?Object.keys(n.c).sort((a,b)=>a.localeCompare(b,"it")).filter(k=>o.a||!k.startsWith(".")):[base(p)];
+        const list=n.t==="d"&&o.a?[".","..",...entries]:entries;
+        const node=k=>k==="."?n:k===".."?get(ctx.fs,norm(p,".."))||ctx.fs:n.t==="d"?n.c[k]:n;
+        const paint=k=>{const x=node(k);const nm=esc(q(k));return x.t==="d"?`<span class="dir">${nm}/</span>`:x.m.includes("x")?`<span class="exe">${nm}*</span>`:nm;};
+        if(o.l){const sz=x=>x.t==="d"?4096:x.s.length*37;const hs=v=>o.h?(v>=1048576?(v/1048576).toFixed(1)+"M":v>=1024?Math.round(v/1024)+"K":v+""):v+"";
+          out.push(`total ${list.length*4}`);list.forEach(k=>{const x=node(k);out.push(`${x.t==="d"?"d":"-"}${x.m} ${String(x.t==="d"?Object.keys(x.c).length+2:1).padStart(2)} ${USER.padEnd(5)} ${USER.padEnd(5)} ${hs(sz(x)).padStart(6)} ${x.d} ${paint(k)}`);});}
+        else out.push(list.map(paint).join("  "));});
+      return {out:out.join("\n"),code,html:true};}};
+  CMDS.cat={help:"mostra il contenuto di uno o più file (concatenate)",man:"cat - concatenate files and print on the standard output\n\nSYNOPSIS\n       cat [OPTION]... [FILE]...",run(ctx,args){const {rest}=opts(args,{name:"cat",short:"n"});if(!rest.length)return {out:"(cat senza argomenti legge dalla tastiera: qui non è simulato; premi Ctrl+D per uscire in una shell vera)",code:0};let out=[],code=0;rest.forEach(t=>{const n=get(ctx.fs,norm(ctx.cwd,t));if(!n){out.push(`cat: ${t}: No such file or directory`);code=1;}else if(n.t==="d"){out.push(`cat: ${t}: Is a directory`);code=1;}else out.push(n.s.replace(/\n$/,""));});return {out:out.join("\n"),code};}};
+  CMDS.echo={help:"stampa i suoi argomenti",man:"echo - display a line of text\n\nSYNOPSIS\n       echo [SHORT-OPTION]... [STRING]...\n\nStampa gli argomenti separati da uno spazio. Le variabili ($HOME, $SHELL) le espande la shell prima che echo le veda.",run(ctx,args){return {out:args.join(" "),code:0};}};
+  CMDS.type={help:"dice se un comando è builtin o programma",man:"type - display information about command type\n\nSYNOPSIS\n       type name...",run(ctx,args){if(!args.length)return {out:"",code:0};const B=["cd","pwd","echo","type","help","history","exit"];return {out:args.map(a=>B.includes(a)?`${a} is a shell builtin`:CMDS[a]?`${a} is /usr/bin/${a}`:`bash: type: ${a}: not found`).join("\n"),code:args.every(a=>B.includes(a)||CMDS[a])?0:1};}};
+  CMDS.whoami={help:"stampa il nome dell'utente",run(){return {out:USER,code:0};}};
+  CMDS.clear={help:"pulisce lo schermo",run(ctx){ctx.clear=true;return {out:"",code:0};}};
+  CMDS.history={help:"elenca i comandi digitati",run(ctx){return {out:ctx.hist.map((h,i)=>String(i+1).padStart(5)+"  "+h).join("\n"),code:0};}};
+  CMDS.man={help:"apre il manuale di un comando",run(ctx,args){const c=args[0];if(!c)return {out:"What manual page do you want?\nFor example, try 'man man'.",code:1};const m=CMDS[c]&&CMDS[c].man;if(!m)return {out:`No manual entry for ${c}`,code:16};return {out:`${c.toUpperCase()}(1)                      User Commands                      ${c.toUpperCase()}(1)\n\nNAME\n       ${m}\n\n(in una shell vera: frecce per scorrere, /parola per cercare, q per uscire)`,code:0,dim:true};}};
+  CMDS.exit={help:"chiude la shell",run(ctx){return {out:"logout\n(in questa simulazione la shell riparte da sola)",code:0};}};
+  CMDS.tldr={help:"esempi pratici di un comando",run(ctx,args){const c=args[0];if(!c||!CMDS[c])return {out:`tldr: page not found for ${c||"(niente)"}`,code:1};return {out:`${c}\n\n  ${CMDS[c].help}.\n\n(tldr mostra 4-5 esempi: nel terminale simulato il contenuto arriva con la scheda del comando)`,code:0};}};
+
+  /* ---- esecuzione di una riga ---- */
+  function run(ctx,line){const env={HOME,USER,SHELL:"/bin/bash",PWD:ctx.cwd,PATH:"/usr/local/bin:/usr/bin:/bin",EDITOR:"nano"};
+    let toks;try{toks=tokenize(line,env);}catch(e){return {out:"bash: errore di sintassi",code:2};}
+    if(!toks.length)return {out:"",code:0};
+    const [c,...args]=toks;const cmd=CMDS[c];
+    if(!cmd)return {out:`bash: ${c}: command not found`,code:127,mac:/^(ls|cd|grep|find|cp|mv|rm|mkdir|cat|less|head|tail|chmod|sudo|ps|kill|tar|curl|ssh|git)$/.test(c)?null:"Questo comando non è ancora entrato nella guida: il terminale lo imparerà quando arriverà la sua scheda."};
+    try{return cmd.run(ctx,args);}catch(e){if(e&&e.msg)return {out:e.msg,code:e.code||1,mac:e.mac};return {out:`bash: ${c}: errore interno della simulazione`,code:1};}}
+
+  /* ---- UI ---- */
+  function makeTerm(root){const ctx={fs:mkfs(),cwd:HOME,prev:null,hist:[],clear:false};
+    const tries=(root.dataset.try||"").split("|").filter(Boolean);
+    root.innerHTML=`<div class="term-bar"><i></i><i></i><i></i><span>bash · simulazione</span></div><div class="term-out" aria-live="polite"></div><div class="term-in"><span class="pr"></span><input type="text" spellcheck="false" autocomplete="off" aria-label="Riga di comando"></div>${tries.length?`<div class="term-try">${tries.map(t=>`<button type="button" data-cmd="${esc(t)}">${esc(t)}</button>`).join("")}</div>`:""}`;
+    const out=root.querySelector(".term-out"),inp=root.querySelector("input"),prEl=root.querySelector(".term-in .pr");
+    const prompt=()=>`${USER}@${HOST}:${ctx.cwd===HOME?"~":ctx.cwd.startsWith(HOME+"/")?"~"+ctx.cwd.slice(HOME.length):ctx.cwd}$`;
+    const refresh=()=>{prEl.textContent=prompt()+" ";};
+    let hi=0;
+    function exec(line){line=line.trim();const pr=prompt();if(line)ctx.hist.push(line);hi=ctx.hist.length;
+      const r=run(ctx,line);
+      if(ctx.clear){out.innerHTML="";ctx.clear=false;}
+      else{let h=`<span class="pr">${esc(pr)}</span> <span class="cmd">${esc(line)}</span>\n`;
+        if(r.out)h+=(r.code&&r.code!==0?`<span class="err">${r.html?r.out:esc(r.out)}</span>`:(r.dim?`<span class="dim">${esc(r.out)}</span>`:(r.html?r.out:esc(r.out))))+"\n";
+        if(r.mac)h+=`<span class="mac">macOS · ${esc(r.mac)}</span>`;
+        out.insertAdjacentHTML("beforeend",h);out.scrollTop=out.scrollHeight;}
+      refresh();}
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"){exec(inp.value);inp.value="";}
+      else if(e.key==="ArrowUp"){e.preventDefault();if(hi>0){hi--;inp.value=ctx.hist[hi]||"";}}
+      else if(e.key==="ArrowDown"){e.preventDefault();if(hi<ctx.hist.length){hi++;inp.value=ctx.hist[hi]||"";}}
+      else if(e.key==="l"&&e.ctrlKey){e.preventDefault();out.innerHTML="";}
+      else if(e.key==="c"&&e.ctrlKey&&!window.getSelection().toString()){e.preventDefault();out.insertAdjacentHTML("beforeend",`<span class="pr">${esc(prompt())}</span> ${esc(inp.value)}^C\n`);inp.value="";}});
+    root.querySelectorAll(".term-try button").forEach(b=>b.addEventListener("click",()=>{inp.value=b.dataset.cmd;inp.focus();exec(inp.value);inp.value="";}));
+    out.addEventListener("click",()=>{if(!window.getSelection().toString())inp.focus();});
+    out.innerHTML=`<span class="dim">Terminale simulato · scrivi un comando e premi Invio · «help» per l'elenco</span>\n`;refresh();}
+  document.querySelectorAll("[data-term]").forEach(makeTerm);
+  window.TERM_CMDS=CMDS;
+})();
+</script>
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,.recap,.phasecard,.term,",
+  ids:[],
+  rules:[
+    {re:"capitolo 0",to:"#s0",flags:"i",first:false},
+    {re:"terminale simulato",to:"#s0-dita",flags:"i"},
+    {re:"builtin",to:"#s0-gramm",flags:"i"},{re:"PATH",to:"#s0-gramm"},
+    {re:"GNU|BSD|coreutils",to:"#s0-os"},
+    {re:"pagina man|man\\s+[a-z]+",to:"#s0-help",flags:"i"},
+    {re:"opzion[ei] (corte|lunghe)",to:"#s0-gramm",flags:"i"},
+    {re:"\\bzsh\\b|\\bbash\\b",to:"#s0-bash"}
+  ],
+  gloss:{selector:"dl.gloss",skip:["Tab","Freccia su"],extra:{}}
+};
+</script>
+<!-- xpl:shared vx:start (non modificare: generato da shared/vx.html con scripts/sync-shared.mjs) -->
+<style>
+/* Componenti visivi .vx-* per schemi, codice, tabelle e diagrammi (catalogo in AUTHORING.md §11). Usano solo i token del tema. */
+.vx{margin:18px 0;min-width:0}
+.two>*{min-width:0}
+.two>.card p code{overflow-wrap:anywhere}
+.vx-cap{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+/* 1 · codice */
+.vx-code{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vx-code-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.vx-code-h span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vx-copy{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.vx-code-h .vx-copy{padding:3px 9px!important;font-family:var(--mono)!important;font-size:.7rem!important;font-weight:400!important;line-height:1.4!important;min-height:0;border:1px solid var(--line)!important;border-radius:6px!important;background:var(--surface)!important;color:var(--muted)!important}
+.vx-copy:hover{color:var(--ink);border-color:var(--accent)}
+.vx-copy:focus-visible{outline:2px solid var(--accent)}
+.vx-code pre{margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:12px 14px!important;font-size:.82rem!important;line-height:1.6!important;counter-reset:ln}
+.vx-code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.vx-code .ln{display:block;padding-left:2.6em;position:relative}
+.vx-code .ln::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:1.8em;text-align:right;color:var(--muted);opacity:.5}
+.vx-code .ln.hl{background:var(--warn-soft);margin:0 -14px;padding-right:14px;padding-left:calc(2.6em + 14px)}
+.vx-code .ln.hl::before{left:14px}
+.tk-kw{color:var(--accent);font-weight:600}.tk-str{color:var(--good)}.tk-num{color:var(--warn)}.tk-cm{color:var(--muted);font-style:italic}.tk-an{color:var(--warn);font-style:normal;font-weight:600}.tk-ty{color:var(--bad)}
+/* 2 · due transazioni nel tempo */
+.vx-race{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.vx-race-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:0}
+.vx-race-g .hd{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.vx-race-g .t{font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:10px 0 0 10px;border-right:1px solid var(--grid)}
+.vx-race-g .c{padding:6px 10px;border-bottom:1px dashed var(--grid);min-height:38px;display:flex;align-items:center}
+.vx-step{font-family:var(--mono);font-size:.8rem;line-height:1.4;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);display:inline-flex;flex-direction:column;gap:1px;max-width:100%}
+.vx-step small{font-family:var(--sans);font-size:.76rem;color:var(--muted)}
+.vx-step.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-step.err{border-color:var(--bad);background:var(--bad-soft)}
+.vx-step.wait{border-color:var(--warn);background:var(--warn-soft)}
+.vx-step.info{border-color:var(--accent);background:var(--accent-soft)}
+.vx-verdict{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;font-size:.92rem;border-top:1px solid var(--line)}
+.vx-verdict.bad{background:var(--bad-soft)}.vx-verdict.good{background:var(--good-soft)}
+.vx-verdict>b{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.vx-verdict.bad>b{color:var(--bad)}.vx-verdict.good>b{color:var(--good)}
+@media (max-width:560px){.vx-step{font-size:.74rem}}
+/* 3 · i tre posti del dato */
+.vx-state{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vx-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.vx-box.ram{border-style:dashed}
+.vx-box.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-box h5{margin:0;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;display:flex;justify-content:space-between;gap:6px}
+.vx-rec{font-family:var(--mono);font-size:.8rem;padding:6px 8px;border-radius:6px;background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vx-rec.new{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vx-rec.old{opacity:.6}
+.vx-badge{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.vx-badge.dirty{color:var(--warn);background:var(--warn-soft)}.vx-badge.clean{color:var(--good);background:var(--good-soft)}.vx-badge.stale{color:var(--bad);background:var(--bad-soft)}.vx-badge.ok{color:var(--good);background:var(--good-soft)}
+.vx-foot{margin:8px 0 0;font-size:.9rem;position:relative;padding-left:1.3em}
+.vx-foot::before{content:"→";color:var(--accent);font-family:var(--mono);position:absolute;left:0}
+@media (max-width:640px){.vx-state{grid-template-columns:1fr}}
+/* 4 · tabelle con barre */
+.vx-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.vx-table th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:8px;border-bottom:1px solid var(--ink)}
+.vx-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vx-table td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vx-bar{display:inline-block;height:10px;border-radius:3px;background:var(--accent);min-width:3px}
+.vx-bar.b{background:var(--bad)}
+.vx-bars{display:flex;flex-direction:column;gap:4px;min-width:140px}
+.vx-bars span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+/* 5 · schede di casi */
+.vx-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vx-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px}
+.vx-card h5{margin:0;font-family:var(--serif);font-size:1rem;font-weight:650}
+.vx-card h5 small{display:block;font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vx-line{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:baseline;font-size:.86rem}
+.vx-line>b{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.vx-line code{font-size:.78rem}
+.vx-out{margin-top:auto;font-size:.86rem;padding:8px 10px;border-radius:6px}
+.vx-out.go{background:var(--good-soft)}.vx-out.wait{background:var(--warn-soft)}
+.vx-out>b:first-child{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.vx-out.go>b:first-child{color:var(--good)}.vx-out.wait>b:first-child{color:var(--warn)}
+@media (max-width:640px){.vx-cards{grid-template-columns:1fr}}
+/* 6 · pila di livelli */
+.vx-stack{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 16px;align-items:stretch}
+.vx-layer{border:1px solid var(--line);background:var(--surface);padding:12px 14px;font-family:var(--mono);font-size:.84rem;display:flex;align-items:center;gap:8px}
+.vx-layer.cont{border-top:0}
+.vx-layer.first{border-radius:10px 10px 0 0}
+.vx-layer.solo{border-radius:10px;margin-top:10px}
+.vx-layer.last{border-radius:0 0 10px 10px}
+.vx-layer.vol{background:var(--warn-soft)}
+.vx-layer.dur{background:var(--good-soft)}
+.vx-layer.app{border-style:dashed;border-radius:10px;margin-bottom:10px}
+.vx-note{display:flex;align-items:center;font-size:.86rem;gap:8px;border-left:2px solid var(--line);padding-left:10px;min-height:46px}
+.vx-note b{font-family:var(--mono);font-size:.76rem}
+.vx-note.hot{border-left-color:var(--accent)}
+@media (max-width:640px){.vx-stack{grid-template-columns:1fr}.vx-note{min-height:0;padding:4px 10px 10px}}
+/* 7 · catena di versioni */
+.vx-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vx-ver{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:150px}
+.vx-ver.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.vx-ver.dead{opacity:.55}
+.vx-ver b{font-family:var(--mono);font-size:1rem}
+.vx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.vx-chip{font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--surface-2)}
+.vx-arrow{font-family:var(--mono);color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:.7rem}
+.vx-arrow span{font-size:1.2rem;color:var(--accent)}
+/* 8 · diagramma SVG */
+.vx-svg{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px;overflow-x:auto}
+.vx-svg svg{display:block;width:100%;height:auto;min-width:520px}
+.vx-svg.s svg{min-width:0}
+.vx-svg text{font-family:var(--mono);fill:var(--ink)}
+.vx-svg .mut{fill:var(--muted)}
+.vx-svg .ln{stroke:var(--line)}
+.vx-svg .ac{stroke:var(--accent);fill:none}
+.vx-svg .acf{fill:var(--accent)}
+.vx-svg .bx{fill:var(--surface-2);stroke:var(--line)}
+.vx-svg .bxa{fill:var(--accent-soft);stroke:var(--accent)}
+.vx-svg .gd{stroke:var(--good)}.vx-svg .gdf{fill:var(--good)}
+/* 9 · passi numerati */
+.vx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:vs}
+.vx-steps>li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.45}
+.vx-steps>li::before{counter-increment:vs;content:counter(vs);font-family:var(--mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.vx-steps>li small{display:block;color:var(--muted);font-size:.82rem}
+.vx-steps>li.hot{border-color:var(--accent)}
+.vx-steps>li.good{background:var(--good-soft);border-color:var(--good)}
+.vx-steps>li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.vx-li{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}
+.vx-li em{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+/* 10 · coppia, flusso, righe */
+.vx-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.vx-pair>.vx-arrow{min-width:56px;text-align:center}
+.vx-col{display:flex;flex-direction:column;gap:8px}
+.vx-flow{display:flex;flex-direction:column;align-items:stretch}
+.vx-node{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:.9rem;align-self:flex-start;max-width:100%}
+.vx-node.code{font-family:var(--mono);font-size:.82rem}
+.vx-node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.vx-down{font-family:var(--mono);color:var(--accent);padding:3px 0 3px 18px;font-size:.9rem;line-height:1}
+.vx-down small{font-family:var(--sans);color:var(--muted);font-size:.78rem;margin-left:8px}
+.vx-branch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vx-map{display:grid;grid-template-columns:minmax(0,auto) auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:.86rem}
+.vx-map code{white-space:normal}
+.vx-map .vx-cell{justify-self:start}
+.vx-map .to{font-family:var(--mono);color:var(--accent)}
+.vx-rw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-family:var(--mono);font-size:.74rem;padding:4px 0;border-bottom:1px dashed var(--grid)}
+.vx-rw b{color:var(--muted);font-weight:400}
+.vx-rw small{grid-column:2/-1;color:var(--muted);font-size:.72rem}
+.vx-head{font-family:var(--mono);font-size:.78rem;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);line-height:1.5}
+.vx-rec small{display:block;font-family:var(--sans);color:var(--muted);font-size:.76rem;margin-top:1px}
+.vx-rec>span:first-child{min-width:0}
+.vx-state.two{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.vx-state.one{grid-template-columns:1fr}
+.vx-out.bad{background:var(--bad-soft)}.vx-out.bad>b:first-child{color:var(--bad)}
+.vx-out.acc{background:var(--accent-soft)}.vx-out.acc>b:first-child{color:var(--accent)}
+.vx-race-g .c.span{grid-column:span 2;justify-content:center}
+/* 11 · celle, barre divise, tempo, formula */
+.vx-cells{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.vx-cell{font-family:var(--mono);font-size:.72rem;padding:4px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.vx-cell.hl{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cell.ok{border-color:var(--good);background:var(--good-soft)}
+.vx-cell.bad{border-color:var(--bad);background:var(--bad-soft)}
+.vx-cell.gap{border:0;background:transparent;color:var(--muted);padding:4px 2px}
+.vx-split{display:flex;height:28px;border-radius:6px;overflow:hidden;font-family:var(--mono);font-size:.7rem;border:1px solid var(--line)}
+.vx-split span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.vx-split .a{background:var(--accent-soft);color:var(--ink)}
+.vx-split .x{background:var(--surface-2);color:var(--muted)}
+.vx-tl{display:flex;flex-direction:column;gap:8px}
+.vx-tl-r{display:grid;grid-template-columns:minmax(40px,max-content) 1fr;gap:6px 12px;align-items:center}
+.vx-tl-r>b{font-family:var(--mono);font-size:.76rem;font-weight:600}
+.vx-tl-r>b small{display:block;font-weight:400;color:var(--muted)}
+.vx-tl-r>.vx-step,.vx-flow>.vx-step{justify-self:start;align-self:flex-start}
+.vx-seq{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.vx-seq>i{font-style:normal;color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.vx-axis{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;display:flex;justify-content:space-between}
+.vx-slots{display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.vx-slots b{font-family:var(--mono);font-size:.76rem}
+.vx-formula{font-family:var(--mono);font-size:clamp(.82rem,2.6vw,1rem);padding:18px 14px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;line-height:1.8}
+.vx-formula .op{color:var(--accent);font-weight:600;padding:0 .4em}
+.vx-formula small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.vx-side{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center}
+.vx-mini{width:auto!important;margin:0!important;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.vx-mini td,.vx-mini th{border:1px solid var(--line);padding:3px 8px;text-align:left}
+.vx-mini th{font-weight:400;color:var(--muted);background:var(--surface-2)}
+.vx-mini caption{caption-side:top;text-align:left;font-size:.68rem;color:var(--muted);padding-bottom:3px}
+.vx-minis{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.vx-code.flat pre{padding:10px 12px!important}
+.vx-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:640px){.vx-pair{grid-template-columns:1fr}.vx-pair>.vx-arrow{min-width:0;justify-self:center}.vx-pair>.vx-arrow span{transform:rotate(90deg)}.vx-branch,.vx-state.two{grid-template-columns:1fr}.vx-side{grid-template-columns:1fr}.vx-side svg{max-width:170px;margin:0 auto}.vx-map{grid-template-columns:1fr}.vx-map .vx-cell{justify-self:start}
+.vx-map .to{display:none}.vx-map code{margin-top:6px}}
+/* letture consigliate prima della guida: <aside class="vx-prereq"> nell'intestazione, dopo la .lede */
+.vx.vx-prereq{margin:0;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--surface);padding:12px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.vx-prereq ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.vx-prereq li{font-size:.92rem}
+.vx-prereq li a{font-weight:600}
+.vx-prereq li span{color:var(--muted)}
+.vx-prereq p{font-size:.92rem;color:var(--muted)}
+.xref-pop .vx{margin:8px 0}
+.xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
+.xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
+.xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+</style>
+<script>
+/* schede codice: pulsante Copia (copia le righe senza numeri) */
+document.querySelectorAll(".vx-copy").forEach(function(b){b.addEventListener("click",function(){
+  var pre=b.closest(".vx-code").querySelector("pre");var t=Array.from(pre.querySelectorAll(".ln")).map(function(l){return l.textContent.replace(/\n$/,"")}).join("\n");
+  var done=function(){b.textContent="Copiato ✓";setTimeout(function(){b.textContent="Copia"},1400)};
+  try{navigator.clipboard.writeText(t).then(done,function(){})}catch(e){}
+});});
+</script>
+<!-- xpl:shared vx:end -->
+<!-- xpl:shared toc:start (non modificare: generato da shared/toc.html con scripts/sync-shared.mjs) -->
+<style>
+/* xpl:toc — barra delle sezioni + pannello «Indice» (versione 2) */
+nav.toc.xpl-ready{overflow:visible}
+nav.toc.xpl-ready .in{display:flex;align-items:center;gap:8px;min-width:0}
+.xpl-strip{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);padding-inline:6px}
+.xpl-strip::-webkit-scrollbar{display:none}
+.xpl-strip a{flex-shrink:0}
+.xpl-toc-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--ink);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);flex-shrink:0;white-space:nowrap}
+.xpl-toc-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.xpl-toc-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xpl-toc-btn .pos{color:var(--muted);font-size:.7rem}
+.xpl-toc-btn[aria-expanded="true"] .pos{color:inherit;opacity:.8}
+.xpl-toc{position:fixed;right:max(12px,calc((100vw - 980px)/2));top:var(--xpl-top,56px);width:min(400px,calc(100vw - 24px));max-height:calc(100dvh - var(--xpl-top,56px) - 16px);z-index:950;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.xpl-toc[hidden]{display:none}
+.xpl-toc-head{display:flex;flex-direction:column;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.xpl-toc-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xpl-toc-row span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.xpl-toc-row small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none}
+.xpl-toc-tools{display:flex;gap:6px}
+.xpl-toc-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:3px 8px;border:1px solid var(--line);border-radius:6px}
+.xpl-toc-tools button:hover{color:var(--ink);border-color:var(--accent)}
+.xpl-toc-tools button:focus-visible{outline:2px solid var(--accent)}
+.xpl-toc-q{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.xpl-toc-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.xpl-toc-list{overflow-y:auto;padding:6px 6px 12px;overscroll-behavior:contain}
+.xpl-part{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:12px 10px 4px;border-top:1px solid var(--line);margin-top:6px}
+.xpl-part:first-child{border-top:none;margin-top:0;padding-top:4px}
+.xpl-grp{border-radius:8px}
+.xpl-grp.open{background:var(--surface-2)}
+.xpl-sec{display:grid;grid-template-columns:22px 1fr;align-items:start}
+.xpl-tw{all:unset;cursor:pointer;width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:6px;font-size:.7rem;transition:transform .15s}
+.xpl-tw:hover{color:var(--ink)}
+.xpl-tw:focus-visible{outline:2px solid var(--accent)}
+.xpl-grp.open>.xpl-sec .xpl-tw{transform:rotate(90deg)}
+.xpl-tw.none{visibility:hidden}
+.xpl-sec a{display:block;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:650;font-size:.92rem;line-height:1.3;padding:6px 8px 6px 2px;border-radius:6px}
+.xpl-sec a small{display:block;font-family:var(--mono);font-weight:400;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.xpl-subs{display:none;padding:0 6px 6px 22px}
+.xpl-grp.open .xpl-subs{display:block}
+.xpl-subs a{display:block;text-decoration:none;color:var(--muted);font-size:.84rem;line-height:1.35;padding:4px 8px;border-left:2px solid var(--line)}
+.xpl-toc-list a:hover{color:var(--ink);background:var(--bg)}
+.xpl-toc-list a.here{color:var(--ink);background:var(--accent-soft)}
+.xpl-subs a.here{border-left-color:var(--accent)}
+.xpl-toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xpl-toc-list mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.xpl-empty{padding:14px 10px;color:var(--muted);font-size:.86rem}
+.xpl-toc-back{position:fixed;left:0;right:0;bottom:0;top:var(--xpl-top,56px);z-index:940;background:rgba(0,0,0,.18)}
+.xpl-toc-back[hidden]{display:none}
+body:has(.xpl-toc:not([hidden])) .xpl-nav{display:none}
+@media (max-width:640px){.xpl-toc{right:8px;left:8px;width:auto}.xpl-toc-btn .pos{display:none}}
+@media (prefers-reduced-motion: reduce){.xpl-tw{transition:none}.xpl-strip{scroll-behavior:auto}}
+</style>
+<script>
+/* xpl:toc v2 — pannello «Indice» a gruppi comprimibili, con ricerca, ancorato sotto la barra delle sezioni */
+(function(){
+  if(document.querySelector(".xpl-toc"))return;
+  const nav=document.querySelector("nav.toc");if(!nav)return;
+  const inner=nav.querySelector(".in")||nav;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const slug=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48);
+  // 1) barra: i link scorrono in una striscia, il pulsante resta fuori e non copre nulla
+  inner.querySelectorAll("#tocBtn,.xpl-toc-btn").forEach(b=>b.remove());
+  const strip=document.createElement("div");strip.className="xpl-strip";
+  [...inner.children].forEach(ch=>{if(ch.tagName==="A")strip.appendChild(ch);});
+  inner.prepend(strip);nav.classList.add("xpl-ready");
+  // 2) struttura: parti (.part), sezioni (h2) e sottosezioni (h3 fuori da laboratori e schede)
+  const root=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const groups=[];let part=null;
+  root.querySelectorAll(".part, section").forEach(el=>{
+    if(el.classList.contains("part")){const h=el.querySelector("h2");part={label:txt(el.querySelector(".part-label")),title:txt(h),el:h||el};if(h&&!h.id)h.id=slug(part.label||part.title);return;}
+    if(el.parentElement&&el.parentElement.closest("section"))return;
+    const h2=el.querySelector("h2");if(!h2)return;
+    const eb=el.querySelector(".sec-head .eyebrow");const tgt=el.id?el:h2;if(!tgt.id)tgt.id=slug(txt(h2))||"sez";
+    const subs=[];el.querySelectorAll("h3").forEach(h3=>{if(h3.closest(".lab,.lab-head,.card,.recap,.mn,.xpl-toc"))return;if(!h3.id)h3.id=tgt.id+"-"+slug(txt(h3));subs.push({el:h3,t:txt(h3)});});
+    groups.push({el:tgt,t:txt(h2),k:eb?txt(eb).split("·").slice(0,2).join("·").trim():"",part,subs});
+  });
+  if(!groups.length)return;
+  // 3) pulsante e pannello
+  const btn=document.createElement("button");btn.type="button";btn.className="xpl-toc-btn";btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","xpl-toc");
+  btn.innerHTML='<span aria-hidden="true">☰</span> Indice <span class="pos"></span>';inner.appendChild(btn);
+  const panel=document.createElement("div");panel.className="xpl-toc";panel.id="xpl-toc";panel.hidden=true;panel.setAttribute("role","dialog");panel.setAttribute("aria-label","Indice della guida");
+  panel.innerHTML='<div class="xpl-toc-head"><div class="xpl-toc-row"><span>Indice <small></small></span><div class="xpl-toc-tools"><button type="button" data-a="all">Espandi tutto</button><button type="button" data-a="none">Comprimi</button><button type="button" data-a="close" aria-label="Chiudi indice">✕</button></div></div><input class="xpl-toc-q" type="search" placeholder="Cerca un capitolo o un argomento…" aria-label="Cerca nell\'indice"></div><div class="xpl-toc-list"></div>';
+  const back=document.createElement("div");back.className="xpl-toc-back";back.hidden=true;
+  document.body.append(back,panel);
+  const list=panel.querySelector(".xpl-toc-list"),q=panel.querySelector(".xpl-toc-q");
+  let lastPart=null;const G=[];
+  groups.forEach((g,i)=>{
+    if(g.part&&g.part!==lastPart){lastPart=g.part;const p=document.createElement("div");p.className="xpl-part";p.textContent=(g.part.label?g.part.label+" · ":"")+g.part.title;list.appendChild(p);g.partEl=p;}
+    const box=document.createElement("div");box.className="xpl-grp";
+    box.innerHTML=`<div class="xpl-sec"><button type="button" class="xpl-tw${g.subs.length?"":" none"}" aria-label="Mostra le sottosezioni" aria-expanded="false" tabindex="${g.subs.length?0:-1}">▶</button><a href="#${g.el.id}">${g.k?`<small>${esc(g.k)}</small>`:""}${esc(g.t)}</a></div>`+(g.subs.length?`<div class="xpl-subs">${g.subs.map(s=>`<a href="#${s.el.id}">${esc(s.t)}</a>`).join("")}</div>`:"");
+    list.appendChild(box);G.push({g,box,a:box.querySelector(".xpl-sec a"),subA:[...box.querySelectorAll(".xpl-subs a")],tw:box.querySelector(".xpl-tw")});
+  });
+  const setOpen=(x,o)=>{x.box.classList.toggle("open",o);x.tw.setAttribute("aria-expanded",o?"true":"false");};
+  G.forEach(x=>x.tw.addEventListener("click",()=>setOpen(x,!x.box.classList.contains("open"))));
+  // 4) apertura, chiusura, posizione sotto la barra
+  function place(){const r=nav.getBoundingClientRect();document.documentElement.style.setProperty("--xpl-top",Math.max(8,Math.round(r.bottom)+6)+"px");}
+  function open(o){if(o){place();q.value="";filter("");G.forEach(x=>setOpen(x,x===cur));}
+    panel.hidden=!o;back.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");
+    if(o){const h=list.querySelector("a.here")||list.querySelector("a");h&&h.scrollIntoView({block:"center"});if(matchMedia("(hover: hover)").matches)q.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}}
+  btn.addEventListener("click",()=>open(panel.hidden));
+  back.addEventListener("click",()=>open(false));
+  panel.querySelector(".xpl-toc-tools").addEventListener("click",e=>{const a=e.target.closest("button");if(!a)return;
+    if(a.dataset.a==="close"){open(false);btn.focus();}else G.forEach(x=>{if(x.g.subs.length)setOpen(x,a.dataset.a==="all");});});
+  list.addEventListener("click",e=>{if(e.target.closest("a"))open(false);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){open(false);btn.focus();}});
+  addEventListener("resize",()=>{if(!panel.hidden)place();});
+  // 5) ricerca: filtra sezioni e sottosezioni, apre i gruppi che hanno corrispondenze
+  function hl(a,t,s){const base=a.dataset.t||(a.dataset.t=a.lastChild.textContent);const i=t?base.toLowerCase().indexOf(t):-1;
+    const small=a.querySelector("small");a.innerHTML=(small?small.outerHTML:"")+(i<0?esc(base):esc(base.slice(0,i))+"<mark>"+esc(base.slice(i,i+t.length))+"</mark>"+esc(base.slice(i+t.length)));}
+  function filter(t){t=t.trim().toLowerCase();let n=0;
+    G.forEach(x=>{const m1=x.g.t.toLowerCase().includes(t)||x.g.k.toLowerCase().includes(t);let any=false;
+      x.subA.forEach((a,i)=>{const m=!t||x.g.subs[i].t.toLowerCase().includes(t);a.hidden=!m&&!m1;if(t&&m)any=true;hl(a,t);});
+      const show=!t||m1||any;x.box.hidden=!show;if(show)n++;hl(x.a,t);if(t)setOpen(x,any);});
+    list.querySelectorAll(".xpl-part").forEach(p=>{let s=p.nextElementSibling,vis=false;while(s&&!s.classList.contains("xpl-part")){if(!s.hidden)vis=true;s=s.nextElementSibling;}p.hidden=!vis;});
+    let e=list.querySelector(".xpl-empty");if(!n){if(!e){e=document.createElement("p");e.className="xpl-empty";e.textContent="Nessuna voce corrisponde.";list.appendChild(e);}}else if(e)e.remove();}
+  q.addEventListener("input",()=>filter(q.value));
+  q.addEventListener("keydown",e=>{if(e.key==="Enter"){const a=[...list.querySelectorAll("a")].find(a=>!a.hidden&&!a.closest("[hidden]"));if(a){a.click();location.hash=a.getAttribute("href");}}});
+  // 6) posizione corrente: evidenzia la voce, aggiorna il contatore, tiene visibile il link attivo nella barra
+  let cur=null,curSub=null;const total=G.length;
+  panel.querySelector(".xpl-toc-row small").textContent=total+" sezioni";
+  function spy(){let c=null,cs=null;for(const x of G){if(x.g.el.getBoundingClientRect().top<=120)c=x;else break;}
+    if(c)for(let i=0;i<c.g.subs.length;i++){if(c.g.subs[i].el.getBoundingClientRect().top<=120)cs=c.subA[i];}
+    if(c!==cur){cur&&cur.a.classList.remove("here");cur=c;cur&&cur.a.classList.add("here");btn.querySelector(".pos").textContent=cur?(G.indexOf(cur)+1)+"/"+total:"";}
+    if(cs!==curSub){curSub&&curSub.classList.remove("here");curSub=cs;curSub&&curSub.classList.add("here");}
+    const on=strip.querySelector("a.on");if(on){const sr=strip.getBoundingClientRect(),ar=on.getBoundingClientRect();if(ar.left<sr.left+10||ar.right>sr.right-24)strip.scrollLeft+=ar.left-sr.left-sr.width/3;}}
+  addEventListener("scroll",spy,{passive:true});setTimeout(spy,60);
+})();
+</script>
+<!-- xpl:shared toc:end -->
+<!-- xpl:shared xref:start (non modificare: generato da shared/xref.html con scripts/sync-shared.mjs) -->
+<style>
+/* ===== riferimenti incrociati con anteprima ===== */
+a.xref{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+a.xref:hover{text-decoration-thickness:2px}
+a.xref.term{color:inherit;text-decoration-style:dotted;text-decoration-color:var(--accent)}
+.xref-pop{position:fixed;z-index:900;width:min(640px,calc(100vw - 24px));max-height:min(55vh,440px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 14px 36px -14px rgba(0,0,0,.45);font-size:.9rem;line-height:1.5}
+.xref-pop[hidden]{display:none}
+.xref-pop .xp-k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.xref-pop .xp-t{font-family:var(--serif);font-weight:650;font-size:1.05rem;line-height:1.25;margin:0 0 6px}
+.xref-pop p{margin:0 0 8px}
+.xref-pop pre{font-family:var(--mono);font-size:.72rem;line-height:1.45;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 8px;overflow-x:auto;white-space:pre}
+@media (max-width:600px){.xref-pop pre{white-space:pre-wrap}}
+.xref-pop .xp-go{display:inline-block;margin-top:4px;font-family:var(--mono);font-size:.74rem;color:var(--accent);text-decoration:none}
+.xref-pop .xp-go:hover{text-decoration:underline}
+.xref-target{scroll-margin-top:80px}
+.xref-flash{animation:xrefFlash 1.6s ease-out}
+@keyframes xrefFlash{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion: reduce){.xref-flash{animation:none;outline:2px solid var(--accent)}}
+.xref-pop .xp-ex{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+a.xref.ext::after{content:" ↗";font-size:.8em}
+</style>
+<script>
+/* Riferimenti incrociati con anteprima (motore generico).
+   Configurazione in window.XREF_CONFIG = {
+     rules:    [{re:"regex", to:"#id" | "https://…", k:"etichetta", t:"titolo", body:"html", first:true, flags:"g" | "gi"}],
+     gloss:    {selector:"dl.gloss", skip:["Termine", …], extra:{"Termine":["alias", …]}},
+     ids:      [{sel:"css", text:"testo contenuto", id:"id-da-assegnare"}]
+   } */
+(function(){
+  const C=window.XREF_CONFIG||{};const main=document.querySelector("main")||document.querySelector(".wrap")||document.body;
+  const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
+  const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const escH=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // id aggiuntivi su elementi senza id
+  (C.ids||[]).forEach(r=>{const el=[...document.querySelectorAll(r.sel)].find(e=>txt(e).includes(r.text));if(el&&!el.id)el.id=r.id;});
+
+  /* anteprima automatica di un elemento del documento */
+  function preview(el){
+    if(!el)return null;
+    if(el.tagName==="DIV"&&el.parentElement&&el.parentElement.tagName==="DL"){const dt=el.querySelector("dt"),dd=el.querySelector("dd"),ex=el.querySelector(".ex");
+      return{k:"Definizione",t:txt(dt),body:(dd?`<p>${dd.innerHTML}</p>`:"")+(ex?`<p class="xp-ex">${ex.innerHTML}</p>`:"")};}
+    if(el.tagName==="SECTION"){const eb=el.querySelector(".sec-head .eyebrow"),h=el.querySelector("h2"),p=el.querySelector(".prose p, p");
+      return{k:txt(eb),t:txt(h),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(/^H[2-4]$/.test(el.tagName)){let n=el.nextElementSibling;while(n&&!/^(P|DIV)$/.test(n.tagName))n=n.nextElementSibling;
+      const p=n&&(n.tagName==="P"?n:n.querySelector("p"));const sec=el.closest("section");
+      return{k:sec?txt(sec.querySelector(".sec-head .eyebrow")):"",t:txt(el),body:p?`<p>${p.innerHTML}</p>`:""};}
+    if(el.tagName==="TR"){const c=[...el.children];return{k:"",t:txt(c[0]),body:c.slice(1).map(x=>`<p>${x.innerHTML}</p>`).join("")};}
+    const b=el.querySelector("b,h3,h4"),rest=el.cloneNode(true);if(b){const bb=rest.querySelector("b,h3,h4");bb&&bb.remove();}
+    return{k:"",t:txt(b),body:`<p>${rest.innerHTML}</p>`};
+  }
+
+  /* regole: espressioni → bersaglio */
+  const rules=[];
+  (C.rules||[]).forEach(r=>rules.push({re:new RegExp("^(?:"+r.re+")$",r.flags&&r.flags.includes("i")?"i":""),src:r.re,to:r.to,k:r.k,t:r.t,body:r.body,first:r.first!==false,flags:r.flags||""}));
+  // glossario automatico da <dl class="gloss">
+  const G=C.gloss;
+  if(G){const skip=new Set(G.skip||[]);let gi=0;
+    document.querySelectorAll(G.selector||"dl.gloss").forEach(dl=>dl.querySelectorAll(":scope > div").forEach(div=>{const dt=div.querySelector("dt");if(!dt)return;
+      const name=txt(dt);if(skip.has(name))return;div.id=div.id||"def-"+(++gi);div.classList.add("xref-target");
+      let aliases=[];name.split(/\s*\/\s*|\s+vs\s+/).forEach(part=>{const m=part.match(/^(.*?)\s*\((.*?)\)\s*$/);if(m){aliases.push(m[1]);if(!/\s/.test(m[2])||m[2].length<22)aliases.push(m[2]);}else aliases.push(part);});
+      aliases=aliases.concat((G.extra||{})[name]||[]).map(a=>a.trim()).filter(a=>a.length>=3&&!skip.has(a));
+      aliases.forEach(a=>{const acr=/^[A-Z0-9][A-Za-z0-9-]*[A-Z0-9]$/.test(a)&&a!==a.toLowerCase()&&/[A-Z].*[A-Z]|\d/.test(a);
+        rules.push({re:new RegExp("^"+escRe(a).replace(/\s+/g,"\\s+")+"$",acr?"":"i"),src:escRe(a).replace(/\s+/g,"\\s+"),to:"#"+div.id,first:true,flags:acr?"":"i",gloss:true});});}));}
+  if(!rules.length)return;
+  rules.sort((a,b)=>b.src.length-a.src.length);
+
+  const big=new RegExp("(?:"+rules.map(r=>"("+r.src+")").join("|")+")","gi");
+  const SKIPSEL=(C.skip||"")+".vx,pre,code,a,button,h1,h2,h3,h4,th,nav,script,style,.xref-pop,.eyebrow,.tag,.diag-title,label,output,svg,.stage,dt,.lab-head,[data-noxref],.xpl-nav";
+  const seen=new Map();let count=0;
+  const walker=document.createTreeWalker(main,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.closest(SKIPSEL))return NodeFilter.FILTER_REJECT;big.lastIndex=0;return big.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const s=node.nodeValue;big.lastIndex=0;let m,last=0,changed=false;const frag=document.createDocumentFragment();
+    const sec=node.parentElement.closest("section")||main;if(!seen.has(sec))seen.set(sec,new Set());const S=seen.get(sec);
+    while((m=big.exec(s))){const w=m[0];
+      const before=s[m.index-1]||" ",after=s[m.index+w.length]||" ";
+      if(/[\wÀ-ÿ]/.test(before)||/[\wÀ-ÿ]/.test(after)){continue;}
+      const r=rules.find(r=>r.re.test(w));if(!r)continue;
+      if(r.to.startsWith("#")){const tgt=document.getElementById(r.to.slice(1));if(!tgt||tgt.contains(node))continue;}
+      const key=r.to+"|"+r.src;if(r.first&&S.has(key))continue;S.add(key);
+      const a=document.createElement("a");a.href=r.to;a.className="xref"+(r.gloss?" term":"")+(r.to.startsWith("#")?"":" ext");a.textContent=w;a._xr=r;
+      frag.append(s.slice(last,m.index),a);last=m.index+w.length;changed=true;count++;}
+    if(changed){frag.append(s.slice(last));node.replaceWith(frag);}});
+
+  /* popup */
+  const pop=document.createElement("div");pop.className="xref-pop";pop.hidden=true;pop.id="xref-pop";pop.setAttribute("role","tooltip");document.body.appendChild(pop);
+  let cur=null,tShow=0,tHide=0,ptr="mouse";const touch=matchMedia("(hover: none)").matches;
+  addEventListener("pointerdown",e=>{ptr=e.pointerType;},true);
+  function info(a){const r=a._xr;if(!r.to.startsWith("#"))return{k:r.k||"Altra guida",t:r.t||"",body:r.body||"",ext:true};
+    const el=document.getElementById(r.to.slice(1));const p=preview(el)||{};return{k:r.k||p.k,t:r.t||p.t,body:r.body||p.body};}
+  function show(a){const I=info(a);cur=a;
+    pop.innerHTML=`${I.k?`<span class="xp-k">${escH(I.k)}</span>`:""}${I.t?`<p class="xp-t">${escH(I.t)}</p>`:""}${I.body||""}<a class="xp-go" href="${a.getAttribute("href")}">${I.ext?"Apri la guida →":"Vai alla sezione →"}</a>`;
+    pop.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));pop.querySelectorAll("a.xref").forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+    pop.hidden=false;a.setAttribute("aria-describedby","xref-pop");
+    const r=a.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight,vw=innerWidth,vh=innerHeight;
+    let left=Math.min(Math.max(12,r.left),vw-pw-12),top=r.bottom+8;if(top+ph>vh-12&&r.top-ph-8>12)top=r.top-ph-8;if(top+ph>vh-12)top=Math.max(12,vh-ph-12);
+    pop.style.left=left+"px";pop.style.top=top+"px";}
+  function hide(){pop.hidden=true;if(cur)cur.removeAttribute("aria-describedby");cur=null;}
+  function go(href){if(!href.startsWith("#")){location.href=href;return;}const el=document.getElementById(href.slice(1));if(!el)return;
+    el.classList.add("xref-target");el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    el.classList.remove("xref-flash");void el.offsetWidth;el.classList.add("xref-flash");history.pushState(null,"",href);}
+  main.addEventListener("pointerover",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tHide);clearTimeout(tShow);tShow=setTimeout(()=>show(a),140);});
+  main.addEventListener("pointerout",e=>{const a=e.target.closest("a.xref");if(!a||e.pointerType!=="mouse")return;clearTimeout(tShow);tHide=setTimeout(hide,220);});
+  pop.addEventListener("mouseenter",()=>clearTimeout(tHide));pop.addEventListener("mouseleave",()=>{tHide=setTimeout(hide,220);});
+  main.addEventListener("focusin",e=>{const a=e.target.closest("a.xref");if(a&&ptr==="mouse"&&a.matches(":focus-visible"))show(a);});
+  main.addEventListener("focusout",e=>{if(e.target.closest("a.xref"))tHide=setTimeout(()=>{if(!pop.contains(document.activeElement))hide();},150);});
+  main.addEventListener("click",e=>{const a=e.target.closest("a.xref");if(!a)return;e.preventDefault();if((touch||ptr!=="mouse")&&cur!==a){show(a);return;}hide();go(a.getAttribute("href"));});
+  pop.addEventListener("click",e=>{const g=e.target.closest(".xp-go");if(!g)return;e.preventDefault();const h=g.getAttribute("href");hide();go(h);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!pop.hidden){const a=cur;hide();a&&a.focus();}});
+  document.addEventListener("click",e=>{if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest("a.xref"))hide();});
+  addEventListener("scroll",()=>{if(!pop.hidden&&ptr==="mouse"&&!touch)hide();},{passive:true});
+  window.__xrefCount=count;
+})();
+</script>
+<!-- xpl:shared xref:end -->
