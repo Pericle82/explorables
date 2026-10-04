@@ -500,7 +500,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <p class="note">I numeri sono inventati, scelti perché il conto torni esatto. In un modello vero il vettore ha migliaia di numeri senza nome, e il conto arriva solo vicino alla parola giusta.</p>
   </div>
   <div class="prose stack">
-    <p><b>E nei modelli veri?</b> La vettore di ogni token non ha 2 numeri ma 4.096 (in un modello da 7 miliardi di pesi). Nessuno dà loro un nome come «regale» o «femminile»: all'inizio sono numeri a caso, e il modello li sistema da solo durante l'allenamento, leggendo moltissimo testo, con il ciclo del capitolo 2. Alla fine le parole usate in modo simile hanno vettori simili, e alcune direzioni prendono un significato, ma solo in modo approssimato: per questo re − uomo + donna arriva <i>vicino</i> a regina, non esattamente sopra.</p>
+    <p><b>E nei modelli veri?</b> Il vettore di ogni token non ha 2 numeri ma migliaia. Quanti, lo decide chi progetta il modello prima di allenarlo, ed è un compromesso: più numeri lasciano spazio a più sfumature ma costano più calcoli e più memoria. GPT-2 piccolo ne usa 768, i modelli da 7 miliardi di pesi come Llama 2 e Mistral 4.096 (il valore che ritroverai negli esempi di questa guida, che usa come modello di riferimento Llama 2 7B: è aperto, di una taglia che si può eseguire sul proprio computer e ben documentato), GPT-3 12.288. Si scelgono numeri «tondi» per il computer, come 4.096 = 2<sup>12</sup>, perché le schede grafiche fanno i conti a blocchi di 64 o 128 numeri e così non sprecano spazio. Nessuno dà a questi numeri un nome come «regale» o «femminile»: all'inizio sono numeri a caso, e il modello li sistema da solo durante l'allenamento, leggendo moltissimo testo, con il ciclo del capitolo 2. Alla fine le parole usate in modo simile hanno vettori simili, e alcune direzioni prendono un significato, ma solo in modo approssimato: per questo re − uomo + donna arriva <i>vicino</i> a regina, non esattamente sopra.</p>
   </div>
   <div class="prose stack">
     <p>Fin qui nessuna previsione: abbiamo solo una lista di punti in uno spazio a d dimensioni, uno per token, ciascuno ignaro degli altri. Il problema da risolvere è: <b>data questa lista, produrre una probabilità per ogni token del vocabolario come prossimo token</b>. Tutto ciò che segue sono modi diversi di costruire questa funzione.</p>
@@ -517,6 +517,29 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
   <div class="prose stack">
     <p>Due motivi, e il transformer nasce per rispondere a entrambi.</p>
     <p><b>1 · La tabella esplode.</b> Con un vocabolario di V token e un contesto di n token, le combinazioni possibili sono V<sup>n</sup>. Già con 32.000 token e un contesto di appena 3, sono 32.000³ ≈ 3 × 10¹³ righe: più di quante parole esistano in tutti i testi mai scritti. Quasi tutte le combinazioni non compaiono mai nel corpus, quindi il modello non ha nulla da contare e resta muto davanti a frasi perfettamente normali. Un contesto di migliaia di token, come quello degli LLM attuali, è impensabile per una tabella.</p>
+    <p><b>Da dove viene V<sup>n</sup>.</b> Ogni riga della tabella è un contesto possibile, cioè una sequenza di n token. Per riempire la prima posizione puoi scegliere uno qualsiasi dei V token; per ognuna di queste scelte, la seconda posizione ne ammette di nuovo V; e così via fino alla n-esima. Le scelte si moltiplicano: V × V × … × V, con n fattori, cioè V<sup>n</sup>. Con V = 3 token e n = 2 sono 3 × 3 = 9 contesti; con n = 3 sono 3 × 3 × 3 = 27. Ogni nuova parola di contesto <i>moltiplica</i> le righe per V, non le aumenta di V: è per questo che la crescita è esponenziale. A ogni riga poi si associano V colonne (la parola successiva), quindi le celle da riempire sono V<sup>n+1</sup>.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la tabella disegnata</h3><span class="tag">vocabolario giocattolo</span></div>
+    <p>Ogni riga è un contesto, ogni colonna la parola successiva. Le celle colorate sono quelle che un testo di sole 12 parole è riuscito a riempire: le altre restano a zero, e il modello non può dire nulla su quelle righe. Aumenta il contesto n e guarda la tabella allungarsi mentre le celle piene restano le stesse.</p>
+    <div class="row">
+      <span class="diag-title">Vocabolario V</span>
+      <div class="seg" id="tbV" role="group" aria-label="Dimensione del vocabolario"><button aria-pressed="false" data-v="3">3 token</button><button aria-pressed="true" data-v="4">4 token</button><button aria-pressed="false" data-v="5">5 token</button></div>
+      <span class="diag-title">Contesto n</span>
+      <div class="seg" id="tbN" role="group" aria-label="Lunghezza del contesto"><button aria-pressed="false" data-v="1">1</button><button aria-pressed="true" data-v="2">2</button><button aria-pressed="false" data-v="3">3</button></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <svg id="tbSvg" class="chart z-svg" viewBox="0 0 400 340" style="max-width:420px;margin:0 auto" role="img" aria-label="La tabella dei conteggi: righe i contesti possibili, colonne la parola successiva"></svg>
+        <p class="vx-sr" id="tbSr"></p>
+      </div>
+      <div class="stack">
+        <div class="formula" id="tbF" style="white-space:normal"></div>
+        <div class="readout" id="tbOut"></div>
+        <p class="callout" id="tbMsg" aria-live="polite"></p>
+      </div>
+    </div>
+    <p class="note">Le celle piene sono scelte a caso, solo per illustrare. Il punto è la proporzione: un testo finito riempie un numero finito di celle, mentre la tabella cresce a ogni parola di contesto in più.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Calcolatore: quanto sarebbe grande la tabella dei conteggi</h3><span class="tag">aritmetica</span></div>
@@ -1808,7 +1831,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
       </figure>
       <figure>
         <svg viewBox="0 0 170 134" role="img" aria-label="Vettore: una fila di d caselle"><rect class="bxa" x="43" y="52" width="84" height="14"/><path class="ac" stroke-width=".7" d="M57 52v14M71 52v14M85 52v14M99 52v14M113 52v14"/><line class="ln" x1="43" y1="78" x2="127" y2="78"/><text x="85" y="94" text-anchor="middle" font-size="12">d</text></svg>
-        <p class="tn-cap"><b>Rango 1 · vettore</b> shape [d], d numeri. La vettore di un token.</p>
+        <p class="tn-cap"><b>Rango 1 · vettore</b> shape [d], d numeri. Il vettore di un token.</p>
       </figure>
       <figure>
         <svg viewBox="0 0 170 134" role="img" aria-label="Matrice: L righe per d colonne"><rect class="bxa" x="46" y="26" width="84" height="56"/><path class="ac" stroke-width=".7" d="M60 26v56M74 26v56M88 26v56M102 26v56M116 26v56M46 40h84M46 54h84M46 68h84"/><line class="ln" x1="46" y1="92" x2="130" y2="92"/><text x="88" y="108" text-anchor="middle" font-size="12">d</text><line class="ln" x1="38" y1="26" x2="38" y2="82"/><text x="31" y="58" text-anchor="end" font-size="12">L</text></svg>
@@ -2787,6 +2810,36 @@ function drawToy(){const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);
 seg("#tySent",v=>{tyToks=[...TY_SENTS[+v]];tyPos=tyToks.length-1;drawToy();});
 $("#tyGen").onclick=()=>{const pre=tyToks.slice(0,tyPos+1),r=tyRun(pre);let best=0;r.p.forEach((v,i)=>{if(v>r.p[best])best=i;});const top=TY_V[best];if(top==="<eos>"&&tyPos===tyToks.length-1)return;tyToks=[...pre,top];tyPos=tyToks.length-1;drawToy();};
 $("#tyReset").onclick=()=>{const v=+document.querySelector('#tySent [aria-pressed="true"]').dataset.v;tyToks=[...TY_SENTS[v]];tyPos=tyToks.length-1;drawToy();};
+/* tabella dei conteggi disegnata */
+const TB_W=["il","gatto","cane","dorme","sul"];
+function tbRng(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};}
+function drawTb(){
+  const V=+document.querySelector("#tbV [aria-pressed=true]").dataset.v,n=+document.querySelector("#tbN [aria-pressed=true]").dataset.v;
+  const words=TB_W.slice(0,V),rows=Math.pow(V,n),cells=rows*V,EV=12;
+  const rnd=tbRng(7+V*31+n),cnt=new Map();
+  for(let i=0;i<EV;i++){const k=Math.floor(rnd()*cells);cnt.set(k,(cnt.get(k)||0)+1);}
+  const filled=cnt.size,svg=$("#tbSvg"),H=300,top=44,left=n>1?96:64,cw=Math.min(52,(390-left)/V),rh=Math.min(22,H/rows);
+  let o="";
+  words.forEach((w,j)=>{o+=`<text x="${left+j*cw+cw/2}" y="${top-8}" text-anchor="middle" class="z-mut">${w}</text>`;});
+  o+=`<text x="${left}" y="10" class="z-mut">parola successiva →</text>`;
+  const showLab=rh>=11;
+  for(let r=0;r<rows;r++){
+    const y=top+r*rh;
+    if(showLab){let t=[],x=r;for(let i=0;i<n;i++){t.unshift(words[x%V]);x=Math.floor(x/V);}o+=`<text x="${left-6}" y="${y+rh/2+4}" text-anchor="end" class="z-mut">${t.join(" ")}</text>`;}
+    for(let j=0;j<V;j++){const c=cnt.get(r*V+j)||0;
+      o+=`<rect x="${left+j*cw+.5}" y="${y+.5}" width="${cw-1}" height="${Math.max(rh-1,1)}" fill="${c?"var(--accent)":"var(--surface-2)"}" fill-opacity="${c?Math.min(.45+c*.25,1):1}"/>`;
+      if(c&&rh>=11)o+=`<text x="${left+j*cw+cw/2}" y="${y+rh/2+4}" text-anchor="middle" style="fill:var(--bg)">${c}</text>`;}
+  }
+  if(!showLab)o+=`<text x="${left-6}" y="${top+10}" text-anchor="end" class="z-mut">${rows} righe</text>`;
+  svg.setAttribute("viewBox",`0 0 400 ${top+Math.min(H,rows*rh)+8}`);
+  svg.innerHTML=o;
+  const ctx=Array(n).fill(V).join(" × ");
+  $("#tbF").innerHTML=`righe = ${ctx} = ${V}<sup>${n}</sup> = <b>${rows}</b><br>celle = ${rows} × ${V} = ${V}<sup>${n+1}</sup> = <b>${cells}</b>`;
+  $("#tbOut").innerHTML=`<div><small>celle in tutto</small><strong>${cells}</strong></div><div><small>celle piene</small><strong>${filled}</strong></div><div><small>celle vuote</small><strong>${Math.round((1-filled/cells)*100)}%</strong></div>`;
+  $("#tbMsg").innerHTML=n===1?`<b>Con n = 1</b> la tabella è piccola (${cells} celle) e un testo anche breve ne riempie buona parte: è il modello a bigrammi.`:`<b>Con n = ${n}</b> le righe sono ${rows}, ${V} volte quelle di n = ${n-1}. Il testo è lo stesso, le celle piene pure: la tabella è vuota al ${Math.round((1-filled/cells)*100)}%. Con 32.000 token invece di ${V} il fattore per ogni parola in più non è ${V} ma 32.000.`;
+  $("#tbSr").textContent=`Tabella con ${rows} righe e ${V} colonne, ${cells} celle in tutto, ${filled} piene.`;
+}
+seg("#tbV",drawTb);seg("#tbN",drawTb);drawTb();
 /* calcolatore tabella n-grammi */
 const ngV=$("#ngV"),ngN=$("#ngN");
 function drawNg(){const V=+Math.pow(10,+ngV.value).toPrecision(2),n=+ngN.value;$("#ngVo").textContent=V.toLocaleString("it-IT");$("#ngNo").textContent=n;
