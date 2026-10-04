@@ -157,6 +157,21 @@ button.tok.sel{outline:2px solid var(--ink);outline-offset:1px}
 .barrow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
 .sample{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);border-radius:6px;padding:12px 14px;white-space:pre-wrap}
 
+
+/* v2.4: laboratorio X → O e tabelle evidenziate */
+.qk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px 16px;align-items:start}
+.qk-box{min-width:0;overflow-x:auto}
+.qk-box .diag-title{margin-bottom:4px}
+.qk-box .diag-title small{display:block;font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:none;letter-spacing:0}
+.gtable.qk-m{width:auto;font-size:.82rem}
+.qk-box.wide{grid-column:span 2}
+.qk-box .diag-title sub,.qk-box .diag-title small{text-transform:none}
+@media (max-width:460px){.qk-box.wide{grid-column:span 1}}
+.qk-m td,.qk-m th{padding:3px 7px;white-space:nowrap}
+.gtable tr.hl td{background:var(--accent-soft)}
+.gtable td.masked{color:var(--muted);opacity:.45}
+.gtable td.on{background:var(--accent-soft);font-weight:600}
+
 /* diagram boxes */
 .diag{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .box{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:.82rem;background:var(--surface);line-height:1.3}
@@ -628,6 +643,46 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <span class="box">rete (1–2 strati)</span><span class="arr">→</span>
     <span class="box hot">un punteggio per token del vocabolario</span>
   </div>
+  <div class="prose stack">
+    <p id="c-fw" class="anchor"><b>Facciamolo con numeri piccoli, perché qui si nasconde la prima domanda che viene a tutti: <i>come si mettono insieme i vettori di più token?</i></b> Nel modello a finestra fissa la risposta è la più semplice possibile: si <b>concatenano</b>. Se «il» ha vettore [1, 0] e «gatto» ha vettore [0, 1], l'ingresso della rete per il contesto «il gatto» è il vettore [1, 0, 0, 1]: le due coordinate del primo seguite dalle due del secondo. Non è una somma (la somma darebbe [1, 1], e non si saprebbe più chi era il primo e chi il secondo) e non ha nessuna proprietà matematica speciale: è mettere i numeri in fila. Il primo strato della rete deve quindi avere <b>4 ingressi</b>, uno per numero.</p>
+    <p><b>Che cos'è W₁.</b> Lo strato è fatto di neuroni, e ogni neurone ha un peso per ciascuno dei 4 ingressi. Se i neuroni sono 3, i pesi sono 3 × 4 = 12 numeri, e si scrivono in una tabella con <b>una riga per neurone e una colonna per ingresso</b>: la matrice W₁. Il conto dello strato è «ogni neurone moltiplica gli ingressi per la sua riga e somma», cioè il prodotto matrice × vettore h = W₁x: una tabella 3 × 4 per una colonna di 4 numeri dà una colonna di 3 numeri. La regola delle dimensioni è sempre la stessa: il numero di <b>colonne</b> di W deve essere uguale alla lunghezza del vettore che entra, il numero di <b>righe</b> è la lunghezza di quello che esce. Il secondo strato riceve i 3 numeri e deve produrre un punteggio per ciascuno dei 5 token del vocabolario: W₂ è 5 × 3. I numeri dentro W₁ e W₂ non li sceglie nessuno: qui sotto sono stati trovati con il procedimento del capitolo 2 su cinque esempi e poi arrotondati a una cifra.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la rete a finestra fissa, numero per numero</h3><span class="tag">matematica reale · pesi trovati con il training, arrotondati</span></div>
+    <p>Vocabolario di 5 token con vettori di 2 numeri. Scegli i due token del contesto e segui il conto: concatenazione, primo strato (W₁, 3 neuroni con ReLU), secondo strato (W₂, un punteggio per token), softmax. Poi passa a una finestra di 3 token e guarda che cosa succede a W₁.</p>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>Token in posizione 1</label><div class="seg" id="fwT1" role="group" aria-label="Primo token"><button aria-pressed="true" data-v="0">il</button><button aria-pressed="false" data-v="1">gatto</button><button aria-pressed="false" data-v="2">dorme</button><button aria-pressed="false" data-v="3">sul</button><button aria-pressed="false" data-v="4">divano</button></div></div>
+      <div class="ctl" style="flex:0 1 auto"><label>Token in posizione 2</label><div class="seg" id="fwT2" role="group" aria-label="Secondo token"><button aria-pressed="false" data-v="0">il</button><button aria-pressed="true" data-v="1">gatto</button><button aria-pressed="false" data-v="2">dorme</button><button aria-pressed="false" data-v="3">sul</button><button aria-pressed="false" data-v="4">divano</button></div></div>
+      <div class="ctl" style="flex:0 1 auto"><label>Finestra</label><div class="seg" id="fwN" role="group" aria-label="Lunghezza della finestra"><button aria-pressed="true" data-v="2">2 token</button><button aria-pressed="false" data-v="3">3 token</button></div></div>
+    </div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">1 · I vettori dei token (tabella E, 5 × 2) e la concatenazione</div>
+        <div class="scroll-x"><table class="gtable" id="fwE"></table></div>
+        <div class="formula" id="fwX"></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">2 · Primo strato: h = ReLU(W₁ x) <span class="muted" id="fwW1s"></span></div>
+        <div class="scroll-x"><table class="gtable" id="fwW1"></table></div>
+        <div class="calc" id="fwH"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">3 · Secondo strato: z = W₂ h <span class="muted">(5 × 3)(3 × 1) = 5 × 1</span></div>
+        <div class="scroll-x"><table class="gtable" id="fwW2"></table></div>
+      </div>
+      <div class="stack">
+        <div class="diag-title">4 · Softmax: un punteggio per token → probabilità</div>
+        <div class="bars" id="fwZ"></div>
+      </div>
+    </div>
+    <p class="callout" id="fwMsg"></p>
+    <p class="note">Che cosa è reale: i vettori di E, la concatenazione, i due prodotti matrice × vettore, la ReLU, la softmax. I pesi sono stati trovati con la discesa del gradiente sui cinque esempi «il gatto → dorme», «gatto dorme → sul», «dorme sul → divano», «sul divano → il», «divano il → gatto»; su contesti mai visti la rete risponde comunque qualcosa, spesso senza senso, perché cinque esempi non bastano a generalizzare. Nel modello di Bengio i vettori erano 50–100 numeri, la finestra 4–5 token e lo strato nascosto aveva centinaia di neuroni; la forma del calcolo è questa.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Perché la concatenazione non scala.</b> Con la finestra a 3 token W₁ ha bisogno di 6 colonne, e i 12 pesi della rete a 2 token non servono più: è una rete diversa, da addestrare da capo. Con i numeri di un modello vero il problema è enorme: 100 token di contesto con vettori di 768 numeri danno un ingresso di 100 × 768 = 76.800 numeri, e un primo strato di appena 512 neuroni avrebbe 512 × 76.800 ≈ 39 milioni di pesi solo lì; con 1.000 token, dieci volte tanto. E c'è il difetto già visto: le colonne di W₁ che leggono il primo token sono diverse da quelle che leggono il secondo, quindi la rete deve imparare due volte che cosa significa «gatto», una per posizione. È per questi due motivi che un transformer <b>non</b> concatena i vettori: la frase entra come una <b>matrice</b> con una riga per token (3 token × 4 numeri), e ogni riga passa per gli stessi pesi; il legame tra le righe lo crea l'attention, come vedremo tra due sezioni.</p>
+  </div>
 
   <h3 id="c-rnn" class="anchor">Una memoria che si aggiorna: le reti ricorrenti</h3>
   <div class="prose stack">
@@ -662,6 +717,9 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <span class="box">prodotto scalare con ogni token<br><small class="muted">il 0 · gatto 0 · nero 0 · dorme 1 · sul 2</small></span><span class="arr">→</span>
     <span class="box">softmax<br><small class="muted">2% 2% 2% 28% 65%</small></span><span class="arr">→</span>
     <span class="box hot">media pesata<br><small class="muted">«sul» contiene «dorme»</small></span>
+  </div>
+  <div class="prose stack">
+    <p><b>Un vettore lungo o una matrice?</b> Vale la pena fissare la differenza con il modello a finestra fissa, perché è il punto in cui si fa più confusione. Lì i vettori dei token venivano <i>concatenati</i> in un unico vettore lungo, e la rete aveva un ingresso per ogni numero. Qui no: la frase entra come una <b>matrice X con una riga per token</b> (per «il gatto dorme» con vettori di 4 numeri, 3 righe × 4 colonne), e ogni riga passa per gli <i>stessi</i> pesi. Il nuovo vettore di un token è una <b>combinazione lineare pesata</b> delle righe: 0,06 × riga di «il» + 0,78 × riga di «gatto» + 0,15 × riga di «dorme» (è il conto del laboratorio del capitolo 9: «dorme» va a cercare il suo soggetto), con i pesi calcolati dal contenuto e diversi per ogni token e per ogni frase. Non è una somma secca (che perderebbe chi conta di più), non è una concatenazione (che fisserebbe la lunghezza): è questa media pesata la «composizione del contesto» di cui si parla a proposito dei transformer. Il calcolo completo, con tutte le matrici e le loro dimensioni, numero per numero, è nel capitolo 9, sezione D.</p>
   </div>
 
   <h3 id="c-transformer" class="anchor">Che cos'è, allora, un transformer</h3>
@@ -771,7 +829,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
 
   <h3 id="c-faq" class="anchor">Le domande che vengono a tutti</h3>
   <div class="prose stack">
-    <p>Arrivati qui, quasi tutti si fanno le stesse cinque domande. Le risposte sono brevi; non servono per andare avanti, ma tolgono di mezzo i dubbi più comuni.</p>
+    <p>Arrivati qui, quasi tutti si fanno le stesse sette domande. Le risposte sono brevi; non servono per andare avanti, ma tolgono di mezzo i dubbi più comuni.</p>
 
     <p class="zq-q">«I tre numeri dell'ombrello sono i pesi?»</p>
     <p>No, sono gli <b>ingressi</b>: quante nuvole ci sono, quanta pioggia è prevista, quanto vento tira. Cambiano ogni giorno, perché ogni giorno il tempo è diverso.</p>
@@ -779,22 +837,22 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <p>Con il testo è lo stesso. I vettori dei token sono gli ingressi: quali vettori entrano dipende dalla frase che scrivi. I pesi sono la rete: la tabella E, la matrice che costruisce le domande, i neuroni dell'MLP, sempre gli stessi qualunque frase entri.</p>
 
     <p class="zq-q">«La rete ha tanti nodi d'ingresso quanti numeri hanno tutti i vettori della frase?»</p>
-    <p>No. Una frase di 4 token porta 4 × 4.096 = 16.384 numeri, ma la rete non ha 16.384 ingressi. È un insieme di pesi fatto per <b>una soil vettore</b> da 4.096 numeri, e lo stesso insieme si applica a ogni vettore, tutte nello stesso momento: come quattro calcolatrici uguali che fanno lo stesso conto nello stesso istante.</p>
-    <p>Anche dentro la rete la larghezza resta quella. Tra uno strato e l'altro ogni vettore ha sempre 4.096 numeri. L'unico punto in cui si allarga è la parte in cui ogni vettore «ragiona da sola»: lì passa a 11.008 numeri e poi torna a 4.096. Non esiste un ingresso più grande o più piccolo del vettore: la rete è costruita su misura per lei.</p>
+    <p>No. Una frase di 4 token porta 4 × 4.096 = 16.384 numeri, ma la rete non ha 16.384 ingressi. È un insieme di pesi fatto per <b>un solo vettore</b> da 4.096 numeri, e lo stesso insieme si applica a ogni vettore, tutti nello stesso momento: come quattro calcolatrici uguali che fanno lo stesso conto nello stesso istante.</p>
+    <p>Anche dentro la rete la larghezza resta quella. Tra uno strato e l'altro ogni vettore ha sempre 4.096 numeri. L'unico punto in cui si allarga è la parte in cui ogni vettore «ragiona da solo»: lì passa a 11.008 numeri e poi torna a 4.096. Non esiste un ingresso più grande o più piccolo del vettore: la rete è costruita su misura per lei.</p>
     <p>Per questo una frase più lunga non cambia la rete. Con 4 token ci sono 4 vettori, con 400 ce ne sono 400: più vettori, stessi pesi. Cambia solo quanto lavoro c'è da fare.</p>
 
     <p class="zq-q">«Dove stanno gli embedding? In memoria?»</p>
     <p>La parola «embedding» indica due cose diverse, e stanno in posti diversi.</p>
-    <p>La prima è la <b>tabella deli vettori</b>: una riga per ogni token del vocabolario, 32.000 righe da 4.096 numeri, circa 131 milioni di numeri. Fa parte dei pesi del modello: sta su disco insieme a tutti gli altri pesi e viene caricata in memoria quando il modello si avvia. Durante l'uso non cambia mai.</p>
-    <p>La seconda sono le <b>vettori del tuo prompt</b>: le righe copiate dalla tabella per i token che hai scritto, poi trasformate strato dopo strato. Queste esistono solo mentre il modello fa i conti, nella memoria della GPU, e alla fine non vengono salvate.</p>
+    <p>La prima è la <b>tabella dei vettori</b>: una riga per ogni token del vocabolario, 32.000 righe da 4.096 numeri, circa 131 milioni di numeri. Fa parte dei pesi del modello: sta su disco insieme a tutti gli altri pesi e viene caricata in memoria quando il modello si avvia. Durante l'uso non cambia mai.</p>
+    <p>La seconda sono i <b>vettori del tuo prompt</b>: le righe copiate dalla tabella per i token che hai scritto, poi trasformate strato dopo strato. Queste esistono solo mentre il modello fa i conti, nella memoria della GPU, e alla fine non vengono salvate.</p>
     <p>C'è una riserva che dura un po' di più. Mentre scrive la risposta, un token alla volta, il modello conserva una parte dei conti già fatti per i token passati: i vettori «che cosa offro» e «che cosa passo» dell'attention (key e value, capitolo 9), per ogni strato. Quando arriva un token nuovo non deve ricalcolarli: li rilegge. Le domande invece non si conservano, perché servono una volta sola.</p>
     <p>Questa riserva si chiama <b>KV cache</b> (key-value cache, la memoria delle key e dei value: le etichette e i contenuti) e viene buttata quando la risposta è finita; alcuni servizi la tengono per qualche minuto, per riusarla se il messaggio successivo comincia allo stesso modo. Quanto lavoro fa risparmiare e quanta memoria occupa lo spiega la guida sull'inferenza, nel capitolo sulla cache KV: è un approfondimento facoltativo.</p>
 
     <p class="zq-q">«Spezzando la frase in token, non si perde l'ordine e la relazione tra le parole?»</p>
     <p>No, per due motivi: la posizione e l'attenzione.</p>
-    <p><b>La posizione.</b> Se ogni token diventasse solo il suo vettore (la riga di E), «cane morde uomo» e «uomo morde cane» darebbero le stesse tre vettori, in un ordine diverso, e i conti dell'attention, che pesano e sommano, non avrebbero un modo diretto per sapere chi viene prima. Per questo a ogni vettore si aggiunge l'informazione su <b>dove</b> si trova nella frase: si chiama <b>codifica posizionale</b>.</p>
+    <p><b>La posizione.</b> Se ogni token diventasse solo il suo vettore (la riga di E), «cane morde uomo» e «uomo morde cane» darebbero gli stessi tre vettori, in un ordine diverso, e i conti dell'attention, che pesano e sommano, non avrebbero un modo diretto per sapere chi viene prima. Per questo a ogni vettore si aggiunge l'informazione su <b>dove</b> si trova nella frase: si chiama <b>codifica posizionale</b>.</p>
     <p>In Llama si usa RoPE (Rotary Position Embedding, codifica della posizione per rotazione): le domande e le key dell'attention vengono ruotate di un angolo che dipende dalla posizione del token. Così il punteggio tra due token dipende anche da quanto sono lontani l'uno dall'altro.</p>
-    <p><b>L'attenzione.</b> La relazione tra le parole non è scritta da nessuna parte all'ingresso: la rete la ricostruisce. In ogni strato i vettori si scambiano informazioni guardando a sinistra, con l'attention, e quello che ciascuna raccoglie finisce dentro il suo vettore. Alla fine il vettore di «sul» «contiene» anche il gatto e il dormire. Spezzare in token non perde la relazione, perché ogni vettore se la porta dietro.</p>
+    <p><b>L'attenzione.</b> La relazione tra le parole non è scritta da nessuna parte all'ingresso: la rete la ricostruisce. In ogni strato i vettori si scambiano informazioni guardando a sinistra, con l'attention, e quello che ciascuno raccoglie finisce dentro il suo vettore. Alla fine il vettore di «sul» «contiene» anche il gatto e il dormire. Spezzare in token non perde la relazione, perché ogni vettore se la porta dietro.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: chi morde chi?</h3><span class="tag">valori illustrativi</span></div>
@@ -812,11 +870,11 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <div class="za-q" id="zpQ"></div>
     <div class="za-rows" id="zpRows"></div>
     <p class="callout" id="zpMsg" aria-live="polite"></p>
-    <p class="note">I vettori sono scritte a parole perché si possano leggere, e i punteggi sono inventati: il bonus di 2,2 per «viene prima di morde» è scelto perché esca 90%. Il passaggio dai punteggi alle percentuali è invece la softmax vera, fatto solo tra «cane» e «uomo». In Llama la posizione non è un'etichetta attaccata al vettore: RoPE ruota domande ed etichette di un angolo che dipende dalla posizione, in ogni strato. In un modello vero, dove ogni vettore guarda solo a sinistra, un indizio d'ordine trapela anche senza posizione (chi sta più a sinistra vede meno vettori), ma è debole e indiretto: per questo tutti i modelli moderni la aggiungono in modo esplicito.</p>
+    <p class="note">I vettori sono scritti a parole perché si possano leggere, e i punteggi sono inventati: il bonus di 2,2 per «viene prima di morde» è scelto perché esca 90%. Il passaggio dai punteggi alle percentuali è invece la softmax vera, fatto solo tra «cane» e «uomo». In Llama la posizione non è un'etichetta attaccata al vettore: RoPE ruota domande ed etichette di un angolo che dipende dalla posizione, in ogni strato. In un modello vero, dove ogni vettore guarda solo a sinistra, un indizio d'ordine trapela anche senza posizione (chi sta più a sinistra vede meno vettori), ma è debole e indiretto: per questo tutti i modelli moderni la aggiungono in modo esplicito.</p>
   </div>
   <div class="prose stack">
     <p class="zq-q">«Se la frase è lunghissima, viene spezzata in pezzi?»</p>
-    <p>Il limite non è lo strato d'ingresso: come hai visto, la rete accetta quante vettori vuoi, sempre con gli stessi pesi. Il limite è la <b>finestra di contesto</b> (context window): il numero massimo di token che il modello può guardare insieme, prompt e risposta compresi. Per Llama 2 è di 4.096 token.</p>
+    <p>Il limite non è lo strato d'ingresso: come hai visto, la rete accetta quanti vettori vuoi, sempre con gli stessi pesi. Il limite è la <b>finestra di contesto</b> (context window): il numero massimo di token che il modello può guardare insieme, prompt e risposta compresi. Per Llama 2 è di 4.096 token.</p>
     <p>Attenzione a una coincidenza scomoda: anche il vettore di ogni token, in Llama 2 7B, ha 4.096 numeri. Sono due cose diverse che per caso hanno lo stesso valore. La larghezza del vettore dice quanti numeri descrivono <i>un</i> token; la finestra dice quanti token possono stare <i>insieme</i>. In altri modelli i due numeri sono diversi: Llama 3.1 8B ha ancora vettori da 4.096 numeri, ma una finestra da 128.000 token.</p>
     <p><b>Perché c'è un limite.</b> Il primo motivo è il costo. Nell'attention ogni token confronta la sua domanda con i vettori di tutti i token che lo precedono, lui compreso. Con 4 token i confronti sono 1 + 2 + 3 + 4 = 10; con 1.000 token sono circa mezzo milione.</p>
   </div>
@@ -826,6 +884,26 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <p><b>Che cosa succede se il testo non ci sta.</b> Il modello non lo spezza in pezzi collegati tra loro: guarda una finestra sola. Quello che avanza viene tagliato, oppure il programma rifiuta il testo troppo lungo. Sono i programmi costruiti intorno al modello a decidere che cosa farci stare: per esempio riassumere le parti più vecchie di una conversazione, oppure cercare nei documenti solo i pezzi utili alla domanda e mettere nel prompt quelli. Questo secondo metodo si chiama RAG (Retrieval-Augmented Generation, generazione aiutata dalla ricerca).</p>
     <p>Se vuoi vedere come si fa in pratica, c'è la guida sull'ingegneria dei sistemi basati sui modelli linguistici: il capitolo sul retrieval per il RAG, il capitolo sulla memoria per i riassunti e per la scelta di che cosa tenere. È un approfondimento facoltativo.</p>
     <p>I modelli più recenti hanno finestre molto più ampie: da 128.000 a oltre un milione di token. Il principio non cambia: la finestra è grande ma finita, e quello che non ci entra il modello non lo vede.</p>
+  </div>
+  <div class="prose stack">
+    <p class="zq-q">«I vettori dei token si sommano? Si concatenano? Che cosa vuol dire "comporre il contesto"?»</p>
+    <p>Sono tre operazioni diverse, e il transformer ne usa una sola.</p>
+    <p><b>La somma</b> ([1, 0] + [0, 1] = [1, 1]) butta via l'informazione su chi era chi e in che ordine: «cane morde uomo» e «uomo morde cane» darebbero lo stesso vettore. Nessun modello di linguaggio la usa così com'è.</p>
+    <p><b>La concatenazione</b> ([1, 0] e [0, 1] → [1, 0, 0, 1]) conserva tutto ma fissa la lunghezza: una rete costruita per 2 token ha un primo strato con 4 colonne, e per 3 token servirebbe un'altra rete. È il modello a finestra fissa del laboratorio sulla rete numero per numero, e con 100 token da 768 numeri l'ingresso sarebbe di 76.800 numeri.</p>
+    <p><b>La combinazione pesata</b> dell'attention tiene i vettori separati, uno per riga di una matrice, e costruisce il nuovo vettore di ogni token come somma dei vettori precedenti <i>ciascuno moltiplicato per un peso</i> che somma a 1 con gli altri: 0,06 × «il» + 0,78 × «gatto» + 0,15 × «dorme». I pesi non sono fissi: li calcola la rete dal contenuto (domanda · etichetta, poi softmax), quindi cambiano a ogni token e a ogni frase. È questo che si intende con «comporre il contesto», e non ha nessuna proprietà matematica misteriosa: è una media pesata, con pesi calcolati sul momento. Nel capitolo 9, sezione D, c'è il conto completo con tutte le matrici.</p>
+
+    <p class="zq-q">«Le matrici dell'attention vengono da tre training diversi? E come fa il training a "creare" Q, K e V?»</p>
+    <p>No: un solo training, e Q, K, V non vengono creati dal training ma <b>calcolati a ogni passaggio</b>. Conviene separare due famiglie di numeri.</p>
+    <p>I <b>parametri</b> sono i numeri che il modello possiede: la tabella E, le tre matrici W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> di ogni strato, i pesi dell'MLP. All'inizio sono casuali; esistono già prima di vedere qualunque frase; vivono su disco e vengono caricati in memoria. Le <b>attivazioni</b> sono i numeri che nascono quando una frase attraversa il modello: la matrice X dei vettori, poi Q = X W<sub>q</sub>, K = X W<sub>k</sub>, V = X W<sub>v</sub>, i pesi dell'attention, l'uscita di ogni strato, i logit. Sono il risultato di moltiplicazioni tra la frase e i parametri, cambiano a ogni frase e alla fine si buttano.</p>
+    <p>Il training tocca solo la prima famiglia, e tutta insieme. Il modello riceve «il gatto», prevede «dorme» con probabilità 0,03, la loss è −log 0,03 ≈ 3,5; la backpropagation del capitolo 2 risale la catena loss → logit → uscita dello strato → attention → Q, K, V → W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> e consegna a ciascuna delle tre matrici la propria derivata; l'optimizer sposta tutte e tre di un passo nella direzione che abbassa quella stessa loss. Non c'è un «training per le query» e uno per le key: c'è un unico obiettivo, prevedere il token successivo, e ogni parametro che contribuisce alla previsione riceve la sua correzione. Al passaggio successivo, con i nuovi parametri, Q, K e V vengono semplicemente ricalcolati.</p>
+  </div>
+  <div class="diag">
+    <span class="box">parametri casuali<br><small class="muted">E, W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub>, MLP</small></span><span class="arr">→</span>
+    <span class="box">frase → X</span><span class="arr">→</span>
+    <span class="box">Q = XW<sub>q</sub> · K = XW<sub>k</sub> · V = XW<sub>v</sub><br><small class="muted">attivazioni, ricalcolate</small></span><span class="arr">→</span>
+    <span class="box">attention → logit → loss</span><span class="arr">→</span>
+    <span class="box hot">backpropagation<br><small class="muted">una derivata per ogni parametro</small></span><span class="arr">→</span>
+    <span class="box">parametri aggiornati, tutti insieme</span><span class="arr">↺</span>
   </div>
 
   <div class="recap">
@@ -2169,6 +2247,46 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     </div>
     <p class="note">Il calcolo (prodotto scalare query · key, divisione per √d, softmax, media pesata dei value) è quello vero di una testa di attention. I vettori query e key dei sette token sono scelti a mano, con 4 dimensioni invece di 128, per imitare una testa che ha imparato a collegare verbi e soggetti: in un modello reale li producono le matrici W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> moltiplicate per il vettore del token, e il training le aggiusta. Un blocco ha molte teste in parallelo (32 in un modello da 7B), ognuna con le sue matrici: una segue il soggetto, un'altra la parola precedente, un'altra la punteggiatura. Nessuno le programma: i ruoli emergono dal training.</p>
   </div>
+  <div class="prose stack">
+    <p id="c-qkv" class="anchor"><b>Tutte le matrici in una volta, con le dimensioni scritte accanto.</b> Nel laboratorio qui sopra query e key erano date; qui si parte un passo prima, dai vettori dei token, e si fa l'intero conto di una testa di attention su «il gatto dorme» con vettori di d = 4 numeri e query/key/value di 2 numeri. La frase è una matrice X di 3 righe × 4 colonne. Il modello possiede tre matrici di pesi 4 × 2, W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub>; moltiplicando X per ciascuna si ottengono Q, K, V, tre matrici 3 × 2 (una riga per token, come X). Il prodotto Q Kᵀ è una matrice 3 × 3: nella casella (i, j) c'è il prodotto scalare tra la query del token i e la key del token j, cioè quanto i trova interessante j. Si trasforma «3 token × 4 caratteristiche» in «3 token × 3 relazioni». Dopo la divisione per √2 e la softmax riga per riga (con la maschera causale: un token non vede quelli dopo di sé) si ha la matrice A dei pesi; infine O = A V, ancora 3 × 2, dove la riga i è la combinazione pesata dei value: O₃ = a₃₁V₁ + a₃₂V₂ + a₃₃V₃. Niente, in questa catena, ha dimensioni «misteriose»: ogni prodotto è tra una matrice r × c e una c × s, e dà una r × s.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: da X a O, tutte le matrici di una testa di attention</h3><span class="tag">matematica reale · pesi scelti a mano</span></div>
+    <p>Clicca un token per seguire la <i>sua</i> riga attraverso tutte le matrici. «Pesi casuali» sostituisce W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> con numeri a caso, come all'inizio del training: il conto resta identico, l'attention diventa insensata; «Pesi del modello» li rimette. Questo è esattamente ciò che il training cambia: le tre matrici W, non le formule.</p>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>Token</label><div class="tokens" id="qkTok"></div></div>
+      <div class="row" style="flex:0 1 auto"><button class="btn ghost" id="qkRand">Pesi casuali</button><button class="btn ghost" id="qkBack">Pesi del modello</button></div>
+    </div>
+    <div class="qk-grid">
+      <div class="qk-box"><div class="diag-title">X <small>3 × 4 · un token per riga</small></div><table class="gtable qk-m" id="qkX"></table></div>
+      <div class="qk-box"><div class="diag-title">W<sub>q</sub> <small>4 × 2 · parametri</small></div><table class="gtable qk-m" id="qkWq"></table></div>
+      <div class="qk-box"><div class="diag-title">W<sub>k</sub> <small>4 × 2 · parametri</small></div><table class="gtable qk-m" id="qkWk"></table></div>
+      <div class="qk-box"><div class="diag-title">W<sub>v</sub> <small>4 × 2 · parametri</small></div><table class="gtable qk-m" id="qkWv"></table></div>
+      <div class="qk-box"><div class="diag-title">Q = X W<sub>q</sub> <small>(3×4)(4×2) = 3 × 2</small></div><table class="gtable qk-m" id="qkQ"></table></div>
+      <div class="qk-box"><div class="diag-title">K = X W<sub>k</sub> <small>3 × 2</small></div><table class="gtable qk-m" id="qkK"></table></div>
+      <div class="qk-box"><div class="diag-title">V = X W<sub>v</sub> <small>3 × 2</small></div><table class="gtable qk-m" id="qkV"></table></div>
+      <div class="qk-box wide"><div class="diag-title">Q Kᵀ / √2 <small>(3×2)(2×3) = 3 × 3 · relazioni</small></div><table class="gtable qk-m" id="qkS"></table></div>
+      <div class="qk-box wide"><div class="diag-title">A = softmax per riga <small>3 × 3 · maschera causale</small></div><table class="gtable qk-m" id="qkA"></table></div>
+      <div class="qk-box"><div class="diag-title">O = A V <small>(3×3)(3×2) = 3 × 2</small></div><table class="gtable qk-m" id="qkO"></table></div>
+    </div>
+    <div class="formula" id="qkRow"></div>
+    <p class="callout" id="qkMsg"></p>
+    <p class="note">Che cosa è reale: tutti i prodotti, la divisione per √d<sub>k</sub>, la maschera, la softmax. Scelti a mano: i vettori di X e le tre matrici W, con numeri a una cifra per poterli seguire; in un 7B, d = 4.096, ogni testa ha query/key/value di 128 numeri, le teste sono 32 per strato e le loro uscite O vengono affiancate e moltiplicate per una quarta matrice W<sub>o</sub> prima di essere aggiunte al residual stream. Il laboratorio precedente partiva da query e key già fatte: erano le righe di Q e K di questo.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Parametri e attivazioni: due famiglie di numeri da non confondere.</b> La domanda «W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> vengono da tre training diversi?» nasce dal confondere le matrici dei <i>pesi</i> con le matrici che si <i>calcolano</i> da esse. I <b>parametri</b> esistono prima della frase, sono gli stessi per ogni frase, stanno su disco e cambiano solo durante il training. Le <b>attivazioni</b> nascono dalla frase, cambiano a ogni frase, vivono nella memoria della GPU durante il calcolo e si buttano alla fine (salvo K e V dei token passati, conservati nella KV cache durante la generazione). Il training ha un solo obiettivo, la loss sul token successivo, e la backpropagation consegna a <i>ogni</i> parametro la propria derivata nello stesso passaggio: W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub>, E e i pesi dell'MLP si aggiornano insieme, a ogni step, perché tutti hanno contribuito alla stessa previsione.</p>
+  </div>
+  <div class="scroll-x"><table class="gtable">
+    <thead><tr><th></th><th>Parametri (pesi)</th><th>Attivazioni</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Esempi</td><td>E, W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub>, W<sub>o</sub>, le due matrici dell'MLP, i guadagni delle normalizzazioni</td><td>X, Q, K, V, Q Kᵀ, A, O, l'uscita dell'MLP, il residual stream, i logit, le probabilità</td></tr>
+      <tr><td class="mono">Quando nascono</td><td>All'inizializzazione, con numeri casuali, prima di qualunque frase</td><td>A ogni forward pass, moltiplicando la frase per i parametri</td></tr>
+      <tr><td class="mono">Dipendono dalla frase?</td><td>No: identici per ogni input</td><td>Sì: diversi per ogni frase e per ogni posizione</td></tr>
+      <tr><td class="mono">Chi li cambia</td><td>Solo il training: optimizer, un passo per step, tutti insieme dalla stessa loss</td><td>Nessuno: si ricalcolano e si scartano (K, V dei token passati restano nella KV cache durante la generazione)</td></tr>
+      <tr><td class="mono">Dove stanno</td><td>Su disco (il file del modello) e in memoria quando il modello è caricato</td><td>Solo in memoria, durante il calcolo; nel training se ne tengono molte per la backpropagation</td></tr>
+      <tr><td class="mono">Quanti in un 7B</td><td>≈ 7 miliardi, fissi</td><td>Proporzionali a batch × lunghezza × d, per ogni strato</td></tr>
+    </tbody>
+  </table></div>
 
   <!-- LOGIT → PROB -->
   <h3 id="c-loss" class="anchor">E · La testa di output: logit, softmax, temperatura</h3>
@@ -3467,6 +3585,84 @@ drawZN();drawZR();drawZW();if($("ztSvg"))drawZT();if($("zaSvg"))drawZA();drawZP(
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{drawZN();drawZR();drawZW();drawZP();});
 })();
 </script>
+<script>
+/* ---------- v2.4: rete a finestra fissa numero per numero (#c-fw) e X → O con tutte le matrici (#c-qkv) ---------- */
+(function(){
+const $=id=>document.getElementById(id);
+if(!$("fwE")||!$("qkX"))return;
+const fmt=(v,d=1)=>(Math.abs(v)<0.5*Math.pow(10,-d)?0:v).toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d}).replace("-","−");
+function seg(id,cb){const g=$(id);g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));cb(b.dataset.v);});return ()=>g.querySelector('[aria-pressed="true"]').dataset.v;}
+const matmul=(A,B)=>A.map(r=>B[0].map((_,j)=>r.reduce((s,v,k)=>s+v*B[k][j],0)));
+const T=M=>M[0].map((_,j)=>M.map(r=>r[j]));
+const softmax=z=>{const m=Math.max(...z),e=z.map(v=>Math.exp(v-m)),s=e.reduce((a,b)=>a+b);return e.map(v=>v/s);};
+/* tabella di una matrice; hl = indice di riga da evidenziare; rows/cols = etichette */
+function table(t,M,{rows=[],cols=[],hl=-1,d=1,hlCol=-1,cls=()=>""}={}){let h="";if(cols.length)h+="<thead><tr>"+(rows.length?"<th></th>":"")+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+  h+="<tbody>"+M.map((r,i)=>`<tr${i===hl?' class="hl"':''}>`+(rows.length?`<th>${rows[i]}</th>`:"")+r.map((v,j)=>`<td class="mono${j===hlCol?' hlc':''} ${cls(i,j,v)}">${v==null?"?":fmt(v,d)}</td>`).join("")+"</tr>").join("")+"</tbody>";t.innerHTML=h;}
+
+/* ===== finestra fissa ===== */
+const FW_T=["il","gatto","dorme","sul","divano"];
+const FW_E=[[1,0],[0,1],[1,1],[-1,1],[0,-1]];
+const FW_W1=[[1.4,0.7,-0.2,1.7],[0.6,-0.6,2.1,1.4],[-0.6,2.6,0.2,0.2]];
+const FW_W2=[[-1.1,-1.2,1.7],[-1.2,1.8,-1.0],[1.2,0.4,-1.6],[-0.1,0.6,0.7],[1.2,-1.5,0.2]];
+const FW_SEEN={"0,1":2,"1,2":3,"2,3":4,"3,4":0,"4,0":1};
+let fwA=0,fwB=1,fwN=2;
+function drawFW(){const n=fwN;
+  table($("fwE"),FW_E,{rows:FW_T,cols:["e₁","e₂"],d:0,cls:(i)=>(i===fwA||i===fwB)?"on":""});
+  const x=FW_E[fwA].concat(FW_E[fwB]);
+  if(n===2){
+    $("fwX").innerHTML=`x = [E(${FW_T[fwA]}) ; E(${FW_T[fwB]})] = [${FW_E[fwA].join(", ")} ; ${FW_E[fwB].join(", ")}] = [${x.join(", ")}] &nbsp;→&nbsp; <b>4 numeri</b>`;
+    $("fwW1s").textContent="(3 × 4)(4 × 1) = 3 × 1";
+    table($("fwW1"),FW_W1,{rows:["neurone 1","neurone 2","neurone 3"],cols:["x₁","x₂","x₃","x₄"]});
+    const pre=FW_W1.map(r=>r.reduce((s,w,k)=>s+w*x[k],0)),h=pre.map(v=>Math.max(0,v));
+    $("fwH").innerHTML=pre.map((p,i)=>`<div><b>h${"₁₂₃"[i]}</b> = ReLU(${FW_W1[i].map((w,k)=>`${fmt(w)}·${x[k]}`).join(" + ")}) = ReLU(${fmt(p)}) = <b>${fmt(h[i])}</b></div>`).join("");
+    table($("fwW2"),FW_W2,{rows:FW_T,cols:["h₁","h₂","h₃"]});
+    const z=FW_W2.map(r=>r.reduce((s,w,k)=>s+w*h[k],0)),p=softmax(z),best=p.indexOf(Math.max(...p));
+    $("fwZ").innerHTML=FW_T.map((t,i)=>`<div class="barrow"><span>«${t}» <span class="muted mono" style="font-size:.74rem">z = ${fmt(z[i])}</span></span><div class="track"><div class="fill" style="width:${(p[i]*100).toFixed(1)}%;${i===best?"":"background:var(--muted)"}"></div></div><span class="v">${fmt(p[i]*100,0)}%</span></div>`).join("");
+    const seen=FW_SEEN[fwA+","+fwB];
+    $("fwMsg").innerHTML=seen!=null?`<b>Contesto visto in training:</b> «${FW_T[fwA]} ${FW_T[fwB]}» → la rete prevede «${FW_T[best]}» con ${fmt(p[best]*100,0)}%${best===seen?", come nell'esempio da cui ha imparato":", ma l'esempio diceva «"+FW_T[seen]+"»: l'arrotondamento dei pesi ha spostato la risposta"}. Segui i numeri: 4 ingressi, 3 neuroni (3 righe di W₁), 5 punteggi (5 righe di W₂). Ogni riga di W₁ è un neurone che legge <i>tutti e quattro</i> i numeri: le prime due colonne pesano il primo token, le ultime due il secondo.`:`<b>Contesto mai visto in training:</b> «${FW_T[fwA]} ${FW_T[fwB]}» → la rete risponde «${FW_T[best]}» (${fmt(p[best]*100,0)}%). Risponde sempre qualcosa, perché il conto si fa comunque; con cinque esempi non ha modo di sapere se ha senso. È il limite dei dati, non della forma della rete.`;
+  }else{
+    $("fwX").innerHTML=`x = [E(t₁) ; E(t₂) ; E(t₃)] = [?, ?, ?, ?, ?, ?] &nbsp;→&nbsp; <b>6 numeri</b>`;
+    $("fwW1s").textContent="(3 × 6)(6 × 1) = 3 × 1";
+    table($("fwW1"),[[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null]],{rows:["neurone 1","neurone 2","neurone 3"],cols:["x₁","x₂","x₃","x₄","x₅","x₆"]});
+    $("fwH").innerHTML=`<div>h = ReLU(W₁ x) con W₁ di <b>3 × 6 = 18 pesi</b>, tutti da trovare da capo</div>`;
+    table($("fwW2"),FW_W2,{rows:FW_T,cols:["h₁","h₂","h₃"]});
+    $("fwZ").innerHTML=`<div class="muted" style="font-size:.86rem">W₂ potrebbe restare com'è (riceve sempre 3 numeri), ma i suoi valori andrebbero comunque ri-addestrati insieme ai nuovi W₁.</div>`;
+    $("fwMsg").innerHTML=`<b>Finestra più lunga = rete diversa.</b> Con 3 token l'ingresso ha 6 numeri e W₁ deve avere 6 colonne: i 12 pesi imparati per 2 token non si riusano. Con i numeri di un modello vero (100 token × 768) l'ingresso sarebbe di 76.800 numeri e un primo strato di 512 neuroni avrebbe 39 milioni di pesi; e le colonne che leggono il token 1 restano diverse da quelle che leggono il token 2, quindi «gatto» va imparato una volta per posizione. Un transformer evita tutto questo tenendo i token su righe separate e facendoli comunicare con l'attention.`;
+  }}
+seg("fwT1",v=>{fwA=+v;drawFW();});seg("fwT2",v=>{fwB=+v;drawFW();});seg("fwN",v=>{fwN=+v;drawFW();});
+drawFW();
+
+/* ===== X → O ===== */
+const QK_T=["il","gatto","dorme"];
+const QK_X=[[1,0,0,1],[0,1,0,1],[1,1,0,0]];
+const QK_W={q:[[-1.0,-1.4],[1.1,-0.5],[0.1,0.9],[0.6,1.3]],k:[[0,0.6],[1.1,-1.2],[-0.1,-1.2],[0.2,-0.6]],v:[[0.5,0.2],[-0.3,0.8],[0.4,-0.6],[0.1,0.7]]};
+let qkW=QK_W,qkSel=2,qkRandom=false;
+function drawQK(){const Q=matmul(QK_X,qkW.q),K=matmul(QK_X,qkW.k),V=matmul(QK_X,qkW.v);
+  const S=matmul(Q,T(K)).map(r=>r.map(v=>v/Math.SQRT2));
+  const A=S.map((r,i)=>{const p=softmax(r.slice(0,i+1));return r.map((_,j)=>j<=i?p[j]:0);});
+  const O=matmul(A,V);const i=qkSel;
+  $("qkTok").innerHTML=QK_T.map((t,j)=>`<button class="tok${j===i?" sel":""}" data-i="${j}">${t}</button>`).join("");
+  table($("qkX"),QK_X,{rows:QK_T,d:0,hl:i});
+  table($("qkWq"),qkW.q,{rows:["x₁","x₂","x₃","x₄"],cols:["q₁","q₂"]});table($("qkWk"),qkW.k,{rows:["x₁","x₂","x₃","x₄"],cols:["k₁","k₂"]});table($("qkWv"),qkW.v,{rows:["x₁","x₂","x₃","x₄"],cols:["v₁","v₂"]});
+  table($("qkQ"),Q,{rows:QK_T,d:2,hl:i});table($("qkK"),K,{rows:QK_T,d:2});table($("qkV"),V,{rows:QK_T,d:2});
+  table($("qkS"),S,{rows:QK_T,cols:QK_T,d:2,hl:i,cls:(r,c)=>c>r?"masked":""});
+  table($("qkA"),A,{rows:QK_T,cols:QK_T,d:2,hl:i,cls:(r,c)=>c>r?"masked":""});
+  table($("qkO"),O,{rows:QK_T,d:2,hl:i});
+  const terms=QK_T.slice(0,i+1).map((t,j)=>`${fmt(A[i][j],2)} × V(${t})`).join(" + ");
+  $("qkRow").innerHTML=`q(${QK_T[i]}) = X[${i+1}] · W<sub>q</sub> = [${Q[i].map(v=>fmt(v,2)).join(", ")}] &nbsp;·&nbsp; punteggi = q·k(il), q·k(gatto)${i>1?", q·k(dorme)":""} / √2 = [${S[i].slice(0,i+1).map(v=>fmt(v,2)).join(", ")}]<br>O(${QK_T[i]}) = ${terms} = [${O[i].map(v=>fmt(v,2)).join(", ")}]`;
+  const a=A[i];
+  let m;if(qkRandom)m=`<b>Pesi casuali:</b> le formule sono le stesse, ma i pesi di attention sono quelli che capitano, senza alcun legame con la grammatica (${QK_T.slice(0,i+1).map((t,j)=>`${t} ${fmt(a[j]*100,0)}%`).join(", ")}). È lo stato del modello all'inizio del training: la backpropagation sposterà W<sub>q</sub>, W<sub>k</sub>, W<sub>v</sub> finché i pesi diventeranno utili alla previsione. Nessuno «crea» Q, K, V: si ricalcolano da X e dalle W nuove.`;
+  else if(i===0)m=`<b>«il» è il primo token:</b> con la maschera causale può guardare solo sé stesso, quindi il suo peso è 1 e O(il) = V(il). Clicca «dorme» per vedere una riga interessante.`;
+  else if(i===1)m=`<b>«gatto» guarda «il» al ${fmt(a[0]*100,0)}% e sé stesso al ${fmt(a[1]*100,0)}%.</b> La riga 2 di Q Kᵀ ha due caselle valide e una mascherata (il token dopo non esiste ancora). O(gatto) è la combinazione delle prime due righe di V.`;
+  else m=`<b>«dorme» guarda soprattutto «gatto» (${fmt(a[1]*100,0)}%)</b>: la query del verbo, costruita da W<sub>q</sub>, è allineata alla key del soggetto, costruita da W<sub>k</sub>. La terza riga di O è ${terms}: una combinazione lineare pesata, non una somma e non una concatenazione. Le dimensioni tornano a ogni passo: (3×4)(4×2) = 3×2; (3×2)(2×3) = 3×3; (3×3)(3×2) = 3×2.`;
+  $("qkMsg").innerHTML=m;}
+$("qkTok").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;qkSel=+b.dataset.i;drawQK();});
+let qkSeed=11;function qrng(){qkSeed=(qkSeed*1103515245+12345)&0x7fffffff;return qkSeed/0x7fffffff;}
+$("qkRand").addEventListener("click",()=>{const R=()=>Math.round((qrng()*2-1)*15)/10;const M=()=>[0,1,2,3].map(()=>[R(),R()]);qkW={q:M(),k:M(),v:M()};qkRandom=true;drawQK();});
+$("qkBack").addEventListener("click",()=>{qkW=QK_W;qkRandom=false;drawQK();});
+drawQK();
+})();
+</script>
 
 <!-- xpl:config (riferimenti incrociati di questa guida) -->
 <script>
@@ -3480,7 +3676,7 @@ window.XREF_CONFIG={
     {re:"sezione A",to:"#c-token",flags:"i",first:false},{re:"sezione B",to:"#c-alg",flags:"i",first:false},{re:"sezione C",to:"#c-emb",flags:"i",first:false},{re:"sezione D",to:"#c-layer",flags:"i",first:false},{re:"sezione E",to:"#c-loss",flags:"i",first:false},{re:"sezione F",to:"#c-conti",flags:"i",first:false},{re:"sezione G",to:"#c-backprop",flags:"i",first:false},
     {re:"passo sui vettori",to:"#c-alg-vett"},{re:"passo sulle trasformazioni( qui sotto)?",to:"#c-alg-mat"},{re:"passo sulle shape",to:"#c-alg-shape"},{re:"passo sul basso rango",to:"#c-alg-rank"},{re:"passo sulla non linearità",to:"#c-alg-nonlin"},{re:"passo sui tensori",to:"#c-alg-tens"},
     {re:"tensor[ei]",to:"#c-alg-tens",flags:"i"},{re:"prodott[oi] scalar[ei]",to:"#c-alg-dot",flags:"i"},{re:"similarità\\s+coseno",to:"#c-alg-norm",flags:"i"},{re:"basso rango",to:"#c-alg-rank",flags:"i"},
-    {re:"neuron[ei]",to:"#c-nn",flags:"i"},{re:"ret[ei] ricorrent[ei]|RNN",to:"#c-rnn",flags:"i"},{re:"finestra fissa",to:"#c-nn",flags:"i"},{re:"finestra di contesto",to:"#c-faq",flags:"i"},{re:"KV cache",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3"},
+    {re:"neuron[ei]",to:"#c-nn",flags:"i"},{re:"ret[ei] ricorrent[ei]|RNN",to:"#c-rnn",flags:"i"},{re:"finestra fissa",to:"#c-nn",flags:"i"},{re:"concatenazion[ei]|concatenat[oiae]",to:"#c-fw",flags:"i"},{re:"parametri e attivazioni|attivazion[ei]",to:"#c-qkv",flags:"i"},{re:"laboratorio sulla rete numero per numero",to:"#c-fw",flags:"i"},{re:"sezione D, c'è il conto completo",to:"#c-qkv",flags:"i"},{re:"finestra di contesto",to:"#c-faq",flags:"i"},{re:"KV cache",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3"},
     {re:"guida sull'inferenza, nel capitolo sulla cache KV",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3"},{re:"guida sull'ingegneria dei sistemi basati sui modelli linguistici",to:"https://pericle82.github.io/explorables/ai-engineering/"},{re:"capitolo sul retrieval",to:"https://pericle82.github.io/explorables/ai-engineering/#s2"},{re:"capitolo sulla memoria",to:"https://pericle82.github.io/explorables/ai-engineering/#s4"},{re:"guida sull'auto che impara a guidare, nella sezione sulla rete neurale",to:"https://pericle82.github.io/explorables/neural-network-driving/#s3"},{re:"guida sulle architetture LLM",to:"https://pericle82.github.io/explorables/architetture-llm/",flags:"i"},
     {re:"capitolo 9",to:"#deep",flags:"i",first:false},{re:"modello in miniatura",to:"#c-toy",flags:"i"},{re:"generazione autoregressiva|autoregressiv[oa]",to:"#c-gen",flags:"i"},
     {re:"training dal vivo",to:"#live",flags:"i"},

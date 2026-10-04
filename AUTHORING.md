@@ -81,6 +81,7 @@ window.XREF_CONFIG = {
 | Bordeaux | `#8A3048` / `#F3DCE2` | `#E08AA0` / `#3D1C26` | neural-network-driving |
 | Ardesia | `#4A5A7A` / `#E0E5EE` | `#A6B4D4` / `#232B3A` | inferenza-llm |
 | Oliva | `#5E6B1E` / `#E6EAD0` | `#B7C45A` / `#2E3316` | comandi-bash |
+| Prugna | `#6B3A7D` / `#EAD9F0` | `#C79BDC` / `#2E1D36` | machine-learning |
 
 - Deve funzionare a 400 px di larghezza: griglie che vanno a una colonna, tabelle e diagrammi larghi dentro `.scroll-x`.
 

@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.3",
-      "updated": "2026-10-03",
+      "version": "2.4",
+      "updated": "2026-10-04",
       "history": [
+        {
+          "version": "2.4",
+          "date": "2026-10-04",
+          "notes": "Dalla chat sui dubbi ricorrenti: la rete a finestra fissa numero per numero (concatenazione, W₁ riga per neurone, regola delle dimensioni, perché non scala), «vettore lungo o matrice?» nell'attention, laboratorio X → O con tutte le matrici di una testa (Q, K, V, QKᵀ, softmax causale, AV, pesi casuali vs del modello), tabella parametri vs attivazioni, due nuove FAQ (come si compongono i vettori; W_q/W_k/W_v da un solo training); correzioni di concordanza dopo scheda → vettore"
+        },
         {
           "version": "2.3",
           "date": "2026-10-03",
@@ -355,6 +360,28 @@
       ],
       "version": "1.0",
       "updated": "2026-10-02"
+    },
+    {
+      "slug": "machine-learning",
+      "title": "Machine learning: dalla retta che impara all'agente che decide",
+      "description": "Il programma della Machine Learning Specialization (Andrew Ng) in una guida sola: regressione, classificazione, reti neurali, alberi, clustering, anomalie, recommender e reinforcement learning, con 16 laboratori che eseguono davvero i calcoli.",
+      "tags": [
+        "machine learning",
+        "regressione",
+        "reti neurali",
+        "alberi",
+        "clustering",
+        "reinforcement learning"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-10-04",
+          "notes": "Prima versione: guida originale sul programma della Machine Learning Specialization in 14 capitoli, riepilogo e glossario, 16 laboratori con la matematica reale (retta e costo, discesa del gradiente, scaling, regressione logistica, overfitting, rete neurale, softmax, curve di apprendimento, precisione e recall, entropia, k-means, anomalie, filtro collaborativo, rover e Bellman)"
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-10-04"
     }
   ]
 }
