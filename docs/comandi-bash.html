@@ -200,6 +200,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 .term-try button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.78rem;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink)}
 .term-try button:hover{border-color:var(--accent)}
 .term-try button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.term-out .mac.hint{border-color:var(--accent);background:var(--accent-soft)}
 </style>
 
 <div class="wrap">
@@ -213,7 +214,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </aside>
   <div class="cards">
     <a href="#s0"><small>0</small><b>Prima dei comandi</b><span>terminale, shell, grammatica di un comando, Linux contro macOS</span></a>
-    <a href="#cmd"><small>1 →</small><b>I comandi, uno alla volta</b><span>in costruzione: ogni comando con lo stesso schema e un terminale per provarlo</span></a>
+    <a href="#cmd"><small>1</small><b>I comandi, uno alla volta</b><span>la pipe, awk (e cut) per le tabelle, lsof per le porte · in costruzione</span></a>
     <a href="#sum"><small>Riepilogo</small><b>La tabella dei comandi</b><span>cresce man mano che la guida si completa</span></a>
   </div>
 </header>
@@ -297,7 +298,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: un terminale per provare</h3><span class="tag">simulazione · file system finto</span></div>
     <p>È una shell simulata su un piccolo albero di cartelle inventato: non tocca il tuo computer. Scrivi un comando e premi Invio; la freccia su richiama gli ultimi comandi. Per ora conosce i comandi del capitolo 0 e quelli già trattati nella guida: <span class="k">help</span> li elenca. Prova <span class="k">pwd</span>, <span class="k">ls</span>, <span class="k">ls -la</span>, <span class="k">cd Documenti</span>, <span class="k">type cd</span>, <span class="k">man ls</span>.</p>
-    <div class="term" data-term data-try="pwd|ls|ls -la|cd Documenti|echo $SHELL|type cd|man ls"></div>
+    <div class="term" data-term data-try="pwd§ls§ls -la§cd Documenti§echo $SHELL§type cd§man ls"></div>
     <p class="note">Il terminale simulato riproduce il comportamento di bash su Linux (GNU) e segnala con una nota dove macOS si comporterebbe diversamente. Non supporta tutto: ciò che la guida non ha ancora spiegato risponde «command not found», esattamente come farebbe una shell vera davanti a un programma non installato.</p>
   </div>
 
@@ -331,7 +332,91 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <div class="pc"><b>Dove si inciampa</b>Gli errori tipici e come si leggono i messaggi.</div>
     <div class="pc"><b>Prova</b>Il terminale simulato, con i comandi da provare già pronti.</div>
   </div>
-  <p class="prose callout" style="margin-top:18px"><b>In costruzione.</b> I comandi vengono aggiunti uno alla volta; il terminale del capitolo 0 impara ciascun comando nel momento in cui entra nella guida.</p>
+  <p class="prose callout" style="margin-top:18px"><b>In costruzione.</b> I comandi vengono aggiunti uno alla volta; il terminale impara ciascun comando nel momento in cui entra nella guida.</p>
+
+  <!-- ============ SCHEDA · pipe + awk ============ -->
+  <h3 id="cmd-pipe" class="anchor">Prima di awk: la pipe, cioè passare l'output a un altro comando</h3>
+  <div class="prose stack">
+    <p class="q">Quasi tutti gli esempi che seguono hanno la forma <span class="k">qualcosa | awk …</span>. Che cos'è quella barra verticale?</p>
+    <p>È la <b>pipe</b> (tubo): prende tutto ciò che il comando a sinistra <i>stampa</i> e lo passa al comando a destra come <i>input</i>, senza farlo mai apparire sullo schermo. Ogni programma della shell ha un'uscita standard (lo <i>stdout</i>, quello che vedresti a video) e un ingresso standard (lo <i>stdin</i>, quello che leggerebbe dalla tastiera): la pipe collega l'uscita del primo all'ingresso del secondo. È il motivo per cui i comandi Unix sono piccoli e fanno una cosa sola: li si compone. <span class="k">lsof -i :8082 | awk '{print $2}'</span> si legge «esegui lsof, e il suo output daglielo ad awk invece che a me».</p>
+    <p>Una conseguenza importante: se il comando a sinistra non stampa nulla, quello a destra riceve nulla e non stampa nulla. Lo vedremo tra poco, perché è l'errore più disorientante del principiante.</p>
+  </div>
+  <div class="diag">
+    <span class="box">lsof -i :8082<br><small class="muted">stampa 2 righe</small></span><span class="arr">|</span>
+    <span class="box hot">awk '{print $2}'<br><small class="muted">legge quelle 2 righe, ne stampa la colonna 2</small></span><span class="arr">→</span>
+    <span class="box">schermo<br><small class="muted">PID<br>12345</small></span>
+  </div>
+
+  <h3 id="cmd-awk" class="anchor">awk · recuperare valori da una tabella</h3>
+  <div class="phasecard">
+    <div class="pc"><b>Che cosa fa</b>Legge l'input riga per riga, spezza ogni riga in colonne e ti lascia stampare o filtrare quello che vuoi. È il coltellino per tutto ciò che «ha la forma di una tabella»: CSV, output di comandi, log.</div>
+    <div class="pc"><b>Come si scrive</b><span class="k">awk [-F sep] 'condizione {azione}' [file]</span> · senza file legge dalla pipe · le colonne sono <span class="k">$1</span>, <span class="k">$2</span>…, la riga intera <span class="k">$0</span>, il numero di riga <span class="k">NR</span>.</div>
+    <div class="pc"><b>Linux · macOS</b>Linux ha GNU awk (gawk), macOS un awk BSD più vecchio. Tutto ciò che c'è in questa scheda funziona identico su entrambi.</div>
+  </div>
+  <div class="prose stack">
+    <p><b>L'idea in una frase.</b> awk scorre il testo una riga alla volta; per ogni riga la divide in campi usando come separatore gli spazi (uno o più, e i tab), oppure il carattere che gli indichi con <span class="k">-F</span>; poi esegue il programma tra apici, che nella forma più semplice è «stampa il campo N». Il programma tra apici singoli è <i>un unico argomento</i> per la shell: le virgolette servono proprio a tenerlo insieme e a impedire alla shell di toccare il <span class="k">$</span>, che qui è di awk, non della shell.</p>
+  </div>
+
+  <div class="vx"><p class="vx-cap">Gli usi che contano, dal più semplice</p><div class="vx-code"><div class="vx-code-h"><span>bash · awk, le cinque forme</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm"># 1 · una colonna, campi separati da spazi (output di comandi, file a colonne)</span>
+</span><span class="ln">awk <span class="tk-str">'{print $3}'</span> file.txt
+</span><span class="ln"><span class="tk-cm"># 2 · separatore esplicito: un CSV (Comma-Separated Values, valori separati da virgola)</span>
+</span><span class="ln">awk -F<span class="tk-str">','</span> <span class="tk-str">'{print $3}'</span> file.csv
+</span><span class="ln"><span class="tk-cm"># 3 · lookup: la riga la cui prima colonna è «chiave», di cui vuoi la seconda</span>
+</span><span class="ln hl">awk -F<span class="tk-str">','</span> <span class="tk-str">'$1=="latte" {print $2}'</span> prezzi.csv
+</span><span class="ln"><span class="tk-cm"># 4 · saltare l'intestazione (NR è il numero di riga) e stampare due colonne</span>
+</span><span class="ln">awk -F<span class="tk-str">','</span> <span class="tk-str">'NR&gt;1 {print $1, $3}'</span> prezzi.csv
+</span><span class="ln"><span class="tk-cm"># 5 · una cella precisa: riga 5, colonna 2</span>
+</span><span class="ln">awk -F<span class="tk-str">','</span> <span class="tk-str">'NR==5 {print $2}'</span> prezzi.csv
+</span></code></pre></div></div>
+  <div class="prose stack">
+    <p>Il pezzo prima delle graffe è la <b>condizione</b>: la riga viene elaborata solo se è vera. <span class="k">NR&gt;1</span> («numero di riga maggiore di 1») salta l'intestazione; <span class="k">$1=="latte"</span> sceglie una riga per contenuto; senza condizione si prendono tutte le righe. Dentro <span class="k">print</span>, la virgola tra i campi mette uno spazio nell'output; senza virgola i campi escono attaccati.</p>
+    <p><b>Quando la tabella ha spazi multipli.</b> L'output di comandi come <span class="k">ps</span>, <span class="k">df</span>, <span class="k">lsof</span> allinea le colonne con spazi ripetuti: awk li tratta già come un unico separatore, quindi <span class="k">awk '{print $4}'</span> funziona senza <span class="k">-F</span>. È il motivo per cui awk è lo strumento naturale per leggere l'output di altri comandi.</p>
+    <p><b>L'alternativa più semplice: cut.</b> Se il separatore è un singolo carattere e vuoi solo una o più colonne, <span class="k">cut -d',' -f3 file.csv</span> fa lo stesso di awk con meno da scrivere (<span class="k">-d</span> delimitatore, <span class="k">-f</span> campi: <span class="k">-f1,3</span> o <span class="k">-f2-4</span>). Ma cut non sa saltare righe, non filtra per contenuto e non unisce gli spazi ripetuti: appena serve una condizione, si torna ad awk.</p>
+  </div>
+
+  <div class="prose stack">
+    <p><b>Un caso reale: chi occupa la porta 8082?</b> Il comando <span class="k">lsof -i :8082</span> (list open files, qui «elenca chi ha aperto la porta 8082») stampa una tabella con intestazione:</p>
+  </div>
+  <div class="vx"><div class="vx-code"><div class="vx-code-h"><span>output di lsof -i :8082</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm">COMMAND   PID   USER   FD   TYPE  DEVICE  SIZE/OFF  NODE  NAME</span>
+</span><span class="ln">java    12345   joe   45u  IPv6  0x…     0t0       TCP   *:8082 (LISTEN)
+</span></code></pre></div><p class="vx-cap" style="margin-top:8px">$1 è COMMAND, $2 è PID, $3 è USER: per il PID serve $2, e NR&gt;1 per saltare l'intestazione</p></div>
+  <div class="vx"><div class="vx-code"><div class="vx-code-h"><span>bash · il PID di chi ascolta sulla 8082</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm"># con awk: colonna 2, saltando la riga d'intestazione</span>
+</span><span class="ln">lsof -i :8082 | awk <span class="tk-str">'NR&gt;1 {print $2}'</span>
+</span><span class="ln"><span class="tk-cm"># senza parsing: lsof ha un'opzione apposta, -t (terse), che stampa solo i PID</span>
+</span><span class="ln hl">lsof -t -i :8082
+</span><span class="ln"><span class="tk-cm"># … ed è la forma da usare negli script, per esempio per liberare la porta:</span>
+</span><span class="ln">kill $(lsof -t -i :8082)
+</span></code></pre></div></div>
+  <div class="prose stack">
+    <p>Qui c'è una lezione che vale più di awk: <b>prima di estrarre una colonna a mano, controlla se il comando ha già un'opzione per darti solo quel valore</b>. <span class="k">lsof -t</span>, <span class="k">ps -o pid=</span>, <span class="k">git rev-parse</span>, <span class="k">docker ps -q</span>: quasi ogni comando pensato per gli script ha una forma «solo il dato». Il <span class="k">$(…)</span> dell'ultima riga è la <i>sostituzione di comando</i>: la shell esegue ciò che sta tra parentesi e ne mette l'output al posto dell'espressione, così <span class="k">kill</span> riceve direttamente il PID.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Dove si inciampa</h3></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">«awk '{print $3}' mi dà lo user, non il PID»</div>
+        <p class="note" style="border-color:var(--bad)">Le colonne si contano guardando l'intestazione, non a occhio. In lsof il PID è la seconda; e l'intestazione stessa è una riga come le altre, quindi senza <span class="k">NR&gt;1</span> awk stampa anche «USER» o «PID».</p>
+        <div class="diag-title">«lsof -i :8082 | awk … non stampa nulla»</div>
+        <p class="note" style="border-color:var(--bad)">Non è awk: è lsof che non ha prodotto output. Quando nessun processo usa la porta, lsof non stampa nemmeno l'intestazione ed esce con codice 1. La pipe passa il nulla ad awk, che stampa il nulla. Verifica così: <span class="k">lsof -i :8082; echo "exit: $?"</span> (<span class="k">$?</span> è il codice di uscita dell'ultimo comando: 0 = ok, altro = qualcosa non è andato). Cause tipiche: il servizio non è partito o ascolta su un'altra porta (<span class="k">lsof -i -P -n | grep LISTEN</span> le mostra tutte); il processo è di un altro utente o di root, e lsof mostra solo i tuoi (serve <span class="k">sudo lsof -i :8082</span>); la porta è esposta da Docker, che su macOS gira in una macchina virtuale e lsof vede al massimo <span class="k">com.docker.backend</span> (guarda <span class="k">docker ps</span>).</p>
+      </div>
+      <div class="stack">
+        <div class="diag-title">«$2 viene sostituito dalla shell»</div>
+        <p class="note" style="border-color:var(--bad)">Succede se scrivi il programma tra virgolette doppie: <span class="k">awk "{print $2}"</span>. Dentro le doppie la shell espande <span class="k">$2</span> (il secondo parametro dello script, di solito vuoto) e awk riceve <span class="k">{print }</span>, cioè «stampa la riga intera». Il programma di awk va sempre tra apici <b>singoli</b>.</p>
+        <div class="diag-title">«Il CSV ha virgole dentro le virgolette»</div>
+        <p class="note" style="border-color:var(--bad)">Un campo come <span class="k">"Roma, Italia"</span> viene spezzato in due da <span class="k">-F','</span>. awk e cut non conoscono le regole del CSV: per file così usa uno strumento che le conosce (<span class="k">csvcut</span>, <span class="k">mlr</span>, oppure Python con il modulo csv).</p>
+        <div class="diag-title">«Su macOS ss non esiste»</div>
+        <p class="note" style="border-color:var(--warn)">Le alternative a lsof per vedere le porte: <span class="pill ok">Linux</span> <span class="k">ss -ltnp | grep 8082</span> · <span class="pill ko">macOS</span> <span class="k">netstat -anv | grep 8082</span>. lsof invece c'è su entrambi.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Prova: awk, cut, lsof e la pipe</h3><span class="tag">simulazione · file system finto</span></div>
+    <p>Nella cartella Documenti c'è <span class="k">prezzi.csv</span> (con intestazione) e <span class="k">vendite.txt</span> (colonne separate da spazi). Nel sistema finto un processo <span class="k">java</span> ascolta sulla porta 8082 e un <span class="k">node</span> sulla 3000; la 9000 è libera. Segui i pulsanti in ordine, poi improvvisa.</p>
+    <div class="term" data-term data-cwd="/home/joe/Documenti" data-try="cat prezzi.csv§awk -F',' '{print $2}' prezzi.csv§awk -F',' 'NR>1 {print $1, $3}' prezzi.csv§awk -F',' '$1==&quot;latte&quot; {print $2}' prezzi.csv§cut -d',' -f1,2 prezzi.csv§cat vendite.txt§awk '{print $3}' vendite.txt§lsof -i :8082§lsof -i :8082 | awk '{print $3}'§lsof -i :8082 | awk 'NR>1 {print $2}'§lsof -t -i :8082§lsof -i :9000; echo &quot;exit: $?&quot;§awk &quot;{print $2}&quot; vendite.txt§lsof -i :5432§sudo lsof -i :5432§kill $(lsof -t -i :8082)§lsof -i :8082"></div>
+    <p class="note">La simulazione di awk copre ciò che c'è in questa scheda (campi, -F, NR, condizioni di uguaglianza e confronto, print con e senza virgola, $0); quella di lsof conosce <span class="k">-i :porta</span>, <span class="k">-t</span>, <span class="k">-P</span>, <span class="k">-n</span> e un processo di un altro utente che senza <span class="k">sudo</span> non vedi. <span class="k">grep</span> è disponibile in forma minima perché serve negli esempi: avrà la sua scheda.</p>
+  </div>
 </section>
 
 <!-- ============ RIEPILOGO ============ -->
@@ -339,7 +424,12 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>La tabella dei comandi</h2></div>
   <div class="scroll-x"><table class="sum">
     <thead><tr><th>Comando</th><th>Che cosa fa</th><th>Uso tipico</th><th>Linux · macOS</th></tr></thead>
-    <tbody><tr><td class="mono">—</td><td colspan="3" class="muted">La tabella si riempie man mano che i comandi entrano nella guida.</td></tr></tbody>
+    <tbody>
+      <tr><td class="mono">|</td><td>pipe: passa l'output di un comando come input al successivo</td><td class="mono">lsof -i :8082 | awk 'NR&gt;1 {print $2}'</td><td>identica</td></tr>
+      <tr><td class="mono">awk</td><td>legge righe, le spezza in colonne, filtra e stampa</td><td class="mono">awk -F',' 'NR&gt;1 {print $1, $3}' f.csv</td><td>gawk vs awk BSD: le forme di base sono identiche</td></tr>
+      <tr><td class="mono">cut</td><td>estrae colonne con un separatore fisso</td><td class="mono">cut -d',' -f3 f.csv</td><td>identica</td></tr>
+      <tr><td class="mono">lsof -i</td><td>chi ha aperto una porta di rete</td><td class="mono">lsof -t -i :8082</td><td>identica; alternative ss (Linux) / netstat -anv (macOS)</td></tr>
+    </tbody>
   </table></div>
 </section>
 
@@ -371,7 +461,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     home:D({joe:D({
       ".bashrc":F("# ~/.bashrc\nalias ll='ls -la'\nexport EDITOR=nano\n"),
       ".ssh":D({config:F("Host server\n  HostName 10.0.0.5\n  User joe\n")},"rwx------"),
-      Documenti:D({"appunti.txt":F("Comprare il latte\nChiamare Anna\nFinire la guida sulla shell\n"),"relazione.md":F("# Relazione\n\nPrima bozza.\n"),"Fatture 2026":D({"gennaio.pdf":F("%PDF-1.4 (binario)\n"),"febbraio.pdf":F("%PDF-1.4 (binario)\n")})}),
+      Documenti:D({"appunti.txt":F("Comprare il latte\nChiamare Anna\nFinire la guida sulla shell\n"),"prezzi.csv":F("prodotto,prezzo,quantita\nlatte,1.20,6\npane,2.50,2\ncaffe,4.80,1\nmele,3.10,4\nbiscotti,2.20,3\n"),"vendite.txt":F("gennaio   120   4500.00\nfebbraio   98   3720.50\nmarzo     143   5210.00\n"),"relazione.md":F("# Relazione\n\nPrima bozza.\n"),"Fatture 2026":D({"gennaio.pdf":F("%PDF-1.4 (binario)\n"),"febbraio.pdf":F("%PDF-1.4 (binario)\n")})}),
       Scaricati:D({"foto.jpg":F("(binario)\n"),"archivio.zip":F("(binario)\n"),"installer.sh":F("#!/bin/bash\necho installo...\n","rwxr-xr-x")}),
       progetti:D({explorables:D({"README.md":F("# Explorables\n\nGuide interattive.\n"),docs:D({"transazioni.html":F("<title>…</title>\n"),"training-llm.html":F("<title>…</title>\n")}),scripts:D({"build.mjs":F("// build\n","rwxr-xr-x")})})}),
       "note.txt":F("Ricordati: i comandi sono frasi.\n"),
@@ -394,15 +484,17 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       if(ch==="'"&&!inD){inS=true;has=true;continue;}
       if(ch==='"'){inD=!inD;has=true;continue;}
       if(ch==="$"&&/[A-Za-z_]/.test(line[i+1]||"")){let j=i+1,name="";while(j<line.length&&/[A-Za-z0-9_]/.test(line[j]))name+=line[j++];cur+=(env[name]??"");i=j-1;has=true;continue;}
+      if(ch==="$"&&/[0-9]/.test(line[i+1]||"")){i++;has=true;continue;} /* $1…$9: parametri posizionali, qui vuoti */
+      if((ch==="|"||ch===";")&&!inD){if(cur||has){out.push(cur);cur="";has=false;}out.push({op:ch});continue;}
       if(ch===" "&&!inD){if(cur||has){out.push(cur);cur="";has=false;}continue;}
       cur+=ch;has=true;}
     if(cur||has)out.push(cur);
-    return out.map(t=>(t==="~"||t.startsWith("~/"))?HOME+t.slice(1):t);}
+    return out.map(t=>typeof t==="string"&&(t==="~"||t.startsWith("~/"))?HOME+t.slice(1):t);}
   function opts(args,spec){const o={},rest=[];for(const a of args){if(a==="--"){continue;}if(a.startsWith("--")&&spec.long&&spec.long[a.slice(2)]){o[spec.long[a.slice(2)]]=true;}else if(a.startsWith("--")){throw {code:2,msg:`${spec.name}: unrecognized option '${a}'\nTry '${spec.name} --help' for more information.`,mac:`su macOS le opzioni lunghe (--…) di solito non esistono: ${spec.name} risponderebbe «illegal option».`};}
     else if(a.startsWith("-")&&a.length>1){for(const ch of a.slice(1)){if(spec.short&&spec.short.includes(ch))o[ch]=true;else throw {code:2,msg:`${spec.name}: invalid option -- '${ch}'\nTry '${spec.name} --help' for more information.`};}}else rest.push(a);}return {o,rest};}
   /* ---- comandi: ogni voce = {help, man, run(ctx,args) → {out, code, mac?}} ---- */
   const CMDS={};
-  CMDS.help={help:"elenca i comandi che il terminale conosce",run(ctx){return {out:"Comandi disponibili in questo terminale simulato:\n"+Object.keys(CMDS).sort().map(k=>"  "+k.padEnd(8)+" "+CMDS[k].help).join("\n")+"\n\nI comandi arrivano man mano che entrano nella guida.",code:0};}};
+  CMDS.help={help:"elenca i comandi che il terminale conosce",run(ctx){return {out:"Comandi disponibili in questo terminale simulato:\n"+Object.keys(CMDS).sort().map(k=>"  "+k.padEnd(8)+" "+CMDS[k].help).join("\n")+"\n\nI comandi arrivano man mano che entrano nella guida; «anteprima» = disponibile ma senza scheda.",code:0};}};
   CMDS.pwd={help:"stampa la cartella corrente (print working directory)",man:"pwd - print name of current/working directory\n\nSYNOPSIS\n       pwd [OPTION]...\n\nStampa il percorso assoluto della cartella in cui ti trovi. È un builtin della shell.",run(ctx){return {out:ctx.cwd,code:0};}};
   CMDS.cd={help:"cambia cartella (change directory)",man:"cd - change the shell working directory\n\nSYNOPSIS\n       cd [dir]\n\nSenza argomenti porta alla home (~). «cd -» torna alla cartella precedente. È un builtin: deve cambiare lo stato della shell stessa.",run(ctx,args){
       let t=args[0]??HOME;if(t==="-")t=ctx.prev||ctx.cwd;const p=norm(ctx.cwd,t);const n=get(ctx.fs,p);
@@ -422,9 +514,10 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
         const paint=k=>{const x=node(k);const nm=esc(q(k));return x.t==="d"?`<span class="dir">${nm}/</span>`:x.m.includes("x")?`<span class="exe">${nm}*</span>`:nm;};
         if(o.l){const sz=x=>x.t==="d"?4096:x.s.length*37;const hs=v=>o.h?(v>=1048576?(v/1048576).toFixed(1)+"M":v>=1024?Math.round(v/1024)+"K":v+""):v+"";
           out.push(`total ${list.length*4}`);list.forEach(k=>{const x=node(k);out.push(`${x.t==="d"?"d":"-"}${x.m} ${String(x.t==="d"?Object.keys(x.c).length+2:1).padStart(2)} ${USER.padEnd(5)} ${USER.padEnd(5)} ${hs(sz(x)).padStart(6)} ${x.d} ${paint(k)}`);});}
+        else if(ctx.toPipe)out.push(list.map(k=>esc(k)).join("\n"));
         else out.push(list.map(paint).join("  "));});
       return {out:out.join("\n"),code,html:true};}};
-  CMDS.cat={help:"mostra il contenuto di uno o più file (concatenate)",man:"cat - concatenate files and print on the standard output\n\nSYNOPSIS\n       cat [OPTION]... [FILE]...",run(ctx,args){const {rest}=opts(args,{name:"cat",short:"n"});if(!rest.length)return {out:"(cat senza argomenti legge dalla tastiera: qui non è simulato; premi Ctrl+D per uscire in una shell vera)",code:0};let out=[],code=0;rest.forEach(t=>{const n=get(ctx.fs,norm(ctx.cwd,t));if(!n){out.push(`cat: ${t}: No such file or directory`);code=1;}else if(n.t==="d"){out.push(`cat: ${t}: Is a directory`);code=1;}else out.push(n.s.replace(/\n$/,""));});return {out:out.join("\n"),code};}};
+  CMDS.cat={help:"mostra il contenuto di uno o più file (concatenate)",man:"cat - concatenate files and print on the standard output\n\nSYNOPSIS\n       cat [OPTION]... [FILE]...",run(ctx,args){const {rest}=opts(args,{name:"cat",short:"n"});if(!rest.length)return ctx.stdin!=null?{out:ctx.stdin.replace(/\n$/,""),code:0}:{out:"(cat senza argomenti legge dalla tastiera: qui non è simulato; premi Ctrl+D per uscire in una shell vera)",code:0};let out=[],code=0;rest.forEach(t=>{const n=get(ctx.fs,norm(ctx.cwd,t));if(!n){out.push(`cat: ${t}: No such file or directory`);code=1;}else if(n.t==="d"){out.push(`cat: ${t}: Is a directory`);code=1;}else out.push(n.s.replace(/\n$/,""));});return {out:out.join("\n"),code};}};
   CMDS.echo={help:"stampa i suoi argomenti",man:"echo - display a line of text\n\nSYNOPSIS\n       echo [SHORT-OPTION]... [STRING]...\n\nStampa gli argomenti separati da uno spazio. Le variabili ($HOME, $SHELL) le espande la shell prima che echo le veda.",run(ctx,args){return {out:args.join(" "),code:0};}};
   CMDS.type={help:"dice se un comando è builtin o programma",man:"type - display information about command type\n\nSYNOPSIS\n       type name...",run(ctx,args){if(!args.length)return {out:"",code:0};const B=["cd","pwd","echo","type","help","history","exit"];return {out:args.map(a=>B.includes(a)?`${a} is a shell builtin`:CMDS[a]?`${a} is /usr/bin/${a}`:`bash: type: ${a}: not found`).join("\n"),code:args.every(a=>B.includes(a)||CMDS[a])?0:1};}};
   CMDS.whoami={help:"stampa il nome dell'utente",run(){return {out:USER,code:0};}};
@@ -434,28 +527,102 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   CMDS.exit={help:"chiude la shell",run(ctx){return {out:"logout\n(in questa simulazione la shell riparte da sola)",code:0};}};
   CMDS.tldr={help:"esempi pratici di un comando",run(ctx,args){const c=args[0];if(!c||!CMDS[c])return {out:`tldr: page not found for ${c||"(niente)"}`,code:1};return {out:`${c}\n\n  ${CMDS[c].help}.\n\n(tldr mostra 4-5 esempi: nel terminale simulato il contenuto arriva con la scheda del comando)`,code:0};}};
 
-  /* ---- esecuzione di una riga ---- */
-  function run(ctx,line){const env={HOME,USER,SHELL:"/bin/bash",PWD:ctx.cwd,PATH:"/usr/local/bin:/usr/bin:/bin",EDITOR:"nano"};
-    let toks;try{toks=tokenize(line,env);}catch(e){return {out:"bash: errore di sintassi",code:2};}
-    if(!toks.length)return {out:"",code:0};
-    const [c,...args]=toks;const cmd=CMDS[c];
-    if(!cmd)return {out:`bash: ${c}: command not found`,code:127,mac:/^(ls|cd|grep|find|cp|mv|rm|mkdir|cat|less|head|tail|chmod|sudo|ps|kill|tar|curl|ssh|git)$/.test(c)?null:"Questo comando non è ancora entrato nella guida: il terminale lo imparerà quando arriverà la sua scheda."};
+  /* ---- esecuzione di una riga: $?, $(…), «;» e pipe ---- */
+  function envOf(ctx){return {HOME,USER:ctx.root?"root":USER,SHELL:"/bin/bash",PWD:ctx.cwd,PATH:"/usr/local/bin:/usr/bin:/bin",EDITOR:"nano","?":String(ctx.last)};}
+  function substitute(ctx,line){/* $( … ) una volta, senza annidamento; $? viene sostituito comando per comando */
+    return line.replace(/\$\(([^()]*)\)/g,(m,inner)=>{const r=runLine(ctx,inner,true);return (r.out||"").replace(/<[^>]+>/g,"").trim().replace(/\s*\n\s*/g," ");});}
+  function runSimple(ctx,toks,stdin){const [c,...args]=toks;
+    if(c==="sudo"){if(!args.length)return {out:"usage: sudo command",code:1};ctx.root=true;try{return runSimple(ctx,args,stdin);}finally{ctx.root=false;}}
+    const cmd=CMDS[c];
+    if(!cmd)return {out:`bash: ${c}: command not found`,code:127,hint:/^(ls|cd|grep|find|cp|mv|rm|mkdir|cat|less|head|tail|chmod|sudo|ps|kill|tar|curl|ssh|git|awk|cut|lsof|sed|sort|uniq|wc)$/.test(c)?null:"Questo comando non è ancora entrato nella guida: il terminale lo imparerà quando arriverà la sua scheda."};
+    ctx.stdin=stdin;
     try{return cmd.run(ctx,args);}catch(e){if(e&&e.msg)return {out:e.msg,code:e.code||1,mac:e.mac};return {out:`bash: ${c}: errore interno della simulazione`,code:1};}}
+  function runLine(ctx,line,quiet){line=substitute(ctx,line);let toks;try{toks=tokenize(line,envOf(ctx));}catch(e){return {out:"bash: errore di sintassi",code:2};}
+    /* separa in comandi per «;», ciascuno in stadi per «|» */
+    const cmds=[[]];toks.forEach(t=>{if(typeof t==="object"&&t.op===";")cmds.push([]);else cmds[cmds.length-1].push(t);});
+    const outs=[];let macs=[],hints=[],html=false,dim=false;
+    for(const cm0 of cmds){const cm=cm0.map(t=>typeof t==="string"?t.replace(/\$\?/g,String(ctx.last)):t);const stages=[[]];cm.forEach(t=>{if(typeof t==="object"&&t.op==="|")stages.push([]);else stages[stages.length-1].push(t);});
+      if(stages.some(st=>!st.length)){if(cm.length){outs.push("bash: syntax error near unexpected token `|'");ctx.last=2;}continue;}
+      let stdin=null,r={out:"",code:0};
+      for(let i=0;i<stages.length;i++){ctx.toPipe=i<stages.length-1;r=runSimple(ctx,stages[i],stdin);if(r.mac)macs.push(r.mac);if(r.hint)hints.push(r.hint);if(i<stages.length-1){stdin=(r.out||"").replace(/<[^>]+>/g,"");r.piped=true;}}
+      if(r.out)outs.push(r.code?`<span class="err">${r.html?r.out:esc(r.out)}</span>`:(r.dim?`<span class="dim">${esc(r.out)}</span>`:(r.html?r.out:esc(r.out))));
+      ctx.last=r.code||0;}
+    return {out:outs.join("\n"),code:ctx.last,html:true,mac:macs.join(" · ")||null,hint:hints.join(" · ")||null};}
+  /* input di un comando: file argomenti, altrimenti la pipe */
+  function readInput(ctx,files){if(files.length){let txt="",err=null;files.forEach(f=>{const n=get(ctx.fs,norm(ctx.cwd,f));if(!n)err=(err||"")+`${f}: No such file or directory\n`;else if(n.t==="d")err=(err||"")+`${f}: Is a directory\n`;else txt+=n.s;});return {txt,err};}
+    return {txt:ctx.stdin??"",err:ctx.stdin==null?"(nessun input: dai un file o usa una pipe)":null};}
+  const lines=t=>t.replace(/\n$/,"").split("\n").filter((l,i,a)=>!(a.length===1&&l===""));
+
+  /* ---- grep (anteprima minima) ---- */
+  CMDS.grep={help:"cerca righe che contengono un testo (anteprima: scheda in arrivo)",run(ctx,args){const {o,rest}=opts(args,{name:"grep",short:"invcE"});if(!rest.length)return {out:"Usage: grep [OPTION]... PATTERNS [FILE]...",code:2};
+      const [pat,...files]=rest;let re;try{re=new RegExp(pat,o.i?"i":"");}catch(e){return {out:`grep: ${pat}: espressione non valida`,code:2};}
+      const {txt,err}=readInput(ctx,files);if(err&&!txt)return {out:"grep: "+err.trim(),code:2};
+      const hit=lines(txt).map((l,i)=>[l,i+1]).filter(([l])=>re.test(l)!==!!o.v);
+      if(o.c)return {out:String(hit.length),code:hit.length?0:1};
+      return {out:hit.map(([l,i])=>(o.n?i+":":"")+l).join("\n"),code:hit.length?0:1};}};
+  /* ---- cut ---- */
+  CMDS.cut={help:"estrae colonne con un separatore fisso",man:"cut - remove sections from each line of files\n\nSYNOPSIS\n       cut OPTION... [FILE]...\n\n  -d DELIM   separatore (default: tab)\n  -f LIST    campi da stampare: 2, 1,3, 2-4\n\nNon unisce separatori ripetuti: con gli spazi multipli usa awk.",
+    run(ctx,args){let d="\t",f=null,files=[];for(let i=0;i<args.length;i++){const a=args[i];if(a==="-d")d=args[++i]??"";else if(a.startsWith("-d"))d=a.slice(2);else if(a==="-f")f=args[++i];else if(a.startsWith("-f"))f=a.slice(2);else if(a.startsWith("-"))throw {code:1,msg:`cut: invalid option -- '${a.slice(1)}'\nTry 'cut --help' for more information.`};else files.push(a);}
+      if(!f)return {out:"cut: you must specify a list of bytes, characters, or fields\nTry 'cut --help' for more information.",code:1};
+      if(d.length!==1)return {out:"cut: the delimiter must be a single character",code:1};
+      const want=new Set();f.split(",").forEach(p=>{const m=p.match(/^(\d*)-(\d*)$/);if(m){const a=+(m[1]||1),b=+(m[2]||99);for(let k=a;k<=b;k++)want.add(k);}else want.add(+p);});
+      const {txt,err}=readInput(ctx,files);if(err&&!txt)return {out:"cut: "+err.trim(),code:1};
+      return {out:lines(txt).map(l=>{if(!l.includes(d))return l;const cols=l.split(d);return cols.filter((c,i)=>want.has(i+1)).join(d);}).join("\n"),code:0};}};
+  /* ---- awk (sottoinsieme) ---- */
+  CMDS.awk={help:"legge righe, le spezza in colonne, filtra e stampa",man:"awk - pattern scanning and processing language\n\nSYNOPSIS\n       awk [-F sep] 'program' [file ...]\n\n  program = [condizione] { print … }\n  $1 $2 … campi, $0 riga intera, NR numero di riga, NF numero di campi\n  condizioni: NR>1, NR==5, $1==\"x\", $3>100\n\nLinux: gawk · macOS: awk BSD. Le forme di base sono identiche.",
+    run(ctx,args){let FS=null,prog=null,files=[];for(let i=0;i<args.length;i++){const a=args[i];if(a==="-F")FS=args[++i];else if(a.startsWith("-F"))FS=a.slice(2);else if(prog===null)prog=a;else files.push(a);}
+      if(prog===null)return {out:"usage: awk [-F fs] 'prog' [file ...]",code:2};
+      if(FS==="\\t")FS="\t";
+      /* parse: cond {action} */
+      const m=prog.trim().match(/^(.*?)\s*\{\s*(.*?)\s*\}\s*$/s);
+      if(!m)return {out:`awk: syntax error at source line 1\n context is\n\t>>> ${prog} <<<\nawk: bailing out at source line 1`,code:2,hint:prog.includes("print")?"manca una graffa: il programma di awk è «condizione {azione}»":"il programma va tra apici singoli: awk '{print $2}'"};
+      const cond=m[1].trim(),action=m[2].trim();
+      const condF=parseCond(cond);if(!condF)return {out:`awk: syntax error in condition: ${cond}`,code:2};
+      const am=action.match(/^print\b\s*(.*)$/);if(!am&&action!=="")return {out:`awk: in questa simulazione l'azione può essere solo print …`,code:2};
+      const items=am?splitItems(am[1]):["$0"];
+      const {txt,err}=readInput(ctx,files);if(err&&!txt)return {out:"awk: "+err.replace(/\n$/,"").replace(/\n/g,"\nawk: "),code:2};
+      const out=[];lines(txt).forEach((l,i)=>{const F=FS==null?l.trim().split(/[ \t]+/):l.split(FS);const rec={l,F,NR:i+1,NF:F.length};if(!condF(rec))return;
+        /* virgola tra gli item = spazio; item adiacenti senza virgola = concatenati */
+        out.push(items.map(it=>evalItem(it,rec)).join(" "));});
+      return {out:out.join("\n"),code:0,hint:(out.length===0&&lines(txt).length===0)?"awk non ha stampato nulla perché non ha ricevuto nulla in input: il comando prima della pipe non ha prodotto output":null};}};
+  function field(rec,k){return k===0?rec.l:(rec.F[k-1]??"");}
+  function evalItem(it,rec){it=it.trim();let out="";/* concatenazione di pezzi adiacenti */const parts=it.match(/"[^"]*"|\$[0-9]+|\$NF|NR|NF|[0-9.]+/g)||[];for(const p of parts){if(p.startsWith('"'))out+=p.slice(1,-1);else if(p==="$NF")out+=field(rec,rec.NF);else if(p.startsWith("$"))out+=field(rec,+p.slice(1));else if(p==="NR")out+=rec.NR;else if(p==="NF")out+=rec.NF;else out+=p;}return out;}
+  function splitItems(s){if(!s.trim())return ["$0"];const items=[];let cur="",inQ=false;for(const ch of s){if(ch==='"')inQ=!inQ;if(ch===","&&!inQ){items.push(cur);cur="";}else cur+=ch;}items.push(cur);return items;}
+  function parseCond(c){if(!c)return ()=>true;const m=c.match(/^(\$\d+|NR|NF)\s*(==|!=|>=|<=|>|<)\s*("[^"]*"|-?[0-9.]+)$/);if(!m)return null;const [,L,op,R]=m;
+    return rec=>{const lv=L==="NR"?rec.NR:L==="NF"?rec.NF:field(rec,+L.slice(1));const isStr=R.startsWith('"');const rv=isStr?R.slice(1,-1):+R;const a=isStr?String(lv):+lv;
+      switch(op){case "==":return a==rv;case "!=":return a!=rv;case ">":return a>rv;case "<":return a<rv;case ">=":return a>=rv;case "<=":return a<=rv;}return false;};}
+  /* ---- lsof -i ---- */
+  CMDS.lsof={help:"elenca chi ha aperto file e porte (qui: -i per le porte)",man:"lsof - list open files\n\nSYNOPSIS\n       lsof [-t] [-P] [-n] [-i [:port]]\n\n  -i [:port]  connessioni di rete, opzionalmente solo su una porta\n  -t          solo i PID, uno per riga (per gli script)\n  -P -n       non tradurre porte e indirizzi in nomi (più veloce)\n\nMostra solo i processi del tuo utente: per gli altri serve sudo. Identico su Linux e macOS; alternative: ss -ltnp (Linux), netstat -anv (macOS).",
+    run(ctx,args){let net=false,port=null,terse=false;for(let i=0;i<args.length;i++){const a=args[i];if(a==="-i"){net=true;const nx=args[i+1];if(nx&&/^:\d+$/.test(nx)){port=+nx.slice(1);i++;}}else if(/^-i:\d+$/.test(a)){net=true;port=+a.slice(3);}else if(/^-[tPnPt]+$/.test(a)){if(a.includes("t"))terse=true;}else if(a.startsWith("-"))return {out:`lsof: unknown option -- ${a.slice(1)}\nlsof 4.99.0\n latest revision: https://github.com/lsof-org/lsof`,code:1};else return {out:`lsof: status error on ${a}: No such file or directory`,code:1};}
+      if(!net)return {out:"(in questa simulazione lsof conosce solo la forma -i [:porta])",code:1};
+      const vis=ctx.procs.filter(p=>(ctx.root||p.user===USER)&&(port==null||p.port===port));
+      if(!vis.length){const hidden=ctx.procs.some(p=>port!=null&&p.port===port&&p.user!==USER);return {out:"",code:1,hint:hidden?`nessun output ed exit 1, ma la porta ${port} è occupata da un processo di un altro utente: lsof mostra solo i tuoi, prova con sudo`:port!=null?`nessun output ed exit 1: nessun processo del tuo utente usa la porta ${port}`:null};}
+      if(terse)return {out:vis.map(p=>p.pid).join("\n"),code:0};
+      const row=p=>`${p.cmd.padEnd(8)} ${String(p.pid).padStart(6)} ${(ctx.root&&p.user!==USER?p.user:p.user).padEnd(9)} ${p.fd.padEnd(4)} ${p.type.padEnd(5)} 0x${(p.pid*2654435761%0xffffffff).toString(16).padStart(8,"0")}      0t0  TCP *:${p.port} (LISTEN)`;
+      return {out:"COMMAND     PID USER      FD   TYPE  DEVICE SIZE/OFF NODE NAME\n"+vis.map(row).join("\n"),code:0};}};
+  /* ---- kill ---- */
+  CMDS.kill={help:"manda un segnale a un processo (di default TERM, che lo chiude)",man:"kill - send a signal to a process\n\nSYNOPSIS\n       kill [-9] pid...\n\nSenza opzioni manda SIGTERM (chiusura gentile); -9 manda SIGKILL (chiusura forzata, il processo non può rifiutare).",
+    run(ctx,args){const pids=args.filter(a=>!a.startsWith("-"));if(!pids.length)return {out:"kill: usage: kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]",code:2,hint:args.length?null:"kill senza PID: succede quando $(…) ha restituito una stringa vuota, per esempio perché lsof non ha trovato nulla"};
+      let out=[],code=0;pids.forEach(s=>{const pid=+s;if(!/^\d+$/.test(s)){out.push(`bash: kill: ${s}: arguments must be process or job IDs`);code=1;return;}const i=ctx.procs.findIndex(p=>p.pid===pid);if(i<0){out.push(`bash: kill: (${pid}) - No such process`);code=1;return;}if(ctx.procs[i].user!==USER&&!ctx.root){out.push(`bash: kill: (${pid}) - Operation not permitted`);code=1;return;}ctx.procs.splice(i,1);});
+      return {out:out.join("\n"),code,hint:code?null:"nessun output: kill è silenzioso quando riesce. Controlla con lsof che la porta sia libera."};}};
+  CMDS.sudo={help:"esegue un comando come amministratore (root)",run(){return {out:"usage: sudo command",code:1};}};
 
   /* ---- UI ---- */
-  function makeTerm(root){const ctx={fs:mkfs(),cwd:HOME,prev:null,hist:[],clear:false};
-    const tries=(root.dataset.try||"").split("|").filter(Boolean);
-    root.innerHTML=`<div class="term-bar"><i></i><i></i><i></i><span>bash · simulazione</span></div><div class="term-out" aria-live="polite"></div><div class="term-in"><span class="pr"></span><input type="text" spellcheck="false" autocomplete="off" aria-label="Riga di comando"></div>${tries.length?`<div class="term-try">${tries.map(t=>`<button type="button" data-cmd="${esc(t)}">${esc(t)}</button>`).join("")}</div>`:""}`;
+  function mkprocs(){return [{cmd:"java",pid:12345,user:"joe",fd:"45u",type:"IPv6",port:8082},{cmd:"node",pid:4021,user:"joe",fd:"22u",type:"IPv4",port:3000},{cmd:"postgres",pid:812,user:"postgres",fd:"7u",type:"IPv4",port:5432}];}
+  function makeTerm(root){const ctx={fs:mkfs(),cwd:root.dataset.cwd||HOME,prev:null,hist:[],clear:false,last:0,procs:mkprocs(),stdin:null,root:false};
+    const tries=(root.dataset.try||"").split("§").filter(Boolean);
+    root.innerHTML=`<div class="term-bar"><i></i><i></i><i></i><span>bash · simulazione</span></div><div class="term-out" aria-live="polite"></div><div class="term-in"><span class="pr"></span><input type="text" spellcheck="false" autocomplete="off" aria-label="Riga di comando"></div>${tries.length?`<div class="term-try">${tries.map(t=>`<button type="button" data-cmd="${esc(t).replace(/"/g,"&quot;")}">${esc(t)}</button>`).join("")}</div>`:""}`;
     const out=root.querySelector(".term-out"),inp=root.querySelector("input"),prEl=root.querySelector(".term-in .pr");
     const prompt=()=>`${USER}@${HOST}:${ctx.cwd===HOME?"~":ctx.cwd.startsWith(HOME+"/")?"~"+ctx.cwd.slice(HOME.length):ctx.cwd}$`;
     const refresh=()=>{prEl.textContent=prompt()+" ";};
     let hi=0;
     function exec(line){line=line.trim();const pr=prompt();if(line)ctx.hist.push(line);hi=ctx.hist.length;
-      const r=run(ctx,line);
+      const r=runLine(ctx,line);
       if(ctx.clear){out.innerHTML="";ctx.clear=false;}
       else{let h=`<span class="pr">${esc(pr)}</span> <span class="cmd">${esc(line)}</span>\n`;
-        if(r.out)h+=(r.code&&r.code!==0?`<span class="err">${r.html?r.out:esc(r.out)}</span>`:(r.dim?`<span class="dim">${esc(r.out)}</span>`:(r.html?r.out:esc(r.out))))+"\n";
+        if(r.out)h+=r.out+"\n";
         if(r.mac)h+=`<span class="mac">macOS · ${esc(r.mac)}</span>`;
+        if(r.hint)h+=`<span class="mac hint">nota · ${esc(r.hint)}</span>`;
         out.insertAdjacentHTML("beforeend",h);out.scrollTop=out.scrollHeight;}
       refresh();}
     inp.addEventListener("keydown",e=>{if(e.key==="Enter"){exec(inp.value);inp.value="";}
