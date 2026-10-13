@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-13
+- **Glossario AI: dall'intelligenza artificiale alla funzione di attivazione** (`glossario-ai`) v1.0: Prima versione: 39 voci dalla playlist «Glossario AI» di Antonio Giordano, nell'ordine per prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per voce (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)
+
 ## 2026-10-04
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.0: Prima versione: guida originale sul programma della Machine Learning Specialization in 14 capitoli, riepilogo e glossario, 16 laboratori con la matematica reale (retta e costo, discesa del gradiente, scaling, regressione logistica, overfitting, rete neurale, softmax, curve di apprendimento, precisione e recall, entropia, k-means, anomalie, filtro collaborativo, rover e Bellman)
 - **Anatomia del Training LLM** (`training-llm`) v2.4: Dalla chat sui dubbi ricorrenti: la rete a finestra fissa numero per numero (concatenazione, W₁ riga per neurone, regola delle dimensioni, perché non scala), «vettore lungo o matrice?» nell'attention, laboratorio X → O con tutte le matrici di una testa (Q, K, V, QKᵀ, softmax causale, AV, pesi casuali vs del modello), tabella parametri vs attivazioni, due nuove FAQ (come si compongono i vettori; W_q/W_k/W_v da un solo training); correzioni di concordanza dopo scheda → vettore
