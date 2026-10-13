@@ -396,6 +396,11 @@
       ],
       "history": [
         {
+          "version": "1.6",
+          "date": "2026-10-13",
+          "notes": "Capitolo 9, caso strawberry riscritto: che cosa arriva al modello (il tokenizzatore lo spezza in pezzi, prima del modello), come il modello risponde (non esegue un conteggio, produce la risposta più probabile), e perché scrivere la parola lettera per lettera aiuta (il testo scritto rientra e passa dallo stesso tokenizzatore, ogni lettera isolata diventa un token)"
+        },
+        {
           "version": "1.5",
           "date": "2026-10-13",
           "notes": "Capitolo 9: il caso strawberry passo per passo (che cosa vediamo noi, che cosa riceve il modello, perché l'ortografia dei pezzi non arriva, perché i modelli recenti rispondono giusto scrivendo la parola lettera per lettera) con figura a tre viste"
@@ -426,7 +431,7 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.5",
+      "version": "1.6",
       "updated": "2026-10-13"
     }
   ]
