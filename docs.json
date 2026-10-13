@@ -396,6 +396,11 @@
       ],
       "history": [
         {
+          "version": "1.5",
+          "date": "2026-10-13",
+          "notes": "Capitolo 9: il caso strawberry passo per passo (che cosa vediamo noi, che cosa riceve il modello, perché l'ortografia dei pezzi non arriva, perché i modelli recenti rispondono giusto scrivendo la parola lettera per lettera) con figura a tre viste"
+        },
+        {
           "version": "1.4",
           "date": "2026-10-13",
           "notes": "Capitolo 2: laboratorio delle case spiegato passo per passo (dati, retta come funzione, errori, manopole a mano, passi di correzione) e a che cosa tende l'errore: al minimo della retta migliore (≈ 18,9), non a zero; linea del minimo nel grafico dell'errore"
@@ -421,7 +426,7 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.4",
+      "version": "1.5",
       "updated": "2026-10-13"
     }
   ]

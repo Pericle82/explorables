@@ -695,6 +695,28 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <div class="fld hist"><h3>Da dove viene</h3><p>Si parte dai manoscritti latini e greci, scritti senza spazi, dove chi leggeva doveva capire da solo dove finiva una parola. Tra il settimo e l'ottavo secolo i monaci irlandesi introdussero lo spazio, abitudine poi diffusa in tutta Europa. L'analogia serve a dire che il primo passo, prima di qualunque calcolo, è decidere dove tagliare il testo.</p></div>
 <div class="fld "><h3>A cosa serve</h3><p>Rende il testo leggibile per la rete. Se il token fosse la parola intera, servirebbero milioni di voci in italiano e il modello si bloccherebbe davanti a ogni termine mai visto. Se fosse la singola lettera, una frase di venti parole diventerebbe più di cento pezzi privi di significato. Il token è il compromesso. È anche l'unità di misura di prezzi (si pagano per milione di token), memoria (quanto testo il modello tiene in una volta) e velocità (quanti token al secondo produce).</p></div>
 <div class="fld warn"><h3>Dove tutti sbagliano</h3><p>L'errore più diffuso è credere che un token equivalga a una parola: in inglese cento token valgono circa settantacinque parole, mentre in italiano una parola occupa in media un token e mezzo. Il secondo è pensare che il modello legga le lettere. Il caso strawberry mostra il contrario: i modelli più vecchi sbagliavano a contare le R perché vedevano solo pezzi codificati come numeri.</p></div>
+<div class="fld"><h3>Il caso strawberry, passo per passo</h3>
+<p>Per anni una domanda banale ha messo in difficoltà i modelli linguistici: «quante R ci sono in <i>strawberry</i>?». La risposta è tre (st<b>r</b>awbe<b>rr</b>y), ma i modelli rispondevano spesso due. Non perché non sapessero contare: perché <b>la parola che noi vediamo non è quella che il modello riceve</b>.</p>
+<p><b>Noi vediamo dieci lettere.</b> Le abbiamo davanti tutte, una per una, e contare le R è immediato.</p>
+<p><b>Il modello riceve tre numeri.</b> Prima di entrare nel modello il testo viene spezzato in token, e qui i token sono tre pezzi, per esempio «str», «aw» e «berry». Ogni pezzo è sostituito dal suo numero nel vocabolario (#11), e ogni numero da una lista di valori, l'embedding (#13), che descrive come quel pezzo si usa: in che frasi compare, che cosa gli sta vicino. In nessuno di questi numeri c'è scritto «questo pezzo contiene due R». L'ortografia del pezzo, semplicemente, non arriva al modello.</p>
+<p><b>Per contare, il modello deve ricordare come si scrive ogni pezzo.</b> Può saperlo solo indirettamente, se durante l'addestramento ha letto abbastanza testi in cui «berry» compare scritto lettera per lettera. È come chiedere quante lettere ha una parola straniera che hai solo sentito pronunciare: la conosci, sai usarla, ma per contarne le lettere devi ricostruire come si scrive, e lì puoi sbagliare. Il modello, poi, non conta: produce la risposta più probabile dato ciò che ha visto (#19), e «due» suonava plausibile.</p>
+<p><b>Perché i modelli recenti rispondono giusto.</b> Due ragioni. Sono stati addestrati anche su esempi che scompongono le parole in lettere, quindi «ricordano» meglio l'ortografia dei pezzi. E soprattutto, prima di rispondere, possono scrivere la parola lettera per lettera: s, t, r, a, w… In quel testo ogni lettera diventa un token a sé, la R è finalmente qualcosa che il modello vede, e contarla torna facile. Prova qui sotto.</p>
+</div>
+<figure class="fig">
+<p class="fig-title">Che cosa vede il modello quando legge «strawberry» <span class="tag">illustrazione</span></p>
+<div class="seg" id="g09b-seg" role="group" aria-label="Punto di vista" style="margin-bottom:14px">
+  <button type="button" data-v="0" aria-pressed="true">1 · Che cosa vedi tu</button>
+  <button type="button" data-v="1" aria-pressed="false">2 · Che cosa riceve il modello</button>
+  <button type="button" data-v="2" aria-pressed="false">3 · Scritta lettera per lettera</button>
+</div>
+<div id="g09b-view" class="stack" style="gap:12px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Pezzi che entrano nel modello</small><strong id="g09b-n"></strong></div>
+  <div><small>R visibili al modello</small><strong id="g09b-r"></strong></div>
+</div>
+<p class="callout" id="g09b-msg" style="margin-top:12px"></p>
+<figcaption>Il taglio in «str», «aw», «berry» è quello di un tokenizzatore diffuso; altri tagliano in modo diverso, ma il problema è lo stesso. I numeri dei token e i valori degli embedding sono illustrativi: quelli veri sono migliaia di valori per pezzo, e nessuno di essi descrive le lettere.</figcaption>
+</figure>
 <div class="fld ex"><h3>Esempi e analogie</h3><ul><li>Pixel come numeri: casella accesa uguale a 1, spenta uguale a 0, un colore uguale a tre numeri.</li><li>La frase il gatto dorme sul letto, circa sei o sette token, con lo spazio incluso nel token successivo.</li><li>Gattaccio spezzato in gatt più accio, lo stesso pezzo gatt che serve per gatto, gatta e gattino.</li><li>Chiedere quante lettere ha una parola straniera che si è solo sentita pronunciare, per spiegare il caso strawberry.</li><li>Un carattere cinese che costa due o tre token, e i 256 byte che permettono di spezzare qualunque testo.</li></ul></div>
 <div class="links"><span class="lbl">Si appoggia su</span><a class="chip prev" href="#g3"><b>#3</b>Rete neurale</a><a class="chip prev" href="#g7"><b>#7</b>Peso</a><span class="lbl">Porta a</span><a class="chip " href="#g10"><b>#10</b>Tokenizzazione</a><a class="chip " href="#g11"><b>#11</b>Vocabolario</a><a class="chip " href="#g17"><b>#17</b>LLM</a><a class="chip " href="#g23"><b>#23</b>Context window</a></div>
 </section>
@@ -2271,7 +2293,7 @@ const box=G.$("#g09-tokens");if(!box)return;
 const EX=[
  {t:["il"," gatto"," dor","me"," sul"," let","to"],w:5,msg:"Cinque parole, sette token: le parole frequenti restano intere, quelle meno comuni si dividono in pezzi. Lo spazio viaggia con il pezzo che segue."},
  {t:["gatt","accio"],w:1,msg:"Una parola sola, due token. Il pezzo «gatt» è lo stesso che serve per gatto, gatta e gattino: il modello lo incontra spesso e lo conosce bene."},
- {t:["str","aw","berry"],w:1,msg:"Il modello non vede le lettere, vede tre pezzi codificati come numeri. Per questo i modelli più vecchi sbagliavano a contare le R: dentro «berry» o «str» non c'è nessuna lettera da contare."}
+ {t:["str","aw","berry"],w:1,msg:"Il modello non vede le lettere, vede tre pezzi codificati come numeri. Per questo i modelli più vecchi sbagliavano a contare le R: dentro «berry» o «str» non c'è nessuna lettera da contare. Il caso è spiegato passo per passo più sotto."}
 ];
 const cols=["var(--accent-soft)","var(--surface-2)"];
 function show(i){
@@ -2287,6 +2309,36 @@ G.seg("#g09-seg",v=>show(+v));
 show(0);
 
 })();}catch(err){console.error("figura 9.0",err);}
+
+/* ---- figura 9.1 ---- */
+try{(function(){
+
+const V=G.$("#g09b-view");if(!V)return;
+const WORD="strawberry",TOK=[["str",496],["aw",675],["berry",15717]];
+const rnd=G.rng(9);
+const emb=TOK.map(()=>Array.from({length:6},()=>G.fmt(rnd()*2-1,2)));
+function letters(hl){return '<div class="tokens">'+WORD.split("").map(ch=>`<span class="tok" style="${ch==="r"&&hl?"background:var(--accent);color:var(--bg);font-weight:700":""}">${ch}</span>`).join("")+'</div>';}
+function show(v){
+  let h="",n,r,m;
+  if(v===0){
+    h='<div class="diag-title">Dieci lettere, tutte davanti agli occhi</div>'+letters(true);
+    n="10 lettere";r="3";m="<b>Per te contare è immediato:</b> le lettere sono lì, una dopo l'altra, e le tre R si vedono. È proprio questa vista che al modello manca.";
+  }else if(v===1){
+    h='<div class="diag-title">Tre pezzi → tre numeri → tre liste di valori</div><div class="scroll-x"><table class="gtable"><thead><tr><th>pezzo</th><th>numero nel vocabolario</th><th>embedding (primi 6 valori di migliaia)</th></tr></thead><tbody>'+
+      TOK.map((t,i)=>`<tr><td><span class="tok" style="background:${i%2?"var(--surface-2)":"var(--accent-soft)"}">${t[0]}</span></td><td class="mono">${t[1]}</td><td class="mono">[${emb[i].join("; ")}; …]</td></tr>`).join("")+
+      '</tbody></table></div><div class="diag-title">Ciò che entra davvero nel modello</div><div class="tokens">'+TOK.map(t=>`<span class="tok mono">${t[1]}</span>`).join("")+'</div>';
+    n="3 token";r="nessuna";m="<b>Il modello non riceve lettere ma tre numeri</b>, e da ciascuno una lista di valori che dice come quel pezzo si usa, non come si scrive. Per sapere che «berry» contiene due R deve ricordarselo da ciò che ha letto in addestramento: è lì che sbagliava.";
+  }else{
+    h='<div class="diag-title">Il modello riscrive la parola, una lettera per token</div><div class="tokens">'+WORD.split("").map((ch,i)=>`<span class="tok" style="${ch==="r"?"background:var(--accent);color:var(--bg);font-weight:700":"background:"+(i%2?"var(--surface-2)":"var(--accent-soft)")}">${ch}</span>`).join("")+'</div>'+
+      '<p class="mono" style="margin:0;font-size:.9rem">e ora può contare: s, t, <b>r</b> (1), a, w, b, e, <b>r</b> (2), <b>r</b> (3), y</p>';
+    n="10 token";r="3";m="<b>Scrivere la parola lettera per lettera trasforma il problema.</b> Ora ogni lettera è un token a sé, le R sono entrate nel testo che il modello legge e contarle è facile. È il trucco che usano i modelli recenti quando «ragionano» prima di rispondere.";
+  }
+  V.innerHTML=h;G.$("#g09b-n").textContent=n;G.$("#g09b-r").textContent=r;G.$("#g09b-msg").innerHTML=m;
+}
+G.seg("#g09b-seg",v=>show(+v));
+show(0);
+
+})();}catch(err){console.error("figura 9.1",err);}
 
 /* ---- figura 10.0 ---- */
 try{(function(){
