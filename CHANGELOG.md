@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-13
+- **Glossario AI: dall'intelligenza artificiale alla funzione di attivazione** (`glossario-ai`) v1.1: Rimossi tutti i riferimenti ai video e al loro autore (testo riscritto senza attribuzioni, introduzione riscritta, niente link né struttura dei video); nuova spiegazione «perché il gatto non si lascia ridurre a regole» con il laboratorio «Scrivi tu le regole del gatto»; nel laboratorio delle case spiegato a che cosa servono le manopole w e b, con la stima di una casa nuova
 - **Glossario AI: dall'intelligenza artificiale alla funzione di attivazione** (`glossario-ai`) v1.0: Prima versione: 39 voci dalla playlist «Glossario AI» di Antonio Giordano, nell'ordine per prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per voce (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)
 
 ## 2026-10-04

@@ -386,7 +386,7 @@
     {
       "slug": "glossario-ai",
       "title": "Glossario AI: dall'intelligenza artificiale alla funzione di attivazione",
-      "description": "39 parole dell'intelligenza artificiale in ordine di prerequisito, ciascuna con definizione, storia, errori comuni ed esempi, una figura interattiva e il link al video.",
+      "description": "39 parole dell'intelligenza artificiale in ordine di prerequisito, ciascuna con definizione, storia, errori comuni, esempi e una figura interattiva.",
       "tags": [
         "glossario",
         "LLM",
@@ -396,12 +396,17 @@
       ],
       "history": [
         {
+          "version": "1.1",
+          "date": "2026-10-13",
+          "notes": "Rimossi tutti i riferimenti ai video e al loro autore (testo riscritto senza attribuzioni, introduzione riscritta, niente link né struttura dei video); nuova spiegazione «perché il gatto non si lascia ridurre a regole» con il laboratorio «Scrivi tu le regole del gatto»; nel laboratorio delle case spiegato a che cosa servono le manopole w e b, con la stima di una casa nuova"
+        },
+        {
           "version": "1.0",
           "date": "2026-10-13",
           "notes": "Prima versione: 39 voci dalla playlist «Glossario AI» di Antonio Giordano, nell'ordine per prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per voce (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.0",
+      "version": "1.1",
       "updated": "2026-10-13"
     }
   ]
