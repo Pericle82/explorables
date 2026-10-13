@@ -332,6 +332,54 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <div class="sec-head"><span class="eyebrow">#1 · Le fondamenta</span><h2>Intelligenza Artificiale</h2></div>
 <p class="oneline">L'intelligenza artificiale (IA) non è una tecnologia precisa, ma un insieme di tecniche per far fare alle macchine cose che, fatte da una persona, chiameremmo intelligenti.</p>
 <div class="fld "><h3>Definizione</h3><p>Un'etichetta ampia che raccoglie strumenti molto diversi tra loro. La si può paragonare al nome comune di scooter, trattore, auto elettrica e aereo di linea: tutti veicoli a motore, ma oggetti diversissimi.</p></div>
+<div class="fld"><h3>Che cosa c'è dentro l'etichetta</h3>
+<p>«Intelligenza artificiale» non indica un metodo ma un <b>obiettivo</b>: far fare a un programma compiti che, fatti da una persona, chiameremmo intelligenti, come giocare a scacchi, fare una diagnosi, capire una frase o trovare una strada. Per raggiungerlo, dal 1956 a oggi sono nate famiglie di tecniche molto diverse tra loro. Le principali sono cinque.</p>
+<ul>
+<li><b>Ricerca tra le possibilità.</b> Il programma esplora in modo sistematico le mosse o i percorsi possibili e sceglie il migliore secondo una funzione di valutazione. È la famiglia di Deep Blue, che esaminava circa 200 milioni di posizioni al secondo, e degli algoritmi che trovano la strada più breve in un navigatore.</li>
+<li><b>Sistemi basati sulla conoscenza</b>, detti anche sistemi esperti. Degli esperti umani scrivono centinaia di regole del tipo «se… allora…», e un motore di ragionamento le combina caso per caso fino a una conclusione. È l'IA a regole dei decenni dopo il 1956, per esempio i sistemi di diagnosi medica degli anni Settanta.</li>
+<li><b>Pianificazione e ottimizzazione.</b> Dati un obiettivo e dei vincoli (i turni del personale di un ospedale, gli orari dei treni, il carico dei camion), il programma trova una sequenza di azioni o una disposizione che li rispetti nel modo migliore.</li>
+<li><b>Ragionamento con l'incertezza.</b> Modelli di probabilità aggiornano quanto è credibile un'ipotesi man mano che arrivano indizi, come fa un medico che restringe la diagnosi a ogni esame (le reti bayesiane).</li>
+<li><b>Machine learning</b> (#2). Le regole non si scrivono: si ricavano dagli esempi. Qui dentro stanno le reti neurali (#3) e il deep learning (#4), ed è qui che oggi si trova la maggior parte di ciò che funziona.</li>
+</ul>
+<p>Visione artificiale, elaborazione del linguaggio e robotica non sono una sesta famiglia: sono <b>campi di applicazione</b>, problemi che sono stati affrontati di volta in volta con le tecniche dell'elenco. Il riconoscimento della voce, per esempio, è passato dalle regole scritte a mano ai modelli probabilistici e poi alle reti neurali.</p>
+</div>
+<div class="fld"><h3>E un programma «normale», che cosa ha di diverso?</h3>
+<p>Ogni sistema di intelligenza artificiale è un programma: gira sugli stessi computer ed è scritto negli stessi linguaggi di qualunque altro software. La differenza non sta nel codice, ma in <b>da dove viene la logica della decisione</b>.</p>
+<p>In un software classico il programmatore conosce la procedura e la scrive passo per passo: calcolare l'IVA (Imposta sul Valore Aggiunto) di una fattura, ordinare un elenco, registrare un bonifico. Per ogni ingresso esiste una risposta giusta, prevista da chi ha scritto il codice, e il programma la produce sempre nello stesso modo. Se sbaglia, è un errore nel codice e lo si corregge lì.</p>
+<p>Si parla di intelligenza artificiale quando quella procedura <b>non si sa scrivere</b> e la si sostituisce con qualcos'altro: con una ricerca tra moltissime possibilità che nessuno ha esaminato una per una (Deep Blue), con una base di regole che un motore di ragionamento combina in modi non previsti caso per caso (i sistemi esperti), oppure con regole ricavate dai dati (il machine learning). Nei primi due casi il comportamento viene ancora da conoscenza scritta da persone; nel terzo viene dagli esempi, e il programmatore scrive solo il procedimento con cui il sistema impara. Per questo un sistema di machine learning può sbagliare anche senza un errore nel codice: ha imparato male, o da dati sbagliati.</p>
+<p>Il confine è sfumato e si sposta nel tempo. Un algoritmo che trova il percorso più breve, negli anni Sessanta, era ricerca di punta sull'intelligenza artificiale; oggi è un pezzo di software classico dentro ogni navigatore. È l'effetto descritto più sotto, tra gli errori comuni.</p>
+</div>
+<figure class="fig">
+<p class="fig-title">Lo stesso compito, quattro approcci <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g01c-task" role="group" aria-label="Scegli il compito">
+    <button type="button" data-v="spam" aria-pressed="true">Filtrare lo spam</button>
+    <button type="button" data-v="chess" aria-pressed="false">Giocare a scacchi</button>
+    <button type="button" data-v="path" aria-pressed="false">Trovare la strada più breve</button>
+  </div>
+</div>
+<div id="g01c-cards" class="g01c-cards"></div>
+<p class="note" id="g01c-note" style="margin:10px 0 0"></p>
+<figcaption>Tutti e quattro gli approcci sono software, e girano sugli stessi computer: cambia da dove viene la logica della decisione. Scegli un compito e confronta le schede; il bordo colorato segna l'approccio più usato oggi per quel compito.</figcaption>
+</figure>
+<style>
+.g01c-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:600px){.g01c-cards{grid-template-columns:1fr}}
+.g01c-card{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:.85rem;min-width:0}
+.g01c-card.hot{border:2px solid var(--accent);padding:9px}
+.g01c-card h4{margin:0;font-size:.95rem}
+.g01c-flow{display:flex;flex-direction:column;gap:2px;align-items:stretch}
+.g01c-flow .b{border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:5px 7px;line-height:1.3}
+.g01c-flow .b small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.g01c-flow .b.m{background:var(--accent-soft)}
+.g01c-flow .a{text-align:center;color:var(--muted);line-height:1}
+.g01c-card .src{border-top:1px solid var(--grid);padding-top:6px}
+.g01c-card .src small,.g01c-card .ex small,.g01c-card .ok small,.g01c-card .no small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.g01c-card .ex{background:var(--surface-2);border-radius:6px;padding:5px 7px}
+.g01c-card .ok small{color:var(--good)}
+.g01c-card .no small{color:var(--bad)}
+.g01c-card.dim{opacity:.85}
+</style>
 <div class="fld hist"><h3>Da dove viene</h3><p>Nel <span class="year">1956</span> un piccolo gruppo di ricercatori si riunì in New Hampshire, e John McCarthy scelse il nome per distinguersi dalla cibernetica e per attirare fondi. Per decenni prevalse l'idea che l'intelligenza fosse un elenco di regole scritte da esperti. Nel <span class="year">1997</span> Deep Blue batté Kasparov a scacchi: il programma non imparava nulla, ma valutava circa 200 milioni di posizioni al secondo. Poi emerse il limite: molti compiti che a noi riescono senza sforzo, come capire che in una foto c'è un gatto, nessuno sa scomporli in istruzioni da dare a una macchina. Seguirono gli "inverni" degli anni Settanta e Ottanta, con i finanziamenti crollati. La svolta fu il machine learning: invece di scrivere le regole, si forniscono esempi già risolti.</p></div>
 <div class="fld"><h3>Perché nessuno sa scrivere le istruzioni per riconoscere un gatto</h3><p>Proviamo a farlo davvero. Una regola sensata sembra «è un gatto se ha orecchie a punta, baffi, pelo e quattro zampe». Ma un gatto acciambellato sotto una coperta non mostra né zampe né orecchie; uno sphynx non ha pelo; una volpe e un cane lupo hanno orecchie a punta, baffi, pelo e quattro zampe. Ogni eccezione chiede una regola nuova, e ogni regola nuova sbaglia su qualche altro caso: la lista non converge mai.</p><p>E c'è un problema più profondo. Le regole parlano di «orecchie» e «baffi», ma il computer non vede orecchie: vede una griglia di numeri, uno per pixel, che cambiano tutti se il gatto si sposta di un centimetro, se la luce cambia o se la foto è sfocata. Per applicare la regola «ha orecchie a punta» bisognerebbe prima riconoscere un orecchio tra milioni di numeri, che è lo stesso problema di partenza, solo più piccolo. Noi lo facciamo in una ventina di millisecondi senza saper spiegare come: per questo nessun esperto è mai riuscito a scrivere quelle regole, e la soluzione è stata smettere di scriverle e dare alla macchina esempi già risolti, cioè il machine learning (#2).</p></div>
 <figure class="fig">
@@ -466,7 +514,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <p class="fig-title">Matrioske e svolta del 2012 <span class="tag">illustrazione</span></p>
 <div class="grid2">
   <div>
-    <svg id="g04-svg" viewBox="0 0 320 320" role="img" aria-label="Quattro cerchi annidati: intelligenza artificiale contiene machine learning, che contiene reti neurali, che contengono deep learning."></svg>
+    <svg id="g04-svg" viewBox="0 0 360 372" role="img" aria-label="Intelligenza artificiale contiene diverse famiglie: ricerca, regole degli esperti, pianificazione, ragionamento probabilistico e machine learning; il machine learning contiene le reti neurali, che contengono il deep learning."></svg>
   </div>
   <div class="stack" style="gap:10px;justify-content:center">
     <p class="muted" style="margin:0;font-size:.9rem">Gara ImageNet 2012: errore di classificazione (più basso = meglio)</p>
@@ -477,7 +525,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
     <p class="note" style="margin:0">AlexNet (Hinton, Krizhevsky, Sutskever) lasciò quasi 11 punti percentuali di distanza, dove di solito i miglioramenti si contavano in decimali.</p>
   </div>
 </div>
-<figcaption>A sinistra: ogni cerchio è un sottoinsieme del precedente, come in una matrioska. A destra: i due errori, con le cifre del capitolo; le barre partono da zero.</figcaption>
+<figcaption>A sinistra: il machine learning è una delle famiglie dell'intelligenza artificiale (le altre sono qui sotto forma di etichette), e dentro di lui ogni cerchio è un sottoinsieme del precedente, come in una matrioska. A destra: i due errori, con le cifre del capitolo; le barre partono da zero.</figcaption>
 </figure>
 <div class="fld "><h3>A cosa serve</h3><p>Serve a trovare schemi in dati complessi e non strutturati, come le immagini, ed è alla base dei moderni assistenti come ChatGPT. La ricetta resta sempre la stessa: strati, esempi, errore, correzione, ripetuti su scala molto maggiore e con architetture più sofisticate di quella del 2012.</p></div>
 <div class="fld warn"><h3>Dove tutti sbagliano</h3><p>Il primo errore è credere che il deep learning abbia rimpiazzato il machine learning classico. Su una tabella aziendale piccola i metodi più semplici costano molto meno, girano su un portatile e permettono di capire perché hanno deciso in un certo modo. Il secondo errore è sottovalutare i dati: con poche migliaia di righe storiche il metodo non funziona, e servono milioni di esempi che quasi nessuna azienda possiede.</p></div>
@@ -1844,6 +1892,42 @@ G.seg("#g01-mode",draw);draw("rules");
 
 })();}catch(err){console.error("figura 1.1",err);}
 
+/* ---- figura 1.2 ---- */
+try{(function(){
+
+const box=G.$("#g01c-cards"),note=G.$("#g01c-note");if(!box||!note)return;
+const NAMES=["Software classico","Ricerca tra le possibilità","Regole degli esperti","Machine learning"];
+const T={
+spam:{hot:3,note:"Oggi i filtri antispam si basano soprattutto sul machine learning, perché i truffatori cambiano continuamente testo e mittenti e le regole fisse restano indietro.",c:[
+ {w:"Un elenco fisso di mittenti bloccati",m:"Confronta il mittente con l'elenco",src:"il programmatore",ex:"Elenco fisso di mittenti bloccati: se l'indirizzo è nell'elenco, è spam.",ok:"Va bene per i mittenti noti e sempre uguali.",no:"Basta cambiare indirizzo per aggirarlo."},
+ {w:"Niente di adatto: non c'è nulla da esplorare",m:"Non ha un insieme di mosse tra cui cercare",src:"esplorazione + valutazione scritta dal programmatore",ex:"Poco adatta: un'email non è un problema di mosse o percorsi, e non esiste una funzione che dica quanto «è spam» senza altra conoscenza.",ok:"Funziona quando ci sono scelte da esplorare e un modo per valutarle.",no:"Qui non c'è né l'una né l'altra cosa."},
+ {w:"Regole «se… allora…» di esperti",m:"Applica le regole e combina i risultati",src:"la conoscenza degli esperti",ex:"Se contiene «hai vinto» e un link e il mittente è sconosciuto → spam.",ok:"Le regole si leggono e si spiegano una per una.",no:"Vanno riscritte a mano a ogni nuovo trucco."},
+ {w:"Diecimila email già etichettate",m:"Ricava da sola quali indizi contano",src:"gli esempi",ex:"10.000 email già etichettate «spam» / «non spam».",ok:"Si adatta a trucchi nuovi se si riaddestra su esempi recenti.",no:"Serve molta cura nei dati: se sono sbilanciati, sbaglia."}]},
+chess:{hot:3,note:"Oggi i motori migliori combinano la ricerca con una valutazione delle posizioni imparata giocando: Deep Blue era ricerca pura, con una valutazione scritta a mano.",c:[
+ {w:"Una mossa fissa per ogni posizione",m:"Cerca la posizione e gioca la mossa",src:"il programmatore, posizione per posizione",ex:"Impossibile: le posizioni possibili sono troppe per scriverne la mossa una per una.",ok:"Funziona se i casi sono pochi e noti.",no:"Qui i casi sono troppi: non si può scrivere."},
+ {w:"La funzione che valuta una posizione",m:"Esplora le mosse e sceglie la migliore",src:"esplorazione + valutazione scritta dal programmatore",ex:"Deep Blue (1997): circa 200 milioni di posizioni al secondo.",ok:"Batte i campioni quando l'esplorazione è abbastanza veloce.",no:"La qualità dipende da come è scritta la valutazione."},
+ {w:"Aperture e principi da manuale",m:"Applica il principio che corrisponde alla posizione",src:"la conoscenza degli esperti",ex:"Aperture codificate e principi come «controlla il centro».",ok:"Ottima per l'apertura, dove la teoria è ben nota.",no:"A metà partita i principi si scontrano e non bastano."},
+ {w:"Il procedimento con cui impara",m:"Impara a valutare le posizioni giocando",src:"gli esempi: partite contro sé stesso",ex:"Milioni di partite contro sé stesso, da cui impara a valutare le posizioni.",ok:"Trova valutazioni che nessuno aveva scritto.",no:"Richiede moltissimo calcolo per allenarsi."}]},
+path:{hot:0,note:"Il percorso più breve è oggi software classico; il machine learning interviene dove c'è incertezza, per esempio nel prevedere i tempi di percorrenza.",c:[
+ {w:"L'algoritmo del percorso più breve",m:"Esegue i passi e restituisce il percorso",src:"il programmatore",ex:"Negli anni Sessanta era ricerca di punta sull'IA; oggi è software classico: è l'effetto IA.",ok:"Dà sempre il percorso più breve sulla mappa.",no:"Non sa niente del traffico di oggi."},
+ {w:"La mappa e il costo di ogni tratto",m:"Esplora i percorsi e tiene il migliore",src:"esplorazione + valutazione scritta dal programmatore",ex:"È la stessa famiglia dell'algoritmo classico: una ricerca tra i percorsi possibili.",ok:"Garantisce il percorso migliore se i costi sono giusti.",no:"I costi devono essere noti in anticipo."},
+ {w:"Regole del tipo «se… allora…»",m:"Corregge il percorso con le regole",src:"la conoscenza degli esperti",ex:"«Evita il centro all'ora di punta».",ok:"Cattura l'esperienza di chi conosce la città.",no:"Non cattura gli imprevisti di oggi."},
+ {w:"Lo storico del traffico",m:"Impara a prevedere i tempi di percorrenza",src:"gli esempi: il traffico storico",ex:"Dal traffico storico prevede quanto ci vorrà su ogni tratto.",ok:"Dà tempi realistici alle diverse ore.",no:"Sbaglia con eventi mai visti nei dati."}]}
+};
+function draw(k){
+ const d=T[k];
+ box.innerHTML=d.c.map((c,i)=>`<div class="g01c-card${i===d.hot?" hot":""}"><h4>${NAMES[i]}</h4>
+ <div class="g01c-flow"><div class="b"><small>La persona scrive</small>${c.w}</div><div class="a" aria-hidden="true">↓</div><div class="b m"><small>La macchina fa</small>${c.m}</div></div>
+ <div class="src"><small>Da dove viene la decisione</small>${c.src}</div>
+ <div class="ex"><small>Esempio</small>${c.ex}</div>
+ <div class="ok"><small>Quando funziona</small>${c.ok}</div>
+ <div class="no"><small>Quando non basta</small>${c.no}</div></div>`).join("");
+ note.innerHTML="<b>Il più usato oggi:</b> "+NAMES[d.hot]+". "+d.note;
+}
+G.seg("#g01c-task",draw);draw("spam");
+
+})();}catch(err){console.error("figura 1.2",err);}
+
 /* ---- figura 2.0 ---- */
 try{(function(){
 
@@ -1969,21 +2053,30 @@ try{(function(){
 const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
 const svg=G.$("#g04-svg");if(!svg)return;
 G.$("#g04-b1").style.width=(15.3/30*100)+"%";G.$("#g04-b2").style.width=(26.2/30*100)+"%";
+const cx=146,bot=344,AX=180,AY=186,AR=178;
+G.el("circle",{cx:AX,cy:AY,r:AR,fill:"var(--surface-2)",stroke:"var(--line)","stroke-width":1.5},svg);
+G.el("text",{x:AX,y:32,"text-anchor":"middle","font-size":13,"font-weight":600},svg,"Intelligenza artificiale");
+G.el("text",{x:AX,y:48,"text-anchor":"middle","font-size":10,style:"fill:var(--muted)"},svg,"l’obiettivo; le famiglie di tecniche sono dentro");
 const rings=[
- {r:150,t:"Intelligenza artificiale",f:"var(--surface-2)"},
- {r:120,t:"Machine learning",f:"var(--accent-soft)"},
- {r:90,t:"Reti neurali",f:"var(--surface)"},
- {r:60,t:"Deep learning",f:"var(--accent)",dark:true}];
-const cx=160,bot=312;
+ {r:100,t:"Machine learning",f:"var(--accent-soft)"},
+ {r:74,t:"Reti neurali",f:"var(--surface)"},
+ {r:50,t:"Deep learning",f:"var(--accent)",dark:true}];
 rings.forEach((o,i)=>{
   const cy=bot-o.r;
-  G.el("circle",{cx,cy,r:o.r,fill:o.f,stroke:i===3?"var(--accent)":"var(--line)","stroke-width":1.5},svg);
+  G.el("circle",{cx,cy,r:o.r,fill:o.f,stroke:i===2?"var(--accent)":"var(--line)","stroke-width":1.5},svg);
 });
 rings.forEach((o,i)=>{
   const cy=bot-o.r;
-  const y=i<3?cy-o.r+24:cy+4;
-  G.el("text",{x:cx,y,"text-anchor":"middle","font-size":i<3?13:13,"font-weight":600,style:o.dark?"fill:var(--bg)":""},svg,o.t);
-});fx(svg);
+  const y=i<2?cy-o.r+24:cy+4;
+  G.el("text",{x:cx,y,"text-anchor":"middle","font-size":i<2?12:12,"font-weight":600,style:o.dark?"fill:var(--bg)":""},svg,o.t);
+});
+const fam=[["ricerca"],["regole degli","esperti"],["pianificazione"],["ragionamento","probabilistico"]];
+fam.forEach((l,i)=>{
+  const cy=100+i*48,x=244,w=92,h=38;
+  G.el("rect",{x,y:cy-h/2,width:w,height:h,rx:18,fill:"var(--surface)",stroke:"var(--line)","stroke-width":1.2},svg);
+  l.forEach((t,j)=>G.el("text",{x:x+w/2,y:cy+(l.length===1?4:j*13-2),"text-anchor":"middle","font-size":11},svg,t));
+});
+fx(svg);
 
 })();}catch(err){console.error("figura 4.0",err);}
 

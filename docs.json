@@ -396,6 +396,11 @@
       ],
       "history": [
         {
+          "version": "1.3",
+          "date": "2026-10-13",
+          "notes": "Capitolo 1: che cosa c'è dentro l'etichetta «intelligenza artificiale» (ricerca, sistemi esperti, pianificazione e ottimizzazione, ragionamento con l'incertezza, machine learning; visione, linguaggio e robotica come campi di applicazione) e che cosa distingue un software classico (da dove viene la logica della decisione), con la figura «Lo stesso compito, quattro approcci»; capitolo 4: le altre famiglie accanto al machine learning nelle matrioske"
+        },
+        {
           "version": "1.2",
           "date": "2026-10-13",
           "notes": "Da glossario a manuale: titolo, capitoli al posto di voci, nessun conteggio totale (i capitoli potranno aumentare); riscritta la frase sul limite delle regole (compiti che a noi riescono senza sforzo e che nessuno sa scomporre in istruzioni)"
@@ -411,7 +416,7 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.2",
+      "version": "1.3",
       "updated": "2026-10-13"
     }
   ]
