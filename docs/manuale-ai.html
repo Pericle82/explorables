@@ -235,6 +235,14 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 .acr dt{font-family:var(--mono)}
 @media(max-width:480px){.fld.ex ul{grid-template-columns:1fr}.oneline{font-size:1.06rem}}
 @media(max-width:480px){.barrow{grid-template-columns:1fr 48px;row-gap:3px}.barrow>span:first-child{grid-column:1 / -1}}
+
+.ia3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0 4px;max-width:none}
+.ia3-box{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:.88rem;line-height:1.4}
+.ia3-box>b{font-family:var(--serif);font-size:1rem}
+.ia3-box small{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ia3-box:nth-child(3){border-color:var(--accent)}
+.ia3-axis{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.7rem;color:var(--muted);border-top:2px solid var(--line);border-image:linear-gradient(90deg,var(--line),var(--accent)) 1;padding-top:4px;margin-bottom:10px}
+.ia3-axis span:last-child{text-align:right;color:var(--accent)}
 </style>
 
 <div class="wrap">
@@ -244,7 +252,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <p class="lede">Le parole che si sentono ogni volta che si parla di intelligenza artificiale, spiegate una alla volta e <b>in ordine di prerequisito</b>: ogni capitolo usa solo concetti già spiegati nei capitoli precedenti. Per ciascuna: la definizione in una frase, da dove viene (con la storia, dal 1637 al 2024), a che cosa serve, dove tutti sbagliano, gli esempi, e una figura per vederla funzionare.</p>
 <aside class="vx vx-prereq" aria-label="Per andare oltre"><span class="eyebrow">Per andare oltre</span><p>Ogni capitolo è un primo gradino. Per vedere gli stessi concetti al lavoro, con i calcoli completi: <a href="https://pericle82.github.io/explorables/training-llm/">Anatomia del Training LLM</a> e <a href="https://pericle82.github.io/explorables/machine-learning/">Machine learning</a>.</p></aside>
 <div class="cards">
-<a href="#g0"><small>Inizio</small><b>Come leggere il manuale</b><span>la mappa dei prerequisiti e la storia in una riga</span></a>
+<a href="#g0"><small>Inizio</small><b>Come leggere il manuale</b><span>la mappa dei prerequisiti</span></a>
 <a href="#p1"><small>Parte I · #1–#8</small><b>Le fondamenta</b><span>Intelligenza Artificiale, Machine Learning, Rete neurale, Deep Learning, Modello, Parametro, Peso, Addestramento</span></a>
 <a href="#p2"><small>Parte II · #9–#16</small><b>Dal testo ai numeri</b><span>Token, Tokenizzazione, Vocabolario, Byte Pair Encoding, Embedding, Spazio latente, Similarità coseno, Dimensione</span></a>
 <a href="#p3"><small>Parte III · #17–#24</small><b>Il modello linguistico al lavoro</b><span>LLM, Autoregressione, Prossimo token, Modello generativo, Prompt, Completion, Context window, Inferenza</span></a>
@@ -293,40 +301,6 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 </section>
 
 
-<section class="st" id="storia">
-<div class="sec-head"><span class="eyebrow">Storia</span><h2>La storia in una riga</h2></div>
-<div class="prose stack"><p>Quasi ogni capitolo del manuale parte da un aneddoto storico, e messi in fila questi aneddoti raccontano come si è arrivati agli LLM (Large Language Model, grandi modelli linguistici): da Cartesio nel 1637 ai contesti da 128.000 token del 2024. Qui sono raccolti gli eventi datati dei testi, uno per riga; ogni evento rimanda al suo capitolo. Prima del 1637 c'è solo un episodio: tra il settimo e l'ottavo secolo i monaci irlandesi introdussero lo spazio tra le parole (<a class="ref" href="#g9">#9 Token</a>).</p></div>
-<figure class="fig">
-<p class="fig-title">Dal 1637 al 2024, a scala non lineare <span class="tag">dati dai testi</span></p>
-<div class="row" style="margin-bottom:10px">
-  <div class="seg" id="tl-part" role="group" aria-label="Filtra per parte">
-    <button type="button" data-v="all" aria-pressed="true">Tutte</button>
-    <button type="button" data-v="1" aria-pressed="false">I</button>
-    <button type="button" data-v="2" aria-pressed="false">II</button>
-    <button type="button" data-v="3" aria-pressed="false">III</button>
-    <button type="button" data-v="4" aria-pressed="false">IV</button>
-  </div>
-</div>
-<svg id="tl-svg" viewBox="0 0 600 104" role="img" aria-label="Linea del tempo dal 1637 al 2024 con un punto per ogni evento, colorato per parte del manuale; la scala è compressa prima del 1900 e dilatata dopo il 2000."></svg>
-<div id="tl-list" class="tl-list"></div>
-<figcaption>La scala non è lineare: il periodo 1637–1900 occupa poco spazio, gli ultimi decenni molto, perché è lì che si concentrano gli eventi. I colori indicano la parte del manuale (I fondamenta, II dal testo ai numeri, III il modello al lavoro, IV dentro il transformer); i filtri mostrano una parte alla volta. Le date con «anni» o «fine» sono approssimate come nel testo. Tocca un punto per andare all'evento.</figcaption>
-</figure>
-<style>
-.tl-list{margin-top:10px}
-.tl-era{margin:14px 0 4px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:3px}
-.tl-it{display:grid;grid-template-columns:74px 1fr;gap:8px;padding:5px 4px;border-radius:6px;font-size:14px;line-height:1.35;align-items:baseline}
-.tl-it.flash{background:var(--warn-soft)}
-.tl-y{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
-.tl-it.ap .tl-y{font-weight:600;color:var(--muted);font-style:italic}
-.tl-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
-.tl-p1{--c:var(--good)}.tl-p2{--c:var(--warn)}.tl-p3{--c:var(--accent)}.tl-p4{--c:var(--ink)}
-.tl-dot{background:var(--c)}
-.tl-it a{font-weight:600;white-space:nowrap}
-@media(max-width:560px){.tl-it{grid-template-columns:62px 1fr;font-size:13px}.tl-it a{white-space:normal}}
-</style>
-</section>
-
-
 <div class="part" id="p1"><p class="part-label">Parte I · #1–#8</p><h2 class="part-title" id="toc-p1">Le fondamenta: dall’idea di macchina intelligente al modello addestrato</h2><p class="part-intro">Intelligenza artificiale, machine learning, reti neurali e deep learning sono scatole una dentro l’altra; modello, parametro, peso e addestramento sono le parole per dire che cosa resta dentro la scatola alla fine.</p></div>
 <section class="st entry" id="g1">
 <div class="sec-head"><span class="eyebrow">#1 · Le fondamenta</span><h2>Intelligenza Artificiale</h2></div>
@@ -346,7 +320,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <div class="fld"><h3>E un programma «normale», che cosa ha di diverso?</h3>
 <p>Ogni sistema di intelligenza artificiale è un programma: gira sugli stessi computer ed è scritto negli stessi linguaggi di qualunque altro software. La differenza non sta nel codice, ma in <b>da dove viene la logica della decisione</b>.</p>
 <p>In un software classico il programmatore conosce la procedura e la scrive passo per passo: calcolare l'IVA (Imposta sul Valore Aggiunto) di una fattura, ordinare un elenco, registrare un bonifico. Per ogni ingresso esiste una risposta giusta, prevista da chi ha scritto il codice, e il programma la produce sempre nello stesso modo. Se sbaglia, è un errore nel codice e lo si corregge lì.</p>
-<p>Si parla di intelligenza artificiale quando quella procedura <b>non si sa scrivere</b> e la si sostituisce con qualcos'altro: con una ricerca tra moltissime possibilità che nessuno ha esaminato una per una (Deep Blue), con una base di regole che un motore di ragionamento combina in modi non previsti caso per caso (i sistemi esperti), oppure con regole ricavate dai dati (il machine learning). Nei primi due casi il comportamento viene ancora da conoscenza scritta da persone; nel terzo viene dagli esempi, e il programmatore scrive solo il procedimento con cui il sistema impara. Per questo un sistema di machine learning può sbagliare anche senza un errore nel codice: ha imparato male, o da dati sbagliati.</p>
+<p>Si parla di intelligenza artificiale quando quella procedura <b>non si sa scrivere</b> e la si sostituisce con qualcos'altro: con una ricerca tra moltissime possibilità che nessuno ha esaminato una per una (Deep Blue), con una base di regole che un motore di ragionamento combina in modi non previsti caso per caso (i sistemi esperti), oppure con regole ricavate dai dati (il machine learning). Nei primi due casi il comportamento viene ancora da conoscenza scritta da persone; nel terzo viene dagli esempi, e il programmatore scrive solo il procedimento con cui il sistema impara. Per questo un sistema di machine learning può sbagliare anche senza un errore nel codice: ha imparato male, o da dati sbagliati.</p><div class="ia3" role="group" aria-label="I tre modi di sostituire la procedura"><div class="ia3-box"><b>1 · Ricerca tra le possibilità</b><div><small>La persona scrive</small>le regole del problema e una formula che dà un voto a ogni situazione</div><div><small>La macchina fa</small>prova milioni di possibilità e sceglie quella col voto migliore</div><div class="muted" style="font-size:.82rem">es. Deep Blue negli scacchi</div></div><div class="ia3-box"><b>2 · Regole degli esperti</b><div><small>La persona scrive</small>centinaia di regole «se… allora…» dettate dagli esperti</div><div><small>La macchina fa</small>le combina caso per caso fino a una conclusione</div><div class="muted" style="font-size:.82rem">es. i sistemi di diagnosi medica</div></div><div class="ia3-box"><b>3 · Machine learning</b><div><small>La persona scrive</small>il procedimento con cui imparare, più tanti esempi già risolti</div><div><small>La macchina fa</small>ricava da sola le regole dagli esempi</div><div class="muted" style="font-size:.82rem">es. il filtro antispam, riconoscere un gatto</div></div></div><div class="ia3-axis"><span>la logica viene da conoscenza scritta da persone</span><span>la logica viene dagli esempi</span></div>
 <p>Il confine è sfumato e si sposta nel tempo. Un algoritmo che trova il percorso più breve, negli anni Sessanta, era ricerca di punta sull'intelligenza artificiale; oggi è un pezzo di software classico dentro ogni navigatore. È l'effetto descritto più sotto, tra gli errori comuni.</p>
 </div>
 <figure class="fig">
@@ -380,7 +354,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 .g01c-card .no small{color:var(--bad)}
 .g01c-card.dim{opacity:.85}
 </style>
-<div class="fld hist"><h3>Da dove viene</h3><p>Nel <span class="year">1956</span> un piccolo gruppo di ricercatori si riunì in New Hampshire, e John McCarthy scelse il nome per distinguersi dalla cibernetica e per attirare fondi. Per decenni prevalse l'idea che l'intelligenza fosse un elenco di regole scritte da esperti. Nel <span class="year">1997</span> Deep Blue batté Kasparov a scacchi: il programma non imparava nulla, ma valutava circa 200 milioni di posizioni al secondo. Poi emerse il limite: molti compiti che a noi riescono senza sforzo, come capire che in una foto c'è un gatto, nessuno sa scomporli in istruzioni da dare a una macchina. Seguirono gli "inverni" degli anni Settanta e Ottanta, con i finanziamenti crollati. La svolta fu il machine learning: invece di scrivere le regole, si forniscono esempi già risolti.</p></div>
+<div class="fld hist"><h3>Da dove viene</h3><p>Nel <span class="year">1956</span> un piccolo gruppo di ricercatori si riunì in New Hampshire, e John McCarthy scelse il nome per distinguersi dalla cibernetica e per attirare fondi. Per decenni prevalse l'idea che l'intelligenza fosse un elenco di regole scritte da esperti. Le promesse superarono i risultati, e seguirono gli "inverni" degli anni Settanta e Ottanta, con i finanziamenti crollati.</p><p>Il successo più famoso di questa strada arrivò nel <span class="year">1997</span>, quando Deep Blue batté Kasparov a scacchi. Deep Blue non imparava nulla. Per scegliere una mossa costruiva l'albero delle mosse possibili, sue e dell'avversario, per diverse mosse in avanti, e dava un voto a ogni posizione raggiunta con una formula scritta da programmatori e maestri di scacchi: quanto vale il materiale rimasto, quanto sono attivi i pezzi, quanto è protetto il re. Poi giocava la mossa che portava alla posizione con il voto migliore, esaminando circa 200 milioni di posizioni al secondo. In fondo era una procedura classica: regole scritte a mano più un'enorme quantità di calcolo. Funzionava perché negli scacchi le regole si sanno scrivere: una posizione è descritta esattamente (quale pezzo su quale casa) e gli esperti sanno dire, a parole, che cosa la rende buona.</p><p>Il confronto con una foto mostra il limite che si era visto fin dagli anni Sessanta. Una foto arriva al computer come milioni di numeri, uno per pixel, e nessun esperto sa scrivere la formula che da quei numeri dica «qui c'è un gatto»: noi lo riconosciamo in una frazione di secondo, ma non sappiamo spiegare come. Molti compiti che a noi riescono senza sforzo restavano così fuori dalla portata delle regole scritte a mano. La svolta fu il machine learning: invece di scrivere le regole, si forniscono esempi già risolti e la macchina ricava da sola la formula.</p></div>
 <div class="fld"><h3>Perché nessuno sa scrivere le istruzioni per riconoscere un gatto</h3><p>Proviamo a farlo davvero. Una regola sensata sembra «è un gatto se ha orecchie a punta, baffi, pelo e quattro zampe». Ma un gatto acciambellato sotto una coperta non mostra né zampe né orecchie; uno sphynx non ha pelo; una volpe e un cane lupo hanno orecchie a punta, baffi, pelo e quattro zampe. Ogni eccezione chiede una regola nuova, e ogni regola nuova sbaglia su qualche altro caso: la lista non converge mai.</p><p>E c'è un problema più profondo. Le regole parlano di «orecchie» e «baffi», ma il computer non vede orecchie: vede una griglia di numeri, uno per pixel, che cambiano tutti se il gatto si sposta di un centimetro, se la luce cambia o se la foto è sfocata. Per applicare la regola «ha orecchie a punta» bisognerebbe prima riconoscere un orecchio tra milioni di numeri, che è lo stesso problema di partenza, solo più piccolo. Noi lo facciamo in una ventina di millisecondi senza saper spiegare come: per questo nessun esperto è mai riuscito a scrivere quelle regole, e la soluzione è stata smettere di scriverle e dare alla macchina esempi già risolti, cioè il machine learning (#2).</p></div>
 <figure class="fig">
 <style>
@@ -1713,51 +1687,6 @@ function select(n){
 let t;window.addEventListener("resize",()=>{clearTimeout(t);t=setTimeout(drawEdges,80);});
 
 })();}catch(err){console.error("figura figs/map.html",err);}
-
-/* ---- figura figs/timeline.html ---- */
-try{(function(){
-
-const EV=[[1637,"1637",14,"Cartesio descrive un punto con due numeri",0],[1801,"1801",6,"Gauss ricostruisce l’orbita di Cerere con sei parametri",0],[1884,"1884",16,"Flatlandia di Abbott",0],[1890,"fine ’800",10,"telegrammi e libri di codici telegrafici",1],[1904,"1904",14,"Spearman e il fattore g, variabile latente",0],[1913,"1913",19,"Markov analizza vocali e consonanti di un poema",0],[1927,"1927",18,"Yule e le macchie solari, autoregressione",0],[1930,"1930",11,"Basic English di Ogden (e Zipf negli stessi anni)",0],[1943,"1943",3,"McCulloch e Pitts descrivono il neurone semplificato",0],[1948,"1948",19,"Shannon genera testo con le probabilità",0],[1951,"1951",17,"Shannon, Betty e il libro coperto",0],[1952,"1952",2,"Samuel, programma per la dama (IBM)",0],[1953,"1953",22,"Taylor ideo il test cloze",0],[1954,"1954",33,"Harris: il linguaggio non è un insieme casuale",0],[1956,"1956",1,"seminario in New Hampshire, McCarthy sceglie il nome",0],[1956,"1956",23,"Miller: circa sette elementi in memoria",0],[1957,"1957",13,"Firth: la parola dalla compagnia che tiene",0],[1957,"1957",16,"Bellman e la maledizione della dimensionalità",0],[1958,"1958",3,"Rosenblatt realizza il Perceptron",0],[1958,"1958",5,"Mark I Perceptron, 512 manopole",0],[1959,"1959",2,"Samuel usa l’espressione Machine Learning",0],[1965,"anni ’60",15,"Salton alla Cornell, sistema SMART",1],[1966,"1966",21,"ELIZA di Weizenbaum al MIT",0],[1971,"1971",26,"Ivakhnenko, rete a 8 strati a Kiev",0],[1973,"anni ’70",24,"MYCIN a Stanford, circa 600 regole",1],[1975,"anni ’70–’80",1,"gli «inverni» dell’IA, finanziamenti crollati",1],[1975,"1975",15,"Salton formalizza la similarità coseno",0],[1986,"1986",4,"già noto l’addestramento di reti a molti strati",0],[1989,"1989",8,"LeCun legge i codici postali (circa 95%)",0],[1994,"1994",12,"Gage inventa il BPE per comprimere dati",0],[1997,"1997",1,"Deep Blue batte Kasparov",0],[2010,"2010",38,"Nair e Hinton propongono la ReLU",0],[2012,"2012",4,"AlexNet vince ImageNet: 15,3% contro 26,2%",0],[2012,"2012",26,"rete vincitrice di ImageNet con 8 strati",0],[2012,"2012",38,"AlexNet usa la ReLU",0],[2013,"2013",13,"Mikolov (Google) presenta word2vec, 300 numeri",0],[2014,"2014",20,"Goodfellow propone le reti che competono",0],[2014,"2014",27,"traduzione con due reti: encoder e decoder",0],[2014,"2014",29,"Bahdanau: RNNSearch (settembre)",0],[2014,"2014",36,"figura di Bahdanau, Cho e Bengio sull’attention",0],[2015,"2015",26,"un gruppo Microsoft arriva a 152 strati",0],[2016,"2016",12,"studiosi scozzesi riprendono il BPE",0],[2016,"2016",30,"Edimburgo: intra-attention",0],[2016,"2016",31,"Facebook AI Research, circa 100.000 quesiti",0],[2016,"2016",35,"WaveNet di DeepMind, convoluzioni causali",0],[2016,"2016",38,"arriva la GELU",0],[2017,"2017",25,"«Attention Is All You Need» (giugno)",0],[2017,"2017",29,"l’attention al centro del Transformer",0],[2017,"2017",30,"il Transformer la ribattezza self-attention",0],[2017,"2017",31,"il Transformer riprende la separazione trovare/restituire",0],[2017,"2017",32,"multi-head attention nel gruppo Google",0],[2017,"2017",33,"onde sinusoidali per la posizione",0],[2017,"2017",35,"la causalità entra nell’attention del decoder",0],[2018,"2018",17,"OpenAI pubblica i primi modelli GPT (2018–2020)",0],[2018,"2018",18,"il primo GPT usa la stessa idea",0],[2018,"2018",23,"primo GPT: 512 token di contesto",0],[2018,"2018",28,"Radford (OpenAI): solo decoder, 117 milioni di parametri",0],[2019,"2019",12,"GPT-2 applica il BPE sui byte",0],[2020,"2020",21,"GPT-3 e la porta unica del prompt",0],[2020,"2020",22,"OpenAI apre l’interfaccia di completamento",0],[2020,"2020",26,"GPT-3 con 96 strati",0],[2020,"2020",37,"Tel Aviv: circa due terzi dei parametri",0],[2020,"2020",38,"Shazeer propone le varianti «a rubinetto»",0],[2021,"2021",34,"RoFormer di Jianlin Su, poi GPT-J",0],[2022,"nov. 2022",17,"ChatGPT, un modello dietro una chat",0],[2023,"2023",34,"Meta sceglie la RoPE per Llama",0],[2024,"2024",23,"soglia tipica di 128.000 token",0]],TT={"0":"Introduzione: perché questo manuale","1":"Intelligenza Artificiale","2":"Machine Learning","3":"Rete neurale","4":"Deep Learning","5":"Modello","6":"Parametro","7":"Peso","8":"Addestramento","9":"Token","10":"Tokenizzazione","11":"Vocabolario","12":"Byte Pair Encoding","13":"Embedding","14":"Spazio latente","15":"Similarità coseno","16":"Dimensione","17":"LLM","18":"Autoregressione","19":"Prossimo token","20":"Modello generativo","21":"Prompt","22":"Completion","23":"Context window","24":"Inferenza","25":"Transformer","26":"Layer","27":"Encoder","28":"Decoder","29":"Attention","30":"Self-attention","31":"Query, Key e Value","32":"Multi-head attention","33":"Positional encoding","34":"RoPE","35":"Causal mask","36":"Attention map","37":"Feed-forward network","38":"Funzione di attivazione"};
-const list=G.$("#tl-list"),svg=G.$("#tl-svg");
-if(!list||!svg)return;
-const part=n=>n<=8?1:n<=16?2:n<=24?3:4;
-const ERAS=[["Fino al 1900",0,1900],["1901–1949",1901,1949],["1950–1969",1950,1969],["1970–1999",1970,1999],["2000–2013",2000,2013],["2014–2016",2014,2016],["2017",2017,2017],["2018–2024",2018,2024]];
-const items=[];
-ERAS.forEach(([lab,a,b])=>{
- const es=EV.filter(e=>e[0]>=a&&e[0]<=b);
- const h=document.createElement("div");h.className="tl-era";h.textContent=lab;list.appendChild(h);
- es.forEach(e=>{
-  const [y,d,n,l,ap]=e;
-  const r=document.createElement("div");r.className="tl-it"+(ap?" ap":"");r.dataset.p=part(n);r.id="tl-e"+items.length;
-  r.innerHTML='<span class="tl-y">'+d+'</span><span><i class="tl-dot tl-p'+part(n)+'"></i><a href="#g'+n+'">#'+n+' '+TT[n]+'</a> · '+l+'</span>';
-  list.appendChild(r);items.push({e,r,h});
- });
-});
-// scala a tratti: 1637-1900, 1900-1950, 1950-2000, 2000-2024
-const SEG=[[1637,1900,0,60],[1900,1950,60,160],[1950,2000,160,330],[2000,2024,330,580]];
-const X=y=>{for(const [a,b,p,q] of SEG){if(y<=b)return 10+(p+(Math.max(y,a)-a)/(b-a)*(q-p));}return 590;};
-const COL=["","var(--good)","var(--warn)","var(--accent)","var(--ink)"];
-SEG.forEach(s=>{G.el("line",{x1:X(s[0]),x2:X(s[0]),y1:6,y2:70,stroke:"var(--grid)"},svg);});
-G.el("line",{x1:10,x2:590,y1:72,y2:72,stroke:"var(--line)","stroke-width":1.5},svg);
-[1637,1900,1950,2000,2024].forEach(y=>{
- G.el("line",{x1:X(y),x2:X(y),y1:72,y2:77,stroke:"var(--muted)"},svg);
- G.el("text",{x:Math.min(Math.max(X(y),24),576),y:98,"text-anchor":"middle","font-size":17,fill:"var(--muted)",style:"font-size:17px"},svg,String(y));
-});
-const rank={};
-const dots=items.map((it,i)=>{
- const [y,d,n]=it.e;const x=X(y),k=Math.round(x/9);rank[k]=(rank[k]||0)+1;
- const cy=66-(rank[k]-1)*9;
- const c=G.el("circle",{cx:x,cy:cy,r:4.2,fill:COL[part(n)],stroke:"var(--surface)","stroke-width":.8,style:"cursor:pointer",tabindex:0,role:"link","aria-label":d+" #"+n},svg);
- const go=()=>{it.r.scrollIntoView({behavior:"smooth",block:"center"});it.r.classList.add("flash");setTimeout(()=>it.r.classList.remove("flash"),1600);};
- c.addEventListener("click",go);c.addEventListener("keydown",ev=>{if(ev.key==="Enter")go();});
- return c;
-});
-const read=G.seg("#tl-part",v=>{
- items.forEach((it,i)=>{const on=v==="all"||String(part(it.e[2]))===v;it.r.style.display=on?"":"none";dots[i].style.opacity=on?1:.12;dots[i].style.pointerEvents=on?"":"none";});
- list.querySelectorAll(".tl-era").forEach(h=>{let el=h.nextElementSibling,any=false;while(el&&!el.classList.contains("tl-era")){if(el.style.display!=="none")any=true;el=el.nextElementSibling;}h.style.display=any?"":"none";});
-});
-
-})();}catch(err){console.error("figura figs/timeline.html",err);}
 
 /* ---- figura 1.0 ---- */
 try{(function(){
@@ -3666,7 +3595,7 @@ draw();draw2();
 <!-- xpl:config (riferimenti incrociati di questa guida) -->
 <script>
 window.XREF_CONFIG={
-  skip:".fig,.links,.cards,.hero,.oneline,details.vid,.sec-head,#mappa,#storia,.gloss,",
+  skip:".fig,.links,.cards,.hero,.oneline,details.vid,.sec-head,#mappa,.gloss,",
   ids:[],
   rules:[
     {re:"intelligenza artificiale",to:"#g1",flags:"i"},

@@ -396,6 +396,11 @@
       ],
       "history": [
         {
+          "version": "1.7",
+          "date": "2026-10-14",
+          "notes": "Capitolo 1: storia riordinata e Deep Blue spiegato (albero delle mosse, voto alle posizioni con una formula scritta da programmatori e maestri, in fondo una procedura classica che funziona perché negli scacchi le regole si sanno scrivere, a differenza dei pixel di una foto); schema dei tre modi di sostituire la procedura (ricerca, regole degli esperti, machine learning); rimossa la linea del tempo"
+        },
+        {
           "version": "1.6",
           "date": "2026-10-13",
           "notes": "Capitolo 9, caso strawberry riscritto: che cosa arriva al modello (il tokenizzatore lo spezza in pezzi, prima del modello), come il modello risponde (non esegue un conteggio, produce la risposta più probabile), e perché scrivere la parola lettera per lettera aiuta (il testo scritto rientra e passa dallo stesso tokenizzatore, ogni lettera isolata diventa un token)"
@@ -431,8 +436,8 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.6",
-      "updated": "2026-10-13"
+      "version": "1.7",
+      "updated": "2026-10-14"
     }
   ]
 }

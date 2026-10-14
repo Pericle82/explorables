@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-14
+- **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.7: Capitolo 1: storia riordinata e Deep Blue spiegato (albero delle mosse, voto alle posizioni con una formula scritta da programmatori e maestri, in fondo una procedura classica che funziona perché negli scacchi le regole si sanno scrivere, a differenza dei pixel di una foto); schema dei tre modi di sostituire la procedura (ricerca, regole degli esperti, machine learning); rimossa la linea del tempo
+
 ## 2026-10-13
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.6: Capitolo 9, caso strawberry riscritto: che cosa arriva al modello (il tokenizzatore lo spezza in pezzi, prima del modello), come il modello risponde (non esegue un conteggio, produce la risposta più probabile), e perché scrivere la parola lettera per lettera aiuta (il testo scritto rientra e passa dallo stesso tokenizzatore, ogni lettera isolata diventa un token)
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.5: Capitolo 9: il caso strawberry passo per passo (che cosa vediamo noi, che cosa riceve il modello, perché l'ortografia dei pezzi non arriva, perché i modelli recenti rispondono giusto scrivendo la parola lettera per lettera) con figura a tre viste
