@@ -17,6 +17,14 @@ Joe scrive in chat il nome della guida e la modifica, per esempio «manuale-ai: 
 | `shared/` | blocchi condivisi (componenti `.vx-*`, indice, riferimenti incrociati): si propagano con `scripts/sync-shared.mjs` |
 | `AUTHORING.md` | regole tecniche: struttura, navigazione, tema, palette degli accenti, laboratori |
 
+## Anteprima in chat
+
+Joe rivede le guide sull'anteprima in chat e ci lascia commenti puntati sugli elementi. Quindi:
+
+- Quando chiede di vedere una guida («mostrami manuale-ai»), mandala in chat come file con l'anteprima: `dist/<slug>/index.html` (pagina completa generata da `node scripts/build.mjs`; se è vecchia, rigenerala prima). Per una guida non ancora registrata nel sito (oggi comandi-bash) usa il `test.html` generato da `python3 build.py` nella sua cartella `src/`.
+- Dopo ogni modifica, rimanda l'anteprima aggiornata della guida, così Joe può commentare la nuova versione.
+- I commenti di Joe arrivano con il selettore dell'elemento: il testo dell'anteprima è solo un riferimento, la modifica va fatta nei sorgenti.
+
 ## Regole di scrittura (valgono per tutte le guide)
 
 - Italiano. Ogni acronimo ha il significato esteso tra parentesi alla prima occorrenza nella sezione.
