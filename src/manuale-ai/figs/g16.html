@@ -1,0 +1,62 @@
+<figure class="fig">
+<p class="fig-title">Quanti numeri servono per distinguere? <span class="tag">calcolo reale</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g16-seg" role="group" aria-label="Numero di dimensioni">
+    <button type="button" data-v="1" aria-pressed="true">1 numero</button>
+    <button type="button" data-v="2" aria-pressed="false">2 numeri</button>
+    <button type="button" data-v="3" aria-pressed="false">3 numeri</button>
+  </div>
+</div>
+<svg id="g16-svg" viewBox="0 0 460 250" role="img" aria-label="Quattro parole (gatto, cane, criceto, fattura) disposte su una retta, su un piano o nello spazio secondo il numero di coordinate scelto."></svg>
+<div class="readout" style="margin-top:8px">
+  <div><small>Gatto descritto da</small><strong id="g16-g"></strong></div>
+  <div><small>Distanza minima tra gatto, cane e criceto</small><strong id="g16-d"></strong></div>
+</div>
+<p class="diag-title" style="margin:18px 0 8px">Dalle poche alle molte: quanti numeri nella lista (valori del capitolo)</p>
+<div class="bars" id="g16-bars"></div>
+<figcaption>Sopra: le stesse quattro parole (coordinate inventate) viste con 1, 2 o 3 numeri; gatto, cane e criceto restano stretti finché i numeri sono pochi, e la distanza minima tra loro cresce a ogni asse aggiunto (calcolo vero sulle coordinate). Sotto: i modelli reali usano da centinaia a decine di migliaia di numeri, non tre. La dimensione è la lunghezza della lista, non la grandezza del modello.</figcaption>
+</figure>
+<script>
+const S=G.$("#g16-svg");if(!S)return;
+const P=[["gatto",0.50,0.20,0.30,"var(--accent)"],["cane",0.58,0.70,0.40,"var(--accent)"],["criceto",0.66,0.40,0.95,"var(--accent)"],["fattura",2.20,1.80,1.60,"var(--warn)"]];
+const M=[["word2vec (2013)",300],["GPT-2 piccolo",768],["GPT-2 grande",1600],["Llama 3 8 mld",4096],["GPT-3",12288],["Llama 3 405 mld",16384]];
+const mx=16384;
+G.$("#g16-bars").innerHTML=M.map(m=>`<div class="barrow"><span>${m[0]}</span><div class="track"><div class="fill" style="width:${Math.max(1.2,m[1]/mx*100)}%"></div></div><span class="v" style="width:auto">${G.fmt(m[1],0)}</span></div>`).join("");
+const st="font-size:12px;fill:var(--muted)";
+function dist(k,a,b){let s=0;for(let i=1;i<=k;i++)s+=(a[i]-b[i])**2;return Math.sqrt(s);}
+function draw(k){
+  G.clear(S);
+  const df=G.el("defs",{},S);const mk=G.el("marker",{id:"g16-ah",viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto"},df);G.el("path",{d:"M0 0L10 5L0 10z",fill:"var(--muted)"},mk);
+  const ax=(x1,y1,x2,y2,l,lx,ly)=>{G.el("line",{x1,y1,x2,y2,stroke:"var(--muted)","stroke-width":1.5,"marker-end":"url(#g16-ah)"},S);G.el("text",{x:lx,y:ly,style:st},S,l);};
+  let pos;
+  if(k===1){
+    const x0=30,s=150;ax(20,150,440,150,"primo numero",350,172);
+    for(let v=0;v<=2.5;v+=0.5){G.el("line",{x1:x0+v*s*0.7,x2:x0+v*s*0.7,y1:146,y2:154,stroke:"var(--muted)"},S);}
+    pos=p=>[x0+p[1]*s*0.7,150];
+  }else if(k===2){
+    const x0=50,y0=225,s=75;ax(x0-10,y0,430,y0,"primo numero",340,y0+16);ax(x0,y0+10,x0,10,"secondo",x0+6,18);
+    pos=p=>[x0+p[1]*s*1.3,y0-p[2]*s*1.0];
+  }else{
+    const x0=60,y0=225,s=68;ax(x0-10,y0,420,y0,"primo",380,y0+16);ax(x0,y0+10,x0,10,"secondo",x0+6,18);
+    const ex=x0+2.6*s*0.75*0.9,ey=y0-2.6*s*0.75*0.5;ax(x0,y0,ex+30,ey-14,"terzo",ex+20,ey+12);
+    pos=p=>[x0+p[1]*s*1.2+p[3]*s*0.45,y0-p[2]*s*0.9-p[3]*s*0.45];
+  }
+  const lab=[[0,-12],[0,-12],[0,-12],[0,-12]];
+  P.forEach((p,i)=>{
+    const [x,y]=pos(p);
+    let dy=lab[i][1];
+    if(k===1){dy=[-14,26,-34,-14][i];if(i===2)G.el("line",{x1:x,x2:x,y1:y,y2:y-28,stroke:"var(--line)"},S);if(i===1)G.el("line",{x1:x,x2:x,y1:y,y2:y+16,stroke:"var(--line)"},S);}
+    if(k===1&&i===0)dy=-14;
+    G.el("circle",{cx:x,cy:y,r:5,fill:p[4]},S);
+    let dx=0,an="middle";
+    if(k>1){if(i===0)dy=20;if(i===2){dx=10;dy=4;an="start";}}
+    G.el("text",{x:x+dx,y:y+dy,"text-anchor":an,style:"font-size:12px"},S,p[0]);
+  });
+  const g=P[0];
+  G.$("#g16-g").textContent="("+[1,2,3].slice(0,k).map(i=>G.fmt(g[i],2)).join("; ")+")";
+  const ds=[[0,1],[0,2],[1,2]].map(q=>dist(k,P[q[0]],P[q[1]]));
+  G.$("#g16-d").textContent=G.fmt(Math.min(...ds),2);
+}
+const get=G.seg("#g16-seg",v=>draw(+v));
+draw(1);
+</script>

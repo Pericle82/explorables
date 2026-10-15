@@ -1,0 +1,88 @@
+<figure class="fig">
+<p class="fig-title">Le piegature <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div>
+    <div class="seg" id="g38-seg" role="group" aria-label="Funzione da evidenziare">
+      <button type="button" aria-pressed="true" data-v="all">Tutte</button>
+      <button type="button" aria-pressed="false" data-v="step">Gradino</button>
+      <button type="button" aria-pressed="false" data-v="sig">Sigmoide</button>
+      <button type="button" aria-pressed="false" data-v="relu">ReLU</button>
+      <button type="button" aria-pressed="false" data-v="gelu">GELU</button>
+    </div>
+    <svg id="g38-svg" style="margin-top:8px" viewBox="0 0 340 280" role="img" aria-label="Grafico di gradino, sigmoide, ReLU e GELU tra −4 e 4, con un cursore verticale."></svg>
+    <div class="controls" style="margin-top:6px">
+      <div class="ctl"><label for="g38-x">Ingresso x <output id="g38-xo"></output></label><input id="g38-x" type="range" min="-4" max="4" step="0.05" value="-1"></div>
+    </div>
+    <div class="readout" id="g38-ro" style="margin-top:8px"></div>
+  </div>
+  <div>
+    <div class="seg" id="g38-seg2" role="group" aria-label="Attivazione tra gli strati">
+      <button type="button" aria-pressed="true" data-v="none">Nessuna attivazione</button>
+      <button type="button" aria-pressed="false" data-v="relu">ReLU</button>
+      <button type="button" aria-pressed="false" data-v="gelu">GELU</button>
+    </div>
+    <svg id="g38-svg2" style="margin-top:8px" viewBox="0 0 340 280" role="img" aria-label="Tre strati in fila: senza attivazione la curva coincide con un unico strato (retta); con ReLU o GELU la curva si piega."></svg>
+    <div class="callout" id="g38-msg" style="margin-top:8px"></div>
+  </div>
+</div>
+<figcaption>A sinistra le quattro regole (gradino, sigmoide a S, ReLU = Rectified Linear Unit, GELU = Gaussian Error Linear Unit) tra −4 e 4: sposta il cursore e leggi quanto ciascuna lascia passare di x. A destra tre strati in fila, y = 0,8·(−1,5·(1,2·x + 0,5) + 1) − 0,3 (pesi inventati): senza attivazione la linea tratteggiata, quella di un solo strato equivalente, coincide con la curva; con ReLU la curva si piega e nessun singolo strato la riproduce.</figcaption>
+</figure>
+<script>
+const S=G.$("#g38-svg"),S2=G.$("#g38-svg2");if(!S||!S2)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return s*y;}
+const F={step:x=>x>0?1:0,sig:x=>1/(1+Math.exp(-x)),relu:x=>Math.max(0,x),gelu:x=>x*0.5*(1+erf(x/Math.SQRT2))};
+const N={step:"Gradino",sig:"Sigmoide",relu:"ReLU",gelu:"GELU"};
+const COL={step:"var(--muted)",sig:"var(--good)",relu:"var(--accent)",gelu:"var(--ink)"};
+let focus="all";
+const PX=34,PY=12,PW=296,PH=232;
+const xr=[-4,4],yr=[-1,4];
+const X=v=>PX+(v-xr[0])/(xr[1]-xr[0])*PW,Y=v=>PY+PH-(v-yr[0])/(yr[1]-yr[0])*PH;
+function axes(svg,xs,ys,xl,yl,yy){
+  xs.forEach(v=>{G.el("line",{x1:X(v),x2:X(v),y1:PY,y2:PY+PH,stroke:"var(--grid)"},svg);T(svg,X(v),PY+PH+14,String(v).replace("-","−"),10,"middle","var(--muted)");});
+  ys.forEach(v=>{G.el("line",{x1:PX,x2:PX+PW,y1:Y(v),y2:Y(v),stroke:v===0?"var(--line)":"var(--grid)"},svg);T(svg,PX-4,Y(v)+4,String(v).replace("-","−"),10,"end","var(--muted)");});
+  G.el("line",{x1:X(0),x2:X(0),y1:PY,y2:PY+PH,stroke:"var(--line)"},svg);
+  T(svg,PX+PW/2,PY+PH+30,xl,11,"middle","var(--muted)");
+}
+const sl=G.$("#g38-x");
+function draw(){
+  G.clear(S);axes(S,[-4,-2,0,2,4],[-1,0,1,2,3,4],"x (numero in ingresso)");
+  const x=+sl.value;
+  Object.keys(F).forEach(k=>{
+    const on=focus==="all"||focus===k;
+    let pts="";const st=k==="step"?.02:.1;
+    if(k==="step"){pts=`${X(-4)},${Y(0)} ${X(0)},${Y(0)} ${X(0)},${Y(1)} ${X(4)},${Y(1)}`;}
+    else for(let v=-4;v<=4.001;v+=st)pts+=`${X(v).toFixed(1)},${Y(F[k](v)).toFixed(1)} `;
+    G.el("polyline",{points:pts,fill:"none",stroke:COL[k],"stroke-width":on?(focus===k?3.5:2.5):1.5,opacity:on?1:.25,"stroke-dasharray":k==="step"?"5 3":""},S);
+  });
+  G.el("line",{x1:X(x),x2:X(x),y1:PY,y2:PY+PH,stroke:"var(--ink)","stroke-width":1.2,"stroke-dasharray":"3 3"},S);
+  Object.keys(F).forEach(k=>{if(focus==="all"||focus===k)G.el("circle",{cx:X(x),cy:Y(F[k](x)),r:4.5,fill:COL[k],stroke:"var(--surface)","stroke-width":1.5},S);});
+  const lg=[["step","gradino"],["sig","sigmoide"],["relu","ReLU"],["gelu","GELU"]];
+  lg.forEach(([k,n],i)=>{G.el("line",{x1:PX+8,x2:PX+26,y1:PY+12+i*14,y2:PY+12+i*14,stroke:COL[k],"stroke-width":2.5},S);T(S,PX+31,PY+16+i*14,n,10.5,"start");});
+  G.$("#g38-xo").textContent=G.fmt(x,2);
+  G.$("#g38-ro").innerHTML=Object.keys(F).map(k=>`<div><small>${N[k]}</small><strong>${G.fmt(F[k](x),3)}</strong></div>`).join("");
+}
+G.seg("#g38-seg",v=>{focus=v;draw();});
+sl.addEventListener("input",draw);
+// tre strati
+let act="none";
+const A=[[1.2,.5],[-1.5,1],[.8,-.3]];
+const f3=(x,a)=>{let v=x;A.forEach(([w,b],i)=>{v=w*v+b;if(i<2&&a!=="none")v=F[a](v);});return v;};
+const lin=(()=>{let w=1,b=0;A.forEach(([wi,bi])=>{w=wi*w;b=wi*b+bi;});return [w,b];})();
+function draw2(){
+  G.clear(S2);
+  const yr2=[-6,6],x2=[-3,3],Y2=v=>PY+PH-(v-yr2[0])/(yr2[1]-yr2[0])*PH,X2=v=>PX+(v-x2[0])/(x2[1]-x2[0])*PW;
+  [-3,-2,-1,0,1,2,3].forEach(v=>{G.el("line",{x1:X2(v),x2:X2(v),y1:PY,y2:PY+PH,stroke:"var(--grid)"},S2);T(S2,X2(v),PY+PH+14,String(v).replace("-","−"),10,"middle","var(--muted)");});
+  [-6,-3,0,3,6].forEach(v=>{G.el("line",{x1:PX,x2:PX+PW,y1:Y2(v),y2:Y2(v),stroke:v===0?"var(--line)":"var(--grid)"},S2);T(S2,PX-4,Y2(v)+4,String(v).replace("-","−"),10,"end","var(--muted)");});
+  T(S2,PX+PW/2,PY+PH+30,"x (ingresso del primo strato)",11,"middle","var(--muted)");
+  const cl=v=>Math.max(-6,Math.min(6,v));
+  G.el("line",{x1:X2(-3),y1:Y2(cl(lin[0]*-3+lin[1])),x2:X2(3),y2:Y2(cl(lin[0]*3+lin[1])),stroke:"var(--muted)","stroke-width":2,"stroke-dasharray":"6 4"},S2);
+  let pts="";for(let v=-3;v<=3.001;v+=.03)pts+=`${X2(v).toFixed(1)},${Y2(cl(f3(v,act))).toFixed(1)} `;
+  G.el("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":3,opacity:.9},S2);
+  G.el("line",{x1:PX+8,x2:PX+26,y1:PY+12,y2:PY+12,stroke:"var(--accent)","stroke-width":3},S2);T(S2,PX+31,PY+16,"3 strati in fila",10.5);
+  G.el("line",{x1:PX+8,x2:PX+26,y1:PY+26,y2:PY+26,stroke:"var(--muted)","stroke-width":2,"stroke-dasharray":"6 4"},S2);T(S2,PX+31,PY+30,"1 solo strato equivalente",10.5);
+  G.$("#g38-msg").textContent=act==="none"?"Senza attivazione tre strati sono un solo strato: y = "+G.fmt(lin[0],2)+"·x "+(lin[1]<0?"− ":"+ ")+G.fmt(Math.abs(lin[1]),2)+". Le due linee coincidono: gli strati in più non aggiungono nulla.":"Con "+(act==="relu"?"la ReLU":"la GELU")+" tra gli strati la curva si piega: nessuna retta, cioè nessuno strato solo, riesce a seguirla.";
+}
+G.seg("#g38-seg2",v=>{act=v;draw2();});
+draw();draw2();
+</script>

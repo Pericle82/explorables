@@ -1,0 +1,875 @@
+{
+ "entries": [
+  {
+   "n": 0,
+   "title": "Introduzione: perché questo manuale",
+   "fields": {
+    "In una frase": "È un manuale sull'intelligenza artificiale, scritto in modo che ogni capitolo usi solo concetti già spiegati nei capitoli precedenti.",
+    "Il metodo": "I capitoli, numerati da #1 in poi, non seguono l'ordine alfabetico ma quello dei prerequisiti. Ogni capitolo affronta una sola parola: cos'è, da dove viene, a cosa serve e dove la gente di solito sbaglia. Nessun capitolo usa un termine che non sia già stato spiegato in uno precedente. La catena principale va da intelligenza artificiale a machine learning a LLM (large language model, modello linguistico di grandi dimensioni).",
+    "Come usare il manuale": "Non serve partire dal primo capitolo. Da qualsiasi punto si entri, se si incontra una parola sconosciuta si va al capitolo che la spiega e si scende di un gradino, ripetendo finché non si arriva ai concetti di base.",
+    "Collegamenti": "#1 Intelligenza Artificiale, #2 Machine Learning, #17 LLM."
+   },
+   "order": [
+    "In una frase",
+    "Il metodo",
+    "Come usare il manuale",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 1,
+   "title": "Intelligenza Artificiale",
+   "fields": {
+    "In una frase": "L'intelligenza artificiale (IA) non è una tecnologia precisa, ma un insieme di tecniche per far fare alle macchine cose che, fatte da una persona, chiameremmo intelligenti.",
+    "Definizione": "Un'etichetta ampia che raccoglie strumenti molto diversi tra loro. La si può paragonare al nome comune di scooter, trattore, auto elettrica e aereo di linea: tutti veicoli a motore, ma oggetti diversissimi.",
+    "Da dove viene": "Nel 1956 un piccolo gruppo di ricercatori si riunì in New Hampshire, e John McCarthy scelse il nome per distinguersi dalla cibernetica e per attirare fondi. Per decenni prevalse l'idea che l'intelligenza fosse un elenco di regole scritte da esperti. Le promesse superarono i risultati, e seguirono gli \"inverni\" degli anni Settanta e Ottanta, con i finanziamenti crollati.\n\nIl successo più famoso di questa strada arrivò nel 1997, quando Deep Blue batté Kasparov a scacchi. Deep Blue non imparava nulla. Per scegliere una mossa costruiva l'albero delle mosse possibili, sue e dell'avversario, per diverse mosse in avanti, e dava un voto a ogni posizione raggiunta con una formula scritta da programmatori e maestri di scacchi: quanto vale il materiale rimasto, quanto sono attivi i pezzi, quanto è protetto il re. Poi giocava la mossa che portava alla posizione con il voto migliore, esaminando circa 200 milioni di posizioni al secondo. In fondo era una procedura classica: regole scritte a mano più un'enorme quantità di calcolo. Funzionava perché negli scacchi le regole si sanno scrivere: una posizione è descritta esattamente (quale pezzo su quale casa) e gli esperti sanno dire, a parole, che cosa la rende buona.\n\nIl confronto con una foto mostra il limite che si era visto fin dagli anni Sessanta. Una foto arriva al computer come milioni di numeri, uno per pixel, e nessun esperto sa scrivere la formula che da quei numeri dica «qui c'è un gatto»: noi lo riconosciamo in una frazione di secondo, ma non sappiamo spiegare come. Molti compiti che a noi riescono senza sforzo restavano così fuori dalla portata delle regole scritte a mano. La svolta fu il machine learning: invece di scrivere le regole, si forniscono esempi già risolti e la macchina ricava da sola la formula.",
+    "A cosa serve": "È la cornice sotto cui stanno gli altri capitoli del manuale, a partire da machine learning, rete neurale e deep learning. Il suo uso pratico è difensivo: quando un fornitore dichiara di usare l'IA, la frase da sola non dice nulla. La domanda utile è quale tecnica concreta c'è dentro, perché oggi sotto questa etichetta funziona davvero soprattutto il machine learning.",
+    "Dove tutti sbagliano": "- Pensare che l'IA sia una tecnologia dai confini fissi. Il confine si sposta: quando una tecnica funziona bene, smette di essere considerata IA.\n- Credere che l'approccio a regole sia stato inutile. Era efficace per problemi con regole chiare, come gli scacchi, ma fallisce dove le regole non si sanno scrivere.\n- Dare per scontato che ciò che è facile per noi lo sia anche per le macchine. Secondo il paradosso di Moravec accade spesso il contrario.",
+    "Esempi e analogie": "- Veicolo a motore: scooter, trattore, auto elettrica e Boeing 787 condividono il nome, non la tecnologia.\n- Il gatto: una persona lo riconosce in circa 20 millisecondi, anche sfocato o sotto una coperta, pur non sapendo spiegare come.\n- Paradosso di Moravec: scacchi e algebra sono arrivati prima alle macchine, riconoscere un volto no.\n- Filtro antispam e navigatore: oggi funzioni quotidiane, un tempo rientravano nell'IA. Larry Tesler definiva l'IA come ciò che le macchine non sanno ancora fare.",
+    "Collegamenti": "#2 Machine Learning, #3 Rete neurale, #4 Deep Learning."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Machine Learning",
+   "fields": {
+    "In una frase": "Il Machine Learning (apprendimento automatico) è la parte dell'AI (Artificial Intelligence, intelligenza artificiale) in cui il sistema ricava le regole dagli esempi, invece di riceverle già scritte da un programmatore.",
+    "Definizione": "Invece di scrivere a mano istruzioni per ogni caso possibile, si mettono a disposizione della macchina moltissimi esempi già risolti, e l'algoritmo individua da solo lo schema che collega i dati alla risposta giusta. Le regole restano implicite, custodite nei valori numerici messi a punto durante l'addestramento.",
+    "Da dove viene": "La storia parte dal 1952, quando Arthur Samuel, ingegnere dell'IBM, scrive nel tempo libero un programma per giocare a dama. All'inizio gioca male, perché conosce solo le regole che lui stesso gli ha fornito. La svolta arriva quando il programma aggiusta da solo la valutazione delle posizioni osservando l'esito delle partite, giocando contro se stesso un numero enorme di volte. Dopo qualche anno batte il suo creatore. Nel 1959 Samuel usa per la prima volta l'espressione Machine Learning.",
+    "A cosa serve": "Serve quando scrivere le regole a mano è impraticabile. Dopo l'addestramento il sistema generalizza anche a casi mai visti. Un esempio è la stima del prezzo di una casa, in cui il modello scopre da solo che il centro costa più della periferia, senza che nessuno glielo abbia scritto.",
+    "Dove tutti sbagliano": "Si tende a pensare che la macchina capisca il concetto. In realtà impara la statistica degli esempi: se i dati sono distorti, assorbe la distorsione con la stessa efficienza con cui assorbirebbe una verità, senza accorgersene. Un caso noto è quello di un sistema di selezione dei curricula, addestrato su assunzioni passate quasi tutte maschili, che penalizzava le candidature femminili. Non era rotto: faceva esattamente ciò per cui era stato costruito. Definire un algoritmo imparziale solo perché è una macchina significa non aver capito come funziona.",
+    "Esempi e analogie": "- Il bambino che impara a riconoscere i cani: nessuno gli dà una definizione, gli vengono indicati esempi, e alla fine riconosce come cane un animale mai visto prima.\n- La macchina con le manopole: si fa una previsione, si misura l'errore, si ruotano un po' le manopole nel verso che lo riduce, e si ripete milioni di volte.\n- La partita a dama di Samuel, vinta dal programma contro il suo creatore.\n- Il sistema di selezione dei curricula, con i pregiudizi ereditati dai dati.",
+    "Collegamenti": "#1 Intelligenza Artificiale, #3 Rete neurale, #4 Deep Learning, #5 Modello, #8 Addestramento."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Rete neurale",
+   "fields": {
+    "In una frase": "Una rete neurale è una catena a strati di unità semplici che si passano informazioni pesate, e i pesi interni vengono regolati dall'addestramento finché le risposte diventano utili.",
+    "Definizione": "È un insieme di passaggi organizzati a strati. Ogni strato riceve molte informazioni, ciascuna con un'importanza diversa, e ne restituisce una sola più elaborata. Quanto conta ciascun ingresso lo regola il sistema stesso durante l'addestramento (#6 Parametro, #7 Peso).",
+    "Da dove viene": "Nel 1943 Warren McCulloch e Walter Pitts descrivono un neurone semplificato: somma i segnali ricevuti, ciascuno con un peso, e si attiva solo oltre una soglia. Mostrano che collegandone molti si ottiene qualunque ragionamento logico, senza ancora un computer per provarlo. Nel 1958 Frank Rosenblatt realizza il Perceptron, una macchina fisica addestrata a distinguere forme. Le aspettative sono esagerate: le reti funzioneranno davvero solo dopo decenni. È la stessa idea che oggi sta sotto ChatGPT, basato su GPT (Generative Pre-trained Transformer).",
+    "A cosa serve": "Riconoscere schemi in dati troppo grandi per regole scritte a mano. Un singolo puntino di una foto non significa nulla; una foto da 12 megapixel (milioni di pixel) è una massa di puntini che va letta insieme. Per stimare il prezzo di una casa bastano una decina di dati e poche manopole; per le immagini serve un sistema molto più ampio, a strati.",
+    "Dove tutti sbagliano": "Il primo equivoco è credere che la rete imiti il cervello. Il nome è rimasto, ma il neurone artificiale è un modello minimo rispetto a quello biologico. Il secondo è la frase \"non sappiamo cosa succede dentro\", che è una mezza verità: ogni singola operazione è semplicissima e nota. Ciò che non si spiega è perché una combinazione di miliardi di pesi produca un certo comportamento. Il problema è di scala, non di magia.",
+    "Esempi e analogie": "- Un palazzo di venti piani di impiegati identici: ognuno pesa i foglietti ricevuti con una manopola e passa in alto un foglietto solo se la sua opinione è forte.\n- Nessun impiegato sa di guardare la foto di un gatto: la decisione sta nella posizione di tutte le manopole insieme.\n- Il riconoscimento per strati: primo bordi e macchie, poi curve e trame, poi parti come occhi o ruote, infine \"è un gatto\". Nessuno ha scritto codice che cerchi gli occhi.\n- La scala: GPT-3 ha 175 miliardi di manopole; girarne una al secondo, senza dormire, richiederebbe circa 5500 anni.",
+    "Collegamenti": "#2 Machine Learning, #4 Deep Learning, #6 Parametro, #7 Peso, #8 Addestramento."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Deep Learning",
+   "fields": {
+    "In una frase": "Il deep learning è machine learning realizzato con reti neurali molto stratificate, capaci di scoprire da sole quali aspetti dei dati contano.",
+    "Definizione": "È un ramo del machine learning che usa reti neurali con molti strati sovrapposti. La novità sta nel fatto che non è più una persona a decidere quali caratteristiche osservare nei dati: la rete le individua durante l'addestramento. La parola *deep* indica soltanto la profondità geometrica, cioè il numero di strati, e non ha un significato filosofico nascosto.",
+    "Da dove viene": "La svolta si colloca nel 2012, durante la gara annuale di visione artificiale ImageNet. Il gruppo guidato da Geoffrey Hinton, con Alex Krizhevsky e Ilya Sutskever, presentò AlexNet, che sbagliava circa il 15,3% delle classificazioni contro il 26,2% del secondo classificato. Il distacco era enorme in una competizione dove i miglioramenti si contavano in decimali. Il modo di addestrare reti a molti strati esisteva già dal 1986: esplose nel 2012 perché si combinarono dati, potenza di calcolo e alcuni accorgimenti tecnici.",
+    "A cosa serve": "Serve a trovare schemi in dati complessi e non strutturati, come le immagini, ed è alla base dei moderni assistenti come ChatGPT. La ricetta resta sempre la stessa: strati, esempi, errore, correzione, ripetuti su scala molto maggiore e con architetture più sofisticate di quella del 2012.",
+    "Dove tutti sbagliano": "Il primo errore è credere che il deep learning abbia rimpiazzato il machine learning classico. Su una tabella aziendale piccola i metodi più semplici costano molto meno, girano su un portatile e permettono di capire perché hanno deciso in un certo modo. Il secondo errore è sottovalutare i dati: con poche migliaia di righe storiche il metodo non funziona, e servono milioni di esempi che quasi nessuna azienda possiede.",
+    "Esempi e analogie": "- Il palazzo di impiegati a 20 piani: ogni piano è uno strato, e *deep* indica quanti piani ci sono.\n- Il riconoscimento dei volti scritto a mano: un ingegnere che definisce regole del tipo: le macchie scure sono gli occhi, il bordo verticale sotto è il naso. Lavoro che il deep learning ha reso superfluo.\n- I primi piani della rete che imparano da soli: il primo riconosce i bordi, quello sopra le curve, quello ancora sopra gli occhi.\n- La gru per spostare una sedia: usare il deep learning su dati ridotti è sproporzionato.\n- Le schede grafiche nate per rendere più realistiche le ombre nei giochi per computer, poi riutilizzate per l'addestramento.\n- Le matrioske: l'AI (Artificial Intelligence) contiene il machine learning, che contiene le reti neurali, che contengono il deep learning.",
+    "Collegamenti": "#1 Intelligenza Artificiale, #2 Machine Learning, #3 Rete neurale, #5 Modello, #7 Peso, #8 Addestramento."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 5,
+   "title": "Modello",
+   "fields": {
+    "In una frase": "Il modello è ciò che sopravvive all'addestramento: la struttura della rete più un lungo elenco di valori numerici salvati in un file.",
+    "Definizione": "Quando l'addestramento termina, si conservano due cose: la forma della rete (quanti strati e quanti neuroni per strato) e la posizione finale di tutti i suoi parametri. Il risultato è, in pratica, un file composto soltanto da numeri.",
+    "Da dove viene": "Si riparte dal Mark I Perceptron, costruito nel 1958 con i fondi della marina statunitense e firmato dallo psicologo Frank Rosenblatt. Gli occhi erano circa 400 cellule fotoelettriche; la parte decisiva era un armadio di 512 manopole, ciascuna girata da un piccolo motore quando la macchina sbagliava. Il foglio che registrava la posizione di quelle manopole è il primo vero modello.",
+    "A cosa serve": "Serve a produrre risposte su casi nuovi senza conservare gli esempi di partenza. Un modello addestrato su 10.000 case vendute può stimare il prezzo di un'abitazione mai vista, perché la sola configurazione delle manopole basta. Essendo un file, può essere scaricato e fatto girare altrove: un modello da 7 miliardi di parametri occupa circa 14 GB (gigabyte) e gira su un portatile, mentre GPT-3 (Generative Pre-trained Transformer 3) pesa attorno ai 350 GB.",
+    "Dove tutti sbagliano": "Gli equivoci sono tre. Il primo è credere che il modello impari mentre lo usi: le manopole restano ferme, e la memoria di una chat è solo testo riletto a ogni messaggio. Il secondo è immaginare un archivio di internet dentro il modello: in realtà contiene numeri, e le risposte vengono ricostruite da quelli, il che spiega perché a volte si sbaglia con grande sicurezza. Il terzo è confondere modello e applicazione: ChatGPT è un prodotto, mentre Gemini o GPT-4 e GPT-5 sono i file di numeri che stanno dietro.",
+    "Esempi e analogie": "- Il palazzo del deep learning con 100 piani, che allunga molto il foglio delle posizioni.\n- Un cuoco che ha assaggiato 10.000 piatti non conserva i piatti, ma la propria tecnica, la sua mano.\n- Il prezzo delle case: dopo l'addestramento si buttano le case e si conserva solo la posizione finale delle manopole.\n- Un cuoco che ricostruisce una ricetta a memoria, per spiegare gli ingredienti sbagliati.\n- La chat come testo riletto ogni volta, senza che il modello ricordi nulla alla chiusura.\n- La citazione \"un file pieno di numeri\", che descrive ciò che si scarica quando si scarica un modello.",
+    "Collegamenti": "#2 Machine Learning, #3 Rete neurale, #4 Deep Learning, #6 Parametro, #7 Peso, #8 Addestramento, #20 Modello generativo."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 6,
+   "title": "Parametro",
+   "fields": {
+    "In una frase": "Un parametro è un numero interno a un modello che l'addestramento può modificare; il loro totale misura la dimensione del modello, non la sua intelligenza.",
+    "Definizione": "Il parametro è ogni valore numerico che il processo di addestramento regola. Conviene immaginarlo come una manopola: un modello ne ha milioni o miliardi. Ne esistono due famiglie. I pesi fissano quanto un neurone conta sul segnale ricevuto da un altro. I bias sono le soglie di ciascun neurone, cioè quanto forte deve essere il segnale prima di essere propagato.",
+    "Da dove viene": "Il concetto nasce in astronomia. Nel 1801 Gauss ricostruì l'orbita di Cerere da appena 41 osservazioni, usando sei numeri che la descrivono; in matematica quei numeri si chiamano già parametri. Lo stesso metodo vale per le reti neurali: si parte da valori approssimativi, si misura l'errore rispetto ai dati reali e si corregge ogni numero nella direzione che lo riduce.",
+    "A cosa serve": "Il numero di parametri determina quanta memoria serve per far girare il modello e quanto costa usarlo. Nei nomi come Llama 3 8B o Mistral 7B la lettera B sta per miliardi (billion): 8B significa circa 8 miliardi di parametri. Con due byte per parametro un modello da 8B occupa circa 16 gigabyte (GB).",
+    "Dove tutti sbagliano": "Il primo errore è credere che più parametri significhino automaticamente un modello più intelligente. Basti ricordare GPT-3 (Generative Pre-trained Transformer 3), con 175 miliardi di parametri nel 2020, superato oggi su quasi tutto da modelli da 8 miliardi addestrati con più dati e di qualità migliore. Il secondo errore è pensare che i parametri siano le regole del modello. Letti uno per uno non dicono nulla: la conoscenza è distribuita su milioni di valori insieme.",
+    "Esempi e analogie": "- Il palazzo di impiegati: ciascuno regola con una manopola quanto pesa il messaggio di ogni collega del piano sotto, e con una soglia decide se rilanciare il foglietto.\n- Sei manopole per l'orbita di Cerere, qualche decina per prevedere i prezzi delle case, 175 miliardi per GPT-3.\n- Numero di piani, impiegati per piano e ampiezza di ogni correzione sono iperparametri: li decide una persona prima dell'addestramento, quindi non sono parametri.",
+    "Collegamenti": "#3 Rete neurale, #5 Modello, #7 Peso, #8 Addestramento, #17 LLM."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 7,
+   "title": "Peso",
+   "fields": {
+    "In una frase": "Un peso è il numero che stabilisce quanto un ingresso conta per una singola decisione del modello, e l'insieme di tutti i pesi è ciò che la rete ha imparato.",
+    "Definizione": "Ogni nodo della rete riceve dei valori in ingresso e, per ciascuno, ha un peso. Il nodo moltiplica ogni ingresso per il suo peso, somma tutto e da quel totale ricava la decisione. Un peso positivo spinge verso il sì, uno negativo spinge verso il no come un veto, e uno vicino a zero non incide.",
+    "Da dove viene": "Il peso è il primo tipo di parametro, già introdotto nel capitolo precedente (#6 Parametro). In una rete che riconosce lettere scritte a mano nessuno scrive i pesi: partono a caso e si aggiustano fino a distinguere una A da una B.",
+    "A cosa serve": "I pesi determinano come la rete trasforma i dati in ingresso in una risposta. Quando un'azienda pubblica un modello a pesi aperti (open weights), mette online il file con tutti i pesi e la struttura della rete: chi lo scarica può farlo girare sul proprio computer senza chiedere permesso. Non equivale all'open source, perché non si condividono dati né procedimento.",
+    "Dove tutti sbagliano": "Il primo errore è pensare che qualcuno scriva i pesi a mano. Partono da valori casuali e vengono corretti durante l'addestramento: GPT-3 (Generative Pre-trained Transformer 3) ne ha 175 miliardi. Il secondo errore è considerare un peso negativo come sbagliato o rotto. In realtà è un'informazione preziosa: senza pesi negativi la rete riconoscerebbe la presenza di un tratto, ma non la sua assenza.",
+    "Esempi e analogie": "- Il palazzo con piani di impiegati, dove ogni impiegato decide in base ai numeri ricevuti e ai propri pesi.\n- La griglia 16 × 16 di una lettera: 256 caselle, quindi 256 pesi per un impiegato del primo piano.\n- La colorazione dei pesi: scuro per il positivo, chiaro per il negativo, grigio per il vicino a zero.\n- Una barretta orizzontale riconosciuta dai pesi, utile per distinguere la A e la H.\n- Un singolo peso (riga 7, colonna 9) che, da solo, non significa niente.\n- I modelli Llama di Meta e quelli di Mistral come esempi di pesi pubblicati.",
+    "Collegamenti": "#6 Parametro, #8 Addestramento, #3 Rete neurale, #5 Modello."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 8,
+   "title": "Addestramento",
+   "fields": {
+    "In una frase": "È il processo con cui un modello parte da pesi casuali e li corregge, esempio dopo esempio, finché sbaglia il meno possibile.",
+    "Definizione": "Addestrare un modello significa ripetere un ciclo: si mostra alla rete un esempio con la risposta giusta, si misura quanto la sua risposta se ne discosta e si sposta ogni peso di un piccolo passo nella direzione che riduce l'errore. Il ciclo si ripete su tutti gli esempi più volte, finché la rete smette di migliorare. I pesi che restano a quel punto diventano il modello e vengono salvati in un file.",
+    "Da dove viene": "Il caso storico è del 1989: Yann LeCun, giovane ricercatore francese nei laboratori Bell, usò circa 7.000 cifre scritte a mano, in griglie da 16 x 16 pixel, per addestrare una rete neurale a leggere i codici postali. Riconosceva il 95% delle cifre mai viste, e poco dopo una sua versione leggeva gli assegni bancari. Con qualche decina di esempi, la stessa rete sarebbe andata molto peggio.",
+    "A cosa serve": "Serve a trasformare pesi iniziali casuali in un modello utile. Il costo è alto ma si paga una volta sola: per GPT (Generative Pre-trained Transformer) del 2020 l'addestramento è durato settimane, con una spesa stimata in milioni di dollari. Poi usarlo costa una frazione.",
+    "Dove tutti sbagliano": "Due errori classici. Il primo è credere che il modello continui a imparare mentre lo usi. In un assistente come ChatGPT i pesi restano fermi: le correzioni fatte in chat non vengono ricordate il giorno dopo. Un miglioramento richiede un nuovo addestramento e la pubblicazione di un nuovo file di pesi. Il secondo è pensare che addestrare più a lungo basti a rendere il modello più intelligente. Con pochi esempi, più giri portano a memorizzare invece che a imparare.",
+    "Esempi e analogie": "- Un \"7\" scritto a mano, con la risposta giusta scritta accanto, come esempio di addestramento.\n- Il passo di correzione: se è troppo piccolo l'addestramento non finisce mai, se è troppo grande i pesi oscillano senza trovare un equilibrio.\n- Il confronto tra una rete addestrata con qualche decina di esempi e quella di LeCun: stessa griglia, ma circa 7.000 esempi contro qualche decina.\n- La rete che impara a memoria: brava con la propria grafia, pessima con quella altrui.",
+    "Collegamenti": "#2 Machine Learning, #3 Rete neurale, #5 Modello, #6 Parametro, #7 Peso, #9 Token."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 9,
+   "title": "Token",
+   "fields": {
+    "In una frase": "Il token è il pezzo di testo che un modello tratta come unità: non una parola e non una lettera, ma una via di mezzo.",
+    "Definizione": "Un token è un frammento di testo, che può coincidere con un termine frequente, con un segmento di una parola rara o con un simbolo, e che viene convertito in una cifra prima di entrare in un LLM (Large Language Model, modello linguistico di grandi dimensioni). Il modello non vede lettere né parole, ma una sequenza di token, uno dopo l'altro.",
+    "Da dove viene": "Si parte dai manoscritti latini e greci, scritti senza spazi, dove chi leggeva doveva capire da solo dove finiva una parola. Tra il settimo e l'ottavo secolo i monaci irlandesi introdussero lo spazio, abitudine poi diffusa in tutta Europa. L'analogia serve a dire che il primo passo, prima di qualunque calcolo, è decidere dove tagliare il testo.",
+    "A cosa serve": "Rende il testo leggibile per la rete. Se il token fosse la parola intera, servirebbero milioni di voci in italiano e il modello si bloccherebbe davanti a ogni termine mai visto. Se fosse la singola lettera, una frase di venti parole diventerebbe più di cento pezzi privi di significato. Il token è il compromesso. È anche l'unità di misura di prezzi (si pagano per milione di token), memoria (quanto testo il modello tiene in una volta) e velocità (quanti token al secondo produce).",
+    "Dove tutti sbagliano": "L'errore più diffuso è credere che un token equivalga a una parola: in inglese cento token valgono circa settantacinque parole, mentre in italiano una parola occupa in media un token e mezzo. Il secondo è pensare che il modello legga le lettere. Il caso strawberry mostra il contrario: i modelli più vecchi sbagliavano a contare le R perché vedevano solo pezzi codificati come numeri.",
+    "Esempi e analogie": "- Pixel come numeri: casella accesa uguale a 1, spenta uguale a 0, un colore uguale a tre numeri.\n- La frase il gatto dorme sul letto, circa sei o sette token, con lo spazio incluso nel token successivo.\n- Gattaccio spezzato in gatt più accio, lo stesso pezzo gatt che serve per gatto, gatta e gattino.\n- Chiedere quante lettere ha una parola straniera che si è solo sentita pronunciare, per spiegare il caso strawberry.\n- Un carattere cinese che costa due o tre token, e i 256 byte che permettono di spezzare qualunque testo.",
+    "Collegamenti": "#3 Rete neurale, #7 Peso, #10 Tokenizzazione, #11 Vocabolario, #17 LLM, #23 Context window."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 10,
+   "title": "Tokenizzazione",
+   "fields": {
+    "In una frase": "La tokenizzazione è la fase in cui un programma separato spezza il testo in token e li trasforma in numeri, seguendo regole fisse decise prima dell'addestramento.",
+    "Definizione": "È il procedimento che divide una frase in pezzi, detti token, e assegna a ciascun pezzo un numero, cioè la sua posizione in una lista chiamata vocabolario. Il modello non lavora mai direttamente sulle lettere: riceve sequenze di numeri e, quando risponde, il tokenizzatore riconverte quei numeri in testo leggibile.",
+    "Da dove viene": "Si parte da una storia: alla fine dell'Ottocento, stando al racconto, ogni parola di un telegramma costava parecchio, e nacquero i libri di codici telegrafici, in cui una frase comune corrispondeva a una sola parola in codice. Il sistema funzionava solo se mittente e destinatario avevano la stessa identica edizione del libro: con due versioni diverse il messaggio veniva letto in modo sbagliato, senza che nessuno se ne accorgesse. Il parallelo con i modelli è diretto: il tokenizzatore usato in addestramento e quello usato in uso devono coincidere.",
+    "A cosa serve": "Converte il linguaggio umano in una forma numerica che il modello può elaborare, e riporta la risposta in testo. Influisce anche su costi, limiti di contesto e qualità, perché lo stesso testo può produrre un numero di token diverso da modello a modello.",
+    "Dove tutti sbagliano": "Il primo errore è pensare che sia il modello a decidere come spezzare il testo. Il taglio è un programma fisso che non impara nulla durante l'addestramento: il modello si adatta ai pezzi che riceve, quindi una cattiva suddivisione resta per sempre. Il secondo errore è credere che il tokenizzatore capisca radici, suffissi o plurali. Il taglio è puramente statistico, e il significato nasce dopo, quando al modello vengono associati i pesi di ogni token.",
+    "Esempi e analogie": "- I libri di codici telegrafici, con il rischio di edizioni diverse.\n- La bilancia non tarata, per spiegare perché i prezzi per token di due modelli non sono confrontabili.\n- Una frase che, vale 22 token con un modello e 30 con un altro.\n- *Gattaccio* spezzato in *gatt* e *accio*, perché *gatt* compare spesso.\n- *Informatica* tagliata in *inform* e *atica*: un taglio senza logica linguistica.\n- *Rossi* maiuscolo (cognome) contro *rossi* minuscolo (colore).\n- Il numero 2024 come token unico, mentre 20241 viene diviso in più parti.",
+    "Collegamenti": "#9 Token, #11 Vocabolario, #12 Byte Pair Encoding, #17 LLM."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 11,
+   "title": "Vocabolario",
+   "fields": {
+    "In una frase": "Il vocabolario è la lista chiusa e numerata di tutti i token che un modello riconosce, costruita una sola volta prima dell'addestramento.",
+    "Definizione": "È l'elenco numerato dei token che il tokenizzatore conosce. Ogni pezzo di testo viene cercato in questa lista e la sua posizione diventa il numero con cui il modello lavora. Dentro trovi parole intere, frammenti di parola, parole con lo spazio davanti, segni di punteggiatura, i 256 byte di base e alcuni token speciali. Se un pezzo non è nella lista, lo si spezza in pezzi più piccoli che invece ci sono.",
+    "Da dove viene": "Si parte dal Basic English, proposto nel 1930 dal linguista Charles Kay Ogden: un lessico ristretto, con cui si sosteneva di poter dire quasi tutto. Negli stessi anni George Zipf notò che poche parole coprono gran parte di un testo. Oggi i token non si scelgono a mano ma contando le frequenze su enormi quantità di testo.",
+    "A cosa serve": "Trasforma il testo in numeri che il modello può elaborare. La sua dimensione è una scelta di progetto: un vocabolario grande accorcia le frasi e supporta più lingue, ma aumenta i pesi e lascia i token rari poco allenati; uno piccolo spezza le frasi e costa più elaborazione. GPT-2 aveva circa 50.000 token, Llama 2 32.000, Llama 3 128.000 e GPT-4o circa 200.000.",
+    "Dove tutti sbagliano": "Il primo errore è pensare che sia un dizionario di parole: la maggior parte delle voci sono frammenti, e il significato sta nei pesi del modello, non nella lista. Il secondo è credere che più grande sia sempre meglio. Un caso emblematico è quello di un token corrispondente al nome di un utente Reddit, molto frequente nei testi per costruire il vocabolario ma quasi assente nell'addestramento: il suo peso restò casuale e il modello rispondeva in modo bizzarro.",
+    "Esempi e analogie": "- Il Basic English di Ogden, con le sue 850 parole\n- La parola \"casa\", che entra in lista perché compare milioni di volte\n- Il frammento \"gatt\", utile per gatto, gatta, gattino, gattaccio\n- In Llama 2 una parola italiana costava due o tre token, una inglese uno solo\n- I token speciali: inizio e fine documento, cambio di turno tra utente e assistente, fine della risposta",
+    "Collegamenti": "#9 Token, #10 Tokenizzazione, #12 Byte Pair Encoding, #7 Peso, #6 Parametro, #13 Embedding."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 12,
+   "title": "Byte Pair Encoding",
+   "fields": {
+    "In una frase": "È l'algoritmo che costruisce il vocabolario di un modello contando quali coppie di pezzi compaiono più spesso e fondendole una alla volta.",
+    "Definizione": "Si parte dai 256 byte possibili e, ripetutamente, si unisce la coppia di elementi adiacenti più frequente nel testo. Ogni fusione diventa un nuovo elemento del vocabolario. Il processo si ferma quando la lista raggiunge la dimensione decisa in anticipo: un esempio è circa 128.000 token. Le fusioni vengono salvate in ordine, e quell'elenco è il cuore del tokenizzatore.",
+    "Da dove viene": "Nasce nel 1994 come tecnica di compressione dei dati, proposta da Philip Gage su una rivista di programmazione in C. Per circa vent'anni resta una curiosità. Nel 2016 un gruppo di studiosi scozzesi, impegnato nella traduzione automatica, la riprende per gestire i termini rari: servono pezzi ricorrenti in cui spezzare le parole sconosciute. Tre anni dopo GPT (Generative Pre-trained Transformer) versione 2 la applica direttamente sui byte. Da allora quasi tutti i modelli costruiscono così il proprio vocabolario.",
+    "A cosa serve": "Creare un insieme fisso di pezzi di testo su cui il modello può imparare pesi stabili. Garantisce che qualunque testo, anche una parola mai vista, sia rappresentabile: nel caso peggiore resta spezzata nei singoli byte, ma passa.",
+    "Dove tutti sbagliano": "Due errori. Il primo è credere che scelga i pezzi in base al significato: l'algoritmo conta soltanto le coppie, e quando un taglio sembra grammaticalmente sensato è perché frequenza e grammatica coincidono. Il secondo è confonderlo con la compressione tipo zip. Lo zip costruisce un dizionario per ogni file e poi lo scarta; il tokenizzatore ne costruisce uno solo, una volta, e lo usa per sempre.",
+    "Esempi e analogie": "- Le parole \"gatto\", \"gatta\" e \"gattino\" partendo dalle singole lettere: le coppie più frequenti si fondono in \"ga\", poi \"gat\", poi \"gatt\", e le parole diventano combinazioni di questi pezzi.\n- \"Informatica\" spezzata in \"inform\" e \"atica\": effetto dell'ordine in cui le fusioni sono avvenute, non di una scelta linguistica.\n- Numeri spezzati in modo irregolare, come \"202\" più \"41\" invece di \"20241\".\n- Analogia con la compressione: stesso punto di partenza, scopo opposto.",
+    "Collegamenti": "#9 Token, #10 Tokenizzazione, #11 Vocabolario, #13 Embedding."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 13,
+   "title": "Embedding",
+   "fields": {
+    "In una frase": "L'embedding è la lista di numeri con cui un modello descrive ogni token, e il suo significato sta nella posizione di quella lista rispetto alle altre.",
+    "Definizione": "Ogni voce del vocabolario di un modello ha una propria riga di pesi, fatta di qualche migliaio di numeri: quella riga è l'embedding. Nessuno la scrive a mano, si ricava durante l'addestramento, e cambia da modello a modello, quindi l'embedding di una parola in un modello è inutile in un altro. GPT-2 (Generative Pre-trained Transformer 2) usava 768 numeri per token, mentre i modelli attuali ne usano diverse migliaia.",
+    "Da dove viene": "L'idea che il senso di una parola dipenda dalle parole vicine risale al linguista inglese John Rupert Firth, nel 1957, con il motto \"Conoscerai una parola dalla compagnia che tiene\". Per mezzo secolo resta un'idea da studiosi. Nel 2013 un team di Google guidato da Tomas Mikolov presenta word2vec, che assegna a ogni parola 300 numeri, scelti in modo che termini con contesti affini ottengano valori simili. Ne emerge l'esempio più celebre: partendo da *re*, togliendo *uomo* e aggiungendo *donna*, si arriva vicino a *regina*, senza che nessuno avesse insegnato il significato di queste parole.",
+    "A cosa serve": "Permette al modello di lavorare con numeri che catturano le somiglianze tra token. Lo stesso principio vale per frasi e interi documenti: testi che parlano della stessa cosa risultano simili anche senza parole in comune, ed è così che i motori di ricerca colgono l'intento di una domanda. Come primo passo, il modello prende il numero che identifica il token, va alla riga corrispondente della tabella e lavora solo con quella lista.",
+    "Dove tutti sbagliano": "1. Credere che l'embedding sia una definizione scritta da qualcuno. Nessuna persona ha scritto quei numeri né sa leggerli: sono pesi imparati, che registrano in quali contesti una parola compare nei testi visti.\n2. Credere che l'embedding cambi con la frase. La tabella assegna la stessa riga a *letto* in frasi diverse, e a distinguere i sensi pensa la rete successiva, che mescola ogni lista con quelle dei token vicini.",
+    "Esempi e analogie": "- Carta geografica: come latitudine e longitudine collocano le città, così la lista di numeri colloca i token, con migliaia di dimensioni invece di due.\n- Lo stesso spostamento che porta da *re* a *regina* porta anche da *attore* ad *attrice*.\n- *Gatto* e *cane* sono vicini, *fattura* è lontana, perché compaiono in contesti diversi (dormire e mangiare contro pagamento e IVA).",
+    "Collegamenti": "#6 Parametro, #7 Peso, #8 Addestramento, #9 Token, #11 Vocabolario, #14 Spazio latente."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 14,
+   "title": "Spazio latente",
+   "fields": {
+    "In una frase": "È uno spazio geometrico, con un numero enorme di dimensioni, in cui un modello colloca token ed embedding; più due punti sono vicini, più sono simili.",
+    "Definizione": "Lo spazio latente è l'insieme in cui vivono gli embedding prodotti da un modello. Ogni token diventa un punto, le cui coordinate sono i numeri del suo vettore. Gli assi non li ha decisi nessuno né hanno etichette: emergono dall'addestramento, e si capisce cosa rappresentano solo osservando dove finiscono le cose.",
+    "Da dove viene": "Si parte da Cartesio, che nel 1637 mostra come descrivere un punto con due numeri, trasformando la geometria in calcolo. Poi arriva Charles Spearman, che nel 1904 nota una capacità generale dietro i voti scolastici e la chiama fattore g: una variabile latente, nascosta ma deducibile dai dati. Il termine unisce le due idee, una geometria di numeri con assi non scelti a priori.",
+    "A cosa serve": "Permette di ragionare sul significato in termini di distanze. Parole, frasi e immagini vicine risultano simili, e certe direzioni catturano relazioni, come quella che porta da \"re\" a \"regina\". Nei modelli di linguaggio, tutto il funzionamento si può leggere come uno spostamento di punti in questo spazio, piano dopo piano.",
+    "Dove tutti sbagliano": "Due errori. Il primo è credere che ogni asse significhi qualcosa, come genere o plurale: i singoli numeri non hanno un senso leggibile, sono le direzioni diagonali a contare. Il secondo è immaginare una mappa universale del significato: ogni modello costruisce il proprio spazio, e i punti di modelli diversi non sono confrontabili, salvo quando sono addestrati apposta per allinearsi, come CLIP.",
+    "Esempi e analogie": "- La carta senza nomi: su una carta geografica le regioni hanno un'etichetta, qui le regioni esistono ma nessuno le ha battezzate, e siamo noi a dire \"qui ci sono gli animali\".\n- \"Gatto\" e \"cane\" vicini, \"fattura\" e \"scadenza\" vicine, \"fattura\" lontana da \"gatto\".\n- La parola \"letto\", che entra come un punto carico di significati e si sposta verso i mobili, il verbo leggere o i fiumi a seconda del contesto.\n- Due volti: i punti intermedi tra due volti reali corrispondono a volti che non esistono, ed è così che lavorano alcuni generatori di immagini.\n- Due modelli come due carte di mondi diversi, a meno che non vengano addestrati insieme, come CLIP (Contrastive Language-Image Pretraining), che porta testo e immagini nello stesso spazio.",
+    "Collegamenti": "#3 Rete neurale, #9 Token, #13 Embedding, #15 Similarità coseno, #17 LLM."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 15,
+   "title": "Similarità coseno",
+   "fields": {
+    "In una frase": "È il modo di confrontare due liste di numeri (embedding) guardando solo la loro direzione e ignorando la lunghezza, con un risultato tra -1 e 1.",
+    "Definizione": "La similarità coseno è il coseno dell'angolo tra due vettori: vale 1 se puntano nella stessa direzione, 0 se sono perpendicolari, -1 se sono opposti. Il calcolo moltiplica i valori a coppie, somma tutto e divide per le lunghezze dei due vettori. Il risultato dipende solo dall'orientamento, non dalla grandezza.",
+    "Da dove viene": "Si parte dagli anni '60, quando Gerard Salton, alla Cornell, lavorava al sistema SMART per trovare documenti a partire da una domanda. Il guaio: un articolo di due pagine e un libro di trecento sullo stesso tema, descritti dalla frequenza delle parole, risultano lontanissimi perché il libro ripete ogni termine molte più volte. La svolta, formalizzata da Salton in un articolo del 1975, sta nel ribaltare la domanda: anziché chiedersi quanto due testi siano lontani, chiedersi se siano orientati allo stesso modo. Il coseno, strumento della trigonometria, misura proprio quell'angolo.",
+    "A cosa serve": "Serve a confrontare embedding. Sta dietro alle ricerche che capiscono il senso della domanda anche senza parole in comune, e ai suggerimenti tipo *prodotti simili*. Dentro un LLM (large language model, modello linguistico di grandi dimensioni) il meccanismo di attenzione fa la prima metà dello stesso conto, senza la divisione finale.",
+    "Dove tutti sbagliano": "Due errori. Primo: credere che 1 voglia dire *stesso significato*. Vuol dire stessa direzione, cioè stessa compagnia di token accanto. Per questo *caldo* e *freddo*, usati nelle stesse frasi, hanno similarità altissima. Secondo: considerare 0,7 un valore alto in assoluto. Non esiste una scala fissa: in un modello due frasi non correlate possono avere 0,6, in un altro 0,1. Ha senso paragonare i punteggi soltanto all'interno di un unico modello.",
+    "Esempi e analogie": "- Due bussole sullo stesso tavolo: aghi paralleli danno 1, nord e nord-est danno circa 0,7, angolo retto dà 0, aghi opposti danno -1.\n- Articolo e libro sullo stesso argomento: lontani con il righello, vicini con il coseno.\n- Due frecce partite dallo stesso punto: la lunghezza indica quanto è lungo il documento, la direzione di cosa parla.\n- Parole come *gatto* e *cane* stanno quasi allineate, mentre *fattura* sta in un'altra zona.",
+    "Collegamenti": "#13 Embedding, #14 Spazio latente, #16 Dimensione, #17 LLM, #29 Attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 16,
+   "title": "Dimensione",
+   "fields": {
+    "In una frase": "La dimensione di un embedding è quanti valori compongono la sua lista, cioè quanti assi ha lo spazio in cui il modello colloca il significato.",
+    "Definizione": "Ogni token è descritto da un vettore, cioè una lista ordinata di numeri. La dimensione è la lunghezza di quella lista: è fissa per tutto il modello e si sceglie prima dell'addestramento. Non coincide con la grandezza del modello, perché misura una sola lista, non quante liste esistono né quanti pesi ci sono in totale.",
+    "Da dove viene": "Si parte da Flatlandia (1884, Edwin Abbott): un quadrato che abita un mondo piatto non riesce a immaginare una sfera, pur potendola descrivere con la matematica. Nel 1957 Richard Bellman, studiando l'ottimizzazione con molte variabili, notò che ogni asse in più fa crescere lo spazio in modo enorme. Nasce così \"la maledizione della dimensionalità\", che rende inutilizzabile il righello quando i numeri sono migliaia.",
+    "A cosa serve": "Stabilisce quanto spazio ha il modello per distinguere i significati: con pochi numeri gatto, cane e criceto si confondono, con più numeri trovano posto le sfumature. Ecco alcuni valori: GPT-2 (2019) 768 nella versione più piccola e 1.600 in quella più grande, GPT-3 un anno dopo 12.288, Llama 3 da 8 miliardi 4.096 e quello da 405 miliardi 16.384. Non si può alzare all'infinito: i pesi di ogni piano crescono con il quadrato della dimensione, e uno spazio più grande richiede molti più esempi per essere riempito.",
+    "Dove tutti sbagliano": "Primo errore: credere che la dimensione sia la grandezza del modello. È solo uno dei fattori che, insieme ai piani della rete e al vocabolario, determinano il peso del file; con dimensione 4.000 si possono avere 8 o 70 miliardi di parametri. Secondo errore: dire che il modello \"vede\" 4.000 dimensioni della realtà. Il termine viene dalla fisica, ma qui significa solo quanti numeri ci sono nella lista.",
+    "Esempi e analogie": "- Il quadrato di Flatlandia che non immagina la sfera ma sa farci i conti\n- Gatto, cane e criceto stretti nella stessa zona con pochi numeri\n- La matrioska: una lista da 3.000 contiene una da 1.500, e così via\n- Il passo di addestramento, esempio di iperparametro scelto in anticipo",
+    "Collegamenti": "#6 Parametro, #7 Peso, #8 Addestramento, #13 Embedding, #14 Spazio latente, #15 Similarità coseno, #17 LLM."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 17,
+   "title": "LLM",
+   "fields": {
+    "In una frase": "Un LLM (Large Language Model, modello linguistico di grandi dimensioni) è una rete neurale enorme allenata a indovinare il token successivo di un testo, e da questo unico compito nascono le sue capacità.",
+    "Definizione": "È una grossa rete neurale con parametri nell'ordine dei miliardi. La parola Language segnala che lavora sul testo; Large si riferisce alle dimensioni, sia dei parametri sia dei dati. Il compito è uno solo: dato un frammento, prevedere cosa viene dopo.",
+    "Da dove viene": "Il punto di partenza è l'esperimento di Claude Shannon nel 1951, che copriva un libro e faceva ipotizzare alla moglie Betty il carattere seguente: capire una lingua vuol dire saperne prevedere il seguito. Per circa settant'anni l'idea è rimasta un gioco per statistici, perché servivano modelli e testi enormi. Tra il 2018 e il 2020 OpenAI ha pubblicato i modelli GPT (Generative Pre-trained Transformer); nel novembre 2022 ne ha messo uno dietro una chat, ChatGPT.",
+    "A cosa serve": "Tradurre, riassumere, rispondere a domande e scrivere codice: sono tutte la stessa operazione, cioè continuare un testo nel modo più probabile. Addestrare un modello grande costa decine di milioni di dollari, mentre usarlo costa una frazione di centesimo per risposta.",
+    "Dove tutti sbagliano": "Due errori comuni. Il primo è pensare che l'LLM cerchi la risposta in un archivio o su internet: nei pesi del modello non c'è nessun testo salvato, quindi può sbagliare con la stessa sicurezza con cui dice cose vere. Il secondo è confondere LLM e ChatGPT. ChatGPT è l'applicazione, con memoria, regole e strumenti attorno; il modello è il motore che gira sotto, e alcuni modelli si possono scaricare ed eseguire senza nessuna app.",
+    "Esempi e analogie": "- L'esperimento di Shannon e Betty, dove dopo \"the qu\" arriva quasi sempre una E.\n- Una richiesta di traduzione di una frase semplice: il modello produce prima l'articolo inglese, poi il sostantivo, poi il verbo.\n- Una domanda seguita dalla sua risposta più probabile, e l'inizio di una funzione Python completato dal modello.\n- La capitale della Francia, che richiede un fatto, contro una dimostrazione, che richiede logica.\n- Un modello aperto fatto girare su un MacBook Pro con 32 GB di memoria.",
+    "Collegamenti": "#1 Intelligenza Artificiale, #2 Machine Learning, #3 Rete neurale, #6 Parametro, #8 Addestramento, #9 Token, #13 Embedding, #18 Autoregressione."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 18,
+   "title": "Autoregressione",
+   "fields": {
+    "In una frase": "Un modello autoregressivo genera una sequenza un elemento alla volta, usando come input tutto ciò che ha già prodotto, compreso il proprio output.",
+    "Definizione": "Un modello è autoregressivo quando costruisce la sequenza elemento per elemento e, per ogni nuovo elemento, usa come ingresso quelli che lo precedono. Nel caso di un LLM (Large Language Model) il ciclo è semplice: si parte dal testo già esistente, si stima il prossimo pezzo, lo si accoda e si riparte da capo, finché non compare un token di fine oppure non si raggiunge un limite di lunghezza.",
+    "Da dove viene": "Il termine nasce in statistica. Nel 1927 George Udny Yule lo usò per descrivere la serie delle macchie solari anno per anno, mostrando che ogni valore dipende da quelli precedenti più un po' di casualità. Per circa novant'anni è rimasto nei manuali di previsione economica e meteo; nel 2018 il primo GPT (Generative Pre-trained Transformer) viene descritto con la stessa idea, dove la serie ora è fatta di parole.",
+    "A cosa serve": "Spiega molti comportamenti tipici dei modelli: scrivono in ordine fisso, non tornano indietro, non pianificano la frase in anticipo e tendono a trascinarsi dietro un errore iniziale. Spiega anche perché la risposta compare a scatti, perché ogni token pesa sui costi, e perché far ragionare il modello passo passo migliori la risposta finale.",
+    "Dove tutti sbagliano": "Gli errori comuni sono due. Il primo è credere che il modello abbia in mente l'intera risposta prima di scriverla: in realtà la costruisce un token alla volta, e strutture come introduzione e conclusione emergono dai testi di addestramento. Il secondo è pensare che il modello abbia una memoria separata della conversazione: la sua unica memoria è il testo che ha davanti, quindi ciò che esce dal contesto è perso.",
+    "Esempi e analogie": "- Le macchie solari di Yule, con il valore di quest'anno legato a quelli di ieri\n- Una frase che cresce un token alla volta, rileggendo ogni volta tutto il testo\n- Il conteggio dei giri: 500 token significano 500 passaggi nella rete, da cui il costo\n- La propagazione dell'errore: una premessa sbagliata viene continuata con coerenza",
+    "Collegamenti": "#9 Token, #17 LLM, #19 Prossimo token, #23 Context window."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 19,
+   "title": "Prossimo token",
+   "fields": {
+    "In una frase": "Il prossimo token è il passo con cui un LLM (Large Language Model, modello linguistico di grandi dimensioni) sceglie la parola successiva partendo da una lista di probabilità.",
+    "Definizione": "A ogni giro il modello non restituisce una parola, ma una probabilità per ciascun token del suo vocabolario, con valori tra zero e uno che sommati danno uno. Subito dopo entra in gioco una regola esterna, separata dalla rete, che seleziona un solo token. La lista la produce il modello; la scelta è un'operazione diversa.",
+    "Da dove viene": "L'idea ha una storia lunga. Nel 1913 il matematico russo Markov analizzò a mano le vocali e le consonanti di un poema, mostrando che le lettere non sono indipendenti: quella successiva dipende da quella precedente. Nel 1948 Shannon usò la stessa intuizione per generare testo, estraendo lettere a caso secondo le probabilità. I moderni LLM fanno la stessa cosa con token invece che con lettere, con circa 128.000 token di vocabolario e miliardi di pesi.",
+    "A cosa serve": "Spiega come nasce una risposta: la lista di probabilità è l'uscita vera del modello, e la regola di scelta decide quanto il testo risulti prudente o creativo. Serve anche a capire quanto il modello sia sicuro: se un fatto è noto, un token domina la lista; se non lo è, le probabilità si disperdono su moltissime alternative. Infine è il punto in cui si misura l'errore durante l'addestramento.",
+    "Dove tutti sbagliano": "Due errori ricorrenti. Primo: credere che sia il modello a decidere la parola. La scelta è una regola esterna, che può essere cambiata anche a modello concluso, quindi la stessa lista può produrre testi molto diversi. Secondo: considerare il token più probabile come quello giusto. Quel token è solo il più frequente nei dati di addestramento, e può quindi riflettere un errore diffuso o la risposta più banale. Lo si può riassumere così: «probabile non vuol dire vero».",
+    "Esempi e analogie": "- Un gatto che dorme su una superficie: *letto* al 32%, *divano* al 25%, *tetto* all'11%, *tavolo* al 6%, poi migliaia di token con percentuali minuscole.\n- Il dado: la lista resta identica, ma il dado cade in modo diverso, ed è per questo che la stessa domanda produce risposte differenti.\n- La capitale della Francia: *Parigi* quasi al 95%, quindi il modello è sicuro. Il numero di telefono di una persona invece ha probabilità spalmate su migliaia di cifre, e il modello ne tira fuori una a caso.",
+    "Collegamenti": "#5 Modello, #8 Addestramento, #9 Token, #11 Vocabolario, #17 LLM, #18 Autoregressione, #20 Modello generativo."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 20,
+   "title": "Modello generativo",
+   "fields": {
+    "In una frase": "Un modello generativo impara la struttura di un tipo di dati e ne costruisce di nuovi, simili agli originali ma non copiati.",
+    "Definizione": "È un modello di intelligenza artificiale (AI, Artificial Intelligence) che ha appreso abbastanza bene come è organizzata una classe di contenuti, come testi, immagini o suoni, da poterne produrre di inediti che potrebbero farne parte. Il punto decisivo è la novità: non copie degli esempi di addestramento, ma campioni costruiti seguendo le stesse regole del gruppo.",
+    "Da dove viene": "Il racconto parte dal 2014, a una festa d'addio in un pub, quando Ian Goodfellow, dottorando dell'Università di Montréal, propone di far competere due reti neurali: una produce immagini, l'altra prova a capire se sono vere o costruite. Ogni round rende entrambe più abili. Il primo tentativo funziona la stessa notte, il lavoro esce a giugno, e in pochi anni le immagini sintetiche diventano indistinguibili dalle foto reali. Il termine, già noto in statistica, entra in quel periodo nel linguaggio comune.",
+    "A cosa serve": "Serve a creare contenuti nuovi di testo, immagini, voce, musica e filmati. Un modello che sa generare ha anche interiorizzato le regole dei dati, quindi può combinarle in modi mai visti, come una ricetta in versi o un gatto astronauta. Il vantaggio e il rischio coincidono: le regole apprese valgono anche dove non dovrebbero, e il modello sbaglia con la stessa sicurezza con cui azzecca.",
+    "Dove tutti sbagliano": "Il primo equivoco è credere che generativo significhi creativo, o che il modello abbia un'intenzione. Il meccanismo è statistico: da una distribuzione di probabilità si estrae un campione. Il risultato può assomigliare alla creatività, ma pensarla così porta ad aspettarsi comportamenti sbagliati. Il secondo equivoco è confondere la famiglia con l'applicazione: ChatGPT o Midjourney sono prodotti costruiti su modelli generativi, non sinonimi del concetto. Inoltre la parola non coincide con il testo: immagini, voce, musica e perfino molecole usano tecniche diverse.",
+    "Esempi e analogie": "- Due reti in gara: un falsario e un ispettore che migliorano a vicenda.\n- Riconoscere un cane contro disegnarne uno: per distinguerlo da un gatto basta un confine, per disegnarlo servono zampe, pelo, proporzioni e luce.\n- Un LLM (Large Language Model) che sceglie il token successivo tra circa 128.000 possibilità, ripetendo la scelta migliaia di volte.\n- Un'immagine che parte da puro rumore, come una TV senza segnale, e viene ripulita in qualche decina di passi.",
+    "Collegamenti": "#2 Machine Learning, #3 Rete neurale, #5 Modello, #8 Addestramento, #17 LLM, #18 Autoregressione, #19 Prossimo token, #21 Prompt."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 21,
+   "title": "Prompt",
+   "fields": {
+    "In una frase": "Il prompt è l'insieme del testo fornito al modello prima della risposta; il modello non lo esegue, ma lo prosegue.",
+    "Definizione": "Il prompt non coincide con la sola domanda che digitiamo. Include le istruzioni di sistema impostate dall'applicazione, i messaggi precedenti della conversazione e gli eventuali documenti allegati. Per il modello questi elementi non hanno gerarchia: diventano un unico testo, spezzato in token, che va completato.",
+    "Da dove viene": "Si parte da ELIZA, un programma scritto nel 1966 al MIT da Joseph Weizenbaum, che imitava uno psicoterapeuta riformulando le frasi dell'utente come domande. Per circa cinquant'anni fu una curiosità, finché nel 2020 GPT-3 (Generative Pre-trained Transformer 3) ha reso centrale un'unica porta d'ingresso: dai un testo e il modello lo prosegue. Il nome deriva dal cursore lampeggiante dei terminali anni Settanta, il segno che aspetta l'input.",
+    "A cosa serve": "Orienta il modello verso l'output desiderato. Modificare la formulazione sposta il brano da proseguire e quindi la probabilità dei token successivi. Un prompt vago porta a risposte generiche; uno preciso, con formato, vincoli ed eventualmente esempi, restringe le continuazioni possibili.",
+    "Dove tutti sbagliano": "Gli errori sono due. Il primo è considerare il prompt un comando da eseguire: in realtà è l'avvio di un brano che il modello prosegue nel modo più probabile, ed è per questo che un documento allegato o una pagina web possono cambiare il comportamento se contengono frasi con tono di istruzione. Il secondo è credere nel prompt perfetto, una formula magica valida ovunque. Trucchi diffusi tra il 2022 e il 2024, come chiedere di ragionare un passo alla volta, funzionavano perché avvicinavano il testo a quelli con buone risposte; i modelli attuali ragionano già da soli, e certe formule rallentano soltanto. Resta utile la parte noiosa: dire con precisione cosa si vuole, in quale formato e con quali vincoli.",
+    "Esempi e analogie": "- ELIZA che trasforma la frase \"mi sento triste\" in una domanda, senza capire nulla.\n- Una richiesta di traduzione: la risposta in inglese nasce perché, nei testi di addestramento, una frase così è quasi sempre seguita da una traduzione.\n- Una mail generica contro una mail formale a un cliente moroso: due inizi diversi, continuazioni diverse.\n- La frase \"Roma è\" completata in modi diversi: la capitale d'Italia, una squadra in un testo sul calcio, un numero in un elenco di città con la popolazione.\n- Il messaggio fisso dell'azienda che l'utente non vede, con ruolo, limiti e data odierna.\n- Una pagina web con una frase che chiede di scavalcare le regole iniziali: per il modello è semplice testo, come tutto il resto.",
+    "Collegamenti": "#17 LLM, #9 Token, #18 Autoregressione, #22 Completion."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 22,
+   "title": "Completion",
+   "fields": {
+    "In una frase": "La completion è il testo che un modello linguistico genera dopo il prompt, aggiungendo parti in sequenza più che fornendo una risposta vera e propria.",
+    "Definizione": "Prompt e completion formano insieme un solo testo. Il primo arriva dall'esterno, la seconda la scrive il modello, scegliendo un token alla volta e accodandolo, finché non interviene una condizione di arresto.",
+    "Da dove viene": "Il termine riprende il test cloze del 1953, ideato da Wilson Taylor per misurare quanto un testo sia leggibile cancellandone alcune parole. I modelli odierni svolgono un compito analogo, con la differenza che il buco si trova sempre alla fine. Nel 2020 OpenAI ha reso disponibile GPT (Generative Pre-trained Transformer) agli sviluppatori con un'interfaccia dal nome proprio di completamento.",
+    "A cosa serve": "Capire il comportamento reale dei modelli, per esempio perché una risposta può ripetere la domanda o girare in tondo. Serve anche a stimare i costi: nelle API (Application Programming Interface) i token generati costano di solito molto più di quelli letti, fino a un ordine di grandezza in più.",
+    "Dove tutti sbagliano": "Primo errore: considerare la completion sempre una risposta. Il modello prosegue il testo e, se il prompt è una domanda, la prosecuzione più plausibile somiglia a una risposta; i modelli meno evoluti possono ripetere la domanda o parlare al posto dell'utente. Secondo errore: pensare che il modello smetta perché ha concluso il suo ragionamento. Gli stop arrivano per tre vie: token di fine testo, limite massimo di token, sequenza di arresto. Una frase troncata indica quasi sempre il raggiungimento del limite.",
+    "Esempi e analogie": "- Il test cloze, dove chi legge completa i buchi: il modello fa lo stesso lavoro, ma con il buco sempre in fondo.\n- Le domande da quiz: un modello primitivo, davanti a una domanda, può proseguire con altre domande; per ottenere la risposta serve incorniciare il testo con un'etichetta di risposta.\n- La chat come completion mascherata: l'applicazione compone un testo con istruzioni di sistema, un ruolo utente e un ruolo assistente lasciato vuoto.\n- L'elenco da proseguire: un prompt che apre una lista viene completato con le voci successive.",
+    "Collegamenti": "#9 Token, #18 Autoregressione, #20 Modello generativo, #21 Prompt, #23 Context window."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 23,
+   "title": "Context window",
+   "fields": {
+    "In una frase": "È la quantità massima di token che un modello riesce a tenere insieme in un singolo giro, contando sia il testo in ingresso sia la risposta.",
+    "Definizione": "È un numero fisso, stabilito una volta per tutte alla costruzione del modello. Include il prompt e la completion (la risposta generata) sommati insieme. Con una capienza di 8000 token e 7000 già occupati dalla domanda, alla risposta restano circa mille token. Se il testo supera il limite, una parte va tagliata e il modello non la legge.",
+    "Da dove viene": "Si parte dal 1956, quando George Miller osservò che le persone trattengono circa sette elementi nella memoria di lavoro, cioè il piano su cui si ragiona nel momento. Il parallelo è con i modelli linguistici. Il primo GPT (Generative Pre-trained Transformer) del 2018 gestiva 512 token, GPT-3 2048, GPT-4 arrivò a 8000 e poi a 32000, e dal 2024 la soglia tipica è 128.000, con alcuni modelli recenti che toccano il milione.",
+    "A cosa serve": "Serve a capire quanto testo puoi dare a un modello in una volta sola, quanti documenti allegare e perché, dopo un po', il modello sembra dimenticare l'inizio della conversazione. Serve anche a capire i costi: una finestra più lunga richiede più calcolo e più memoria nella scheda grafica (GPU, Graphics Processing Unit).",
+    "Dove tutti sbagliano": "Il primo errore è considerare la finestra la memoria permanente del modello: è solo lo spazio di lavoro, mentre ciò che il modello sa stabilmente sta nei pesi. Il secondo è credere che ciò che scrivi in chat venga appreso: il modello usa quel testo finché resta nella finestra, senza modificare i propri pesi. Una finestra grande, inoltre, non garantisce attenzione uniforme: i modelli tendono a usare meglio l'inizio e la fine del testo che il centro.",
+    "Esempi e analogie": "- Il numero di telefono da dieci cifre che, letto come tre gruppi, diventa più facile da ricordare.\n- Il quaderno con le prime pagine strappate: i messaggi più vecchi escono dalla finestra e, per il modello, smettono di esistere.\n- Il tavolo di lavoro contro l'archivio: la finestra è il tavolo, i pesi sono l'archivio.\n- Le app che ricordano le preferenze salvano un testo e lo reinseriscono nella finestra la volta successiva.",
+    "Collegamenti": "#6 Parametro, #7 Peso, #8 Addestramento, #9 Token, #21 Prompt, #22 Completion, #24 Inferenza, #18 Autoregressione."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 24,
+   "title": "Inferenza",
+   "fields": {
+    "In una frase": "L'inferenza è il momento in cui una rete con parametri congelati elabora una richiesta e genera la risposta, un frammento di testo alla volta.",
+    "Definizione": "È l'uso di un modello addestrato: gli si dà un ingresso, questo attraversa i pesi e ne esce un risultato. Per un LLM (large language model, modello linguistico di grandi dimensioni) si parte dal prompt e si ottiene la completion, cioè il testo generato. La differenza chiave con l'addestramento è che i pesi restano congelati: vengono letti, non riscritti.",
+    "Da dove viene": "Si parte da MYCIN, un programma di Stanford degli anni Settanta che suggeriva antibiotici con circa 600 regole scritte a mano. Il suo motore di inferenza applicava le regole ai fatti per trarre conclusioni, nel senso della logica. Con le reti neurali la parola è rimasta, ma ha cambiato significato: oggi indica l'esecuzione di un modello già addestrato.",
+    "A cosa serve": "Serve a far lavorare il modello per chi lo usa. La vita di un modello ha due fasi: l'addestramento, fatto una volta sola e molto costoso, che produce un file di pesi; e l'inferenza, ripetuta a ogni domanda e risposta, economica per volta ma eseguita miliardi di volte. Per i grandi servizi la spesa di inferenza ha già superato quella di addestramento. Può girare sui server del fornitore oppure sul proprio computer, purché il modello sia distribuito con pesi accessibili e la macchina sia abbastanza potente: l'esempio è un modello da 27 miliardi di parametri su un portatile da 32 GB.",
+    "Dove tutti sbagliano": "Due errori. Primo: credere che il modello impari mentre lo usiamo. Quando un'app dice di aver registrato una preferenza, in realtà salva un testo che reinserisce nel prompt delle conversazioni successive; i pesi non cambiano. Per apprendere davvero serve riaddestrare, ed è per questo che le aziende rilasciano nuove versioni. Secondo: pensare che inferenza significhi ragionamento. Il termine indica solo far girare il modello, qualunque compito svolga, anche quando scrive passaggi intermedi.",
+    "Esempi e analogie": "- MYCIN e le sue regole, come esempio storico di motore di inferenza.\n- Il modello locale da 27 miliardi di parametri, confrontato con i modelli di frontiera.\n- Il riassunto di correzioni che l'app ripropone al modello, al posto di un vero apprendimento.",
+    "Collegamenti": "#5 Modello, #7 Peso, #8 Addestramento, #17 LLM, #21 Prompt, #22 Completion, #23 Context window, #25 Transformer."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 25,
+   "title": "Transformer",
+   "fields": {
+    "In una frase": "Il Transformer è lo schema architetturale proposto da Google nel 2017, alla base di quasi tutti i modelli di linguaggio odierni.",
+    "Definizione": "È un'architettura di rete neurale, cioè un progetto che stabilisce come sono disposti i pezzi della rete e come i dati vi circolano. Non è un modello già pronto: è la pianta che indica quanti strati ci sono e cosa contengono. Gli abitanti della pianta sono i pesi, fissati dall'addestramento. Per questo modelli come GPT (Generative Pre-trained Transformer), Claude, Llama e Gemini hanno schemi affini, discendenti del progetto del 2017.",
+    "Da dove viene": "Nel 2017 alcuni ricercatori di Google lavoravano alla traduzione automatica. I sistemi dell'epoca leggevano la frase un termine alla volta, portandosi dietro un riassunto sempre aggiornato: erano lenti e, nelle frasi lunghe, l'inizio sbiadiva. Nel giugno 2017 il gruppo pubblicò un articolo intitolato \"Attention Is All You Need\", che proponeva di far entrare tutti i termini insieme. Addestrato per circa tre giorni e mezzo su otto schede grafiche (GPU, Graphics Processing Unit), il nuovo sistema superò i migliori traduttori dell'epoca.",
+    "A cosa serve": "Permette di elaborare tutti gli elementi del testo nello stesso momento, lavoro in cui le schede grafiche eccellono. Ne deriva un addestramento molto più rapido rispetto ai sistemi precedenti, che ha reso possibile far crescere i modelli fino a centinaia o migliaia di miliardi di parametri.",
+    "Dove tutti sbagliano": "Due errori frequenti. Il primo è confondere il Transformer con un modello, o addirittura con ChatGPT: è l'architettura, mentre ChatGPT è un'applicazione che usa modelli costruiti su quell'architettura. Il secondo è credere che sia stato progettato per capire la lingua. Al suo interno non ci sono regole grammaticali né dizionari, solo moltiplicazioni tra liste di numeri e pesi. Il sapere linguistico sta nei pesi, non nell'architettura.",
+    "Esempi e analogie": "- Pianta di un edificio: indica piani e stanze, ma non chi ci vive.\n- Ricetta e piatto: dire di aver usato il Transformer equivale a dire di aver mangiato la ricetta.\n- Lettura con il dito sul rigo: il vecchio metodo di seguire una frase un passo alla volta.\n- Frase sul gatto stanco: il pronome finale si lega al gatto e non al tavolo.\n- Immagini tagliate a quadratini che fanno da token, come nell'audio trascritto da Whisper.",
+    "Collegamenti": "#3 Rete neurale, #6 Parametro, #13 Embedding, #17 LLM, #24 Inferenza, #26 Layer, #29 Attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 26,
+   "title": "Layer",
+   "fields": {
+    "In una frase": "Un layer (strato) è una fase di elaborazione di una rete neurale: prende una serie di numeri, li rielabora con i propri pesi e passa il risultato allo strato successivo.",
+    "Definizione": "Ogni strato accoglie una serie di numeri, la mescola con i pesi che gli appartengono e ne produce una nuova. L'uscita di uno diventa l'ingresso del successivo, fino in cima alla pila. Quando si parla di miliardi di parametri, si intendono proprio questi pesi, distribuiti strato per strato.",
+    "Da dove viene": "La storia parte dal 1971, quando il matematico Alexey Ivakhnenko, a Kiev, descrisse una rete a 8 strati, tra i primi casi documentati di rete profonda, poco nota in Occidente. Per circa quarant'anni impilare strati è stato difficile. La rete vincitrice di ImageNet nel 2012 ne aveva 8, nel 2015 un gruppo Microsoft arrivò a 152, e GPT-3 nel 2020 ne contava 96.",
+    "A cosa serve": "Gli strati sono il meccanismo con cui un modello rielabora la rappresentazione di ogni token. Nel Transformer ogni strato fa due cose: i token si scambiano informazioni con quelli del contesto, poi ciascuno viene rielaborato per conto proprio. Così un termine ambiguo si chiarisce: un esempio è la parola \"letto\", che diventa verbo o participio a seconda delle parole vicine.",
+    "Dove tutti sbagliano": "Primo errore: credere che più strati significhino sempre un modello migliore. Ogni strato aggiunge parametri, costo di addestramento e tempo per token; oltre una certa soglia la profondità rende sempre meno, e un modello profondo addestrato su pochi dati resta scarso. Secondo errore: pensare che ogni strato abbia un compito assegnato dal progettista, come la grammatica o i fatti. Il progettista decide la forma, mentre ciò che ogni strato impara lo decide l'addestramento, e la divisione del lavoro che si osserva a posteriori è sfumata.",
+    "Esempi e analogie": "- Gli strati come revisioni successive dello stesso documento, ciascuna che corregge un po' la precedente.\n- Il termine ambiguo che si chiarisce strato dopo strato, guidato dalle parole vicine.\n- Liste di numeri che mantengono la stessa lunghezza dall'ingresso all'uscita, con l'esempio di 4.096 valori per token.\n- Blocchi con la stessa struttura ma pesi differenti, come lo strato 1 e lo strato 30.\n- Il segnale di correzione che si indebolisce risalendo la pila, aggirato aggiungendo una correzione invece di sostituire la lista.",
+    "Collegamenti": "#3 Rete neurale, #4 Deep Learning, #6 Parametro, #7 Peso, #8 Addestramento, #13 Embedding, #16 Dimensione, #24 Inferenza, #25 Transformer, #27 Encoder."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 27,
+   "title": "Encoder",
+   "fields": {
+    "In una frase": "Si tratta del componente di un modello che legge un input nella sua interezza e lo converte in numeri, senza produrre testo.",
+    "Definizione": "Un encoder (codificatore) riceve una sequenza, per esempio una frase, e restituisce un vettore numerico per ciascun token. Nel Transformer è una pila di strati: l'uscita ha la stessa lunghezza dell'ingresso, ma ogni elemento è più ricco perché ha già considerato tutti gli altri. Si può riassumere così: \"ogni token vede tutta la frase\".",
+    "Da dove viene": "Nel 2014, da Google, alcuni ricercatori traducono facendo riassumere la frase di partenza in un'unica lista di numeri da una rete; una seconda rete la usa per scrivere la traduzione, e da qui i nomi encoder e decoder. Il limite è il collo di bottiglia: un riassunto di dimensione fissa non regge frasi lunghe. Poco dopo, a Montréal, si permette alla seconda rete di consultare tutte le parole. Nel 2017 il Transformer spinge questo schema all'estremo, e la prima metà è ciò che oggi chiamiamo encoder.",
+    "A cosa serve": "Oggi l'encoder serve soprattutto a classificare testi, per esempio distinguere un giudizio positivo da uno negativo o riconoscere lo spam. Serve anche a cercare: documenti e domande diventano vettori, confrontati con la similarità coseno (misura dell'angolo tra due vettori). Leggendo tutto in un solo passaggio è piccolo e veloce: BERT (Bidirectional Encoder Representations from Transformers), nella versione base, ha 110 milioni di parametri.",
+    "Dove tutti sbagliano": "Il primo errore è credere che \"encoder\" significhi cifrare. Il termine indica invece la rappresentazione dello stesso contenuto in un altro formato, come l'alfabeto Morse con punti e linee: nulla è nascosto. Il secondo è pensare che ChatGPT abbia un encoder per il prompt e una parte separata per la risposta. GPT, Claude o Llama non hanno encoder: usano solo la metà decoder, con la stessa pila di strati per leggere e generare.",
+    "Esempi e analogie": "- Traduzione inglese-francese del 2014: una rete riassume, l'altra riscrive.\n- Una frase di 50 parole compressa nello spazio di una di 5.\n- La forma \"letto\", che può indicare un mobile o un participio: l'encoder distingue i casi guardando anche le parole successive.\n- L'alfabeto Morse, per spiegare che rappresentare non significa nascondere.\n- Whisper, che trascrive l'audio: un encoder ascolta, un'altra parte scrive.",
+    "Collegamenti": "#25 Transformer, #28 Decoder, #13 Embedding, #15 Similarità coseno, #17 LLM, #29 Attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 28,
+   "title": "Decoder",
+   "fields": {
+    "In una frase": "Il decoder è la metà del Transformer che produce l'output un token alla volta, guardando solo ciò che lo precede.",
+    "Definizione": "Il decoder è una pila di layer, simile all'encoder, con una regola in più: ogni token può considerare soltanto i token che stanno prima di lui. Il motivo è pratico: durante la generazione le parole future non esistono ancora. Il funzionamento è autoregressivo: si genera un token, lo si aggiunge in fondo e si riparte.",
+    "Da dove viene": "Il Transformer del 2017 nasce con due metà che lavorano in coppia: l'encoder legge la frase di partenza e il decoder genera la traduzione. Nel giugno 2018 Alec Radford e colleghi di OpenAI pubblicano l'articolo \"Migliorare la comprensione del linguaggio con il pre-addestramento generativo\", tengono solo la metà decoder e la addestrano a indovinare il token successivo su circa 7.000 libri non pubblicati. Il modello ha 12 layer e 117 milioni di parametri. Pur senza una parte dedicata alla lettura, batte i riferimenti del periodo in 9 compiti su 12. Il nome GPT (Generative Pre-trained Transformer) arriva solo dopo.",
+    "A cosa serve": "Serve a generare testo in modo continuo. Quasi ogni compito può diventare un \"continuare un testo\": tradurre, riassumere, rispondere, purché il prompt imposti bene la continuazione. È l'architettura di GPT, Claude, Gemini e quasi tutti i LLM (large language model) che usiamo tramite un'interfaccia chat.",
+    "Dove tutti sbagliano": "Due errori frequenti. Il primo è credere che \"decoder\" significhi \"decifrare\". Il termine, di origine nella teoria dell'informazione, indica la parte che riporta la rappresentazione interna della rete, fatta di liste di numeri, in token leggibili. Nei modelli in chat non esiste un encoder a monte: un unico blocco di strati legge e scrive. Il secondo è pensare che, guardando solo indietro, il modello capisca meno. Il vincolo riguarda come si scrive, non quanto si comprende: quando risponde, l'intero prompt è già disponibile alle sue spalle. Gli encoder restano utili per cercare e classificare, ma i modelli più capaci oggi sono decoder puri.",
+    "Esempi e analogie": "- La \"benda\" in addestramento: ogni token è coperto a destra, come una persona che non può sbirciare la risposta. Senza benda, il token 5 copierebbe il 6 invece di indovinarlo.\n- Il prompt come lista di numeri: l'ultimo token accumula il contesto strato dopo strato e da lì parte la prima parola della risposta.",
+    "Collegamenti": "#17 LLM, #18 Autoregressione, #21 Prompt, #25 Transformer, #27 Encoder, #29 Attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 29,
+   "title": "Attention",
+   "fields": {
+    "In una frase": "È il meccanismo con cui ogni token stabilisce quanto pesano gli altri token della sequenza, per poi ricombinarne le informazioni.",
+    "Definizione": "Per ogni token, l'attention confronta la propria rappresentazione numerica con quella degli altri, converte i punteggi in percentuali e costruisce una nuova rappresentazione come somma pesata. Si riassume in tre verbi: confrontare, pesare, mescolare.",
+    "Da dove viene": "Nel 2014 Bahdanau, durante uno stage a Montréal nel laboratorio di Bengio, lavorava sulla traduzione automatica. I traduttori di allora compattavano l'intera frase in un'unica lista di numeri, che faticava con le frasi lunghe. L'idea fu far tornare il decoder sulle parole originali a ogni passo, come fa una persona che traduce. Il modello, chiamato RNNSearch, uscì a settembre 2014. Nel 2017 il meccanismo diventa il centro del Transformer, nell'articolo \"Attention Is All You Need\".",
+    "A cosa serve": "Permette a parole anche lontane tra loro di collegarsi direttamente, senza passare lungo una catena. Il calcolo avviene in parallelo, quindi sfrutta bene le GPU (graphics processing unit, schede grafiche). Il costo però cresce in modo quadratico: raddoppiare il testo fa quadruplicare i costi.",
+    "Dove tutti sbagliano": "Il primo errore è credere che il modello presti attenzione come una persona. In realtà è un calcolo di confronti, percentuali e somme pesate, e la parola è solo una metafora scelta perché rende bene l'effetto. Il secondo errore sta nello scambiare i pesi dell'attention per quelli del modello: questi ultimi restano fissi dopo l'addestramento, mentre i primi si ricalcolano per ogni frase, token e layer. Inoltre osservare dove si concentra l'attention non basta a spiegare una risposta.",
+    "Esempi e analogie": "- Il traduttore che alterna lo sguardo tra frase originale e traduzione, come negli esercizi delle scuole medie.\n- La frase del gatto troppo stanco per salire sul tavolo: il verbo riceve molto peso dal soggetto, un po' dall'aggettivo e quasi nulla dal tavolo.\n- Il palco illuminato da un faretto per ogni parola, dove ogni token alza alcune luci e ne abbassa altre.",
+    "Collegamenti": "#2 Machine Learning, #13 Embedding, #15 Similarità coseno, #23 Context window, #25 Transformer, #30 Self-attention, #31 Query, Key e Value, #32 Multi-head attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 30,
+   "title": "Self-attention",
+   "fields": {
+    "In una frase": "È l'attention applicata a un testo che guarda se stesso: ogni token valuta tutti gli altri token della stessa sequenza, compreso sé stesso.",
+    "Definizione": "Chi interroga e chi viene interrogato stanno dentro lo stesso testo. Ogni token mette a confronto la propria lista numerica con quella di tutti gli altri, assegna un peso a ciascuno e costruisce una nuova rappresentazione mescolando il risultato. Il calcolo è lo stesso dell'attention classica: cambia soltanto la provenienza dei dati.",
+    "Da dove viene": "Si parte da un articolo dell'Università di Edimburgo del 2016 (autori Jianpeng Cheng, Li Dong e Mirella Lapata), che la chiamava intra-attention, cioè attention interna, per capire come un modello legge una singola frase. Un anno dopo il Transformer la adotta come unico modo di leggere il testo e la ribattezza self-attention. L'attention del 2014, legata a Bahdanau, serviva invece a collegare due frasi diverse, l'originale e la traduzione.",
+    "A cosa serve": "Permette a ogni parola di arricchirsi con il contesto che la circonda, così lo stesso token assume un significato diverso a seconda della frase in cui si trova. Nei modelli generativi come i GPT (Generative Pre-trained Transformer) la versione con maschera guarda solo i token precedenti, e questo rende possibile scrivere testo parola per parola.",
+    "Dove tutti sbagliano": "Gli errori sono due. Il primo è credere che \"self\" significhi che il modello riflette su sé stesso o ha una forma di consapevolezza: la parola indica solo che i dati arrivano dallo stesso testo. Il secondo è considerare attention e self-attention due meccanismi diversi, o la seconda una versione evoluta della prima: il calcolo è identico.",
+    "Esempi e analogie": "- La metafora della nostra mente che, leggendo una parola, torna alle parole precedenti che la spiegano.\n- La frase \"The FBI is chasing a criminal on the run\", con le parole già lette che si accendono in misura diversa per ogni parola.\n- La parola \"pesca\": stesso punto di partenza, ma significato diverso a seconda che accanto ci siano \"matura e profumata\" oppure \"lago e notte\".\n- I tre usi dell'attention nel Transformer originale: l'encoder che legge in tutte le direzioni, il decoder con la benda che guarda solo indietro e il ponte tra le due metà.\n- Un modello da 8 miliardi di parametri con 32 layer, dove ogni token viene ricostruito 32 volte.",
+    "Collegamenti": "#29 Attention, #25 Transformer, #28 Decoder, #35 Causal mask, #13 Embedding, #17 LLM, #18 Autoregressione, #31 Query, Key e Value."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 31,
+   "title": "Query, Key e Value",
+   "fields": {
+    "In una frase": "Sono tre vettori che ogni token genera per sé prima dell'attention, ciascuno con un compito diverso: porre una domanda, essere individuato, offrire contenuto.",
+    "Definizione": "Dentro l'attention un token non lavora con il suo vettore originale, ma ne deriva tre varianti. La query esprime che cosa il token sta cercando, la key indica con quali criteri il token può essere scovato dagli altri, il value è il dato che il token restituisce quando viene scelto. Le tre versioni nascono moltiplicando il vettore per altrettante tabelle di pesi, apprese in fase di addestramento e quindi parametri come gli altri.",
+    "Da dove viene": "Nel 2016 un team della Facebook AI Research, tra cui figurano Alexander Miller e Jason Weston, costruisce un sistema che risponde a domande sui film leggendo Wikipedia. Per metterlo alla prova prepara circa 100.000 quesiti. La trovata è separare ciò che un frammento di memoria espone per essere trovato da ciò che restituisce quando viene selezionato. Nel 2017 il Transformer riprende questa separazione nell'attention, che diventa centrale nell'architettura.",
+    "A cosa serve": "Tenere distinti i due ruoli rende la relazione direzionale: un verbo può andare a caccia del proprio soggetto senza che quest'ultimo debba a sua volta cercarlo. Le key stabiliscono l'intensità del legame tra due token, mentre i value costituiscono la sostanza che passa da uno all'altro. Il risultato, per ogni token, è una somma ponderata delle informazioni altrui.",
+    "Dove tutti sbagliano": "Primo errore: pensare che la query sia il prompt digitato. In realtà è un calcolo interno, distinto per ogni token e per ogni layer, per cui un prompt lungo genera centinaia di query. Secondo: credere che key e value formino un archivio di nozioni. Sono ricalcolati ogni volta dal testo presente e svaniscono quando il testo finisce; il sapere del modello sta nei pesi.",
+    "Esempi e analogie": "- Biblioteca: la domanda va al bibliotecario, l'etichetta sul dorso corrisponde alla key, il contenuto del libro al value. A differenza di una biblioteca reale, ogni volume è anche un lettore.\n- Frase sul gatto e il tavolo: il pronome \"era\" cerca un soggetto, il gatto si presenta come animale, quindi soggetto, mentre il tavolo risulta un luogo. L'informazione utile arriva dal gatto.\n- Simmetria: con una sola lista per cercare e farsi trovare, due parole si guarderebbero con la stessa intensità.\n- Cifra citata: in un Llama con 8 miliardi di parametri, le tabelle per query, key e value sui 32 layer ammontano a circa 800 milioni di parametri, un decimo del totale.",
+    "Collegamenti": "#29 Attention, #30 Self-attention, #32 Multi-head attention, #25 Transformer, #26 Layer, #23 Context window."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 32,
+   "title": "Multi-head attention",
+   "fields": {
+    "In una frase": "anziché un solo meccanismo di attenzione per strato, il modello ne esegue parecchi in parallelo, ciascuno concentrato su un aspetto diverso, poi unisce i risultati.",
+    "Definizione": "è l'attenzione ripetuta più volte nello stesso strato, da più teste (head) che lavorano in parallelo. Ogni testa possiede pesi propri per costruire query, key e value, quindi formula le sue domande, individua i token più pertinenti e prepara una propria miscela di informazioni. Infine le uscite di tutte le teste vengono affiancate e rimescolate in un unico vettore per ogni token.",
+    "Da dove viene": "nasce nel 2017 nel gruppo Google che scrive l'articolo Attention Is All You Need. Noam Shazeer, dipendente di lunga data, si unisce subito a un gruppo che propone di togliere le reti ricorrenti dai traduttori. Nell'articolo, accanto al suo nome, compaiono tre contributi, e questo meccanismo è uno di essi.",
+    "A cosa serve": "una sola attenzione produce un unico quadro di pesi che somma a cento, cioè una media, e la media cancella le relazioni diverse che convivono nella frase. Più teste colgono più legami insieme, come soggetto, pronomi e parole vicine. Il costo resta contenuto perché le dimensioni di ogni token vengono divise tra le teste, non duplicate.",
+    "Dove tutti sbagliano": "il primo errore è pensare che gli ingegneri assegnino un compito a ciascuna testa. I ruoli emergono spontaneamente durante l'allenamento, e le etichette le attacchiamo noi dopo. Non tutte le teste pesano allo stesso modo: uno studio del 2019 mostra che, rimuovendo 38 teste su 48 da un traduttore, la qualità scende di pochissimo. Il secondo errore è credere che la frase venga spezzata e ogni testa ne legga un pezzo. Ogni testa vede tutti i token; a dividersi è la lista numerica di ciascun token. Più teste non garantiscono un modello migliore: sono un iperparametro da bilanciare.",
+    "Esempi e analogie": "- La redazione: più redattori leggono la stessa pagina, ciascuno con un evidenziatore diverso per soggetti, pronomi o parole vicine. Unendo i fogli si ottiene una lettura più ricca.\n- Il gatto stanco: per capire a cosa si riferisce \"era\", servono più sguardi contemporanei.\n- Transformer del 2017: vettori da 512 dimensioni divisi tra 8 teste, quindi 64 a testa.\n- Llama da 8 miliardi di parametri: 32 strati con 32 teste ciascuno, cioè 1.024 teste.\n- GPT-3 (Generative Pre-trained Transformer 3), 2020: 96 strati con 96 teste, oltre 9.000 in tutto.\n- BERT (Bidirectional Encoder Representations from Transformers): uno studio di Stanford con Christopher Manning ha esaminato 144 teste e ne ha trovate che collegano verbo e complemento, nome e articolo.",
+    "Collegamenti": "#31 Query, Key e Value, #29 Attention, #30 Self-attention, #25 Transformer, #33 Positional encoding."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 33,
+   "title": "Positional encoding",
+   "fields": {
+    "In una frase": "È il meccanismo con cui un Transformer capisce l'ordine delle parole, aggiungendo a ogni token una traccia della sua posizione.",
+    "Definizione": "È un vettore, lungo quanto l'embedding del token, che indica dove quel token si trova nel testo. Viene sommato all'embedding prima che il token entri nel primo layer, così ogni parola porta con sé sia il significato sia il posto. Non è un'etichetta attaccata al token: è mescolato dentro i suoi numeri.",
+    "Da dove viene": "L'intuizione risale al 1954, quando Zellig Harris avverte che il linguaggio non è un semplice insieme casuale di parole. Il problema concreto emerge con il Transformer del 2017: l'attention confronta ogni token con tutti gli altri, ma da sola non distingue chi viene prima di chi. La soluzione proposta nello stesso articolo usa onde sinusoidali.",
+    "A cosa serve": "Serve a distinguere frasi fatte delle stesse parole ma in ordine diverso, dove cambia chi fa cosa a chi. Permette anche di cogliere relazioni come la parola immediatamente precedente, più utili della posizione assoluta. Poiché i token vengono elaborati in parallelo, l'ordine va aggiunto a parte.",
+    "Dove tutti sbagliano": "Primo errore: pensare che la posizione sia un numero scritto accanto al token. In realtà è un vettore sommato all'embedding, e il modello non legge mai un dato esplicito di posizione. Secondo errore: credere che il modello conosca già l'ordine perché leggerebbe da sinistra a destra. I token entrano tutti insieme, quindi senza questo meccanismo la frase tornerebbe un insieme di parole senza ordine.",
+    "Esempi e analogie": "- Orologio con lancette: tre lancette bastano per ogni secondo della giornata, e aggiungendone altre si arriva a diecimila anni senza ripetizioni.\n- Numero di posizione sommato all'embedding: se la posizione è 5.000, il valore del token viene sommerso.\n- Punta della lancetta come coppia seno e coseno: un solo numero non distingue le ore 2 dalle ore 10.\n- Lancetta dei secondi che passa da 59 a 0: un angolo che ricomincia da capo fa sembrare vicine due posizioni lontane.",
+    "Collegamenti": "#13 Embedding, #25 Transformer, #29 Attention, #27 Encoder, #23 Context window, #34 RoPE."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 34,
+   "title": "RoPE",
+   "fields": {
+    "In una frase": "RoPE (Rotary Position Embedding, embedding posizionale a rotazione) dice al modello dove si trova ogni token ruotando query e key dentro l'attention, senza toccare l'embedding.",
+    "Definizione": "È un metodo per codificare la posizione che, a ogni strato, fa ruotare i vettori query e key di un angolo legato alla posizione del token. Quando due token si confrontano conta solo la differenza tra le loro rotazioni, quindi conta quanto distano i token, non dove si trovano esattamente. L'embedding resta quello originale e porta soltanto il significato della parola.",
+    "Da dove viene": "L'idea nasce nel 2021 da Jianlin Su, ricercatore a Shenzhen, che si chiedeva perché assegnare una posizione assoluta se l'attention ragiona soprattutto sulle distanze. Ad aprile pubblica l'articolo RoFormer; poco dopo il gruppo indipendente EleutherAI la usa nel modello GPT-J (Generative Pre-trained Transformer). Nel 2023 Meta la sceglie per Llama e da allora quasi tutti i modelli aperti la copiano.",
+    "A cosa serve": "Permette al modello di lavorare sulle distanze tra le parole in modo naturale. La rotazione è una formula fissa, senza parametri da apprendere: l'addestramento riguarda le tabelle che generano query e key. Per estendere il contesto si rallentano le rotazioni o si \"stirano\" le posizioni: Llama 3 porta la base da 10.000 a 500.000 e Llama 3.1 arriva a 128.000 token.",
+    "Dove tutti sbagliano": "Due errori frequenti. Il primo è pensare che RoPE sommi una lista di numeri all'embedding, come nel 2017: in realtà non tocca l'embedding e ruota query e key dentro l'attention, in ogni strato. Il secondo è credere che un modello con RoPE legga testi lunghi quanto vuole: con angoli mai visti in addestramento il modello lavora male, e servono accorgimenti e spesso un po' di addestramento su testi lunghi. Con BERT (Bidirectional Encoder Representations from Transformers) il limite è una tabella di posizioni fissa, qui è più sfumato.",
+    "Esempi e analogie": "- Orologio a lancette: ogni coppia di numeri della query è una lancetta, e le lancette girano a velocità diverse, da velocissime a lentissime.\n- Il primo token ruota ogni lancetta di un passo, il decimo di dieci passi.\n- Giostra: due persone su una giostra mantengono la stessa distanza anche se la giostra gira. Così il token 10 che guarda il 13 si comporta come il 500 che guarda il 503.",
+    "Collegamenti": "#33 Positional encoding, #29 Attention, #31 Query, Key e Value, #25 Transformer, #23 Context window, #35 Causal mask."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 35,
+   "title": "Causal mask",
+   "fields": {
+    "In una frase": "È una tabella che impedisce a ogni token di guardare quelli che lo seguono, così il modello impara a prevedere il testo senza barare.",
+    "Definizione": "È una griglia quadrata in cui ogni token occupa una riga e una colonna. Si applica ai punteggi di attention prima che diventino pesi: le caselle sopra la diagonale, cioè i confronti con le posizioni future, vengono portate a meno infinito, così dopo la normalizzazione il loro peso è nullo.",
+    "Da dove viene": "Il nome nasce nella teoria dei segnali, dove un sistema è detto causale quando la sua uscita dipende soltanto dal presente e dal passato. Si parte da WaveNet, il modello di DeepMind del 2016 che genera audio campione per campione con convoluzioni causali. L'anno dopo il Transformer applica la stessa idea all'attention nel decoder.",
+    "A cosa serve": "Durante l'addestramento il testo è già completo, quindi senza protezione un token potrebbe copiare la risposta. Con la maschera, un testo lungo mille token equivale a mille esercizi di previsione svolti in parallelo, ciascuno senza accesso al futuro. Nelle chat, i LLM (Large Language Model, modelli linguistici di grandi dimensioni) scrivono un token alla volta: la maschera garantisce che il comportamento resti identico a quello dell'addestramento.",
+    "Dove tutti sbagliano": "Gli errori frequenti sono due. Il primo è pensare che anche BERT (Bidirectional Encoder Representations from Transformers) usi la causal mask: BERT vede le parole da entrambi i lati, e il suo metodo di nascondere a caso il 15% delle parole è un'operazione diversa. Il secondo è credere che causale significhi ragionare per cause ed effetti: qui il termine indica soltanto una direzione nel tempo.",
+    "Esempi e analogie": "- Una frase di cinque parole in una tabella 5x5: la prima parola vede solo se stessa, l'ultima vede tutta la frase. Le caselle aperte formano un triangolo, da cui il nome maschera triangolare.\n- Una benda sugli occhi del modello, che gli impedisce di sbirciare avanti.\n- Un segnale che scorre: ogni valore dipende solo da ciò che è già passato.\n- WaveNet, che produce almeno 16.000 numeri per ogni secondo di audio.\n- Llama 3 da 8 miliardi di parametri, con finestra di 8.192 token: oltre 67 milioni di caselle, quasi metà chiuse.\n- Mistral 7B del 2023, che usa una fascia invece del triangolo e guarda solo gli ultimi 4.096 token.",
+    "Collegamenti": "#17 LLM, #18 Autoregressione, #19 Prossimo token, #25 Transformer, #27 Encoder, #28 Decoder, #29 Attention, #31 Query, Key e Value, #36 Attention map."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 36,
+   "title": "Attention map",
+   "fields": {
+    "In una frase": "un'attention map è una tabella che mostra quanto ciascun token di un testo tiene conto degli altri mentre un Transformer (architettura di rete neurale) lo elabora.",
+    "Definizione": "È una griglia quadrata: le righe indicano il token che \"guarda\", le colonne quello guardato, e ogni casella contiene un peso, spesso reso con l'intensità del colore. Ogni riga somma a 100. Non esiste una mappa unica: ce n'è una per ogni testa (head) e per ogni layer, e cambiano tutte appena cambia il testo.",
+    "Da dove viene": "Nel 2014 Bahdanau, Cho e Bengio introducono il meccanismo di attention per la traduzione automatica, con una figura che mostra quali parole inglesi vengono consultate mentre il modello scrive la frase francese. Nell'esempio, la diagonale si piega sull'espressione \"zone économique européenne\", perché in francese il nome precede l'aggettivo. Una regola che nessuno aveva insegnato al modello, ma deducibile dall'immagine.",
+    "A cosa serve": "A ispezionare un modello e formulare ipotesi su quali relazioni tra parole stia sfruttando. Alcune teste seguono la parola precedente, altre collegano termini distanti. Le mappe indicano anche dove conviene guardare con analisi più approfondite.",
+    "Dove tutti sbagliano": "Primo, parlare della attention map di un modello al singolare: la media di tutte le teste cancella proprio le differenze più interessanti. Secondo, credere che una casella accesa segnali una parola importante per la risposta. L'attention sink dimostra il contrario: il primo token assorbe molto peso senza contare nulla. La mappa dice a chi guarda un token, non cosa ne fa il modello, perché dopo intervengono i value e gli strati successivi.",
+    "Esempi e analogie": "- Le mappe di calore sullo sguardo degli utenti di una pagina web: qui gli \"occhi\" sono quelli di un token.\n- Llama 3 da 8 miliardi di parametri, con 32 layer e 32 teste: 1.024 mappe per un solo testo, e frasi lunghe fino a 8.192 token producono mappe enormi.\n- Il \"parcheggio\": la testa che non trova nulla di utile deposita il peso sul primo token.\n- La frase sul gatto e sul topo, dove il pronome \"lo\" si accende su \"topo\".\n- BertViz, strumento del 2019 di Jesse Vig, per sfogliare le mappe su BERT (Bidirectional Encoder Representations from Transformers) e GPT-2 (Generative Pre-trained Transformer 2).",
+    "Collegamenti": "#17 LLM, #25 Transformer, #29 Attention, #32 Multi-head attention, #35 Causal mask, #37 Feed-forward network."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 37,
+   "title": "Feed-forward network",
+   "fields": {
+    "In una frase": "Nel Transformer è la parte di ogni layer che elabora ogni token da solo, aggiungendovi ciò che il modello ha appreso in addestramento.",
+    "Definizione": "Nel Transformer, la feed-forward network (rete a propagazione in avanti) riceve il vettore numerico di un singolo token, lo allarga, lo fa passare da un filtro che spegne una parte dei suoi valori e poi lo riporta alla dimensione iniziale. Il risultato non sostituisce il vettore: viene aggiunto a esso, come una correzione.",
+    "Da dove viene": "Nel 2020 un gruppo di Tel Aviv notò che quasi tutti gli studi si concentravano sull'attention, pur essendo questo blocco, ricco di circa due terzi dei parametri. Il nome feed-forward indica che i numeri scorrono in una sola direzione, dall'ingresso all'uscita, senza tornare indietro.",
+    "A cosa serve": "Mentre l'attention fa scambiare informazioni tra i token, questo blocco aggiunge a ciascun token conoscenze generali apprese in addestramento, come il fatto che Parigi si trova in Francia. Per Llama 3 da 8 miliardi di parametri il conto è questo: circa 176 milioni per strato nella feed-forward contro 42 milioni nell'attention, cioè circa quattro quinti dello strato, e oltre 5,5 miliardi sui 32 strati.",
+    "Dove tutti sbagliano": "Il primo errore è credere che il nome significhi che il modello legge il testo da sinistra a destra: il termine descrive solo la direzione dei numeri dentro il blocco, mentre a impedire di guardare i token successivi è la causal mask, che appartiene all'attention. Il secondo errore è immaginare un database con un cassetto per ogni fatto: ogni fatto è distribuito su molti cassetti e su più strati, e modificarne uno può alterarne altri vicini.",
+    "Esempi e analogie": "- Lo schedario: dopo una riunione, ogni partecipante apre un grande archivio, e ogni cassetto si apre solo se i suoi appunti somigliano all'etichetta. Qui chiavi e valori sono pesi fissati dopo l'addestramento, non altri token.\n- La Torre Eiffel spostata a Roma: uno studio del 2022, condotto da MIT (Massachusetts Institute of Technology) e Northeastern University su GPT-J, modifica i pesi delle feed-forward centrali, e il modello inizia a collocare il monumento a Roma, indicando perfino la strada da Berlino.\n- Il filtro come interruttore: senza la funzione che spegne alcuni valori, due moltiplicazioni di fila diventerebbero una sola, e impilare decine di strati servirebbe a poco.",
+    "Collegamenti": "#25 Transformer, #29 Attention, #31 Query, Key e Value, #35 Causal mask, #6 Parametro, #7 Peso, #8 Addestramento, #38 Funzione di attivazione."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  },
+  {
+   "n": 38,
+   "title": "Funzione di attivazione",
+   "fields": {
+    "In una frase": "È la regola fissa che, subito dopo la moltiplicazione per i pesi, decide quali numeri far passare e quali azzerare; è ciò che permette alla rete di \"piegare\" le rette e modellare forme complesse.",
+    "Definizione": "Un'operazione senza parametri, applicata a ogni numero di una lista subito dopo la moltiplicazione per i pesi. Nelle reti classiche sta dopo ogni strato; nel Transformer si trova nel mezzo della feed-forward network (FFN). La più nota è la ReLU (Rectified Linear Unit): i negativi diventano zero, i positivi restano invariati.",
+    "Da dove viene": "Per decenni si è usata una curva a S, che schiaccia i numeri tra 0 e 1, ma nelle reti profonde l'addestramento rallentava e si bloccava. Nel 2010 Nair e Hinton propongono la ReLU; nel 2012 AlexNet la usa vincendo la gara ImageNet e diventa lo standard de facto. Nel 2016 arriva la GELU (Gaussian Error Linear Unit), con un \"gomito\" arrotondato, usata da GPT-2 (Generative Pre-trained Transformer) e BERT (Bidirectional Encoder Representations from Transformers). Nel 2020 Shazeer propone varianti \"a rubinetto\", in cui metà della lista regola quanto far passare l'altra metà; una è quella usata da Llama.",
+    "A cosa serve": "Senza un passaggio non lineare tra gli strati, decine di strati impilati equivalgono a un solo strato, capace di tracciare solo relazioni lineari. La funzione spezza questa catena. Nel 1989 Hornik, Stinchcombe e White hanno dimostrato che abbastanza \"pieghe\" permettono di approssimare quasi qualsiasi funzione.",
+    "Dove tutti sbagliano": "- Pensare che ogni neurone sia un interruttore acceso/spento, come nel cervello. La ReLU azzera i negativi, ma i positivi passano con il loro valore; il nome deriva solo da un'analogia biologica.\n- Credere che la funzione si impari durante l'addestramento. È un iperparametro scelto dal progettista e uguale in tutti gli strati: a imparare sono i pesi, che decidono dove piegare e quanto.",
+    "Esempi e analogie": "- Filo di ferro: con due pieghe la forma è grossolana, con migliaia segue la curva. Ogni ReLU è una piega.\n- Schedario con cassetti: il numero positivo apre il cassetto, quello negativo lo lascia chiuso, quindi per ogni token si attiva solo una parte dei neuroni.\n- Llama 3 8B: oltre 14.000 valori per layer su 32 layer, cioè più di 450.000 filtri per token, ma con costo quasi nullo perché ogni filtro è un confronto con zero.",
+    "Collegamenti": "#3 Rete neurale, #6 Parametro, #7 Peso, #8 Addestramento, #25 Transformer, #26 Layer, #32 Multi-head attention."
+   },
+   "order": [
+    "In una frase",
+    "Definizione",
+    "Da dove viene",
+    "A cosa serve",
+    "Dove tutti sbagliano",
+    "Esempi e analogie",
+    "Collegamenti"
+   ]
+  }
+ ],
+ "acr": [
+  "**AI** — Artificial Intelligence (intelligenza artificiale); in italiano IA. Primo capitolo: #1.",
+  "**API** — Application Programming Interface. Primo capitolo: #22.",
+  "**BERT** — Bidirectional Encoder Representations from Transformers. Primo capitolo: #27.",
+  "**CLIP** — Contrastive Language-Image Pretraining. Primo capitolo: #14.",
+  "**FBI** — Federal Bureau of Investigation. Primo capitolo: #30.",
+  "**FFN** — Feed-Forward Network. Primo capitolo: #38.",
+  "**GB** — Gigabyte. Primo capitolo: #5.",
+  "**GELU** — Gaussian Error Linear Unit. Primo capitolo: #38.",
+  "**GPT** — Generative Pre-trained Transformer. Primo capitolo: #3.",
+  "**GPU** — Graphics Processing Unit (scheda grafica). Primo capitolo: #4.",
+  "**IBM** — International Business Machines. Primo capitolo: #2.",
+  "**IVA** — Imposta sul Valore Aggiunto. Primo capitolo: #13.",
+  "**LLM** — Large Language Model (modello linguistico di grandi dimensioni). Primo capitolo: #0.",
+  "**MIT** — Massachusetts Institute of Technology. Primo capitolo: #21.",
+  "**ReLU** — Rectified Linear Unit. Primo capitolo: #38.",
+  "**RoPE** — Rotary Position Embedding. Primo capitolo: #33.",
+  "**TV** — Television (televisione). Primo capitolo: #20."
+ ]
+}

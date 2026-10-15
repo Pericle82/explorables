@@ -1,0 +1,38 @@
+
+/* aggiunte di questa guida */
+.recap{margin:36px 0 0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px}
+.recap-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.recap>p{max-width:none}
+.recap-sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.recap ul,.recap ol{max-width:none;margin:0;padding-left:20px}
+.recap li{font-size:.92rem;margin-bottom:5px}
+.q{font-family:var(--serif);font-size:1.15rem;font-weight:500;line-height:1.35;color:var(--ink);border-left:3px solid var(--accent);padding:6px 0 6px 14px;margin:6px 0}
+.q b{font-weight:650}
+.prose ul,.prose ol{margin:0;padding-left:22px}
+.prose li{margin-bottom:6px}
+.phasecard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.phasecard .pc{background:var(--surface-2);border-radius:8px;padding:12px 14px;font-size:.9rem}
+.phasecard .pc b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.grid2>*,.stack>*{min-width:0}
+/* terminale simulato */
+.term{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden;font-family:var(--mono);font-size:.86rem}
+.term-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface);font-size:.74rem;color:var(--muted);letter-spacing:.04em}
+.term-bar i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.term-bar i:first-child{background:var(--bad)} .term-bar i:nth-child(2){background:var(--warn)} .term-bar i:nth-child(3){background:var(--good)}
+.term-bar span{margin-left:auto}
+.term-out{padding:12px 14px;min-height:140px;max-height:360px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.term-out .pr{color:var(--accent);font-weight:600}
+.term-out .cmd{color:var(--ink);font-weight:600}
+.term-out .err{color:var(--bad)}
+.term-out .dir{color:var(--accent);font-weight:600}
+.term-out .exe{color:var(--good);font-weight:600}
+.term-out .dim{color:var(--muted)}
+.term-out .mac{display:block;margin-top:4px;padding:6px 10px;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--ink);font-family:var(--sans);font-size:.82rem;white-space:normal;border-radius:0 6px 6px 0}
+.term-in{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line);background:var(--surface)}
+.term-in .pr{color:var(--accent);font-weight:600;white-space:nowrap}
+.term-in input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}
+.term-try{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.term-try button{all:unset;cursor:pointer;font-family:var(--mono);font-size:.78rem;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink)}
+.term-try button:hover{border-color:var(--accent)}
+.term-try button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.term-out .mac.hint{border-color:var(--accent);background:var(--accent-soft)}

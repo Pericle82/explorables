@@ -1,0 +1,77 @@
+<figure class="fig">
+<p class="fig-title">Due frecce, un angolo <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div><svg id="g15-svg" viewBox="0 0 340 340" role="img" aria-label="Piano con due frecce che partono dall'origine, A e B, trascinabili sulla punta."></svg></div>
+  <div>
+    <div class="controls" style="flex-direction:column;align-items:stretch;gap:10px">
+      <div class="ctl"><label for="g15-aa">Direzione di A <output id="g15-aao"></output></label><input id="g15-aa" type="range" min="-180" max="180" step="1" value="60"></div>
+      <div class="ctl"><label for="g15-al">Lunghezza di A <output id="g15-alo"></output></label><input id="g15-al" type="range" min="0.5" max="5" step="0.1" value="3"></div>
+      <div class="ctl"><label for="g15-ba">Direzione di B <output id="g15-bao"></output></label><input id="g15-ba" type="range" min="-180" max="180" step="1" value="15"></div>
+      <div class="ctl"><label for="g15-bl">Lunghezza di B <output id="g15-blo"></output></label><input id="g15-bl" type="range" min="0.5" max="5" step="0.1" value="2"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost" type="button" data-p="0,3,0,3">parallele</button>
+      <button class="btn ghost" type="button" data-p="90,3,45,3">nord / nord-est</button>
+      <button class="btn ghost" type="button" data-p="90,3,0,3">angolo retto</button>
+      <button class="btn ghost" type="button" data-p="0,3,180,3">opposte</button>
+      <button class="btn ghost" type="button" data-p="30,1,30,5">articolo e libro</button>
+    </div>
+  </div>
+</div>
+<div class="readout" style="margin-top:14px">
+  <div><small>Similarità coseno</small><strong id="g15-cos"></strong></div>
+  <div><small>Angolo</small><strong id="g15-ang"></strong></div>
+  <div><small>Distanza col righello</small><strong id="g15-dist"></strong></div>
+</div>
+<div class="formula" id="g15-f" style="margin-top:10px;white-space:normal;line-height:1.6"></div>
+<figcaption>A e B partono dallo stesso punto; trascina le punte oppure usa i cursori. Il coseno dipende solo dall'angolo: allunga B e il valore non cambia, mentre la distanza col righello cambia. Con «articolo e libro» la direzione è la stessa (stesso argomento) ma una freccia è cinque volte più lunga: righello lontano, coseno 1. Le frecce hanno due numeri; negli embedding ne hanno migliaia, il conto è lo stesso.</figcaption>
+</figure>
+<script>
+const S=G.$("#g15-svg");if(!S)return;
+const ids=["aa","al","ba","bl"].map(k=>G.$("#g15-"+k));
+const O=170,U=30,R=5.4;
+const px=x=>O+x*U,py=y=>O-y*U;
+const rad=d=>d*Math.PI/180;
+function vec(a,l){return [l*Math.cos(rad(a)),l*Math.sin(rad(a))];}
+function draw(){
+  const [aa,al,ba,bl]=ids.map(i=>+i.value);
+  const A=vec(aa,al),B=vec(ba,bl);
+  const dot=A[0]*B[0]+A[1]*B[1],cos=dot/(al*bl);
+  const ang=Math.acos(Math.max(-1,Math.min(1,cos)))*180/Math.PI;
+  const dist=Math.hypot(A[0]-B[0],A[1]-B[1]);
+  G.clear(S);
+  [1,2,3,4,5].forEach(r=>G.el("circle",{cx:O,cy:O,r:r*U,fill:"none",stroke:"var(--grid)"},S));
+  G.el("line",{x1:10,x2:330,y1:O,y2:O,stroke:"var(--line)"},S);G.el("line",{x1:O,x2:O,y1:10,y2:330,stroke:"var(--line)"},S);
+  // arc
+  const r0=26,a0=Math.atan2(A[1],A[0]),a1=Math.atan2(B[1],B[0]);
+  let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+  const sw=d>0?0:1;
+  const p0=[O+r0*Math.cos(a0),O-r0*Math.sin(a0)],p1=[O+r0*Math.cos(a1),O-r0*Math.sin(a1)];
+  if(Math.abs(d)>0.01)G.el("path",{d:`M${p0[0]} ${p0[1]} A${r0} ${r0} 0 ${Math.abs(d)>Math.PI?1:0} ${sw} ${p1[0]} ${p1[1]}`,fill:"var(--warn-soft)",stroke:"var(--warn)","stroke-width":2},S);
+  G.el("line",{x1:px(A[0]),y1:py(A[1]),x2:px(B[0]),y2:py(B[1]),stroke:"var(--muted)","stroke-dasharray":"4 3"},S);
+  const df=G.el("defs",{},S);
+  [["g15-ha","var(--accent)"],["g15-hb","var(--bad)"]].forEach(m=>{const mk=G.el("marker",{id:m[0],viewBox:"0 0 10 10",refX:8,refY:5,markerWidth:7,markerHeight:7,orient:"auto"},df);G.el("path",{d:"M0 0L10 5L0 10z",fill:m[1]},mk);});
+  G.el("line",{x1:O,y1:O,x2:px(A[0]),y2:py(A[1]),stroke:"var(--accent)","stroke-width":3,"marker-end":"url(#g15-ha)"},S);
+  G.el("line",{x1:O,y1:O,x2:px(B[0]),y2:py(B[1]),stroke:"var(--bad)","stroke-width":3,"marker-end":"url(#g15-hb)"},S);
+  [["A",A,"var(--accent)","a"],["B",B,"var(--bad)","b"]].forEach(t=>{
+    G.el("circle",{cx:px(t[1][0]),cy:py(t[1][1]),r:13,fill:"var(--surface)",stroke:t[2],"stroke-width":2,style:"cursor:grab"},S);
+    G.el("text",{x:px(t[1][0]),y:py(t[1][1])+4,"text-anchor":"middle",style:"font-size:12px;font-weight:700;pointer-events:none"},S,t[0]);
+  });
+  G.$("#g15-aao").textContent=aa+"°";G.$("#g15-bao").textContent=ba+"°";
+  G.$("#g15-alo").textContent=G.fmt(al,1);G.$("#g15-blo").textContent=G.fmt(bl,1);
+  G.$("#g15-cos").textContent=G.fmt(cos,2);G.$("#g15-ang").textContent=G.fmt(ang,0)+"°";G.$("#g15-dist").textContent=G.fmt(dist,2);
+  G.$("#g15-f").textContent=`A·B = ${G.fmt(A[0],2)}×${G.fmt(B[0],2)} + ${G.fmt(A[1],2)}×${G.fmt(B[1],2)} = ${G.fmt(dot,2)}   |A|×|B| = ${G.fmt(al,1)}×${G.fmt(bl,1)} = ${G.fmt(al*bl,2)}   coseno = ${G.fmt(dot,2)} ÷ ${G.fmt(al*bl,2)} = ${G.fmt(cos,2)}`;
+}
+ids.forEach(i=>i.addEventListener("input",draw));
+S.style.touchAction="none";
+let drag=null;
+function pt(e){const r=S.getBoundingClientRect(),k=340/r.width;return [((e.clientX-r.left)*k-O)/U,(O-(e.clientY-r.top)*k)/U];}
+S.addEventListener("pointerdown",e=>{const [x,y]=pt(e);
+  const cand=[["a",0,1],["b",2,3]].map(t=>{const v=vec(+ids[t[1]].value,+ids[t[2]].value);return [t,Math.hypot(v[0]-x,v[1]-y)];}).sort((p,q)=>p[1]-q[1])[0];
+  if(cand[1]<0.9){drag=cand[0];S.setPointerCapture(e.pointerId);}});
+S.addEventListener("pointermove",e=>{if(!drag)return;const [x,y]=pt(e);
+  ids[drag[1]].value=Math.round(Math.atan2(y,x)*180/Math.PI);ids[drag[2]].value=Math.round(Math.max(0.5,Math.min(5,Math.hypot(x,y)))*10)/10;draw();});
+const endd=()=>{drag=null;};S.addEventListener("pointerup",endd);S.addEventListener("pointercancel",endd);
+S.closest("figure").querySelectorAll("button[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.p.split(",");ids.forEach((i,k)=>i.value=p[k]);draw();}));
+draw();
+</script>

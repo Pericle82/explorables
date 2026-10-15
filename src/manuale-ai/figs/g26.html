@@ -1,0 +1,65 @@
+<figure class="fig">
+<p class="fig-title">Una pila di strati che rivede la parola «letto» <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g26-seg" role="group" aria-label="Frase">
+    <button type="button" data-v="0" aria-pressed="true">«Dormo nel letto»</button>
+    <button type="button" data-v="1" aria-pressed="false">«Ho letto il libro»</button>
+  </div>
+</div>
+<div class="grid2">
+  <div>
+    <svg id="g26-svg" viewBox="0 0 340 345" role="img" aria-label="Pila di dodici strati: lo strato scelto con il cursore è evidenziato e accanto a ciascuno si vede quanto ha spostato la rappresentazione di «letto» verso il significato di mobile o di participio."></svg>
+  </div>
+  <div class="stack">
+    <div class="ctl"><label for="g26-l">Strati attraversati <output id="g26-lo"></output></label><input id="g26-l" type="range" min="0" max="12" step="1" value="0"></div>
+    <div class="bars" id="g26-bars"></div>
+    <div class="callout" id="g26-msg" aria-live="polite"></div>
+  </div>
+</div>
+<p class="muted" style="margin:14px 0 6px;font-size:.9em">Quanti strati</p>
+<div class="bars" id="g26-hist">
+  <div class="barrow"><span>1971, Ivakhnenko</span><div class="track"><div class="fill" style="width:5.3%"></div></div><span class="v">8</span></div>
+  <div class="barrow"><span>2012, ImageNet</span><div class="track"><div class="fill" style="width:5.3%"></div></div><span class="v">8</span></div>
+  <div class="barrow"><span>2015, Microsoft</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="v">152</span></div>
+  <div class="barrow"><span>2020, GPT-3</span><div class="track"><div class="fill" style="width:63.2%"></div></div><span class="v">96</span></div>
+</div>
+<figcaption>Trascina il cursore: a ogni strato la rappresentazione di «letto» (sempre la stessa lunghezza, per esempio 4.096 valori) viene corretta un po' dalle parole vicine, come una revisione successiva dello stesso documento. Il segno aggiunto non sostituisce la lista, la corregge: è il trucco che dal 2015 permette di impilare molti strati. Le percentuali sono inventate per chiarezza; le cifre del grafico in basso sono quelle citate nella voce.</figcaption>
+</figure>
+<script>
+const S=G.$("#g26-svg");if(!S)return;
+const L=G.$("#g26-l");
+const W=[0.02,0.05,0.10,0.15,0.17,0.17,0.12,0.08,0.06,0.04,0.03,0.01];
+let sent=0;
+const get=G.seg("#g26-seg",v=>{sent=+v;draw();});
+const sgn=()=>sent===0?-1:1;
+const sig=x=>1/(1+Math.exp(-x));
+const TARGET=3.2;
+function score(n){let s=0;for(let i=0;i<n;i++)s+=sgn()*TARGET*W[i];return s;}
+function draw(){
+  const n=+L.value;G.clear(S);
+  const x0=18,w=190,h=18,gap=7,y0=14;
+  G.el("text",{x:x0+w+14,y:y0-2,"font-size":11,style:"font-size:11px;fill:var(--muted)"},S,"correzione dello strato");
+  for(let i=11;i>=0;i--){
+    const y=y0+(11-i)*(h+gap)+8;
+    const on=i<n,cur=i===n-1;
+    G.el("rect",{x:x0,y:y,width:w,height:h,rx:5,style:`fill:${on?"var(--accent-soft)":"var(--surface-2)"};stroke:${cur?"var(--accent)":"var(--line)"};stroke-width:${cur?2.5:1}`},S);
+    G.el("text",{x:x0+8,y:y+13,"text-anchor":"start",style:`font-size:11px;fill:${on?"var(--ink)":"var(--muted)"}`},S,"strato "+(i+1));
+    const d=sgn()*TARGET*W[i];
+    const cx=x0+w+70,bw=Math.abs(d)/1.0*40;
+    G.el("line",{x1:cx,x2:cx,y1:y,y2:y+h,stroke:"var(--line)"},S);
+    if(on)G.el("rect",{x:d>0?cx:cx-bw,y:y+3,width:bw,height:h-6,style:`fill:${d>0?"var(--good)":"var(--warn)"}`},S);
+  }
+  G.el("text",{x:x0+w+70,y:y0+12*(h+gap)+16,"text-anchor":"middle",style:"font-size:10px;fill:var(--muted)"},S,"← mobile | participio →");
+  G.el("text",{x:x0+w/2,y:y0+12*(h+gap)+16,"text-anchor":"middle",style:"font-size:11px;fill:var(--muted)"},S,"▲ l'uscita sale verso l'alto");
+  const p=sig(score(n)),pm=1-p;
+  G.$("#g26-lo").textContent=n;
+  G.$("#g26-bars").innerHTML=
+   `<div class="barrow"><span>mobile (il letto)</span><div class="track"><div class="fill" style="width:${pm*100}%;background:var(--warn)"></div></div><span class="v">${G.fmt(pm*100,0)}%</span></div>`+
+   `<div class="barrow"><span>participio (letto)</span><div class="track"><div class="fill" style="width:${p*100}%;background:var(--good)"></div></div><span class="v">${G.fmt(p*100,0)}%</span></div>`;
+  const win=Math.max(pm,p);
+  G.$("#g26-msg").textContent= n===0?"Strato 0: la parola «letto» ha la stessa lista di numeri in ogni frase. È ambigua: il 50% e il 50%."
+    : win<0.8?"Dopo "+n+" strati le parole vicine ("+(sent===0?"«nel»":"«Ho» e «libro»")+") hanno già spostato la lista, ma il dubbio resta."
+    : "Dopo "+n+" strati la parola si è chiarita: "+(sent===0?"è il mobile.":"è il participio del verbo leggere.");
+}
+L.addEventListener("input",draw);draw();
+</script>

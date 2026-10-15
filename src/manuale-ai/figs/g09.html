@@ -1,0 +1,34 @@
+<figure class="fig">
+<p class="fig-title">Dove cade il taglio <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:12px">
+  <div class="seg" id="g09-seg" role="group" aria-label="Scegli un esempio">
+    <button type="button" data-v="0" aria-pressed="true">il gatto dorme sul letto</button>
+    <button type="button" data-v="1" aria-pressed="false">gattaccio</button>
+    <button type="button" data-v="2" aria-pressed="false">strawberry</button>
+  </div>
+</div>
+<div class="tokens" id="g09-tokens" aria-label="Il testo spezzato in token" style="margin-bottom:14px"></div>
+<div class="bars" id="g09-bars"></div>
+<div class="callout" id="g09-msg" style="margin-top:14px"></div>
+<figcaption>Il puntino · segna uno spazio attaccato al token che segue. I tagli sono illustrativi, scelti per coerenza con il capitolo (circa sei o sette token per la frase, «gatt» + «accio»): ogni tokenizzatore reale taglia a modo suo. Cambia esempio e confronta caratteri (spazi inclusi), parole e token.</figcaption>
+</figure>
+<script>
+const box=G.$("#g09-tokens");if(!box)return;
+const EX=[
+ {t:["il"," gatto"," dor","me"," sul"," let","to"],w:5,msg:"Cinque parole, sette token: le parole frequenti restano intere, quelle meno comuni si dividono in pezzi. Lo spazio viaggia con il pezzo che segue."},
+ {t:["gatt","accio"],w:1,msg:"Una parola sola, due token. Il pezzo «gatt» è lo stesso che serve per gatto, gatta e gattino: il modello lo incontra spesso e lo conosce bene."},
+ {t:["str","aw","berry"],w:1,msg:"Il modello non vede le lettere, vede tre pezzi codificati come numeri. Per questo i modelli più vecchi sbagliavano a contare le R: dentro «berry» o «str» non c'è nessuna lettera da contare. Il caso è spiegato passo per passo più sotto."}
+];
+const cols=["var(--accent-soft)","var(--surface-2)"];
+function show(i){
+  const e=EX[i];const text=e.t.join("");
+  box.textContent="";
+  e.t.forEach((p,k)=>{const s=document.createElement("span");s.className="tok";s.style.background=cols[k%2];s.textContent=p.replace(/ /g,"·");box.appendChild(s);});
+  const chars=text.length,n=e.t.length,mx=Math.max(chars,n,e.w);
+  const rows=[["caratteri",chars],["token",n],["parole",e.w]];
+  G.$("#g09-bars").innerHTML=rows.map(r=>`<div class="barrow"><span>${r[0]}</span><div class="track"><div class="fill" style="width:${r[1]/mx*100}%"></div></div><span class="v">${r[1]}</span></div>`).join("");
+  G.$("#g09-msg").textContent=e.msg;
+}
+G.seg("#g09-seg",v=>show(+v));
+show(0);
+</script>

@@ -1,0 +1,51 @@
+<figure class="fig">
+<p class="fig-title">Pesi, bias e quante manopole <span class="tag">illustrazione</span></p>
+<div class="grid2">
+  <div>
+    <svg id="g06-svg" viewBox="0 0 340 250" role="img" aria-label="Un neurone con tre ingressi, tre pesi e un bias: in totale quattro parametri."></svg>
+  </div>
+  <div class="stack" style="gap:10px">
+    <p class="muted" style="margin:0;font-size:.9rem">Quanti parametri? Lunghezza della barra = numero di zeri (scala logaritmica)</p>
+    <div class="bars" id="g06-bars" role="img" aria-label="Barre su scala logaritmica: orbita di Cerere 6, prezzi delle case circa 30, Perceptron 512, modello da 7 miliardi, GPT-3 175 miliardi."></div>
+  </div>
+</div>
+<p class="note" style="margin:10px 0 0">Non sono parametri: numero di piani, impiegati per piano, ampiezza di ogni correzione (iperparametri). Li decide una persona prima dell'addestramento.</p>
+<figcaption>A sinistra i due tipi di parametro: i pesi dicono quanto conta ciascun ingresso, il bias è la soglia del neurone; questo neurone ne ha 3 + 1 = 4. A destra le scale citate nei capitoli; per i prezzi delle case si parla di «qualche decina», qui ≈ 30 solo per disegnare la barra.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const svg=G.$("#g06-svg"),bars=G.$("#g06-bars");if(!svg||!bars)return;
+const ys=[50,125,200];
+ys.forEach((y,i)=>{
+  G.el("line",{x1:60,y1:y,x2:180,y2:125,stroke:"var(--accent)","stroke-width":2.5},svg);
+  G.el("circle",{cx:42,cy:y,r:18,fill:"var(--surface-2)",stroke:"var(--line)","stroke-width":2},svg);
+  G.el("text",{x:42,y:y+5,"text-anchor":"middle","font-size":13,"font-weight":600},svg,"x"+(i+1));
+  const lx=96,ly=y+(125-y)*0.42;
+  G.el("rect",{x:lx-18,y:ly-17,width:36,height:18,rx:4,fill:"var(--accent-soft)"},svg);
+  G.el("text",{x:lx,y:ly-4,"text-anchor":"middle","font-size":12,"font-weight":600},svg,"w"+(i+1));
+});
+G.el("circle",{cx:215,cy:125,r:35,fill:"var(--surface-2)",stroke:"var(--ink)","stroke-width":2},svg);
+G.el("text",{x:215,y:121,"text-anchor":"middle","font-size":11},svg,"somma");
+G.el("text",{x:215,y:136,"text-anchor":"middle","font-size":11},svg,"pesata");
+G.el("line",{x1:215,y1:235,x2:215,y2:162,stroke:"var(--warn)","stroke-width":2.5},svg);
+G.el("rect",{x:190,y:222,width:50,height:22,rx:5,fill:"var(--warn-soft)",stroke:"var(--warn)"},svg);
+G.el("text",{x:215,y:238,"text-anchor":"middle","font-size":12,"font-weight":600},svg,"bias b");
+G.el("line",{x1:252,y1:125,x2:312,y2:125,stroke:"var(--ink)","stroke-width":2},svg);
+G.el("text",{x:312,y:112,"text-anchor":"end","font-size":11,style:"fill:var(--muted)"},svg,"uscita");
+G.el("text",{x:10,y:16,"font-size":11,style:"fill:var(--muted)"},svg,"pesi w = quanto conta ogni ingresso");
+G.el("text",{x:245,y:206,"font-size":11,style:"fill:var(--muted)"},svg,"soglia");
+fx(svg);
+const rows=[
+ ["Orbita di Cerere (1801)",6,"6"],
+ ["Prezzi delle case",30,"≈ 30"],
+ ["Perceptron (1958)",512,"512"],
+ ["Modello da 7 miliardi",7e9,"7 miliardi"],
+ ["GPT-3 (2020)",175e9,"175 miliardi"]];
+rows.forEach(([n,v,t])=>{
+  const d=document.createElement("div");d.className="barrow";d.style.gridTemplateColumns="minmax(96px,150px) 1fr 100px";
+  d.innerHTML='<span></span><div class="track"><div class="fill"></div></div><span class="v" style="font-size:.74rem;white-space:nowrap"></span>';
+  d.children[0].textContent=n;d.children[2].textContent=t;
+  d.querySelector(".fill").style.width=(Math.log10(v)/12*100)+"%";
+  bars.appendChild(d);
+});
+</script>

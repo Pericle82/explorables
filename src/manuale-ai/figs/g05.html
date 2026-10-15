@@ -1,0 +1,61 @@
+<!-- after: A cosa serve -->
+<figure class="fig">
+<p class="fig-title">Un file pieno di numeri <span class="tag">calcolo reale</span></p>
+<div class="diag" style="margin-bottom:10px">
+  <div class="box"><b>La forma della rete</b><br>quanti strati, quanti neuroni per strato</div>
+  <span class="arr">+</span>
+  <div class="box"><b>La posizione delle manopole</b><br>un numero per ogni parametro</div>
+  <span class="arr">→</span>
+  <div class="box hot"><b>Il modello</b><br>un file di soli numeri</div>
+</div>
+<div class="tokens" id="g05-strip" aria-label="Esempio dei numeri contenuti nel file" style="margin-bottom:12px"></div>
+<div class="row" style="gap:18px;align-items:flex-start">
+  <div class="stack" style="gap:4px"><small class="muted">Modello</small>
+    <div class="seg" id="g05-model" role="group" aria-label="Scegli il modello">
+      <button type="button" data-v="512" aria-pressed="false">Perceptron 1958</button>
+      <button type="button" data-v="7e9" aria-pressed="true">7 miliardi</button>
+      <button type="button" data-v="8e9" aria-pressed="false">8 miliardi</button>
+      <button type="button" data-v="175e9" aria-pressed="false">GPT-3</button>
+    </div></div>
+  <div class="stack" style="gap:4px"><small class="muted">Byte per parametro</small>
+    <div class="seg" id="g05-bytes" role="group" aria-label="Byte per parametro">
+      <button type="button" data-v="4" aria-pressed="false">4</button>
+      <button type="button" data-v="2" aria-pressed="true">2</button>
+      <button type="button" data-v="1" aria-pressed="false">1</button>
+    </div></div>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Parametri</small><strong id="g05-n"></strong></div>
+  <div><small>Byte per parametro</small><strong id="g05-bb"></strong></div>
+  <div><small>Dimensione del file</small><strong id="g05-size"></strong></div>
+</div>
+<p class="formula" id="g05-f" style="margin:10px 0 0;overflow-wrap:anywhere"></p>
+<figcaption>Dimensione = numero di parametri × byte per ciascuno. Con 2 byte 7 miliardi di parametri fanno 14 GB (gigabyte, miliardi di byte) e i 175 miliardi di GPT-3 (Generative Pre-trained Transformer 3) fanno 350 GB; il Perceptron del 1958 aveva 512 manopole, circa 1 KB. I numeri della striscia sono inventati: servono solo a mostrare che nel file ci sono soltanto valori.</figcaption>
+</figure>
+<script>
+const strip=G.$("#g05-strip");if(!strip)return;
+const r=G.rng(5);
+let model=7e9,bytes=2;
+const names={"512":512,"7e9":7e9,"8e9":8e9,"175e9":175e9};
+function fmtSize(b){
+  const u=[["TB",1e12],["GB",1e9],["MB",1e6],["KB",1e3]];
+  for(const [n,f] of u) if(b>=f){const v=b/f;return G.fmt(v,v>=100||Math.abs(v-Math.round(v))<1e-9?0:1)+" "+n;}
+  return G.fmt(b,0)+" byte";
+}
+function num(v){return Math.round(v).toLocaleString("it-IT");}
+function nums(){
+  strip.textContent="";
+  for(let i=0;i<14;i++){const s=document.createElement("span");s.className="tok";s.textContent=G.fmt((r()-0.5)*4,2);strip.appendChild(s);}
+  const e=document.createElement("span");e.className="tok prompt";e.id="g05-more";strip.appendChild(e);
+}
+function upd(){
+  G.$("#g05-more").textContent="… e altri "+num(model-14)+" numeri";
+  G.$("#g05-n").textContent=num(model);G.$("#g05-bb").textContent=bytes;
+  G.$("#g05-size").textContent=fmtSize(model*bytes);
+  G.$("#g05-f").textContent=num(model)+" × "+bytes+" byte = "+num(model*bytes)+" byte";
+}
+nums();
+G.seg("#g05-model",v=>{model=names[v];upd();});
+G.seg("#g05-bytes",v=>{bytes=+v;upd();});
+upd();
+</script>

@@ -1,0 +1,57 @@
+<figure class="fig">
+<p class="fig-title">Domanda, etichetta e contenuto: il calcolo di «era» <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div class="stack">
+    <table class="gtable">
+      <thead><tr><th>Biblioteca</th><th>Attention</th></tr></thead>
+      <tbody>
+        <tr><td>La domanda al bibliotecario</td><td><b>Query</b>: che cosa cerco</td></tr>
+        <tr><td>L'etichetta sul dorso</td><td><b>Key</b>: come mi si trova</td></tr>
+        <tr><td>Il contenuto del libro</td><td><b>Value</b>: che cosa passo</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Qui ogni libro è anche un lettore: «era» pone una query e allo stesso tempo ha una sua key e un suo value.</p>
+    <div class="row">
+      <button class="btn" id="g31-p1" type="button">«era» cerca un soggetto</button>
+      <button class="btn ghost" id="g31-p2" type="button">«era» cerca un luogo</button>
+    </div>
+    <div class="ctl"><label for="g31-q1">Query di «era», primo numero (soggetto) <output id="g31-q1o"></output></label><input id="g31-q1" type="range" min="-1" max="3" step="0.1" value="2"></div>
+    <div class="ctl"><label for="g31-q2">Query di «era», secondo numero (luogo) <output id="g31-q2o"></output></label><input id="g31-q2" type="range" min="-1" max="3" step="0.1" value="0.2"></div>
+  </div>
+  <div>
+    <div class="scroll-x"><table class="gtable" id="g31-tab" style="min-width:420px"></table></div>
+    <div class="readout" style="margin-top:10px">
+      <div><small>Uscita di «era» = somma dei value × peso</small><strong id="g31-out"></strong></div>
+    </div>
+    <div class="callout" id="g31-msg" aria-live="polite" style="margin-top:10px"></div>
+  </div>
+</div>
+<figcaption>Frase del gatto e del tavolo: «era» ha una query (due numeri) e la confronta con la key di ciascun token con un prodotto scalare: punteggio = q · k diviso √2 (radice della dimensione, 2), poi softmax, poi media dei value pesata. I vettori sono inventati e piccoli per poterli leggere, ma tutti i passaggi sono calcolati davvero: sposta i cursori e osserva a chi arriva il peso.</figcaption>
+</figure>
+<script>
+const tab=G.$("#g31-tab");if(!tab)return;
+const T=["gatto","tavolo","era"];
+const K=[[2,0.5],[0.3,2],[0.8,0.8]];
+const V=[[3,1],[0,2],[1,1]];
+const s1=G.$("#g31-q1"),s2=G.$("#g31-q2");
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+const v2=a=>"["+G.fmt(a[0],1)+"; "+G.fmt(a[1],1)+"]";
+function draw(){
+  const q=[+s1.value,+s2.value];
+  G.$("#g31-q1o").textContent=G.fmt(q[0],1);G.$("#g31-q2o").textContent=G.fmt(q[1],1);
+  const sc=K.map(k=>dot(q,k)/Math.SQRT2);
+  const m=Math.max(...sc),e=sc.map(v=>Math.exp(v-m)),se=e.reduce((a,b)=>a+b,0),w=e.map(v=>v/se);
+  const out=[0,1].map(d=>V.reduce((s,v,i)=>s+w[i]*v[d],0));
+  let h="<thead><tr><th>Token</th><th>Key</th><th>q · k ÷ √2</th><th>Peso</th><th>Value</th></tr></thead><tbody>";
+  T.forEach((t,i)=>{h+=`<tr><td>${t}</td><td class="mono">${v2(K[i])}</td><td class="mono">${G.fmt(sc[i],2)}</td><td><b>${G.fmt(w[i]*100,0)}%</b></td><td class="mono">${v2(V[i])}</td></tr>`;});
+  h+=`<tr><td colspan="5" class="muted">Query di «era»: <span class="mono">${v2(q)}</span></td></tr></tbody>`;
+  tab.innerHTML=h;
+  G.$("#g31-out").textContent=v2(out);
+  const top=w.indexOf(Math.max(...w));
+  G.$("#g31-msg").innerHTML="Il peso maggiore va a «<b>"+T[top]+"</b>» ("+G.fmt(w[top]*100,0)+"%): l'informazione che arriva a «era» è soprattutto il suo value "+v2(V[top])+".";
+}
+[s1,s2].forEach(s=>s.addEventListener("input",draw));
+G.$("#g31-p1").addEventListener("click",()=>{s1.value=2;s2.value=0.2;draw();});
+G.$("#g31-p2").addEventListener("click",()=>{s1.value=0.2;s2.value=2;draw();});
+draw();
+</script>

@@ -1,0 +1,79 @@
+<figure class="fig">
+<p class="fig-title">Distinguere o produrre <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div>
+    <p class="muted" style="margin:0 0 4px;font-size:.85rem"><b style="color:var(--ink)">Discriminativo</b>: impara un confine tra gatti e cani</p>
+    <svg id="g20-d" viewBox="0 0 340 300" role="img" aria-label="Grafico di gatti e cani per taglia e lunghezza del muso con una retta di separazione e un punto da classificare."></svg>
+    <div class="readout" style="margin-top:6px"><div><small>Il punto «?» è</small><strong id="g20-q"></strong></div></div>
+  </div>
+  <div>
+    <p class="muted" style="margin:0 0 4px;font-size:.85rem"><b style="color:var(--ink)">Generativo</b>: impara la forma di ogni gruppo</p>
+    <svg id="g20-g" viewBox="0 0 340 300" role="img" aria-label="Stesso grafico con due ellissi che descrivono i gruppi e nuovi punti generati con una stella."></svg>
+    <div class="row" style="margin-top:6px">
+      <button class="btn" id="g20-dog" type="button">Genera un cane nuovo</button>
+      <button class="btn" id="g20-cat" type="button">Genera un gatto nuovo</button>
+      <button class="btn ghost" id="g20-clr" type="button">Cancella</button>
+    </div>
+  </div>
+</div>
+<figcaption>Gli stessi 24 animali inventati (cerchi), descritti da due misure. A sinistra il modello impara solo dove passa la retta tra i gruppi: sa dire «cane» o «gatto» ma non saprebbe disegnarne uno. A destra impara anche il centro e la dispersione di ciascun gruppo (le ellissi): per questo può estrarre dei punti nuovi, simili agli originali ma non copiati (stelle). La retta e le ellissi sono calcolate dai dati.</figcaption>
+</figure>
+<script>
+const D=G.$("#g20-d"),Gs=G.$("#g20-g");if(!D||!Gs)return;
+const r=G.rng(11);
+function gauss(){let u=0,v=0;while(!u)u=r();v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const gen=(mx,my,sx,sy,n)=>Array.from({length:n},()=>[mx+sx*gauss(),my+sy*gauss()]);
+const cats=gen(30,32,8,9,12),dogs=gen(66,62,12,10,12);
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const sd=(a,m)=>Math.sqrt(mean(a.map(v=>(v-m)*(v-m))));
+function fit(P){const mx=mean(P.map(p=>p[0])),my=mean(P.map(p=>p[1]));return {mx,my,sx:sd(P.map(p=>p[0]),mx),sy:sd(P.map(p=>p[1]),my)};}
+const fc=fit(cats),fd=fit(dogs);
+const PL=40,PT=10,PW=290,PH=240;
+const sx=v=>PL+v/100*PW, sy=v=>PT+PH-v/100*PH;
+function axes(svg){
+  G.el("rect",{x:PL,y:PT,width:PW,height:PH,fill:"none",stroke:"var(--line)"},svg);
+  G.el("text",{x:PL+PW/2,y:PT+PH+28,"text-anchor":"middle",style:"font-size:11px;fill:var(--muted)"},svg,"taglia →");
+  G.el("text",{x:12,y:PT+PH/2,"text-anchor":"middle",style:"font-size:11px;fill:var(--muted)",transform:`rotate(-90 12 ${PT+PH/2})`},svg,"lunghezza del muso →");
+}
+function pts(svg){
+  cats.forEach(p=>G.el("circle",{cx:sx(p[0]),cy:sy(p[1]),r:4.5,fill:"var(--accent)"},svg));
+  dogs.forEach(p=>G.el("rect",{x:sx(p[0])-4,y:sy(p[1])-4,width:8,height:8,fill:"var(--warn)"},svg));
+}
+function legend(svg){
+  G.el("circle",{cx:PL+10,cy:PT+PH+12,r:4,fill:"var(--accent)"},svg);
+  G.el("text",{x:PL+18,y:PT+PH+16,style:"font-size:11px"},svg,"gatto");
+  G.el("rect",{x:PL+62,y:PT+PH+8,width:8,height:8,fill:"var(--warn)"},svg);
+  G.el("text",{x:PL+75,y:PT+PH+16,style:"font-size:11px"},svg,"cane");
+}
+// confine: asse del segmento tra i due centri
+const mx=(fc.mx+fd.mx)/2,my=(fc.my+fd.my)/2,dx=fd.mx-fc.mx,dy=fd.my-fc.my;
+const side=(x,y)=>dx*(x-mx)+dy*(y-my);
+const Q=[50,45];
+function drawD(){
+  G.clear(D);axes(D);
+  // retta dx(x-mx)+dy(y-my)=0 -> punti ai bordi
+  const ptsL=[];
+  [0,100].forEach(x=>{const y=my-dx*(x-mx)/dy;if(y>=0&&y<=100)ptsL.push([x,y]);});
+  [0,100].forEach(y=>{const x=mx-dy*(y-my)/dx;if(x>=0&&x<=100)ptsL.push([x,y]);});
+  const a=ptsL[0],b=ptsL[ptsL.length-1];
+  G.el("line",{x1:sx(a[0]),y1:sy(a[1]),x2:sx(b[0]),y2:sy(b[1]),stroke:"var(--ink)","stroke-width":2,"stroke-dasharray":"6 4"},D);
+  pts(D);legend(D);
+  G.el("text",{x:sx(Q[0]),y:sy(Q[1])+6,"text-anchor":"middle",style:"font-size:20px;font-weight:700"},D,"?");
+  G.$("#g20-q").textContent=side(Q[0],Q[1])>0?"un cane":"un gatto";
+}
+const gen2=[];
+function ell(svg,f,col){G.el("ellipse",{cx:sx(f.mx),cy:sy(f.my),rx:2*f.sx/100*PW,ry:2*f.sy/100*PH,fill:"none",stroke:col,"stroke-width":2,"stroke-dasharray":"5 3"},svg);}
+function drawG(){
+  G.clear(Gs);axes(Gs);
+  ell(Gs,fc,"var(--accent)");ell(Gs,fd,"var(--warn)");
+  pts(Gs);legend(Gs);
+  gen2.forEach(s=>{
+    const star=G.el("path",{d:"M0-8L2.4-2.6 8-2.4 3.6 1.4 5 7 0 3.8-5 7-3.6 1.4-8-2.4-2.4-2.6z",transform:`translate(${sx(s.p[0])} ${sy(s.p[1])})`,fill:s.c,stroke:"var(--ink)","stroke-width":1.2},Gs);
+  });
+}
+function add(f,c){gen2.push({p:[Math.max(0,Math.min(100,f.mx+f.sx*gauss())),Math.max(0,Math.min(100,f.my+f.sy*gauss()))],c});drawG();}
+G.$("#g20-dog").addEventListener("click",()=>add(fd,"var(--warn)"));
+G.$("#g20-cat").addEventListener("click",()=>add(fc,"var(--accent)"));
+G.$("#g20-clr").addEventListener("click",()=>{gen2.length=0;drawG();});
+drawD();drawG();
+</script>

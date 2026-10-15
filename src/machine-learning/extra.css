@@ -1,0 +1,30 @@
+
+/* aggiunte di questa guida */
+.recap{margin:36px 0 0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px}
+.recap-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.recap>p{max-width:none}
+.recap-sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.recap ul,.recap ol{max-width:none;margin:0;padding-left:20px}
+.recap li{font-size:.92rem;margin-bottom:5px}
+.q{font-family:var(--serif);font-size:1.15rem;font-weight:500;line-height:1.35;color:var(--ink);border-left:3px solid var(--accent);padding:6px 0 6px 14px;margin:6px 0}
+.q b{font-weight:650}
+.part{margin:56px 0 8px;padding-top:22px;border-top:1px solid var(--line)}
+.part-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.part-title{font-family:var(--serif);font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:650;margin:0}
+.prose ul,.prose ol{margin:0;padding-left:22px}
+.prose li{margin-bottom:6px}
+.grid2>*,.stack>*{min-width:0}
+.formula{max-width:100%}
+.lab{min-width:0}
+.vx.vx-formula{font-size:1rem}
+.gtable td,.gtable th{font-size:.84rem}
+.cards{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.rl-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:6px 0}
+.rl-cell{border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:8px 4px 6px;text-align:center;min-width:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.rl-cell.term{background:var(--good-soft);border-color:var(--good)}
+.rl-cell.start{outline:2px dashed var(--accent);outline-offset:-2px}
+.rl-r{font-size:.74rem;color:var(--muted)}
+.rl-arrow{font-size:1.4rem;line-height:1.2;color:var(--accent)}
+.rl-q{font-family:var(--mono);font-size:.72rem;line-height:1.5;font-variant-numeric:tabular-nums}
+.rl-n{font-size:.68rem;color:var(--muted)}
+@media(max-width:480px){.rl-grid{grid-template-columns:repeat(3,1fr)}.rl-q{font-size:.66rem}}

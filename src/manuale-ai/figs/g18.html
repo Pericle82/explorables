@@ -1,0 +1,44 @@
+<figure class="fig">
+<p class="fig-title">La frase cresce un token alla volta <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <button class="btn" id="g18-step" type="button">Un passo</button>
+  <button class="btn ghost" id="g18-reset" type="button">Ricomincia</button>
+</div>
+<div id="g18-rows" class="stack" style="gap:6px"></div>
+<div class="callout" id="g18-msg" style="margin-top:12px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Passaggi nella rete (uno per token)</small><strong id="g18-n">0</strong></div>
+  <div><small>Token riletti in questo giro</small><strong id="g18-r">0</strong></div>
+  <div><small>Token riletti in totale</small><strong id="g18-t">0</strong></div>
+</div>
+<figcaption>Ogni riga è un giro: il modello rilegge tutto il testo che ha davanti (il prompt tratteggiato e ciò che ha già scritto, in colore) e produce un solo token, che nella riga successiva diventa parte dell'ingresso. Premi «Un passo» fino al token di fine. Il costo cresce con i giri: 500 token di risposta sono 500 passaggi nella rete. Il testo è un esempio inventato.</figcaption>
+</figure>
+<script>
+const R=G.$("#g18-rows");if(!R)return;
+const P=["Traduci:","Il","gatto","dorme","sul","divano"];
+const O=["The","cat","sleeps","on","the","sofa",".","⟨fine⟩"];
+let k=0,tot=0;
+function mk(txt,cls){const s=document.createElement("span");s.className="tok "+(cls||"");s.textContent=txt;s.style.cursor="default";return s;}
+function draw(){
+  R.innerHTML="";
+  for(let i=0;i<k;i++){
+    const r=document.createElement("div");r.className="tokens";r.style.alignItems="center";
+    const lab=document.createElement("span");lab.className="muted mono";lab.style.cssText="font-size:.72rem;width:48px";lab.textContent="giro "+(i+1);
+    r.appendChild(lab);
+    const p=mk(P.join(" "),"prompt");r.appendChild(p);
+    for(let j=0;j<i;j++)r.appendChild(mk(O[j],"resp"));
+    const a=document.createElement("span");a.className="arr";a.textContent="→";r.appendChild(a);
+    const n=mk(O[i],"resp");n.style.outline="2px solid var(--accent)";n.style.fontWeight="700";r.appendChild(n);
+    R.appendChild(r);
+  }
+  const done=k>=O.length;
+  G.$("#g18-step").disabled=done;
+  G.$("#g18-n").textContent=k;
+  G.$("#g18-r").textContent=k?P.length+k-1:0;
+  G.$("#g18-t").textContent=tot;
+  G.$("#g18-msg").innerHTML=k===0?"Il testo di partenza è il prompt: <b>"+P.join(" ")+"</b>. Premi «Un passo».":done?"Il token di fine chiude la generazione. Il modello non ha mai visto la frase intera in anticipo: l'ha costruita pezzo per pezzo.":"Appena prodotto <b>«"+O[k-1]+"»</b>: ora entra nell'ingresso del giro successivo.";
+}
+G.$("#g18-step").addEventListener("click",()=>{if(k<O.length){tot+=P.length+k;k++;draw();}});
+G.$("#g18-reset").addEventListener("click",()=>{k=0;tot=0;draw();});
+draw();
+</script>

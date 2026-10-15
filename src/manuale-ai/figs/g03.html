@@ -1,0 +1,67 @@
+<!-- after: Da dove viene -->
+<figure class="fig">
+<p class="fig-title">Il neurone di McCulloch e Pitts (1943) <span class="tag">calcolo reale</span></p>
+<svg id="g03-svg" style="max-width:520px;margin:0 auto" viewBox="0 0 440 250" role="img" aria-label="Neurone con tre ingressi, ciascuno con il proprio peso; la somma pesata viene confrontata con una soglia e determina se l'uscita è accesa."></svg>
+<div class="stack" style="gap:10px;margin-top:8px">
+  <div class="row"><strong style="width:90px">Ingresso A</strong><div class="seg" id="g03-xa" role="group" aria-label="Ingresso A"><button type="button" data-v="0" aria-pressed="false">0 spento</button><button type="button" data-v="1" aria-pressed="true">1 acceso</button></div>
+    <div class="ctl"><label for="g03-wa">peso A <output id="g03-wao"></output></label><input id="g03-wa" type="range" min="-2" max="2" step="0.5" value="1"></div></div>
+  <div class="row"><strong style="width:90px">Ingresso B</strong><div class="seg" id="g03-xb" role="group" aria-label="Ingresso B"><button type="button" data-v="0" aria-pressed="false">0 spento</button><button type="button" data-v="1" aria-pressed="true">1 acceso</button></div>
+    <div class="ctl"><label for="g03-wb">peso B <output id="g03-wbo"></output></label><input id="g03-wb" type="range" min="-2" max="2" step="0.5" value="1"></div></div>
+  <div class="row"><strong style="width:90px">Ingresso C</strong><div class="seg" id="g03-xc" role="group" aria-label="Ingresso C"><button type="button" data-v="0" aria-pressed="true">0 spento</button><button type="button" data-v="1" aria-pressed="false">1 acceso</button></div>
+    <div class="ctl"><label for="g03-wc">peso C <output id="g03-wco"></output></label><input id="g03-wc" type="range" min="-2" max="2" step="0.5" value="1"></div></div>
+  <div class="row"><strong style="width:90px">Soglia</strong>
+    <div class="ctl"><label for="g03-t">il neurone si attiva se la somma la raggiunge <output id="g03-to"></output></label><input id="g03-t" type="range" min="0" max="4" step="0.5" value="2"></div></div>
+</div>
+<div class="row" style="margin-top:10px">
+  <span class="muted" style="font-size:.85rem">Prova:</span>
+  <button class="btn ghost" id="g03-pand" type="button">Tutti e tre (E logico)</button>
+  <button class="btn ghost" id="g03-por" type="button">Ne basta uno (O logico)</button>
+  <button class="btn ghost" id="g03-pveto" type="button">C come veto</button>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Somma pesata</small><strong id="g03-sum"></strong></div>
+  <div><small>Soglia</small><strong id="g03-th"></strong></div>
+  <div><small>Uscita</small><strong id="g03-out"></strong></div>
+</div>
+<figcaption>Ogni ingresso vale 0 o 1 e viene moltiplicato per il suo peso; il neurone somma e si accende solo se il totale raggiunge la soglia. I preset mostrano come, con pesi e soglia diversi, lo stesso neurone diventa una porta logica: è l'idea di McCulloch e Pitts per cui collegandone molti si ottiene qualunque ragionamento logico.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const svg=G.$("#g03-svg");if(!svg)return;
+const x={a:1,b:1,c:0};
+const sw={a:G.$("#g03-wa"),b:G.$("#g03-wb"),c:G.$("#g03-wc")},st=G.$("#g03-t");
+["a","b","c"].forEach(k=>G.seg("#g03-x"+k,v=>{x[k]=+v;draw();}));
+const ys={a:45,b:125,c:205};
+function draw(){
+  G.clear(svg);
+  let sum=0;const th=+st.value;
+  ["a","b","c"].forEach(k=>{
+    const w=+sw[k].value;const on=x[k]===1;sum+=x[k]*w;
+    const col=w>0?"var(--accent)":w<0?"var(--bad)":"var(--line)";
+    G.el("line",{x1:70,y1:ys[k],x2:228,y2:125,stroke:col,"stroke-width":1+Math.abs(w)*2.5,opacity:on?1:.3,"stroke-dasharray":w===0?"4 4":"none"},svg);
+    G.el("circle",{cx:50,cy:ys[k],r:20,fill:on?"var(--accent-soft)":"var(--surface-2)",stroke:on?"var(--accent)":"var(--line)","stroke-width":2},svg);
+    G.el("text",{x:50,y:ys[k]+5,"text-anchor":"middle","font-size":14,"font-weight":600},svg,k.toUpperCase());
+    const mx=(70+228)/2*0.62+70*0.38*0+ 70*0.0, my=ys[k]+(125-ys[k])*0.45;
+    const lx=70+(228-70)*0.42;
+    G.el("rect",{x:lx-30,y:my-17,width:60,height:17,rx:4,fill:"var(--surface)",opacity:.9},svg);
+    G.el("text",{x:lx,y:my-4,"text-anchor":"middle","font-size":13,style:"font-family:var(--mono)"},svg,"peso "+G.fmt(w,1));
+  });
+  const fire=sum>=th-1e-9;
+  G.el("circle",{cx:268,cy:125,r:42,fill:fire?"var(--good-soft)":"var(--surface-2)",stroke:fire?"var(--good)":"var(--line)","stroke-width":3},svg);
+  G.el("text",{x:268,y:121,"text-anchor":"middle","font-size":13,style:"fill:var(--muted)"},svg,"somma");
+  G.el("text",{x:268,y:141,"text-anchor":"middle","font-size":17,"font-weight":700,style:"font-family:var(--mono)"},svg,G.fmt(sum,1));
+  G.el("text",{x:268,y:185,"text-anchor":"middle","font-size":13,style:"fill:var(--muted)"},svg,"soglia "+G.fmt(th,1));
+  G.el("line",{x1:312,y1:125,x2:395,y2:125,stroke:fire?"var(--good)":"var(--line)","stroke-width":fire?5:2},svg);
+  G.el("circle",{cx:410,cy:125,r:18,fill:fire?"var(--good)":"var(--surface-2)",stroke:fire?"var(--good)":"var(--line)","stroke-width":2},svg);
+  G.el("text",{x:410,y:130,"text-anchor":"middle","font-size":14,"font-weight":700,style:fire?"fill:var(--bg)":""},svg,fire?"1":"0");
+  G.el("text",{x:410,y:160,"text-anchor":"middle","font-size":13,style:"fill:var(--muted)"},svg,"uscita");
+  G.$("#g03-wao").textContent=G.fmt(+sw.a.value,1);G.$("#g03-wbo").textContent=G.fmt(+sw.b.value,1);G.$("#g03-wco").textContent=G.fmt(+sw.c.value,1);G.$("#g03-to").textContent=G.fmt(th,1);
+  fx(svg);G.$("#g03-sum").textContent=G.fmt(sum,1);G.$("#g03-th").textContent=G.fmt(th,1);G.$("#g03-out").textContent=fire?"1 (acceso)":"0 (spento)";
+}
+Object.values(sw).concat([st]).forEach(e=>e.addEventListener("input",draw));
+function preset(a,b,c,t){sw.a.value=a;sw.b.value=b;sw.c.value=c;st.value=t;draw();}
+G.$("#g03-pand").addEventListener("click",()=>preset(1,1,1,3));
+G.$("#g03-por").addEventListener("click",()=>preset(1,1,1,1));
+G.$("#g03-pveto").addEventListener("click",()=>preset(1,1,-2,1));
+draw();
+</script>

@@ -1,0 +1,57 @@
+<figure class="fig">
+<p class="fig-title">Dalla parola alla riga di numeri <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:12px">
+  <div class="seg" id="g13-seg" role="group" aria-label="Scegli una parola">
+    <button type="button" data-v="0" aria-pressed="true">gatto</button>
+    <button type="button" data-v="1" aria-pressed="false">cane</button>
+    <button type="button" data-v="2" aria-pressed="false">fattura</button>
+    <button type="button" data-v="3" aria-pressed="false">IVA</button>
+    <button type="button" data-v="4" aria-pressed="false">scadenza</button>
+  </div>
+</div>
+<div class="diag" id="g13-diag" style="margin-bottom:14px"></div>
+<div class="grid2">
+  <div>
+    <p class="diag-title" style="margin:0 0 6px">La tabella: una riga per voce del vocabolario</p>
+    <table class="gtable" id="g13-tab"><thead><tr><th>ID (numero)</th><th>token</th><th>x</th><th>y</th><th>…</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div>
+    <svg id="g13-svg" viewBox="0 0 340 280" role="img" aria-label="Piano con cinque parole: gatto e cane vicini, fattura, IVA e scadenza vicine tra loro e lontane dalle prime due."></svg>
+  </div>
+</div>
+<div class="callout" id="g13-msg" style="margin-top:12px"></div>
+<figcaption>Numeri e ID inventati. Una riga vera ha 768 numeri in GPT-2 (Generative Pre-trained Transformer 2) e diverse migliaia nei modelli attuali: qui ne usiamo due, che sono anche le coordinate sul piano. Come la latitudine e la longitudine collocano le città, così la riga colloca la parola. Clicca una parola, nei pulsanti o sul piano.</figcaption>
+</figure>
+<script>
+const SV=G.$("#g13-svg");if(!SV)return;
+const W=[["gatto",4712,-1.3,1.1],["cane",3097,-0.7,1.6],["fattura",15880,1.4,-1.0],["IVA",20431,0.9,-1.7],["scadenza",9264,1.8,-0.5]];
+const sx=x=>170+x*72, sy=y=>140-y*66;
+let cur=0;
+const setSeg=G.seg("#g13-seg",v=>{cur=+v;render();});
+function render(){
+  const w=W[cur];
+  document.querySelectorAll("#g13-seg button").forEach((b,i)=>b.setAttribute("aria-pressed",i===cur?"true":"false"));
+  G.$("#g13-diag").innerHTML=`<div class="box">parola<br><b>${w[0]}</b></div><span class="arr">→</span><div class="box">numero (ID)<br><b class="mono">${G.fmt(w[1],0)}</b></div><span class="arr">→</span><div class="box">riga ${G.fmt(w[1],0)} della tabella</div><span class="arr">→</span><div class="box hot">vettore<br><b class="mono">[${G.fmt(w[2],1)}; ${G.fmt(w[3],1)}; …]</b></div>`;
+  const tb=G.$("#g13-tab tbody");tb.textContent="";
+  W.forEach((r,i)=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="mono">${G.fmt(r[1],0)}</td><td>${r[0]}</td><td class="mono">${G.fmt(r[2],1)}</td><td class="mono">${G.fmt(r[3],1)}</td><td class="muted">…</td>`;if(i===cur){tr.style.background="var(--accent-soft)";tr.style.fontWeight="600";}tb.appendChild(tr);});
+  // nearest
+  let nn=-1,nd=1e9;W.forEach((r,i)=>{if(i===cur)return;const d=Math.hypot(r[2]-w[2],r[3]-w[3]);if(d<nd){nd=d;nn=i;}});
+  let far=-1,fd=-1;W.forEach((r,i)=>{if(i===cur)return;const d=Math.hypot(r[2]-w[2],r[3]-w[3]);if(d>fd){fd=d;far=i;}});
+  G.$("#g13-msg").innerHTML=`Più vicina a «${w[0]}»: <b>${W[nn][0]}</b> (distanza ${G.fmt(nd,2)}). Più lontana: <b>${W[far][0]}</b> (${G.fmt(fd,2)}). ${cur<2?"Gatto e cane compaiono in contesti simili (dormire, mangiare).":"Fattura, IVA e scadenza compaiono in contesti di pagamento."}`;
+  G.clear(SV);
+  G.el("line",{x1:20,x2:320,y1:140,y2:140,stroke:"var(--line)"},SV);G.el("line",{x1:170,x2:170,y1:12,y2:268,stroke:"var(--line)"},SV);
+  G.el("text",{x:318,y:134,"text-anchor":"end",style:"font-size:12px;fill:var(--muted)"},SV,"primo numero (x)");
+  G.el("text",{x:176,y:22,style:"font-size:12px;fill:var(--muted)"},SV,"secondo (y)");
+  W.forEach((r,i)=>{
+    if(i===cur)return;
+    const g=G.el("g",{style:"cursor:pointer",tabindex:0,role:"button","aria-label":"Scegli "+r[0]},SV);
+    G.el("circle",{cx:sx(r[2]),cy:sy(r[3]),r:7,fill:i<2?"var(--accent)":"var(--warn)",opacity:.55},g);
+    G.el("text",{x:sx(r[2]),y:sy(r[3])-12,"text-anchor":"middle",style:"font-size:14px"},g,r[0]);
+    g.addEventListener("click",()=>{cur=i;render();});g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){cur=i;render();}});
+  });
+  G.el("line",{x1:sx(0),y1:sy(0),x2:sx(w[2]),y2:sy(w[3]),stroke:"var(--ink)","stroke-dasharray":"3 3",opacity:.5},SV);
+  G.el("circle",{cx:sx(w[2]),cy:sy(w[3]),r:9,fill:cur<2?"var(--accent)":"var(--warn)",stroke:"var(--ink)","stroke-width":2},SV);
+  G.el("text",{x:sx(w[2]),y:sy(w[3])-15,"text-anchor":"middle",style:"font-size:14px;font-weight:700"},SV,w[0]);
+}
+render();
+</script>

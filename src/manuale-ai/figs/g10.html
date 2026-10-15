@@ -1,0 +1,48 @@
+<figure class="fig">
+<p class="fig-title">Tre modi di tagliare lo stesso testo <span class="tag">calcolo reale</span></p>
+<div class="stack" style="display:flex;flex-direction:column;gap:12px">
+  <div class="ctl"><label for="g10-in">Scrivi un testo</label>
+    <textarea id="g10-in" rows="2" style="width:100%;box-sizing:border-box;font:inherit;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical">Il gattaccio dorme. Rossi guarda i rossi. Informatica 2024 e 20241</textarea></div>
+  <div class="row">
+    <button type="button" class="btn ghost" data-t="gattaccio">gattaccio</button>
+    <button type="button" class="btn ghost" data-t="Informatica">Informatica</button>
+    <button type="button" class="btn ghost" data-t="Rossi e rossi">Rossi e rossi</button>
+    <button type="button" class="btn ghost" data-t="2024 e 20241">2024 e 20241</button>
+  </div>
+  <div><p class="diag-title" style="margin:0 0 4px">Per carattere <b class="mono" id="g10-nc"></b></p><div class="tokens" id="g10-c"></div></div>
+  <div><p class="diag-title" style="margin:0 0 4px">Per parola <b class="mono" id="g10-nw"></b></p><div class="tokens" id="g10-w"></div></div>
+  <div><p class="diag-title" style="margin:0 0 4px">Per sotto-parola (vocabolario fisso) <b class="mono" id="g10-ns"></b></p><div class="tokens" id="g10-s"></div></div>
+  <details class="note"><summary style="cursor:pointer">Il vocabolario usato (<span id="g10-nv"></span> frammenti)</summary><div class="mono" id="g10-vocab" style="font-size:.8rem;margin-top:6px;line-height:1.7"></div></details>
+</div>
+<figcaption>Regola dichiarata: a ogni posizione si prende il frammento più lungo presente nella lista; se nessuno corrisponde, si ricade sul singolo carattere (bordo tratteggiato). La lista è piccola e inventata, ma il calcolo è vero. Prova «Rossi e rossi» (la maiuscola cambia il taglio) e «2024 e 20241» (un numero resta intero, l'altro si divide). Il · è uno spazio.</figcaption>
+</figure>
+<script>
+const inp=G.$("#g10-in");if(!inp)return;
+const V=[" il"," la"," di"," e"," un"," una"," che"," non"," per"," con"," in"," è"," casa"," cane"," gatto"," gatt"," dorme"," sul"," letto"," guarda"," i"," rossi"," Rossi","Ross","ossi","si","Il","Inform","inform","atica"," Inform","accio","ino","ina","gatt","dorm","me","ment","zione","are","ere","ire","2024","20","24","a","o","e","i","l","t","n","r","s","c","."].filter((v,i,a)=>a.indexOf(v)===i);
+const cols=["var(--accent-soft)","var(--surface-2)"];
+const maxLen=Math.max(...V.map(v=>v.length));
+const vis=s=>s.replace(/ /g,"·");
+function draw(id,parts,fb){const b=G.$(id);b.textContent="";parts.forEach((p,k)=>{const s=document.createElement("span");s.className="tok"+(fb&&fb[k]?" prompt":"");if(!(fb&&fb[k]))s.style.background=cols[k%2];s.textContent=vis(p);b.appendChild(s);});}
+function sub(text){
+  const parts=[],fb=[];let i=0;
+  while(i<text.length){let best=null;
+    for(let L=Math.min(maxLen,text.length-i);L>=1;L--){const c=text.substr(i,L);if(V.includes(c)){best=c;break;}}
+    if(best===null){parts.push(text[i]);fb.push(true);i++;}else{parts.push(best);fb.push(false);i+=best.length;}}
+  return {parts,fb};
+}
+function run(){
+  const text=inp.value.replace(/\s+/g," ").replace(/^ /,"");
+  const ch=[...text];
+  const wd=text.length?text.split(" ").filter(Boolean).map((w,i)=>i?" "+w:w):[];
+  const sb=sub(text);
+  draw("#g10-c",ch);draw("#g10-w",wd);draw("#g10-s",sb.parts,sb.fb);
+  G.$("#g10-nc").textContent="· "+ch.length+" pezzi";
+  G.$("#g10-nw").textContent="· "+wd.length+" pezzi";
+  G.$("#g10-ns").textContent="· "+sb.parts.length+" pezzi";
+}
+G.$("#g10-nv").textContent=V.length;
+G.$("#g10-vocab").textContent=V.map(vis).join("  ");
+inp.addEventListener("input",run);
+inp.closest("figure").querySelectorAll("button[data-t]").forEach(b=>b.addEventListener("click",()=>{inp.value=b.dataset.t;run();}));
+run();
+</script>

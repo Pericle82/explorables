@@ -1,0 +1,56 @@
+<figure class="fig">
+<p class="fig-title">Prompt + completion = un unico testo <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g22-sel" role="group" aria-label="Forma del prompt">
+    <button type="button" data-v="0" aria-pressed="true">Domanda nuda</button>
+    <button type="button" data-v="1" aria-pressed="false">Con «Risposta:»</button>
+    <button type="button" data-v="2" aria-pressed="false">Chat</button>
+  </div>
+  <div class="seg" id="g22-stop" role="group" aria-label="Sequenza di arresto">
+    <button type="button" data-v="0" aria-pressed="true">nessuna sequenza di arresto</button>
+    <button type="button" data-v="1" aria-pressed="false">arresto a ogni «↵»</button>
+  </div>
+</div>
+<div class="controls">
+  <div class="ctl"><label for="g22-max">Limite massimo di token generati <output id="g22-maxo"></output></label><input id="g22-max" type="range" min="1" max="30" step="1" value="30"></div>
+</div>
+<div class="tokens" id="g22-tok" style="margin-top:12px"></div>
+<div class="callout" id="g22-msg" style="margin-top:12px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Token letti (prompt)</small><strong id="g22-p"></strong></div>
+  <div><small>Token generati (completion)</small><strong id="g22-c"></strong></div>
+  <div><small>Costo, se un generato vale 5 letti</small><strong id="g22-cost"></strong></div>
+</div>
+<figcaption>Tratteggiato il prompt, colorata la completion: il modello scrive la seconda dopo il primo, un token alla volta, finché qualcosa lo ferma. Una domanda nuda viene proseguita con altre domande, come in un quiz; con «Risposta:» o con la forma da chat (istruzioni di sistema, ruolo utente, ruolo assistente vuoto) la prosecuzione più probabile somiglia a una risposta. Prova a stringere il limite: la frase si interrompe. «↵» è un a capo; il fattore 5 è un'ipotesi (nelle API i token generati costano di più di quelli letti, fino a dieci volte).</figcaption>
+</figure>
+<script>
+const T=G.$("#g22-tok");if(!T)return;
+const Q=["Domanda:","Qual","è","la","capitale","della","Francia?"];
+const SC=[
+ {p:Q.concat(["↵"]),c:["Qual","è","la","capitale","della","Germania?","↵","Qual","è","la","capitale","della","Spagna?","↵","Qual","è","la","capitale","dell'","Italia?","↵","Qual","è","la","capitale","del","Portogallo?","↵","Qual","è"]},
+ {p:Q.concat(["↵","Risposta:"]),c:["La","capitale","della","Francia","è","Parigi.","⟨fine⟩"]},
+ {p:["[sistema]","Sei","un","assistente.","↵","[utente]"].concat(Q.slice(1),["↵","[assistente]"]),c:["La","capitale","della","Francia","è","Parigi.","⟨fine⟩"]}];
+let sc=0,stop=0;
+const mx=G.$("#g22-max");
+function render(){
+  const s=SC[sc],lim=+mx.value;T.innerHTML="";
+  s.p.forEach(w=>{const e=document.createElement("span");e.className="tok prompt";e.style.cursor="default";e.textContent=w;T.appendChild(e);});
+  let n=0,why="";
+  for(let i=0;i<s.c.length;i++){
+    const w=s.c[i];
+    if(stop&&w==="↵"){why="stop";break;}
+    if(n>=lim){why="lim";break;}
+    const e=document.createElement("span");e.className="tok resp";e.style.cursor="default";e.textContent=w;T.appendChild(e);n++;
+    if(w==="⟨fine⟩"){why="eos";break;}
+  }
+  if(!why)why="lim";
+  const msg={eos:"Si è fermato perché ha prodotto il <b>token di fine testo</b>.",lim:"Si è fermato perché ha raggiunto il <b>limite massimo di token</b>: la frase può restare troncata.",stop:"Si è fermato per la <b>sequenza di arresto</b> «↵»: il testo scartato non viene mostrato."};
+  G.$("#g22-msg").innerHTML=msg[why]+(sc===0?" Senza etichetta di risposta, il modello prosegue il quiz con altre domande.":"");
+  G.$("#g22-maxo").textContent=lim;
+  G.$("#g22-p").textContent=s.p.length;G.$("#g22-c").textContent=n;G.$("#g22-cost").textContent=G.fmt(s.p.length+5*n,0)+" unità";
+}
+G.seg("#g22-sel",v=>{sc=+v;render();});
+G.seg("#g22-stop",v=>{stop=+v;render();});
+mx.addEventListener("input",render);
+render();
+</script>

@@ -1,0 +1,56 @@
+<figure class="fig">
+<p class="fig-title">La benda sugli occhi <span class="tag">calcolo reale</span></p>
+<div class="row">
+  <div class="seg" id="g35-view" role="group" aria-label="Che cosa mostrare nella tabella">
+    <button type="button" aria-pressed="true" data-v="mask">Chi può guardare chi</button>
+    <button type="button" aria-pressed="false" data-v="score">Punteggi con −∞</button>
+    <button type="button" aria-pressed="false" data-v="w">Pesi dopo softmax</button>
+  </div>
+  <div class="seg" id="g35-kind" role="group" aria-label="Forma della maschera">
+    <button type="button" aria-pressed="true" data-v="tri">Triangolo</button>
+    <button type="button" aria-pressed="false" data-v="band">Fascia di 3 (come Mistral)</button>
+  </div>
+</div>
+<svg id="g35-svg" style="max-width:460px;margin:10px auto 0" viewBox="0 0 400 385" role="img" aria-label="Tabella 5 per 5 con i token di una frase: le caselle sopra la diagonale, cioè il futuro, sono spente."></svg>
+<div class="callout" id="g35-msg" style="margin-top:8px"></div>
+<figcaption>Righe: il token che guarda; colonne: il token guardato. Clicca una riga (o il suo token) per vedere che cosa quella posizione può vedere. I punteggi sono inventati; la maschera, il softmax e la somma a 100% sono calcolati davvero. Con −∞ il peso diventa esattamente zero (e^−∞ = 0), cosa che con uno zero nei punteggi non accadrebbe. Nella tabella 5 × 5 le caselle aperte sono 15 su 25; in Llama 3 con finestra di 8.192 token le caselle sono oltre 67 milioni, quasi metà chiuse.</figcaption>
+</figure>
+<script>
+const svg=G.$("#g35-svg");if(!svg)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+const W=["Il","gatto","beve","il","latte"],N=5;
+const SC=[[1.2,.3,-.4,.5,.1],[.9,1.4,.2,-.3,.6],[.2,1.8,.7,.1,.9],[1.1,.2,.6,.8,.3],[.4,.7,1.5,.3,1.0]];
+let row=4,view="mask",kind="tri";
+const open=(i,j)=>j<=i&&(kind==="tri"||i-j<3);
+function weights(i){const e=SC[i].map((s,j)=>open(i,j)?Math.exp(s):0);const z=e.reduce((a,b)=>a+b,0);return e.map(v=>v/z);}
+const gv=G.seg("#g35-view",v=>{view=v;draw();}),gk=G.seg("#g35-kind",v=>{kind=v;draw();});
+const X0=70,Y0=50,C=60;
+function draw(){
+  G.clear(svg);
+  T(svg,X0+N*C/2,14,"token guardato",11,"middle","var(--muted)");
+  W.forEach((w,j)=>T(svg,X0+j*C+C/2,40,w,12,"middle"));
+  W.forEach((w,i)=>{
+    const tx=T(svg,X0-8,Y0+i*C+C/2+4,w,12,"end");tx.style.cursor="pointer";tx.style.fontWeight=i===row?"700":"400";
+    tx.addEventListener("click",()=>{row=i;draw();});
+  });
+  for(let i=0;i<N;i++){
+    const wt=weights(i);
+    for(let j=0;j<N;j++){
+      const op=open(i,j),x=X0+j*C,y=Y0+i*C;
+      const r=G.el("rect",{x:x+2,y:y+2,width:C-4,height:C-4,rx:5,fill:op?(view==="w"?"var(--accent)":"var(--accent-soft)"):"var(--surface-2)",opacity:op&&view==="w"?(.12+wt[j]*.88).toFixed(2):1,stroke:op?"var(--accent)":"var(--line)","stroke-dasharray":op?"":"3 3"},svg);
+      r.style.cursor="pointer";r.addEventListener("click",()=>{row=i;draw();});
+      let s=null;
+      if(view==="score")s=op?G.fmt(SC[i][j],1):"−∞";
+      if(view==="w")s=op?G.fmt(wt[j]*100,0)+"%":"0%";
+      if(view==="mask")s=op?"sì":"";
+      if(s){const t=T(svg,x+C/2,y+C/2+4,s,12,"middle",op?"var(--ink)":"var(--muted)");t.style.pointerEvents="none";t.style.paintOrder="stroke";t.style.stroke="var(--surface)";t.style.strokeWidth="3px";}
+    }
+  }
+  G.el("rect",{x:X0-1,y:Y0+row*C-1,width:N*C+2,height:C+2,rx:6,fill:"none",stroke:"var(--ink)","stroke-width":2,"pointer-events":"none"},svg);
+  T(svg,X0+N*C/2,Y0+N*C+22,"Le caselle tratteggiate sono il futuro: chiuse.",11,"middle","var(--muted)");
+  const seen=W.filter((_,j)=>open(row,j));
+  const wt=weights(row);
+  G.$("#g35-msg").textContent="«"+W[row]+"» vede: "+seen.join(", ")+(view==="w"?". Pesi: "+wt.filter(v=>v>0).map(v=>G.fmt(v*100,0)+"%").join(" + ")+" = 100%.":".")+" Aperte nella tabella: "+[...Array(N*N).keys()].filter(k=>open(Math.floor(k/N),k%N)).length+" su 25.";
+}
+draw();
+</script>

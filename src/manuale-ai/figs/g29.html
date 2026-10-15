@@ -1,0 +1,41 @@
+<figure class="fig">
+<p class="fig-title">Confrontare, pesare, mescolare <span class="tag">calcolo reale</span></p>
+<p class="muted" style="margin:0 0 6px">Clicca la parola che sta guardando le altre:</p>
+<div class="tokens" id="g29-toks" role="group" aria-label="Parole della frase"></div>
+<div class="bars" id="g29-bars" style="margin-top:12px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>1. Confronto: punteggi grezzi</small><strong id="g29-sc" style="font-size:.85em"></strong></div>
+  <div><small>2. Peso: softmax, somma</small><strong id="g29-sum"></strong></div>
+</div>
+<div class="callout" id="g29-msg" aria-live="polite" style="margin-top:10px"></div>
+<figcaption>I punteggi di confronto tra le parole sono inventati; la softmax che li trasforma in percentuali è calcolata davvero. Prova «salire»: riceve molto dal soggetto, un po' dall'aggettivo, quasi nulla dal tavolo. La nuova rappresentazione sarà la somma delle altre parole, ciascuna contata in proporzione al suo peso (nel 2014 il traduttore tornava così sulle parole originali a ogni passo).</figcaption>
+</figure>
+<script>
+const box=G.$("#g29-toks");if(!box)return;
+const T=["Il","gatto","era","troppo","stanco","per","salire","sul","tavolo"];
+// punteggi grezzi (righe = parola che guarda, colonne = parola guardata), inventati
+const SC=[
+ [0.5,2.5,0,0,0,0,0,0,0.3],
+ [0.5,1.5,0.5,0,1,0,0.5,0,0.5],
+ [0,3,1,0.5,1.5,0,0,0,0],
+ [0,0.5,0.5,1,3,0,0,0,0],
+ [0.2,3,1,2,1.5,0.2,0,0,0.3],
+ [0,1.5,0,0,1,0.5,2.5,0,0.5],
+ [0.3,4,0.5,0.5,2.5,0.5,1,0.5,0.2],
+ [0,0,0,0,0,0.5,1,0.5,3],
+ [0.5,0.5,0,0,0,0.5,1,2.5,0.5]
+];
+let cur=6;
+T.forEach((t,i)=>{const b=document.createElement("button");b.type="button";b.className="tok";b.textContent=t;b.addEventListener("click",()=>{cur=i;draw();});box.appendChild(b);});
+function softmax(a){const m=Math.max(...a);const e=a.map(v=>Math.exp(v-m));const s=e.reduce((x,y)=>x+y,0);return e.map(v=>v/s);}
+function draw(){
+  [...box.children].forEach((b,i)=>{b.style.outline=i===cur?"2px solid var(--accent)":"none";b.style.background=i===cur?"var(--accent-soft)":"";});
+  const w=softmax(SC[cur]);
+  G.$("#g29-bars").innerHTML=T.map((t,i)=>`<div class="barrow"><span>${t}${i===cur?" (sé stessa)":""}</span><div class="track"><div class="fill" style="width:${w[i]*100}%"></div></div><span class="v">${G.fmt(w[i]*100,0)}%</span></div>`).join("");
+  G.$("#g29-sc").textContent=SC[cur].map(v=>G.fmt(v,1)).join("  ");
+  G.$("#g29-sum").textContent=G.fmt(w.reduce((a,b)=>a+b,0)*100,0)+"%";
+  const top=w.map((v,i)=>[v,i]).filter(p=>p[1]!==cur).sort((a,b)=>b[0]-a[0])[0];
+  G.$("#g29-msg").innerHTML="«<b>"+T[cur]+"</b>» dà il peso maggiore a «<b>"+T[top[1]]+"</b>» ("+G.fmt(top[0]*100,0)+"%): la sua nuova rappresentazione è soprattutto un mescolamento di quella parola con un po' delle altre.";
+}
+draw();
+</script>

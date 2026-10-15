@@ -1,0 +1,82 @@
+<section class="st" id="mappa">
+<div class="sec-head"><span class="eyebrow">Mappa</span><h2>La scala dei prerequisiti</h2></div>
+<div class="prose stack"><p>Il manuale è ordinato per prerequisito: ogni capitolo usa soltanto concetti spiegati nei capitoli precedenti. Per questo il metodo è semplice: da qualunque punto entri, se incontri una parola sconosciuta scendi di un gradino. Qui sotto i capitoli sono disposti in quattro fasce; tocca un capitolo per vedere su che cosa si regge, direttamente e indirettamente.</p></div>
+<figure class="fig">
+<p class="fig-title">Chi serve a chi <span class="tag">dati reali dei collegamenti</span></p>
+<div id="map-wrap" class="map-wrap">
+<svg id="map-svg" aria-hidden="true"></svg>
+<div id="map-bands"></div>
+</div>
+<div class="callout" id="map-out" style="margin-top:10px" aria-live="polite">Tocca un capitolo per evidenziare i suoi prerequisiti.</div>
+<figcaption>Ogni casella è un capitolo, le fasce sono le quattro parti. Selezionato un capitolo, le caselle piene sono i suoi prerequisiti diretti (quelli citati nei suoi collegamenti, solo verso capitoli precedenti), quelle chiare i prerequisiti indiretti, cioè i prerequisiti dei prerequisiti, e le linee mostrano i legami. Prova #29 Attention o #38 Funzione di attivazione: scendere di un gradino alla volta porta sempre alle fondamenta della Parte I.</figcaption>
+</figure>
+<style>
+.map-wrap{position:relative}
+#map-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible}
+.map-band{margin-bottom:12px}
+.map-band h3{font-size:12px;margin:0 0 6px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;position:relative;z-index:1}
+.map-n{font:inherit;font-size:11px;line-height:1.2;text-align:left;padding:5px 6px;min-height:48px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.map-n b{font-size:10px;color:var(--muted);font-weight:600}
+.map-n.dim{opacity:.35}
+.map-n.ind{background:var(--accent-soft);border-color:var(--accent)}
+.map-n.dir{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.map-n.dir b{color:var(--bg)}
+.map-n.sel{background:var(--warn-soft);border:2px solid var(--warn);color:var(--ink)}
+.map-n.sel b{color:var(--ink)}
+.map-n:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+#map-out a{font-weight:600}
+#map-out li{margin:0;display:inline}#map-out ul{font-size:13px;margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 10px}
+@media(max-width:560px){.map-grid{grid-template-columns:repeat(4,1fr)}.map-n{font-size:10px;padding:4px;min-height:52px}}
+</style>
+</section>
+<script>
+const D={"1":["Intelligenza Artificiale",[]],"2":["Machine Learning",[1]],"3":["Rete neurale",[2]],"4":["Deep Learning",[1,2,3]],"5":["Modello",[2,3,4]],"6":["Parametro",[3,5]],"7":["Peso",[3,5,6]],"8":["Addestramento",[2,3,5,6,7]],"9":["Token",[3,7]],"10":["Tokenizzazione",[9]],"11":["Vocabolario",[6,7,9,10]],"12":["Byte Pair Encoding",[9,10,11]],"13":["Embedding",[6,7,8,9,11]],"14":["Spazio latente",[3,9,13]],"15":["Similarità coseno",[13,14]],"16":["Dimensione",[6,7,8,13,14,15]],"17":["LLM",[1,2,3,6,8,9,13]],"18":["Autoregressione",[9,17]],"19":["Prossimo token",[5,8,9,11,17,18]],"20":["Modello generativo",[2,3,5,8,17,18,19]],"21":["Prompt",[9,17,18]],"22":["Completion",[9,18,20,21]],"23":["Context window",[6,7,8,9,18,21,22]],"24":["Inferenza",[5,7,8,17,21,22,23]],"25":["Transformer",[3,6,13,17,24]],"26":["Layer",[3,4,6,7,8,13,16,24,25]],"27":["Encoder",[13,15,17,25]],"28":["Decoder",[17,18,21,25,27]],"29":["Attention",[2,13,15,23,25]],"30":["Self-attention",[13,17,18,25,28,29]],"31":["Query, Key e Value",[23,25,26,29,30]],"32":["Multi-head attention",[25,29,30,31]],"33":["Positional encoding",[13,23,25,27,29]],"34":["RoPE",[23,25,29,31,33]],"35":["Causal mask",[17,18,19,25,27,28,29,31]],"36":["Attention map",[17,25,29,32,35]],"37":["Feed-forward network",[6,7,8,25,29,31,35]],"38":["Funzione di attivazione",[3,6,7,8,25,26,32]]};
+const bands=G.$("#map-bands"),svg=G.$("#map-svg"),out=G.$("#map-out"),wrap=G.$("#map-wrap");
+if(!bands||!svg||!out)return;
+const PARTS=[["Parte I · fondamenta (#1–#8)",1,8],["Parte II · dal testo ai numeri (#9–#16)",9,16],["Parte III · il modello al lavoro (#17–#24)",17,24],["Parte IV · dentro il transformer (#25–#38)",25,38]];
+const btn={};
+PARTS.forEach(([lab,a,b])=>{
+ const w=document.createElement("div");w.className="map-band";
+ const h=document.createElement("h3");h.textContent=lab;w.appendChild(h);
+ const g=document.createElement("div");g.className="map-grid";
+ for(let n=a;n<=b;n++){
+  const x=document.createElement("button");x.type="button";x.className="map-n";x.id="map-n"+n;
+  x.innerHTML="<b>#"+n+"</b>"+D[n][0];x.setAttribute("aria-pressed","false");
+  x.addEventListener("click",()=>select(n));g.appendChild(x);btn[n]=x;
+ }
+ w.appendChild(g);bands.appendChild(w);
+});
+let cur=0,closure=[],direct=[];
+function closureOf(n){const seen=new Set(),st=[n];while(st.length){const k=st.pop();D[k][1].forEach(p=>{if(!seen.has(p)){seen.add(p);st.push(p);}});}return [...seen].sort((a,b)=>a-b);}
+function drawEdges(){
+ G.clear(svg);if(!cur)return;
+ const wr=wrap.getBoundingClientRect();
+ svg.setAttribute("viewBox","0 0 "+wr.width+" "+wr.height);
+ const set=new Set([cur,...closure]);
+ const pos=k=>{const r=btn[k].getBoundingClientRect();return [r.left-wr.left+r.width/2,r.top-wr.top+r.height/2];};
+ set.forEach(k=>D[k][1].forEach(p=>{
+  if(!set.has(p))return;
+  const [x1,y1]=pos(k),[x2,y2]=pos(p);
+  const mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1,c=0.15;
+  const isD=(k===cur);
+  G.el("path",{d:"M"+x1+","+y1+" Q"+(mx-dy*c)+","+(my+dx*c)+" "+x2+","+y2,fill:"none",stroke:isD?"var(--warn)":"var(--accent)","stroke-width":isD?2:1.2,"stroke-opacity":isD?.9:.28},svg);
+ }));
+}
+function select(n){
+ if(cur===n){cur=0;}else cur=n;
+ Object.keys(btn).forEach(k=>{btn[k].className="map-n";btn[k].setAttribute("aria-pressed","false");});
+ if(!cur){out.innerHTML="Tocca un capitolo per evidenziare i suoi prerequisiti.";G.clear(svg);return;}
+ direct=D[cur][1];closure=closureOf(cur);
+ const ds=new Set(direct),cs=new Set(closure);
+ Object.keys(btn).forEach(k=>{k=+k;const b=btn[k];
+  if(k===cur){b.className="map-n sel";b.setAttribute("aria-pressed","true");}
+  else if(ds.has(k))b.className="map-n dir";
+  else if(cs.has(k))b.className="map-n ind";
+  else b.className="map-n dim";});
+ const li=closure.map(k=>'<li><a href="#g'+k+'">#'+k+' '+D[k][0]+'</a>'+(ds.has(k)?'':' <span class="muted">(indiretto)</span>')+'</li>').join("");
+ out.innerHTML='Per capire <b>#'+cur+' '+D[cur][0]+'</b> ti servono '+(closure.length?closure.length+' capitoli ('+direct.length+' dirette):':'nessun prerequisito: è una fondamenta.')+(closure.length?'<ul>'+li+'</ul>':'')+'<p style="margin:8px 0 0"><a href="#g'+cur+'">Vai al capitolo #'+cur+' →</a></p>';
+ drawEdges();
+}
+let t;window.addEventListener("resize",()=>{clearTimeout(t);t=setTimeout(drawEdges,80);});
+</script>

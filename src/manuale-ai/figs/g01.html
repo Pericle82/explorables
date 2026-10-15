@@ -1,0 +1,133 @@
+<!-- after: Da dove viene -->
+<div class="fld"><h3>Perché nessuno sa scrivere le istruzioni per riconoscere un gatto</h3><p>Proviamo a farlo davvero. Una regola sensata sembra «è un gatto se ha orecchie a punta, baffi, pelo e quattro zampe». Ma un gatto acciambellato sotto una coperta non mostra né zampe né orecchie; uno sphynx non ha pelo; una volpe e un cane lupo hanno orecchie a punta, baffi, pelo e quattro zampe. Ogni eccezione chiede una regola nuova, e ogni regola nuova sbaglia su qualche altro caso: la lista non converge mai.</p><p>E c'è un problema più profondo. Le regole parlano di «orecchie» e «baffi», ma il computer non vede orecchie: vede una griglia di numeri, uno per pixel, che cambiano tutti se il gatto si sposta di un centimetro, se la luce cambia o se la foto è sfocata. Per applicare la regola «ha orecchie a punta» bisognerebbe prima riconoscere un orecchio tra milioni di numeri, che è lo stesso problema di partenza, solo più piccolo. Noi lo facciamo in una ventina di millisecondi senza saper spiegare come: per questo nessun esperto è mai riuscito a scrivere quelle regole, e la soluzione è stata smettere di scriverle e dare alla macchina esempi già risolti, cioè il machine learning (#2).</p></div>
+<figure class="fig">
+<style>
+#g01b-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin:12px 0}
+#g01b-gal .c{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 6px;background:var(--surface);border:2px solid var(--line);border-radius:10px;color:var(--ink);font:inherit;cursor:pointer;text-align:center}
+#g01b-gal .c.ok{border-color:var(--good)}
+#g01b-gal .c.ko{border-color:var(--bad);background:var(--bad-soft)}
+#g01b-gal .c[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:1px}
+#g01b-gal svg{width:100%;height:auto;display:block}
+#g01b-gal .n{font-size:.74rem;line-height:1.2;min-height:2.4em;display:flex;align-items:center}
+#g01b-gal .v{font-size:.74rem;font-weight:600;font-family:var(--mono)}
+#g01b-gal .ok .v{color:var(--good)}#g01b-gal .ko .v{color:var(--bad)}
+#g01b-gal .t{position:absolute;top:3px;right:5px;font-size:.66rem;color:var(--muted);font-family:var(--mono)}
+#g01b-rules{display:flex;flex-wrap:wrap;height:auto;max-width:100%}#g01b-rules button{font-size:.84rem;flex:0 1 auto}
+#g01b-px{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;font-family:var(--mono);font-size:clamp(8px,2.4vw,11px);max-width:460px;margin:8px 0}
+#g01b-px div{aspect-ratio:1.15;display:flex;align-items:center;justify-content:center;color:var(--ink);border-radius:2px}
+</style>
+<p class="fig-title">Scrivi tu le regole del gatto <span class="tag">calcolo reale</span></p>
+<p class="muted" style="margin:0 0 6px;font-size:.88rem">Spunta le caratteristiche: un'immagine è «gatto» solo se le ha tutte (regole in E).</p>
+<div class="seg" id="g01b-rules" role="group" aria-label="Regole del gatto: spunta quelle che vuoi usare"></div>
+<div class="readout" id="g01b-ro" style="margin-top:12px"></div>
+<div id="g01b-gal" role="group" aria-label="Galleria di dieci casi"></div>
+<div class="callout" id="g01b-msg"></div>
+<p style="margin:8px 0 0"><strong>Nessuna combinazione le prende tutte.</strong></p>
+<div class="row" style="margin-top:10px"><button type="button" class="btn ghost" id="g01b-see" aria-expanded="false">Come la vede il computer</button></div>
+<div id="g01b-view" hidden>
+  <p class="note" id="g01b-vt" style="margin:8px 0 0"></p>
+  <div id="g01b-px" role="img" aria-label="Griglia di numeri da 0 a 255, uno per pixel"></div>
+  <p class="note">Le regole dovrebbero lavorare su questi numeri, non su «orecchie»: nessuna cella dice «orecchio». Valori inventati dalla sagoma, più un po' di rumore (0 scuro, 255 chiaro).</p>
+</div>
+<figcaption>Dieci casi, sei caratteristiche visibili: provale una alla volta e in gruppo. Le regole sono applicate davvero (calcolo reale); i casi e i valori delle caratteristiche sono illustrativi. Il gattino disegnato da un bambino lo contiamo «gatto» (è un gatto disegnato) e il peluche «non gatto» (è un giocattolo): scelte discutibili, ma qualunque scelta non cambia il risultato. La lince, con queste sei caratteristiche, è identica al gatto seduto: nessuna regola le separa.</figcaption>
+</figure>
+<script>
+const gal=G.$("#g01b-gal"); if(!gal||!G.$("#g01b-rules"))return;
+const FE=["Orecchie a punta","Baffi","Pelo","Quattro zampe","Coda","Muso corto"];
+// ordine: E B P Z C M
+const CASES=[
+ {n:"Gatto seduto",cat:1,f:[1,1,1,1,1,1],k:"sit"},
+ {n:"Gatto acciambellato sotto una coperta",cat:1,f:[0,0,1,0,0,0],k:"blanket"},
+ {n:"Gatto visto di spalle",cat:1,f:[1,0,1,1,1,0],k:"back"},
+ {n:"Gatto sphynx senza pelo",cat:1,f:[1,1,0,1,1,1],k:"sphynx"},
+ {n:"Gatto in una foto sfocata",cat:1,f:[0,0,1,1,0,0],k:"blur"},
+ {n:"Gattino disegnato da un bambino",cat:1,f:[1,1,0,0,1,1],k:"child"},
+ {n:"Volpe",cat:0,f:[1,1,1,1,1,0],k:"fox"},
+ {n:"Cane lupo",cat:0,f:[1,1,1,1,1,0],k:"wolf"},
+ {n:"Lince",cat:0,f:[1,1,1,1,1,1],k:"lynx"},
+ {n:"Peluche di gatto",cat:0,f:[1,0,1,0,1,1],k:"plush"}
+];
+const on=FE.map(()=>false);
+let sel=0;
+function verdict(c){return on.every((a,i)=>!a||c.f[i]===1);}
+// ---- disegno
+function art(c){
+  const k=c.k,f=c.f,E=f[0],B=f[1],P=f[2],Z=f[3],T=f[4],M=f[5];
+  const long=!M;
+  const fill=k==="sphynx"?"var(--warn-soft)":(P?"var(--surface-2)":"none");
+  const st='stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"';
+  let s="";
+  if(k==="blanket"){
+    return `<path d="M10 62 Q12 30 40 28 Q68 30 70 62 Z" fill="var(--accent-soft)" ${st}/><path d="M22 40 Q40 48 58 38 M18 52 Q40 58 62 50" fill="none" stroke="var(--accent)" stroke-width="1.4"/>`;
+  }
+  const bodyF=k==="child"?"none":fill;
+  if(T)s+=`<path d="M58 46 Q74 44 70 24" fill="none" ${st} stroke-width="3.4"/>`;
+  s+=`<ellipse cx="40" cy="46" rx="20" ry="11" fill="${bodyF}" ${st}${P?"":' stroke-dasharray="3 3"'}/>`;
+  if(Z)for(const x of [24,31,46,53])s+=`<rect x="${x}" y="53" width="4" height="11" rx="1.5" fill="${bodyF==='none'?'var(--surface)':fill}" ${st}/>`;
+  s+=`<circle cx="24" cy="30" r="10" fill="${bodyF}" ${st}${P?"":' stroke-dasharray="3 3"'}/>`;
+  if(E){const t=(k==="lynx")?`<path d="M17 10 L17 4 M31 10 L31 4" ${st}/>`:"";
+    s+=`<path d="M15 24 L17 10 L24 20 M33 24 L31 10 L24 20" fill="${bodyF}" ${st}/>`+t;}
+  if(k==="back"){}else if(long)s+=`<ellipse cx="13" cy="34" rx="8" ry="4" fill="${bodyF}" ${st}/><circle cx="6" cy="34" r="1.6" fill="var(--ink)"/>`;
+  else if(k!=="back")s+=`<ellipse cx="24" cy="34" rx="3.5" ry="2.4" fill="var(--bad-soft)" ${st} stroke-width="1"/>`;
+  if(k!=="back"){const bx=k==="plush"?"":"";s+=`<circle cx="${long?18:19}" cy="27" r="1.6" fill="var(--ink)"/><circle cx="${long?27:29}" cy="27" r="1.6" fill="var(--ink)"/>`;}
+  if(B){const y=long?33:34,x0=long?12:20,x1=long?27:28;
+    s+=`<path d="M${x0} ${y} L${x0-12} ${y-3} M${x0} ${y+1} L${x0-12} ${y+3} M${x1} ${y} L${x1+12} ${y-3} M${x1} ${y+1} L${x1+12} ${y+3}" fill="none" stroke="var(--ink)" stroke-width="1"/>`;}
+  if(k==="plush")s+=`<path d="M30 40 L50 44 M30 46 L50 50" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 2" fill="none"/>`;
+  if(k==="blur")return `<g style="filter:blur(2.2px)">${s}</g>`;
+  return s;
+}
+// ---- raster
+function inTri(x,y,a,b,c){const d=(p,q,r)=>(p[0]-r[0])*(q[1]-r[1])-(q[0]-r[0])*(p[1]-r[1]);const p=[x,y];const d1=d(p,a,b),d2=d(p,b,c),d3=d(p,c,a);return !((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0));}
+function dseg(x,y,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;let t=((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy);t=Math.max(0,Math.min(1,t));return Math.hypot(x-(x1+t*dx),y-(y1+t*dy));}
+function ell(x,y,cx,cy,rx,ry){return ((x-cx)/rx)**2+((y-cy)/ry)**2<=1;}
+function dark(c,x,y){ // restituisce valore (0 scuro) o null se sfondo
+  const f=c.f,fur=f[2],bv=fur?60:150;
+  if(c.k==="blanket")return ell(x,y,40,45,29,17)?(y<34?95:80):null;
+  if(f[4]&&dseg(x,y,58,46,70,30)<2.2)return 70;
+  if(f[3]&&[24,31,46,53].some(l=>x>=l&&x<=l+4&&y>=53&&y<=64))return bv;
+  if(ell(x,y,40,46,20,11)||ell(x,y,24,30,10,10))return bv;
+  if(f[0]&&(inTri(x,y,[15,24],[17,10],[24,20])||inTri(x,y,[33,24],[31,10],[24,20])))return bv;
+  if(!f[5]&&ell(x,y,13,34,8,4))return bv;
+  return null;
+}
+function raster(c){
+  const r=G.rng(7+CASES.indexOf(c)*13),W=12,H=10,g=[];
+  for(let j=0;j<H;j++){const row=[];for(let i=0;i<W;i++){
+    let sum=0,n=0;for(let a=0;a<3;a++)for(let b=0;b<3;b++){const x=(i+(a+.5)/3)*80/W,y=(j+(b+.5)/3)*70/H;const d=dark(c,x,y);sum+=d===null?210:d;n++;}
+    row.push(sum/n);}g.push(row);}
+  let out=g;
+  if(c.k==="blur"){out=g.map((row,j)=>row.map((v,i)=>{let s=0,n=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const q=g[j+dj]&&g[j+dj][i+di];if(q!==undefined){s+=q;n++;}}return s/n;}));}
+  return out.map(row=>row.map(v=>Math.max(0,Math.min(255,Math.round(v+(r()-.5)*28)))));
+}
+// ---- UI
+const rulesEl=G.$("#g01b-rules");
+FE.forEach((t,i)=>{const b=document.createElement("button");b.type="button";b.textContent=t;b.setAttribute("aria-pressed","false");
+  b.addEventListener("click",()=>{on[i]=!on[i];b.setAttribute("aria-pressed",on[i]);update();});rulesEl.appendChild(b);});
+CASES.forEach((c,i)=>{const b=document.createElement("button");b.type="button";b.className="c";b.setAttribute("aria-pressed",i===0);
+  b.innerHTML=`<span class="t"></span><svg viewBox="0 0 80 70" role="img" aria-label="${c.n}">${art(c)}</svg><span class="n">${c.n}</span><span class="v"></span>`;
+  b.addEventListener("click",()=>{sel=i;update();});c.el=b;gal.appendChild(b);});
+const view=G.$("#g01b-view"),see=G.$("#g01b-see");
+see.addEventListener("click",()=>{view.hidden=!view.hidden;see.setAttribute("aria-expanded",!view.hidden);update();});
+function update(){
+  let ok=0,lost=0,swap=0;
+  CASES.forEach((c,i)=>{const v=verdict(c),right=v===!!c.cat;if(right)ok++;else if(c.cat)lost++;else swap++;
+    c.el.className="c "+(right?"ok":"ko");c.el.setAttribute("aria-pressed",i===sel);
+    c.el.querySelector(".t").textContent=c.cat?"è gatto":"non gatto";
+    c.el.querySelector(".v").textContent=(v?"gatto":"non gatto")+(right?" ✓":" ✗");});
+  G.$("#g01b-ro").innerHTML=`<div><small>Casi classificati bene</small><strong>${ok} su ${CASES.length}</strong></div><div><small>Gatti persi</small><strong>${lost}</strong></div><div><small>Non-gatti scambiati per gatti</small><strong>${swap}</strong></div>`;
+  const n=on.filter(Boolean).length;let m;
+  if(n===0)m="<b>Nessuna regola: tutto è gatto.</b> Le volpi, il lupo, la lince e il peluche passano tutti.";
+  else if(lost===0)m="<b>Poche regole: le volpi passano.</b> Le regole sono larghe e lasciano entrare animali che gatti non sono. Prova ad aggiungerne.";
+  else if(swap===0)m="<b>Troppe regole: i gatti strani vengono persi.</b> La coperta, lo sphynx, la foto sfocata non rispettano tutte le caratteristiche richieste.";
+  else m="<b>Si sbaglia in entrambi i sensi.</b> Alcuni gatti strani vengono persi e alcuni non-gatti passano: stringere una regola ne rompe un'altra.";
+  G.$("#g01b-msg").innerHTML=m;
+  const c=CASES[sel];
+  if(!view.hidden){
+    G.$("#g01b-vt").textContent=`Caso: ${c.n}. Caratteristiche: `+FE.map((t,i)=>t.toLowerCase()+(c.f[i]?" sì":" no")).join(", ")+".";
+    const px=G.$("#g01b-px");px.innerHTML="";
+    raster(c).forEach(row=>row.forEach(v=>{const d=document.createElement("div");d.textContent=v;
+      d.style.background=`color-mix(in srgb, var(--ink) ${Math.round((255-v)/255*70)}%, var(--surface))`;px.appendChild(d);}));
+  }
+}
+update();
+</script>

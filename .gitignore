@@ -1,3 +1,11 @@
 dist/
 node_modules/
 .DS_Store
+
+# sorgenti: file generati dalle prove
+src/*/test*.html
+src/*/shots/
+src/*/*.png
+src/*/manuale-ai.html
+src/*/machine-learning.html
+src/*/comandi-bash.html

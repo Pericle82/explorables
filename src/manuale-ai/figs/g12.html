@@ -1,0 +1,81 @@
+<figure class="fig">
+<p class="fig-title">Il Byte Pair Encoding passo per passo <span class="tag">calcolo reale</span></p>
+<div class="row" style="margin-bottom:12px">
+  <button class="btn" id="g12-step" type="button">Una fusione</button>
+  <button class="btn ghost" id="g12-all" type="button">Fino in fondo</button>
+  <button class="btn ghost" id="g12-reset" type="button">Ricomincia</button>
+</div>
+<div class="grid2">
+  <div>
+    <p class="diag-title" style="margin:0 0 6px">Il corpus (parola × quante volte compare)</p>
+    <div id="g12-corpus" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+  <div>
+    <p class="diag-title" style="margin:0 0 6px">Coppie adiacenti più frequenti</p>
+    <table class="gtable" id="g12-pairs"><thead><tr><th>coppia</th><th>quante volte</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+<div class="callout" id="g12-msg" style="margin-top:12px"></div>
+<div style="margin-top:12px">
+  <p class="diag-title" style="margin:0 0 6px">Fusioni imparate, in ordine <span class="mono" id="g12-nv"></span></p>
+  <div class="tokens" id="g12-merges"></div>
+</div>
+<div class="ctl" style="margin-top:14px"><label for="g12-test">Parola nuova da spezzare con le fusioni imparate</label>
+  <input id="g12-test" type="text" value="cassetta" autocomplete="off" spellcheck="false" style="font:inherit;font-family:var(--mono);padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box"></div>
+<div class="tokens" id="g12-out" style="margin-top:8px"></div>
+<figcaption>Si parte dalle singole lettere (qui al posto dei 256 byte, perché le lettere senza accento sono già byte). A ogni clic si conta ogni coppia di pezzi vicini, pesata per quante volte compare la parola, e si fonde la più frequente (a parità vince la prima trovata). Il corpus è minuscolo e inventato. Sotto, le fusioni vengono riapplicate nello stesso ordine a una parola mai vista.</figcaption>
+</figure>
+<script>
+const CP=G.$("#g12-corpus");if(!CP)return;
+const CORPUS=[["basso",5],["bassa",4],["basse",3],["casa",6],["case",4],["cassa",3]];
+let words,merges;
+const cols=["var(--accent-soft)","var(--surface-2)"];
+function init(){words=CORPUS.map(c=>({s:[...c[0]],f:c[1]}));merges=[];last=null;}
+let last=null;
+function pairs(){
+  const m=new Map();
+  words.forEach(w=>{for(let i=0;i<w.s.length-1;i++){const k=w.s[i]+"\u0001"+w.s[i+1];m.set(k,(m.get(k)||0)+w.f);}});
+  return [...m.entries()].map(e=>({a:e[0].split("\u0001")[0],b:e[0].split("\u0001")[1],n:e[1]}));
+}
+function best(){const p=pairs();if(!p.length)return null;let b=p[0];p.forEach(x=>{if(x.n>b.n)b=x;});return b;}
+function doMerge(b){
+  words.forEach(w=>{const o=[];let i=0;while(i<w.s.length){if(i<w.s.length-1&&w.s[i]===b.a&&w.s[i+1]===b.b){o.push(b.a+b.b);i+=2;}else{o.push(w.s[i]);i++;}}w.s=o;});
+  merges.push([b.a,b.b]);last=b.a+b.b;
+}
+function pill(txt,hot,k){const s=document.createElement("span");s.className="tok";s.style.background=hot?"var(--warn-soft)":cols[k%2];if(hot)s.style.borderColor="var(--warn)";s.textContent=txt;return s;}
+function render(){
+  CP.textContent="";
+  words.forEach(w=>{const r=document.createElement("div");r.className="tokens";r.style.alignItems="center";
+    w.s.forEach((p,k)=>r.appendChild(pill(p,p===last,k)));
+    const x=document.createElement("span");x.className="mono muted";x.style.marginLeft="6px";x.textContent="× "+w.f;r.appendChild(x);CP.appendChild(r);});
+  const P=pairs().sort((x,y)=>y.n-x.n);const b=best();
+  const tb=G.$("#g12-pairs tbody");tb.textContent="";
+  P.slice(0,6).forEach((p,i)=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td class="mono">${p.a} + ${p.b}</td><td class="mono">${p.n}</td>`;
+    if(b&&p.a===b.a&&p.b===b.b){tr.style.background="var(--warn-soft)";tr.firstChild.style.fontWeight="600";}tb.appendChild(tr);});
+  if(!P.length){tb.innerHTML='<tr><td colspan="2" class="muted">Nessuna coppia rimasta: ogni parola è un pezzo solo.</td></tr>';}
+  const msg=G.$("#g12-msg");
+  if(!merges.length)msg.textContent="Punto di partenza: ogni parola è una fila di lettere. La coppia più frequente è evidenziata; il prossimo clic la fonde in un pezzo solo.";
+  else if(!b)msg.textContent="Fine: le sei parole sono diventate sei pezzi. Il vocabolario ha tutte le lettere più "+merges.length+" fusioni. Un vocabolario vero si ferma molto prima, alla dimensione decisa in anticipo.";
+  else msg.textContent="Ultima fusione: «"+merges[merges.length-1][0]+"» + «"+merges[merges.length-1][1]+"» → «"+last+"». Ora la coppia più frequente è «"+b.a+" + "+b.b+"» ("+b.n+" volte).";
+  const letters=new Set();CORPUS.forEach(c=>[...c[0]].forEach(l=>letters.add(l)));
+  G.$("#g12-nv").textContent="· vocabolario: "+(letters.size+merges.length)+" voci ("+letters.size+" lettere + "+merges.length+" fusioni)";
+  const mb=G.$("#g12-merges");mb.textContent="";
+  if(!merges.length){const s=document.createElement("span");s.className="muted";s.style.fontSize=".85rem";s.textContent="ancora nessuna";mb.appendChild(s);}
+  merges.forEach((m,i)=>mb.appendChild(pill((i+1)+". "+m[0]+" + "+m[1]+" → "+m[0]+m[1],false,i)));
+  test();
+}
+function test(){
+  const t=G.$("#g12-test").value.toLowerCase().replace(/[^a-z]/g,"");
+  let s=[...t];
+  merges.forEach(m=>{const o=[];let i=0;while(i<s.length){if(i<s.length-1&&s[i]===m[0]&&s[i+1]===m[1]){o.push(m[0]+m[1]);i+=2;}else{o.push(s[i]);i++;}}s=o;});
+  const out=G.$("#g12-out");out.textContent="";
+  s.forEach((p,k)=>out.appendChild(pill(p,false,k)));
+  const n=document.createElement("span");n.className="mono muted";n.style.marginLeft="6px";n.style.alignSelf="center";n.textContent=s.length+" pezzi";out.appendChild(n);
+}
+G.$("#g12-step").addEventListener("click",()=>{const b=best();if(b)doMerge(b);render();});
+G.$("#g12-all").addEventListener("click",()=>{let b;while((b=best()))doMerge(b);render();});
+G.$("#g12-reset").addEventListener("click",()=>{init();render();});
+G.$("#g12-test").addEventListener("input",test);
+init();render();
+</script>

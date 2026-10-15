@@ -1,0 +1,64 @@
+<figure class="fig">
+<p class="fig-title">Una carta senza nomi <span class="tag">illustrazione</span></p>
+<svg id="g14-svg" viewBox="0 0 420 410" role="img" aria-label="Piano con gruppi di parole vicine: animali, fatture, persone, mobili, verbi, fiumi. Opzionalmente frecce parallele che portano da maschile a femminile e il punto «letto» che si sposta secondo il contesto."></svg>
+<div class="row" style="margin-top:12px">
+  <button class="btn ghost" id="g14-names" type="button" aria-pressed="false">Dai un nome alle regioni</button>
+  <button class="btn ghost" id="g14-dir" type="button" aria-pressed="false">Mostra la direzione «femminile»</button>
+</div>
+<div class="row" style="margin-top:10px">
+  <span class="muted" style="font-size:.85rem">«letto» in una frase:</span>
+  <div class="seg" id="g14-seg" role="group" aria-label="Contesto della parola letto">
+    <button type="button" data-v="0" aria-pressed="true">da solo</button>
+    <button type="button" data-v="1" aria-pressed="false">il letto è comodo</button>
+    <button type="button" data-v="2" aria-pressed="false">ha letto un libro</button>
+    <button type="button" data-v="3" aria-pressed="false">il letto del fiume</button>
+  </div>
+</div>
+<figcaption>Le regioni esistono, gli assi non hanno etichette: i nomi li diamo noi dopo, guardando dove finiscono le cose. Le tre frecce hanno la stessa direzione e lunghezza (re → regina, uomo → donna, attore → attrice): una direzione cattura una relazione. Il punto «letto» entra carico di significati e si sposta secondo il contesto. Posizioni inventate; l'idea del punto con due numeri è di Cartesio (1637).</figcaption>
+</figure>
+<script>
+const S=G.$("#g14-svg");if(!S)return;
+const sx=x=>210+x*47, sy=y=>205-y*46;
+const C=[
+ {n:"animali",c:"var(--accent)",p:[["gatto",-3.3,2.7],["cane",-2.6,3.1],["criceto",-3.7,3.2]]},
+ {n:"fatture",c:"var(--warn)",p:[["fattura",3.0,-2.3],["scadenza",3.5,-1.6],["IVA",2.9,-3.1]]},
+ {n:"persone",c:"var(--good)",p:[["uomo",-0.4,1.0],["donna",-0.1,-0.4],["re",1.0,1.8],["regina",1.3,0.4],["attore",-1.7,2.0],["attrice",-1.4,0.6]]},
+ {n:"mobili",c:"var(--bad)",p:[["armadio",3.0,2.7],["tavolo",3.6,3.1]]},
+ {n:"verbi",c:"var(--muted)",p:[["leggere",-3.2,-2.2],["scrivere",-3.7,-3.1]]},
+ {n:"fiumi",c:"var(--accent)",p:[["fiume",-0.2,-3.1],["lago",0.8,-3.5]]}
+];
+const D=[0.3,-1.4];
+const L=[[0.3,-1.9],[2.2,2.2],[-2.4,-1.5],[0.5,-3.0]]; // letto per contesto
+let cur=[...L[0]],showN=false,showD=false,raf=0;
+function draw(){
+  G.clear(S);
+  G.el("line",{x1:15,x2:405,y1:205,y2:205,stroke:"var(--grid)"},S);G.el("line",{x1:210,x2:210,y1:8,y2:400,stroke:"var(--grid)"},S);
+  C.forEach(g=>{
+    const cx=g.p.reduce((s,q)=>s+q[1],0)/g.p.length,cy=g.p.reduce((s,q)=>s+q[2],0)/g.p.length;
+    const rx=Math.max(...g.p.map(q=>Math.abs(q[1]-cx)))*47+28,ry=Math.max(...g.p.map(q=>Math.abs(q[2]-cy)))*46+22;
+    G.el("ellipse",{cx:sx(cx),cy:sy(cy),rx,ry,fill:g.c,opacity:.12,stroke:g.c,"stroke-opacity":.5,"stroke-dasharray":"4 3"},S);
+    if(showN)G.el("text",{x:sx(cx),y:sy(cy)+ry+13,"text-anchor":"middle",style:"font-size:13px;font-weight:700;fill:"+g.c},S,g.n);
+  });
+  if(showD){
+    [["re","regina"],["uomo","donna"],["attore","attrice"]].forEach(pr=>{
+      const a=C[2].p.find(q=>q[0]===pr[0]),b=C[2].p.find(q=>q[0]===pr[1]);
+      G.el("line",{x1:sx(a[1]),y1:sy(a[2]),x2:sx(b[1]),y2:sy(b[2]),stroke:"var(--ink)","stroke-width":2,"marker-end":"url(#g14-ah)"},S);
+    });
+  }
+  const df=G.el("defs",{},S);const mk=G.el("marker",{id:"g14-ah",viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto"},df);G.el("path",{d:"M0 0L10 5L0 10z",fill:"var(--ink)"},mk);
+  C.forEach(g=>g.p.forEach(q=>{
+    G.el("circle",{cx:sx(q[1]),cy:sy(q[2]),r:4.5,fill:g.c},S);
+    const side=["donna","regina","attrice"].includes(q[0]);
+    G.el("text",{x:sx(q[1])+(side?8:0),y:sy(q[2])+(side?4:-8),"text-anchor":side?"start":"middle",style:"font-size:13px"},S,q[0]);
+  }));
+  G.el("circle",{cx:sx(cur[0]),cy:sy(cur[1]),r:8,fill:"var(--surface)",stroke:"var(--ink)","stroke-width":2.5},S);
+  G.el("text",{x:sx(cur[0]),y:sy(cur[1])+22,"text-anchor":"middle",style:"font-size:13px;font-weight:700"},S,"letto");
+}
+function moveTo(t){cancelAnimationFrame(raf);const f=[...cur],t0=performance.now();
+  (function tick(now){const k=Math.min(1,(now-t0)/600),e=k*(2-k);cur=[f[0]+(t[0]-f[0])*e,f[1]+(t[1]-f[1])*e];draw();if(k<1)raf=requestAnimationFrame(tick);})(t0);}
+G.seg("#g14-seg",v=>moveTo(L[+v]));
+const bn=G.$("#g14-names"),bd=G.$("#g14-dir");
+bn.addEventListener("click",()=>{showN=!showN;bn.setAttribute("aria-pressed",showN);bn.textContent=showN?"Togli i nomi":"Dai un nome alle regioni";draw();});
+bd.addEventListener("click",()=>{showD=!showD;bd.setAttribute("aria-pressed",showD);bd.textContent=showD?"Nascondi la direzione":"Mostra la direzione «femminile»";draw();});
+draw();
+</script>

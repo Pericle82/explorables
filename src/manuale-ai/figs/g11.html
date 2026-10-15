@@ -1,0 +1,77 @@
+<figure class="fig">
+<p class="fig-title">Vocabolario piccolo o grande? <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g11-seg" role="group" aria-label="Vocabolari a confronto">
+    <button type="button" data-v="850" aria-pressed="false">Basic English 850 (1930)</button>
+    <button type="button" data-v="32000" aria-pressed="false">Llama 2 32.000</button>
+    <button type="button" data-v="50000" aria-pressed="false">GPT-2 50.000</button>
+    <button type="button" data-v="128000" aria-pressed="true">Llama 3 128.000</button>
+    <button type="button" data-v="200000" aria-pressed="false">GPT-4o 200.000</button>
+  </div>
+</div>
+<div class="grid2">
+  <div><svg id="g11-a" viewBox="0 0 340 250" role="img" aria-label="Grafico: più il vocabolario cresce, meno token servono per una frase di venti parole."></svg></div>
+  <div><svg id="g11-b" viewBox="0 0 340 250" role="img" aria-label="Grafico: più il vocabolario cresce, più pesi ha la tabella degli embedding."></svg></div>
+</div>
+<div class="controls" style="margin-top:10px">
+  <div class="ctl"><label for="g11-v">Dimensione del vocabolario <output id="g11-vo"></output></label><input id="g11-v" type="range" min="2.408" max="5.7" step="0.005" value="5.107"></div>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Token per una frase di 20 parole italiane</small><strong id="g11-t"></strong></div>
+  <div><small>Pesi della tabella (voci × 4.096 numeri)</small><strong id="g11-w"></strong></div>
+</div>
+<figcaption>A sinistra: più voci nella lista, frasi più corte (curva illustrativa, ancorata a «più di cento pezzi» per lettera e a circa un token e mezzo per parola italiana). A destra: la tabella cresce in proporzione alle voci, e il prodotto voci × 4.096 è un calcolo reale. Scegli un modello o muovi il cursore.</figcaption>
+</figure>
+<script>
+const A=G.$("#g11-a"),B=G.$("#g11-b");if(!A||!B)return;
+const st=(s)=>"font-size:"+s+"px;fill:var(--muted)";
+const anchors=[[256,125],[850,88],[32000,50],[128000,30],[200000,28],[500000,25]].map(p=>[Math.log10(p[0]),p[1]]);
+function tokens(lv){for(let i=0;i<anchors.length-1;i++){const a=anchors[i],b=anchors[i+1];if(lv<=b[0]){return a[1]+(b[1]-a[1])*(lv-a[0])/(b[0]-a[0]);}}return anchors[anchors.length-1][1];}
+const D=4096;
+const L0=Math.log10(256),L1=5.8;
+const PX=60,PY=14,PW=268,PH=186;
+const sx=lv=>PX+(lv-L0)/(L1-L0)*PW;
+const xt=[[256,"256"],[1000,"1k"],[10000,"10k"],[100000,"100k"]];
+const MODELS=[850,32000,50000,128000,200000];
+function axes(svg,yt,yfn,yl,xl){
+  G.clear(svg);
+  xt.forEach(t=>{const x=sx(Math.log10(t[0]));G.el("line",{x1:x,x2:x,y1:PY,y2:PY+PH,stroke:"var(--grid)"},svg);G.el("text",{x,y:PY+PH+15,"text-anchor":"middle",style:st(10)},svg,t[1]);});
+  yt.forEach(t=>{const y=yfn(t[0]);G.el("line",{x1:PX,x2:PX+PW,y1:y,y2:y,stroke:"var(--grid)"},svg);G.el("text",{x:PX-5,y:y+3,"text-anchor":"end",style:st(10)},svg,t[1]);});
+  G.el("line",{x1:PX,x2:PX+PW,y1:PY+PH,y2:PY+PH,stroke:"var(--line)"},svg);
+  G.el("line",{x1:PX,x2:PX,y1:PY,y2:PY+PH,stroke:"var(--line)"},svg);
+  G.el("text",{x:PX+PW/2,y:PY+PH+32,"text-anchor":"middle",style:st(11)},svg,xl);
+  G.el("text",{x:10,y:PY+PH/2,"text-anchor":"middle",style:st(11),transform:`rotate(-90 10 ${PY+PH/2})`},svg,yl);
+}
+const ty=v=>PY+PH-(v/140)*PH;
+const wmax=Math.pow(10,L1)*D;
+const wy=v=>PY+PH-(v/wmax)*PH;
+function draw(lv){
+  const V=Math.pow(10,lv);
+  axes(A,[[0,"0"],[50,"50"],[100,"100"]],ty,"token per frase","voci nel vocabolario (scala logaritmica)");
+  const pts=[];for(let l=L0;l<=L1+1e-9;l+=0.05)pts.push(sx(l)+","+ty(tokens(l)));
+  G.el("polyline",{points:pts.join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2.5},A);
+  MODELS.forEach(m=>G.el("circle",{cx:sx(Math.log10(m)),cy:ty(tokens(Math.log10(m))),r:3,fill:"var(--surface)",stroke:"var(--accent)","stroke-width":1.5},A));
+  G.el("circle",{cx:sx(lv),cy:ty(tokens(lv)),r:6,fill:"var(--accent)"},A);
+  G.el("text",{x:PX+8,y:PY+14,style:"font-size:11px;fill:var(--ink)"},A,"poche voci: frasi lunghe");
+  G.el("text",{x:PX+PW-6,y:ty(66),"text-anchor":"end",style:"font-size:11px;fill:var(--ink)"},A,"tante voci: frasi corte");
+  axes(B,[[0,"0"],[wmax/2,G.fmt(wmax/2e9,1)+" mld"],[wmax,G.fmt(wmax/1e9,1)+" mld"]],wy,"pesi della tabella","voci nel vocabolario (scala logaritmica)");
+  const pb=[];for(let l=L0;l<=L1+1e-9;l+=0.05)pb.push(sx(l)+","+wy(Math.pow(10,l)*D));
+  G.el("polyline",{points:pb.join(" "),fill:"none",stroke:"var(--warn)","stroke-width":2.5},B);
+  MODELS.forEach(m=>G.el("circle",{cx:sx(Math.log10(m)),cy:wy(m*D),r:3,fill:"var(--surface)",stroke:"var(--warn)","stroke-width":1.5},B));
+  G.el("circle",{cx:sx(lv),cy:wy(V*D),r:6,fill:"var(--warn)"},B);
+  G.el("text",{x:PX+8,y:PY+14,style:"font-size:11px;fill:var(--ink)"},B,"tabella enorme se le voci sono tante");
+}
+const sl=G.$("#g11-v");
+function upd(){
+  const lv=+sl.value,V=Math.pow(10,lv);
+  const Vr=V<2000?Math.round(V):Math.round(V/100)*100;
+  G.$("#g11-vo").textContent=G.fmt(Vr,0);
+  G.$("#g11-t").textContent="≈ "+G.fmt(tokens(lv),0);
+  const w=Vr*D;
+  G.$("#g11-w").textContent=w>=1e9?G.fmt(w/1e9,2)+" miliardi":G.fmt(w/1e6,1)+" milioni";
+  draw(lv);
+}
+const get=G.seg("#g11-seg",v=>{sl.value=Math.log10(+v);upd();});
+sl.addEventListener("input",()=>{G.$("#g11-seg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false"));upd();});
+sl.value=Math.log10(128000);upd();
+</script>

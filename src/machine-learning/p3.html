@@ -1,0 +1,228 @@
+
+<div class="part">
+  <p class="part-label">Parte III</p>
+  <h2 class="part-title" id="toc-iii">Senza la risposta: raggruppare, trovare l'anomalia, raccomandare, decidere</h2>
+</div>
+
+<!-- ============ 11 · CLUSTERING ============ -->
+<section class="st" id="s11">
+  <div class="sec-head"><span class="eyebrow">11 · Raggruppare</span><h2>k-means: trovare i gruppi quando nessuno ha scritto le etichette</h2></div>
+  <div class="prose stack">
+    <p class="q">Hai le misure di mille clienti (quanto spendono, quanto spesso) e vuoi dividerli in tre gruppi per tre campagne. <b>Nessuno ti ha detto quali sono i gruppi: come li trovi?</b></p>
+    <p>Con il primo algoritmo non supervisionato della guida, <b>k-means</b>. L'idea è di una semplicità disarmante, e si capisce guardandola girare. Si scelgono K punti a caso, i <b>centroidi</b>, uno per gruppo. Poi si ripetono due mosse. <b>Assegna</b>: ogni esempio viene assegnato al centroide più vicino. <b>Sposta</b>: ogni centroide si trasferisce nel baricentro (la media) degli esempi che gli sono stati assegnati. Si ripete finché i centroidi smettono di muoversi. Dopo poche iterazioni i centroidi si sono sistemati nel mezzo dei gruppi, anche se all'inizio erano in posizioni assurde; e funziona anche quando i gruppi non sono ben separati (le taglie di una maglietta su un continuo di altezze e pesi: S, M, L sono un k-means con K = 3).</p>
+    <p>Dietro le due mosse c'è una funzione di costo, come sempre: la <b>distorsione</b>, la media delle distanze al quadrato tra ogni esempio e il centroide a cui è assegnato, <span class="k">J = 1/m · Σ ‖x<sup>(i)</sup> − μ<sub>c<sup>(i)</sup></sub>‖²</span>. La mossa «assegna» la minimizza rispetto alle assegnazioni tenendo fermi i centroidi; la mossa «sposta» la minimizza rispetto ai centroidi tenendo ferme le assegnazioni. Per questo J non può mai salire da un'iterazione all'altra, e se sale c'è un errore nel codice. Se un centroide resta senza punti, lo si elimina o lo si reinizializza.</p>
+  </div>
+
+  <h3 id="s11-init" class="anchor">Inizializzazione e scelta di K</h3>
+  <div class="prose stack">
+    <p>Il risultato dipende da dove partono i centroidi: inizializzazioni diverse portano a minimi locali diversi, alcuni chiaramente peggiori (due centroidi che si dividono un gruppo e un terzo che ne copre due). La pratica standard: scegliere i centroidi iniziali tra gli esempi stessi (K punti a caso del dataset), eseguire k-means <b>50–1.000 volte</b> con inizializzazioni diverse, e tenere la soluzione con la distorsione J più bassa. Costa poco e toglie quasi sempre i minimi cattivi.</p>
+    <p>Quanti gruppi? Non c'è una risposta «giusta» dai dati: i dati non dicono quanti cluster hanno, e J scende sempre aumentando K (con K = m ogni punto è il proprio centroide e J = 0), quindi minimizzare J su K non ha senso. Il <b>metodo del gomito</b> disegna J in funzione di K e cerca il punto in cui smette di scendere in fretta; spesso il gomito non c'è. Il criterio migliore è lo <b>scopo a valle</b>: tre taglie o cinque? Dipende da quanto costa produrne cinque e quanto meglio vestono. K si sceglie per come verranno usati i cluster, non per una statistica.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: k-means passo per passo</h3><span class="tag">matematica reale</span></div>
+    <p>Novanta punti in tre gruppi (non etichettati). Scegli K, poi alterna «Assegna» e «Sposta» e guarda i centroidi (le croci) trovare i gruppi; la distorsione J non sale mai. «Nuova partenza» pesca altri centroidi iniziali: a volte si finisce in un minimo peggiore.</p>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>K</label><div class="seg" id="kmK" role="group" aria-label="Numero di cluster"><button aria-pressed="false" data-v="2">2</button><button aria-pressed="true" data-v="3">3</button><button aria-pressed="false" data-v="4">4</button><button aria-pressed="false" data-v="6">6</button></div></div>
+      <div class="row" style="flex:0 1 auto"><button class="btn" id="kmStep">Assegna / Sposta</button><button class="btn ghost" id="kmRun">Fino a convergenza</button><button class="btn ghost" id="kmNew">Nuova partenza</button></div>
+    </div>
+    <div class="grid2">
+      <svg id="kmChart" class="chart" viewBox="0 0 360 360" style="max-width:420px" role="img" aria-label="Punti, centroidi e assegnazioni"></svg>
+      <div class="stack"><div class="readout" id="kmRead"></div><svg id="kmJ" class="chart" viewBox="0 0 400 160" role="img" aria-label="Distorsione per iterazione"></svg><p class="callout" id="kmMsg"></p></div>
+    </div>
+  </div>
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 11</p>
+    <ul>
+      <li><strong>k-means</strong> — K centroidi; ripeti: assegna ogni punto al centroide più vicino, sposta ogni centroide nella media dei suoi punti</li>
+      <li><strong>Distorsione</strong> — media delle distanze² dal proprio centroide; ogni mossa la abbassa, non può salire</li>
+      <li><strong>Inizializzazione</strong> — centroidi scelti tra i punti; molte ripartenze, tieni la J minima</li>
+      <li><strong>K</strong> — non lo dicono i dati: gomito se c'è, altrimenti lo scopo a valle</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi</p>
+    <ol><li>Perché la distorsione non può aumentare tra un'iterazione e la successiva?</li><li>Perché non si sceglie K minimizzando J?</li><li>Che cosa fa k-means su dati senza gruppi netti, come altezze e pesi?</li></ol>
+  </div>
+</section>
+
+<!-- ============ 12 · ANOMALIE ============ -->
+<section class="st" id="s12">
+  <div class="sec-head"><span class="eyebrow">12 · Trovare l'anomalia</span><h2>Imparare com'è fatto il normale, per riconoscere ciò che non lo è</h2></div>
+  <div class="prose stack">
+    <p class="q">Hai i dati di mille motori d'aereo appena prodotti: vibrazione, temperatura, consumo. Quasi tutti sono buoni; non sai quali no, e i difettosi sono pochi e tutti diversi. <b>Come li segnali?</b></p>
+    <p>Non con la classificazione: per addestrare un classificatore servirebbero molti esempi di difetti, e di ogni tipo di difetto, mentre i difetti futuri saranno diversi da quelli passati. Il <b>rilevamento di anomalie</b> rovescia il problema: impara com'è fatto un motore <i>normale</i>, con un modello di probabilità p(x) stimato sugli esempi, e segnala come anomalo tutto ciò che il modello ritiene molto improbabile, <span class="k">p(x) &lt; ε</span>. Non serve sapere che forma avrà il prossimo difetto: basta che non somigli al normale. Lo stesso schema vale per le frodi (comportamenti anomali di un account), il monitoraggio dei server, i controlli di qualità.</p>
+  </div>
+
+  <h3 id="s12-gauss" class="anchor">La gaussiana e il prodotto delle probabilità</h3>
+  <div class="prose stack">
+    <p>Il modello più semplice per «com'è fatto il normale» è la distribuzione <b>gaussiana</b> (o normale), la campana: ha un centro μ (la media) e una larghezza σ (la deviazione standard), e la probabilità di un valore x decresce con il quadrato della sua distanza dal centro, misurata in σ: <span class="k">p(x) = 1/(√(2π)·σ) · e<sup>−(x−μ)²/(2σ²)</sup></span>. Stimare μ e σ dai dati è un calcolo diretto: μ è la media dei valori, σ² la media dei quadrati degli scarti. Con n feature si stima una gaussiana per ciascuna e si <b>moltiplicano</b>: p(x) = p(x₁)·p(x₂)·…·p(x<sub>n</sub>). È un'ipotesi di indipendenza che quasi mai è vera, e che in pratica funziona lo stesso: un motore con vibrazione un po' alta <i>e</i> temperatura un po' alta ha una p piccola per effetto del prodotto, anche se nessuna delle due da sola sarebbe anomala.</p>
+    <p><b>Scegliere ε, e valutare.</b> Anche se il training è non supervisionato (solo esempi normali), per scegliere la soglia servono alcuni esempi anomali etichettati, pochi: si mettono nel cross-validation set insieme a molti normali, si prova una gamma di ε e si tiene quello con la F1 migliore (le anomalie sono rare: precisione e recall, non accuratezza, come nel capitolo 9). Il test set, se i difetti bastano, funziona uguale. Una regola di massima sulla scelta tra anomalie e classificazione: con pochissimi positivi (0–20) e difetti di tipo sempre nuovo, rilevamento di anomalie; con molti positivi e difetti che si ripetono, un classificatore supervisionato.</p>
+    <p><b>Le feature contano più dell'algoritmo.</b> Se una feature ha una distribuzione molto lontana dalla campana (una coda lunga a destra), una trasformazione la rende più gaussiana: log(x), log(x + c), √x, x<sup>1/3</sup>; si prova a occhio con l'istogramma. E quando un'anomalia sfugge perché le sue feature prese una per una sono normali, si <b>costruisce una feature</b> che la cattura: un server con CPU normale e traffico normale ma CPU/traffico altissimo (un processo bloccato in un ciclo) si vede solo con il rapporto. È lo stesso lavoro del capitolo 4, con lo stesso effetto decisivo.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la soglia su una gaussiana</h3><span class="tag">matematica reale</span></div>
+    <p>Trecento misure di vibrazione di motori buoni, più sette motori etichettati come difettosi (in rosso) usati solo per scegliere la soglia. La campana è stimata dai dati; sposta ε e guarda quali punti finiscono sotto la soglia, e come cambiano precisione e recall sui sette difettosi.</p>
+    <div class="controls">
+      <div class="ctl"><label for="adE">soglia ε (scala logaritmica) <output id="adEo"></output></label><input id="adE" type="range" min="-7" max="-0.5" step="0.05" value="-3"></div>
+      <div class="ctl" style="flex:0 1 auto"><label>Feature</label><div class="seg" id="adT" role="group" aria-label="Trasformazione"><button aria-pressed="true" data-v="raw">grezza (coda lunga)</button><button aria-pressed="false" data-v="log">log(x)</button></div></div>
+    </div>
+    <svg id="adChart" class="chart" viewBox="0 0 560 260" style="max-width:720px" role="img" aria-label="Istogramma, gaussiana stimata e soglia"></svg>
+    <div class="readout" id="adRead"></div>
+    <p class="callout" id="adMsg"></p>
+  </div>
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 12</p>
+    <ul>
+      <li><strong>Idea</strong> — modella il normale con p(x), segnala p(x) &lt; ε; serve quando i positivi sono pochissimi e sempre diversi</li>
+      <li><strong>Gaussiana</strong> — μ e σ stimati dai dati; con più feature il prodotto delle p</li>
+      <li><strong>ε</strong> — scelto sul cross-validation set con poche anomalie etichettate, massimizzando F1</li>
+      <li><strong>Feature</strong> — trasformazioni (log, radice) verso la campana; feature costruite per le anomalie che sfuggono</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi</p>
+    <ol><li>Perché il rilevamento di anomalie si preferisce a un classificatore quando i difetti sono di tipo sempre nuovo?</li><li>Che cosa succede a precisione e recall abbassando ε?</li><li>Perché si trasforma una feature con il logaritmo prima di stimare la gaussiana?</li></ol>
+  </div>
+</section>
+
+<!-- ============ 13 · RECOMMENDER ============ -->
+<section class="st" id="s13">
+  <div class="sec-head"><span class="eyebrow">13 · Raccomandare</span><h2>Prevedere il voto che un utente darebbe a un film che non ha visto</h2></div>
+  <div class="prose stack">
+    <p class="q">Hai una tabella utenti × film con i voti da 0 a 5, piena di buchi. <b>Come riempi i buchi</b>, cioè come prevedi quanto piacerebbe a Alice un film che non ha mai visto?</p>
+    <p>Se dei film conoscessi delle feature (quanto è romantico, quanto è d'azione), il problema sarebbe una regressione lineare <i>per ogni utente</i>: i parametri w<sup>(j)</sup>, b<sup>(j)</sup> di Alice si imparano dai voti che ha dato, e il voto previsto per il film i è w<sup>(j)</sup>·x<sup>(i)</sup> + b<sup>(j)</sup>. Il costo è l'errore quadratico sui soli voti esistenti (r(i,j) = 1), con la regolarizzazione. Ma le feature dei film, nella realtà, nessuno le ha scritte. E qui c'è un'idea bella: se conoscessi i <i>gusti</i> degli utenti (i loro w), potresti dedurre le feature di ogni film dai voti ricevuti, con la stessa regressione al contrario. Non conosciamo né gli uni né le altre: il <b>filtro collaborativo</b> (collaborative filtering) li impara <b>insieme</b>, minimizzando un unico costo rispetto a tutti i w<sup>(j)</sup>, b<sup>(j)</sup> e x<sup>(i)</sup> contemporaneamente, con la discesa del gradiente. Funziona perché gli utenti collaborano senza saperlo: i voti di molti su un film lo descrivono, e i voti di uno su molti film lo descrivono.</p>
+  </div>
+  <div class="vx vx-formula">J(w, b, x) <span class="op">=</span> ½ Σ<sub>(i,j) con voto</sub> ( w<sup>(j)</sup>·x<sup>(i)</sup> + b<sup>(j)</sup> − y<sup>(i,j)</sup> )² + λ/2 Σ‖w<sup>(j)</sup>‖² + λ/2 Σ‖x<sup>(i)</sup>‖² <small>La somma è sulle sole celle con un voto. Le feature x dei film non hanno un nome: sono numeri che il training sistema perché i voti tornino. Nessuno saprà mai se x₁ «significa» romantico; ma due film con x simili piacciono alle stesse persone, e questo basta per raccomandare «film simili» (quelli con ‖x<sup>(k)</sup> − x<sup>(i)</sup>‖ piccola).</small></div>
+  <div class="prose stack">
+    <p><b>Voti binari.</b> Spesso non ci sono stelle ma segnali sì/no: ha cliccato, ha comprato, ha guardato fino in fondo. Lo stesso modello passa da regressione a classificazione come nel capitolo 5: la previsione diventa g(w·x + b) con la sigmoide e il costo diventa la perdita logistica. <b>Normalizzazione per media.</b> Un utente nuovo, senza voti, finirebbe con w = 0 e previsioni tutte a zero stelle; sottraendo da ogni film la sua media dei voti prima del training, e risommandola dopo, le previsioni per chi non ha votato nulla diventano «la media degli altri», che è ragionevole, e la discesa del gradiente converge meglio. <b>In TensorFlow</b> il costo si scrive in poche righe e le derivate le calcola <span class="k">tf.GradientTape</span>: è la discesa del gradiente «a mano», senza strati Dense, perché il modello non è una rete.</p>
+  </div>
+
+  <h3 id="s13-content" class="anchor">Filtri basati sul contenuto e il sistema a due torri</h3>
+  <div class="prose stack">
+    <p>Il filtro collaborativo usa <i>solo i voti</i>. Ma di utenti e film si sa altro: età, paese, genere; anno, attori, durata. Il <b>filtro basato sul contenuto</b> usa due reti neurali: una trasforma le feature dell'utente in un vettore v<sub>u</sub>, l'altra le feature del film in un vettore v<sub>m</sub> della stessa lunghezza, e il voto previsto è il prodotto scalare v<sub>u</sub>·v<sub>m</sub>. Le due reti si addestrano insieme sui voti esistenti: è la stessa architettura «a due torri» che si usa per il retrieval nei sistemi di ricerca. Il vantaggio sul collaborativo è che funziona anche per un film nuovo senza voti (ha pure lui le feature) e per un utente nuovo. Con milioni di film non si calcola il prodotto per tutti a ogni richiesta: si fa <b>retrieval e ranking</b>, prima si pescano poche centinaia di candidati plausibili (i film simili agli ultimi visti, i più popolari nel genere preferito, con i v<sub>m</sub> precalcolati), poi si ordinano solo quelli con il modello completo.</p>
+    <p><b>Un'avvertenza che fa parte del corso.</b> Un sistema di raccomandazione ottimizza ciò che gli si chiede: se gli si chiede «massimizza il tempo di permanenza» imparerà a proporre contenuti che arrabbiano o danno dipendenza; se «massimizza il profitto per l'azienda» proporrà i prodotti con il margine più alto, non i migliori per l'utente. Decidere la funzione obiettivo è una scelta che riguarda le persone che useranno il sistema, e va dichiarata.</p>
+    <p><b>PCA, per guardare i dati.</b> Chiude il capitolo l'analisi delle componenti principali (Principal Component Analysis): dato un dataset con 50 feature, trova i pochi assi (2 o 3) lungo i quali i dati variano di più e li proietta su quelli, perdendo meno informazione possibile. Serve soprattutto per <b>visualizzare</b>: un grafico a due dimensioni di dati che ne avevano cinquanta. Non è un passo di pre-elaborazione raccomandato per il training (le reti e gli alberi gestiscono bene molte feature), ma è lo strumento per vedere se i cluster del capitolo 11 esistono davvero.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: filtro collaborativo su una tabella con i buchi</h3><span class="tag">matematica reale · training nel browser</span></div>
+    <p>Quattro utenti, cinque film, voti da 0 a 5 con i buchi (—). Il modello impara insieme i gusti w<sup>(j)</sup> di ogni utente e le feature x<sup>(i)</sup> di ogni film (due numeri per film) con la discesa del gradiente sul costo qui sopra. Premi «Allena» e guarda i buchi riempirsi; i voti esistenti vengono ricostruiti, quelli mancanti previsti.</p>
+    <div class="controls"><div class="row" style="flex:0 1 auto"><button class="btn" id="cfStep">Allena 200 passi</button><button class="btn ghost" id="cfReset">Ricomincia</button></div></div>
+    <div class="scroll-x"><table class="gtable" id="cfTable"></table></div>
+    <div class="readout" id="cfRead"></div>
+    <p class="callout" id="cfMsg"></p>
+    <p class="note">Con così pochi voti il modello ha molta libertà: la regolarizzazione (λ = 0,1) lo tiene a bada. Le feature dei film imparate sono due numeri senza nome: guarda nella tabella quali film finiscono con feature simili, e confrontalo con chi li ha votati allo stesso modo.</p>
+  </div>
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 13</p>
+    <ul>
+      <li><strong>Filtro collaborativo</strong> — impara insieme i gusti degli utenti w<sup>(j)</sup> e le feature dei film x<sup>(i)</sup> dai soli voti; film simili = x vicini</li>
+      <li><strong>Varianti</strong> — voti binari con la sigmoide; normalizzazione per media per gli utenti nuovi</li>
+      <li><strong>Basato sul contenuto</strong> — due reti (utente, film) → vettori, voto = prodotto scalare; funziona sui nuovi; retrieval poi ranking su larga scala</li>
+      <li><strong>Etica e PCA</strong> — l'obiettivo va dichiarato; PCA per vedere dati ad alta dimensione</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi</p>
+    <ol><li>Perché il costo del filtro collaborativo somma solo sulle celle con un voto?</li><li>Che cosa prevede il modello per un utente senza voti, con e senza normalizzazione per media?</li><li>Quale dei due filtri può raccomandare un film appena uscito, e perché?</li></ol>
+  </div>
+</section>
+
+<!-- ============ 14 · REINFORCEMENT LEARNING ============ -->
+<section class="st" id="s14">
+  <div class="sec-head"><span class="eyebrow">14 · Decidere</span><h2>Apprendimento per rinforzo: nessuno dice l'azione giusta, solo quanto è andata bene</h2></div>
+  <div class="prose stack">
+    <p class="q">Devi far atterrare un elicottero autonomo. Non esiste un dataset di «stato → comando giusto»: nessuno sa scriverlo. <b>Che cosa si può dare al programma, allora?</b></p>
+    <p>Una <b>ricompensa</b> (reward): un numero che dice quanto bene sta andando. Vola bene, +1; si schianta, −1000. È come addestrare un cane: non gli si spiega il movimento, gli si dice «bravo» o «no», e lui scopre che cosa fare. Nell'<b>apprendimento per rinforzo</b> (reinforcement learning, RL) un <b>agente</b> si trova in uno <b>stato</b> s, sceglie un'<b>azione</b> a, finisce in un nuovo stato s′ e riceve una ricompensa R; il compito è imparare una <b>policy</b> π, una regola che a ogni stato associa l'azione da fare, tale da massimizzare la ricompensa accumulata. La definizione si applica a tutto: robot, giochi (le partite a scacchi e Go dei programmi campioni), controllo industriale, trading, e, su scala enorme, l'ultima fase di addestramento degli assistenti linguistici.</p>
+  </div>
+
+  <h3 id="s14-return" class="anchor">Il rover su Marte, il ritorno e il fattore di sconto</h3>
+  <div class="prose stack">
+    <p>L'esempio del corso è un rover su una striscia di sei caselle. Nella casella 1 c'è una roccia molto interessante (ricompensa 100), nella 6 una meno interessante (40), nelle altre nulla; il rover parte dalla 4 e a ogni passo può andare a sinistra o a destra; raggiunta una delle due estremità la missione finisce (<i>stato terminale</i>). Che cosa deve fare? La roccia da 100 è lontana tre passi, quella da 40 due.</p>
+    <p>Per rispondere serve il <b>ritorno</b> (return): la somma delle ricompense future, ma con le più lontane che valgono meno, <span class="k">G = R₁ + γR₂ + γ²R₃ + …</span>, dove γ (gamma) è il <b>fattore di sconto</b>, un numero appena sotto 1 (0,9, 0,99). Il ritorno dice che un euro domani vale meno di un euro oggi, e rende l'agente un po' impaziente: con γ = 0,5, dalla casella 4 andare a sinistra rende 0 + 0,5·0 + 0,25·100 = 25, andare a destra 0 + 0,5·40 = 20; conviene la roccia grande. Con γ più piccolo vince la roccia vicina. Lo sconto serve anche a far convergere la somma quando il compito non ha fine, e con ricompense negative spinge a rimandare il male il più possibile.</p>
+  </div>
+
+  <h3 id="s14-q" class="anchor">La funzione Q e l'equazione di Bellman</h3>
+  <div class="prose stack">
+    <p>Lo strumento centrale è la <b>funzione stato-azione</b> <span class="k">Q(s, a)</span>: il ritorno che si ottiene partendo dallo stato s, facendo <i>una volta</i> l'azione a, e poi comportandosi nel modo migliore possibile. Se conosci Q, la policy ottima è immediata: in ogni stato scegli l'azione con Q più alta, <span class="k">π(s) = argmax<sub>a</sub> Q(s, a)</span>. Nel rover, Q(4, sinistra) = 25 e Q(4, destra) = 20 → sinistra.</p>
+    <p>Come si calcola Q senza enumerare tutti i futuri? Con l'<b>equazione di Bellman</b>, che è una definizione ricorsiva: <span class="k">Q(s, a) = R(s) + γ · max<sub>a′</sub> Q(s′, a′)</span>. Il ritorno di «fai a in s» è la ricompensa immediata più il meglio che puoi fare dallo stato in cui arrivi, scontato di un passo. Negli stati terminali Q(s, a) = R(s). L'equazione lega il valore di ogni stato a quello dei suoi vicini; applicarla ripetutamente (si parte da Q = 0 e si aggiorna ogni cella con la formula finché i valori non cambiano più) fa convergere Q al valore vero. Il laboratorio lo fa sotto i tuoi occhi.</p>
+    <p><b>Ambienti stocastici.</b> Il rover reale, comandato «sinistra», va a sinistra con probabilità 0,9 e scivola a destra con 0,1. Allora la ricompensa accumulata è casuale, l'obiettivo diventa il ritorno <i>atteso</i> (la media su tanti tentativi) e Bellman prende una media sui possibili s′: Q(s, a) = R(s) + γ · E[max<sub>a′</sub> Q(s′, a′)]. Il resto non cambia.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: il rover e l'equazione di Bellman</h3><span class="tag">matematica reale</span></div>
+    <p>Sei caselle, ricompense 100 a sinistra e 40 a destra. Ogni pressione di «Un passo di Bellman» ricalcola Q(s, sinistra) e Q(s, destra) per tutte le caselle con l'equazione; le frecce indicano la policy ottima corrente (argmax). Cambia γ e guarda dove cambia la decisione del rover.</p>
+    <div class="controls">
+      <div class="ctl"><label for="rlG">fattore di sconto γ <output id="rlGo"></output></label><input id="rlG" type="range" min="0.1" max="0.99" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="rlP">probabilità di scivolare <output id="rlPo"></output></label><input id="rlP" type="range" min="0" max="0.5" step="0.05" value="0"></div>
+      <div class="row" style="flex:0 1 auto"><button class="btn" id="rlStep">Un passo di Bellman</button><button class="btn ghost" id="rlRun">Fino a convergenza</button><button class="btn ghost" id="rlReset">Azzera Q</button></div>
+    </div>
+    <div class="rl-grid" id="rlGrid"></div>
+    <div class="readout" id="rlRead"></div>
+    <p class="callout" id="rlMsg"></p>
+  </div>
+
+  <h3 id="s14-dqn" class="anchor">Stati continui: dal rover al lander, con una rete che stima Q</h3>
+  <div class="prose stack">
+    <p class="q">Un modulo lunare non ha sei caselle: ha posizione, velocità, angolo, velocità angolare, tutti numeri reali. <b>Dove si mette la tabella Q?</b></p>
+    <p>Da nessuna parte: si sostituisce con una rete neurale che, dato lo stato s (il vettore dei numeri) e un'azione, stima Q(s, a); in pratica la rete riceve s e produce quattro uscite, una per azione (niente, sinistra, motore principale, destra). È il <b>Deep Q-Network</b> (DQN). L'addestramento usa Bellman come fonte di esempi: si fa agire il lander (anche male), si registrano le quadruple (s, a, R, s′), e per ciascuna si costruisce un esempio di training con input s e target y = R + γ·max<sub>a′</sub> Q(s′, a′), dove Q sul lato destro è calcolata dalla rete attuale. Si addestra la rete su questi esempi con l'errore quadratico, si aggiorna, si ripete. È una regressione in cui i target cambiano man mano che la rete migliora, e converge verso la Q vera.</p>
+    <p>Tre accorgimenti rendono la ricetta stabile. L'<b>ε-greedy</b>: durante la raccolta, con probabilità 1 − ε si fa l'azione che la rete attuale ritiene migliore, con probabilità ε (per esempio 0,05, o alta all'inizio e decrescente) un'azione a caso, altrimenti la rete non scopre mai che un'azione che oggi stima male è in realtà buona (è l'<i>esplorazione</i>, lo stesso dilemma degli assistenti linguistici addestrati con RL). Il <b>replay buffer</b> con i <b>mini-batch</b>: si tengono le ultime 10.000 quadruple e a ogni passo si addestra su un campione di 1.000, non su tutto, per velocità. Gli <b>aggiornamenti morbidi</b> (soft update): invece di sostituire la rete di colpo con quella appena addestrata, la si muove di poco verso di essa, Q ← 0,01·Q<sub>nuova</sub> + 0,99·Q, così i target non saltano a ogni passo.</p>
+    <p><b>Il realismo.</b> L'RL è l'area più promettente e meno matura del corso: funziona benissimo nei simulatori e nei giochi, molto meno nel mondo fisico (robot veri, con sensori rumorosi e conseguenze costose), e il divario simulazione-realtà è un problema di ricerca aperto. Nelle applicazioni industriali di oggi l'apprendimento supervisionato e quello non supervisionato pesano molto di più. Ma le idee, ritorno, policy, esplorazione, sono quelle che oggi insegnano ai modelli linguistici a ragionare.</p>
+  </div>
+  <div class="recap">
+    <p class="recap-title">In sintesi · capitolo 14</p>
+    <ul>
+      <li><strong>RL</strong> — stato, azione, ricompensa, policy: nessuno dice l'azione giusta, solo quanto è andata bene</li>
+      <li><strong>Ritorno</strong> — somma scontata delle ricompense, γ &lt; 1: il futuro vale meno</li>
+      <li><strong>Q(s, a)</strong> — ritorno facendo a in s e poi il meglio; policy ottima = argmax; <strong>Bellman</strong>: Q(s,a) = R(s) + γ·max Q(s′,a′), con la media se l'ambiente è stocastico</li>
+      <li><strong>DQN</strong> — una rete stima Q su stati continui; esempi da Bellman; ε-greedy, replay buffer e mini-batch, soft update</li>
+    </ul>
+    <p class="recap-sub">Autodiagnosi</p>
+    <ol><li>Perché con γ = 0,3 il rover nella casella 4 preferisce la roccia da 40?</li><li>Che cosa dice l'equazione di Bellman, a parole?</li><li>Perché senza esplorazione (ε = 0) il lander può non imparare mai certe manovre?</li></ol>
+  </div>
+</section>
+
+<!-- ============ RIEPILOGO ============ -->
+<section class="st" id="sum">
+  <div class="sec-head"><span class="eyebrow">Riepilogo</span><h2>Tutti gli algoritmi, letti con la stessa griglia</h2></div>
+  <div class="prose stack" style="margin-bottom:18px">
+    <p>Ogni algoritmo della guida risponde alle stesse tre domande: che cosa c'è nei dati, che forma ha il modello e che cosa minimizza. Le tre colonne centrali della tabella sono il motivo per cui, imparata la regressione lineare, il resto si riconosce.</p>
+  </div>
+  <div class="scroll-x"><table class="sum">
+    <thead><tr><th>Algoritmo</th><th>Dati</th><th>Modello</th><th>Costo / criterio</th><th>Come si ottimizza</th><th>Quando usarlo</th></tr></thead>
+    <tbody>
+      <tr><td>Regressione lineare</td><td>x, y numero</td><td>w·x + b</td><td>errore quadratico medio</td><td>discesa del gradiente</td><td>prevedere una quantità</td></tr>
+      <tr><td>Regressione logistica</td><td>x, y ∈ {0,1}</td><td>g(w·x + b)</td><td>perdita logistica</td><td>discesa del gradiente</td><td>sì/no, con probabilità</td></tr>
+      <tr><td>Rete neurale</td><td>x, y</td><td>strati di neuroni, ReLU, softmax</td><td>cross-entropy / quadratico</td><td>backpropagation + Adam</td><td>immagini, audio, testo; feature da imparare</td></tr>
+      <tr><td>Alberi, random forest, XGBoost</td><td>x tabellari, y</td><td>domande sì/no in sequenza, votate</td><td>entropia / varianza</td><td>scelta greedy dello split</td><td>dati tabellari</td></tr>
+      <tr><td>k-means</td><td>solo x</td><td>K centroidi</td><td>distorsione</td><td>assegna / sposta</td><td>segmentare, raggruppare</td></tr>
+      <tr><td>Rilevamento di anomalie</td><td>x normali (+ poche anomalie per ε)</td><td>gaussiana per feature</td><td>p(x) &lt; ε, F1 per ε</td><td>stima di μ, σ</td><td>difetti rari e sempre nuovi</td></tr>
+      <tr><td>Filtro collaborativo</td><td>voti utente × item con buchi</td><td>w<sup>(j)</sup>·x<sup>(i)</sup> + b<sup>(j)</sup></td><td>quadratico sui voti presenti + λ</td><td>discesa del gradiente su w e x insieme</td><td>raccomandare</td></tr>
+      <tr><td>Apprendimento per rinforzo</td><td>stati, azioni, ricompense</td><td>Q(s, a), tabella o rete</td><td>Bellman: R + γ·max Q</td><td>iterazione di Bellman / DQN</td><td>decidere in sequenza</td></tr>
+    </tbody>
+  </table></div>
+  <p class="prose note" style="margin-top:18px">Il corso si chiude con un consiglio che vale più degli algoritmi: la maggior parte dei progetti fallisce non perché manca il modello giusto ma perché manca la diagnosi (capitolo 9). Prima di cambiare algoritmo, misura dove sbagli e perché.</p>
+
+  <h3 id="gloss" class="anchor" style="margin-top:28px">Glossario</h3>
+  <dl class="gloss">
+    <div><dt>Feature</dt><dd>Una delle variabili d'ingresso x<sub>j</sub> di un esempio (superficie, numero di stanze, pixel). «Feature engineering» è inventarne di nuove combinando quelle esistenti.</dd></div>
+    <div><dt>Parametri (w, b)</dt><dd>I numeri che il training sistema: pesi w e intercetta b. In una rete sono le matrici di ogni strato; in un albero il ruolo è preso dalle domande scelte.</dd></div>
+    <div><dt>Funzione costo J</dt><dd>Un numero che misura quanto il modello sbaglia su tutto il training set. L'apprendimento è trovare i parametri che la rendono minima.</dd></div>
+    <div><dt>Discesa del gradiente</dt><dd>Ripetere w ← w − α·∂J/∂w: muovere ogni parametro contro la pendenza del costo. α è il learning rate (tasso di apprendimento).</dd></div>
+    <div><dt>Learning rate α</dt><dd>La lunghezza del passo della discesa. Troppo grande: diverge; troppo piccolo: lentissima. Adam lo adatta parametro per parametro.</dd></div>
+    <div><dt>Epoca</dt><dd>Un passaggio completo del training sull'intero training set. Le reti si addestrano per decine o centinaia di epoche.</dd></div>
+    <div><dt>Overfitting</dt><dd>Il modello segue il rumore del training set: errore di training basso, errore su dati nuovi alto. Si cura con più dati, meno feature o regolarizzazione. L'opposto è l'underfitting.</dd></div>
+    <div><dt>Regolarizzazione λ</dt><dd>Un termine λ/(2m)·Σw² aggiunto al costo che tiene piccoli i parametri e quindi semplice il modello. λ grande → underfitting; λ zero → rischio di overfitting.</dd></div>
+    <div><dt>Train / cross-validation / test</dt><dd>Tre partizioni dei dati: per imparare i parametri, per scegliere tra modelli (grado, λ, architettura) e per misurare una volta sola la prestazione finale.</dd></div>
+    <div><dt>Bias / varianza</dt><dd>Bias alto: il modello è troppo semplice, sbaglia anche sul training. Varianza alta: troppo flessibile, sbaglia sui dati nuovi. La diagnosi si fa confrontando J<sub>train</sub> e J<sub>cv</sub>.</dd></div>
+    <div><dt>Precisione / recall</dt><dd>Tra i positivi previsti, quanti lo sono davvero (precisione); tra i positivi veri, quanti sono stati trovati (recall). F1 è la loro media armonica.</dd></div>
+    <div><dt>Funzione di attivazione</dt><dd>La funzione non lineare applicata all'uscita di ogni neurone: ReLU negli strati nascosti, sigmoide o lineare in uscita, softmax per più classi.</dd></div>
+    <div><dt>Softmax</dt><dd>Trasforma N numeri qualsiasi in N probabilità che sommano a 1, esaltando il più grande: e<sup>z<sub>k</sub></sup> / Σ e<sup>z<sub>j</sub></sup>.</dd></div>
+    <div><dt>Backpropagation</dt><dd>L'algoritmo che calcola le derivate del costo rispetto a tutti i parametri di una rete, dall'uscita verso l'ingresso, riusando i conti già fatti.</dd></div>
+    <div><dt>Entropia</dt><dd>Misura dell'impurità di un gruppo di esempi: 0 se sono tutti della stessa classe, 1 bit se metà e metà. L'albero sceglie la domanda che la riduce di più (information gain).</dd></div>
+    <div><dt>Ensemble</dt><dd>Molti alberi che votano: random forest (alberi indipendenti su campioni diversi) o boosting come XGBoost (ogni albero corregge gli errori dei precedenti).</dd></div>
+    <div><dt>Centroide</dt><dd>Il punto medio di un cluster in k-means. L'algoritmo alterna: assegna ogni punto al centroide più vicino, sposta ogni centroide sulla media dei suoi punti.</dd></div>
+    <div><dt>Distorsione</dt><dd>Il costo di k-means: distanza quadratica media tra ogni punto e il suo centroide. Scende a ogni passo; il «gomito» del suo grafico in funzione di K suggerisce quanti cluster usare.</dd></div>
+    <div><dt>Soglia ε</dt><dd>Nel rilevamento di anomalie, il valore sotto il quale la densità p(x) fa dichiarare un esempio anomalo. Si sceglie sul cross-validation set massimizzando F1.</dd></div>
+    <div><dt>Filtro collaborativo</dt><dd>Sistema di raccomandazione che impara dai soli voti, insieme, i gusti degli utenti e le feature degli oggetti; prevede le celle vuote della tabella utenti × oggetti.</dd></div>
+    <div><dt>Ricompensa e ritorno</dt><dd>La ricompensa R è il numero che l'ambiente dà a ogni passo; il ritorno G = R₁ + γR₂ + γ²R₃ + … è la somma scontata di quelle future. γ è il fattore di sconto.</dd></div>
+    <div><dt>Funzione Q(s, a)</dt><dd>Il ritorno ottenuto facendo l'azione a nello stato s e poi agendo al meglio. Soddisfa l'equazione di Bellman Q(s, a) = R(s) + γ·max<sub>a′</sub> Q(s′, a′); la policy ottima è argmax<sub>a</sub> Q.</dd></div>
+    <div><dt>Policy</dt><dd>La regola che dice quale azione fare in ogni stato. Nel DQN (Deep Q-Network) la si ricava da una rete che approssima Q.</dd></div>
+    <div><dt>ε-greedy</dt><dd>Strategia di esplorazione: con probabilità 1 − ε fai l'azione migliore secondo Q, con probabilità ε una a caso. ε si abbassa durante il training.</dd></div>
+  </dl>
+</section>
+
+<footer>Guida originale basata sul programma della Machine Learning Specialization (DeepLearning.AI e Stanford Online, Andrew Ng, 2022): i concetti, l'ordine e gli esempi di riferimento (prezzi delle case, tumori, gatti, rover) seguono il corso; il testo, i dataset e i laboratori sono di questa guida. I laboratori con etichetta «matematica reale» eseguono davvero i calcoli descritti (costo, discesa del gradiente, training della rete, k-means, Bellman…) su dati generati con un seme fisso, abbastanza piccoli da seguire ogni numero.</footer>
+</div>

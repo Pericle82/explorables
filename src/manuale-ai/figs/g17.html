@@ -1,0 +1,54 @@
+<figure class="fig">
+<p class="fig-title">Un solo compito: indovinare il token successivo <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g17-sel" role="group" aria-label="Scegli un esempio">
+    <button type="button" data-v="0" aria-pressed="true">Shannon: «the qu»</button>
+    <button type="button" data-v="1" aria-pressed="false">Traduzione</button>
+    <button type="button" data-v="2" aria-pressed="false">Codice Python</button>
+    <button type="button" data-v="3" aria-pressed="false">Un fatto</button>
+    <button type="button" data-v="4" aria-pressed="false">Una dimostrazione</button>
+  </div>
+</div>
+<div class="diag">
+  <div class="box"><b style="display:block">Testo che c'è già</b><span class="mono" id="g17-in" style="white-space:pre-wrap;color:var(--ink)"></span></div>
+  <span class="arr">→</span>
+  <div class="box hot"><b style="display:block">LLM (Large Language Model)</b><span>rete neurale con miliardi di parametri</span></div>
+  <span class="arr">→</span>
+  <div class="box"><b style="display:block">Lista di probabilità</b><span>una per ogni token possibile</span></div>
+</div>
+<div class="bars" id="g17-bars" style="margin-top:14px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Quanto è sicuro</small><strong id="g17-conf"></strong></div>
+  <div><small>Che cosa serve per indovinare</small><strong id="g17-kind" style="font-family:var(--sans);font-size:1rem"></strong></div>
+</div>
+<figcaption>Tradurre, rispondere e scrivere codice sono la stessa operazione: dato il testo finora, prevedere cosa viene dopo. Cambia esempio e osserva la lista: per un fatto un token domina, per una dimostrazione la probabilità si disperde. Le percentuali sono inventate per chiarezza. Nell'esperimento di Shannon del 1951 si indovinavano lettere; gli LLM (Large Language Model) usano token.</figcaption>
+</figure>
+<script>
+if(!G.$("#g17-bars"))return;
+const D=[
+ {t:"the qu",k:"solo abitudini di scrittura: dopo «qu» arriva quasi sempre una E",c:[["e",97],["a",1.2],["i",0.8],["o",0.5]]},
+ {t:"Traduci in inglese: «Il gatto dorme.»\nTraduzione:",k:"la forma della richiesta: dopo «Traduzione:» ci vuole l'articolo inglese",c:[[" The",82],[" A",6],[" Cat",3],[" It",2]]},
+ {t:"def somma(a, b):\n    return",k:"la struttura del linguaggio di programmazione",c:[[" a",78],[" sum",6],[" b",4],[" None",3]]},
+ {t:"La capitale della Francia è",k:"un fatto: basta averlo visto spesso nei testi",c:[[" Parigi",95],[" Lione",1.5],[" la",1],[" una",0.7]]},
+ {t:"Dimostra che la radice di 2 è irrazionale.\nSupponiamo",k:"logica: nessun fatto da ripescare, molte vie plausibili",c:[[" per",38],[" che",27],[" ora",8],[" di",6]]}];
+const bars=G.$("#g17-bars");
+function show(i){
+  const d=D[i];G.$("#g17-in").textContent=d.t;
+  const rest=100-d.c.reduce((s,x)=>s+x[1],0);
+  const rows=d.c.concat([["altri token",rest]]);
+  bars.innerHTML="";
+  rows.forEach((r,j)=>{
+    const row=document.createElement("div");row.className="barrow";
+    const a=document.createElement("span");a.className=j<rows.length-1?"mono":"muted";a.textContent=j<rows.length-1?"«"+r[0].replace(" ","␣")+"»":r[0];
+    const tr=document.createElement("div");tr.className="track";
+    const f=document.createElement("div");f.className="fill";f.style.width=r[1]+"%";if(j===rows.length-1)f.style.background="var(--line)";
+    tr.appendChild(f);
+    const v=document.createElement("span");v.className="v";v.textContent=G.fmt(r[1],r[1]<10&&r[1]%1?1:0)+"%";
+    row.append(a,tr,v);bars.appendChild(row);
+  });
+  G.$("#g17-conf").textContent=G.fmt(d.c[0][1],0)+"% sul primo";
+  G.$("#g17-kind").textContent=d.k;
+}
+G.seg("#g17-sel",v=>show(+v));
+show(0);
+</script>

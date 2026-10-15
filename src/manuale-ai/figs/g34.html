@@ -1,0 +1,74 @@
+<figure class="fig">
+<p class="fig-title">Due lancette che girano insieme <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div><svg id="g34-svg" viewBox="0 0 320 300" role="img" aria-label="Piano con la query e la key come frecce; ciascuna è ruotata di un angolo proporzionale alla posizione del suo token."></svg></div>
+  <div><svg id="g34-cur" viewBox="0 0 320 300" role="img" aria-label="Prodotto scalare tra query e key in funzione della distanza tra le posizioni."></svg></div>
+</div>
+<div class="controls" style="margin-top:10px">
+  <div class="ctl"><label for="g34-m">Posizione della query (m) <output id="g34-mo"></output></label><input id="g34-m" type="range" min="0" max="30" step="1" value="10"></div>
+  <div class="ctl"><label for="g34-n">Posizione della key (n) <output id="g34-no"></output></label><input id="g34-n" type="range" min="0" max="30" step="1" value="13"></div>
+  <div class="ctl"><label for="g34-t">Angolo per ogni passo, θ <output id="g34-to"></output></label><input id="g34-t" type="range" min="0.05" max="0.6" step="0.01" value="0.25"></div>
+</div>
+<div class="row" style="margin-top:10px">
+  <button class="btn" id="g34-both" type="button">Sposta entrambe di +5</button>
+  <button class="btn ghost" id="g34-one" type="button">Sposta solo la key di +1</button>
+  <button class="btn ghost" id="g34-reset" type="button">Ricomincia</button>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Distanza n − m</small><strong id="g34-d"></strong></div>
+  <div><small>Angolo query / key</small><strong id="g34-ang"></strong></div>
+  <div><small>Prodotto scalare (punteggio di attention)</small><strong id="g34-dot"></strong></div>
+</div>
+<figcaption>La query (freccia piena) e la key (freccia piena, altro colore) sono due vettori in 2 dimensioni, cioè una sola «lancetta» ciascuno; i fantasmi tratteggiati sono i vettori originali. Il token in posizione m ruota la query di m·θ, quello in posizione n la key di n·θ. Premi «Sposta entrambe»: le frecce girano ma il prodotto scalare non cambia, perché dipende solo da n − m (la giostra). Sposta una sola posizione e il punteggio cambia. I vettori sono inventati; il calcolo no.</figcaption>
+</figure>
+<script>
+const S=G.$("#g34-svg"),C=G.$("#g34-cur");if(!S||!C)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+const q0=[1.5,0.5],k0=[1.1,0.9];
+const sm=G.$("#g34-m"),sn=G.$("#g34-n"),st=G.$("#g34-t");
+const rot=(v,a)=>[v[0]*Math.cos(a)-v[1]*Math.sin(a),v[0]*Math.sin(a)+v[1]*Math.cos(a)];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+const score=(m,n,t)=>dot(rot(q0,m*t),rot(k0,n*t));
+const cx=160,cy=150,R=110,sc=R/2;
+function arrow(svg,v,col,dash,w){
+  const x=cx+v[0]*sc,y=cy-v[1]*sc;
+  G.el("line",{x1:cx,y1:cy,x2:x,y2:y,stroke:col,"stroke-width":w||3,"stroke-dasharray":dash||"","stroke-linecap":"round"},svg);
+  const a=Math.atan2(cy-y,x-cx),h=9;
+  G.el("path",{d:`M${x} ${y} L${x-h*Math.cos(a-.4)} ${y+h*Math.sin(a-.4)} L${x-h*Math.cos(a+.4)} ${y+h*Math.sin(a+.4)} Z`,fill:col,opacity:dash?.5:1},svg);
+}
+function draw(){
+  const m=+sm.value,n=+sn.value,t=+st.value;
+  G.clear(S);
+  G.el("circle",{cx,cy,r:R,fill:"none",stroke:"var(--grid)"},S);
+  G.el("line",{x1:cx-R,x2:cx+R,y1:cy,y2:cy,stroke:"var(--grid)"},S);
+  G.el("line",{x1:cx,x2:cx,y1:cy-R,y2:cy+R,stroke:"var(--grid)"},S);
+  arrow(S,q0,"var(--accent)","4 3",2);arrow(S,k0,"var(--good)","4 3",2);
+  const q=rot(q0,m*t),k=rot(k0,n*t);
+  arrow(S,q,"var(--accent)");arrow(S,k,"var(--good)");
+  T(S,10,18,"query ruotata di "+G.fmt(m*t*180/Math.PI,0)+"° (m = "+m+")",11,"start","var(--accent)");
+  T(S,10,34,"key ruotata di "+G.fmt(n*t*180/Math.PI,0)+"° (n = "+n+")",11,"start","var(--good)");
+  // curva
+  G.clear(C);
+  const PX=36,PY=14,PW=270,PH=230,D=15;
+  const mx=Math.abs(q0[0]*k0[0]+q0[1]*k0[1])>0?Math.hypot(...q0)*Math.hypot(...k0):1;
+  const X=d=>PX+(d+D)/(2*D)*PW,Y=v=>PY+PH/2-(v/mx)*(PH/2);
+  [-15,-10,-5,0,5,10,15].forEach(d=>{G.el("line",{x1:X(d),x2:X(d),y1:PY,y2:PY+PH,stroke:"var(--grid)"},C);T(C,X(d),PY+PH+14,String(d),10,"middle","var(--muted)");});
+  [-mx,0,mx].forEach(v=>{G.el("line",{x1:PX,x2:PX+PW,y1:Y(v),y2:Y(v),stroke:v===0?"var(--line)":"var(--grid)"},C);T(C,PX-4,Y(v)+4,G.fmt(v,1),10,"end","var(--muted)");});
+  let pts="";for(let d=-D;d<=D;d+=.25)pts+=`${X(d).toFixed(1)},${Y(score(0,d,t)).toFixed(1)} `;
+  G.el("polyline",{points:pts,fill:"none",stroke:"var(--ink)","stroke-width":2,opacity:.55},C);
+  const dd=n-m,cl=Math.max(-D,Math.min(D,dd));
+  G.el("circle",{cx:X(cl),cy:Y(score(m,n,t)),r:6,fill:"var(--bad)",stroke:"var(--surface)","stroke-width":2},C);
+  T(C,PX+PW/2,PY+PH+30,"distanza n − m (token)",11,"middle","var(--muted)");
+  T(C,PX+4,PY+10,"punteggio",10.5,"start","var(--muted)");
+  G.$("#g34-mo").textContent=m;G.$("#g34-no").textContent=n;G.$("#g34-to").textContent=G.fmt(t,2)+" rad";
+  G.$("#g34-d").textContent=(dd>0?"+":"")+G.fmt(dd,0).replace(/,0+$/,"");
+  let ang=(dd*t+Math.atan2(k0[1],k0[0])-Math.atan2(q0[1],q0[0]))*180/Math.PI;ang=((ang+180)%360+360)%360-180;
+  G.$("#g34-ang").textContent=G.fmt(ang,0)+"°";
+  G.$("#g34-dot").textContent=G.fmt(score(m,n,t),3);
+}
+[sm,sn,st].forEach(s=>s.addEventListener("input",draw));
+G.$("#g34-both").addEventListener("click",()=>{let m=+sm.value,n=+sn.value;const d=Math.max(m,n)+5<=30?5:-Math.min(5,m,n);sm.value=m+d;sn.value=n+d;draw();});
+G.$("#g34-one").addEventListener("click",()=>{sn.value=+sn.value<30?+sn.value+1:+sn.value-1;draw();});
+G.$("#g34-reset").addEventListener("click",()=>{sm.value=10;sn.value=13;st.value=.25;draw();});
+draw();
+</script>

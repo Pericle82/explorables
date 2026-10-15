@@ -1,0 +1,65 @@
+<!-- after: Da dove viene -->
+<figure class="fig">
+<p class="fig-title">Il ribaltamento: dalle regole agli esempi <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g01-mode" role="group" aria-label="Scegli l'approccio">
+    <button type="button" data-v="rules" aria-pressed="true">Regole scritte a mano</button>
+    <button type="button" data-v="ml" aria-pressed="false">Machine learning</button>
+  </div>
+</div>
+<svg id="g01-svg" viewBox="0 0 460 250" role="img" aria-label="Schema a due ingressi e un'uscita: nell'approccio a regole entrano regole e dati ed escono risposte; nel machine learning entrano dati e risposte ed escono le regole."></svg>
+<div class="callout" id="g01-msg" style="margin-top:10px"></div>
+<figcaption>Premi i due bottoni: la macchina al centro è la stessa, cambia che cosa le dai e che cosa ti restituisce. Nel 1997 Deep Blue era il caso a sinistra; il gatto, che nessuno sa scomporre in istruzioni, è il caso a destra.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const svg=G.$("#g01-svg"); if(!svg||!G.$("#g01-msg"))return;
+const msg=G.$("#g01-msg");
+const MODES={
+ rules:{
+  a:{t:["Regole","scritte da esperti"],s:"«macchie scure = occhi»",hot:true},
+  b:{t:["Dati","una foto nuova"],s:"foto da classificare"},
+  c:{t:["Risposte","«gatto» / «non gatto»"],s:"applicando le regole"},
+  m:'<b>Programma tradizionale.</b> Un esperto scrive le regole e la macchina le applica ai dati. Funziona se le regole si sanno scrivere (scacchi, algebra), fallisce con il gatto.'
+ },
+ ml:{
+  a:{t:["Dati","migliaia di foto"],s:"immagini di ogni tipo"},
+  b:{t:["Risposte","già risolte"],s:"scritto accanto: «gatto»"},
+  c:{t:["Regole","dedotte dagli esempi"],s:"custodite nei numeri",hot:true},
+  m:'<b>Machine learning.</b> Si fornisce un grande numero di esempi già risolti e sono le regole a uscire dalla macchina, non a entrare.'
+ }
+};
+function box(x,y,w,h,d){
+  const g=G.el("g",{},svg);
+  G.el("rect",{x,y,width:w,height:h,rx:8,fill:d.hot?"var(--accent-soft)":"var(--surface-2)",stroke:d.hot?"var(--accent)":"var(--line)","stroke-width":d.hot?2:1},g);
+  G.el("text",{x:x+w/2,y:y+h/2-4,"text-anchor":"middle","font-size":14.5,"font-weight":600},g,d.t[0]);
+  G.el("text",{x:x+w/2,y:y+h/2+12,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},g,d.t[1]);
+}
+function arrow(x1,y1,x2,y2,hot){
+  G.el("path",{d:`M${x1} ${y1} L${x2} ${y2}`,stroke:hot?"var(--accent)":"var(--muted)","stroke-width":hot?2.5:1.8,fill:"none","marker-end":hot?"url(#g01-ah2)":"url(#g01-ah)"},svg);
+}
+function draw(mode){
+  const M=MODES[mode];G.clear(svg);
+  const defs=G.el("defs",{},svg);
+  [["g01-ah","var(--muted)"],["g01-ah2","var(--accent)"]].forEach(([id,c])=>{
+    const m=G.el("marker",{id,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto-start-reverse"},defs);
+    G.el("path",{d:"M0 0L10 5L0 10z",fill:c},m);});
+  box(5,25,140,70,M.a); box(5,150,140,70,M.b);
+  // macchina
+  G.el("rect",{x:185,y:75,width:90,height:100,rx:12,fill:"var(--surface)",stroke:"var(--ink)","stroke-width":1.5},svg);
+  G.el("text",{x:230,y:120,"text-anchor":"middle","font-size":14,"font-weight":600},svg,"Macchina");
+  G.el("text",{x:230,y:138,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},svg,"(computer)");
+  box(315,80,140,90,M.c);
+  const rulesIn=mode==="rules";
+  arrow(147,60,183,105,rulesIn);        // a -> macchina
+  arrow(147,185,183,145,false);         // b -> macchina
+  arrow(277,125,313,125,!rulesIn);      // macchina -> c
+  G.el("text",{x:75,y:112,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},svg,M.a.s);
+  G.el("text",{x:75,y:237,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},svg,M.b.s);
+  G.el("text",{x:385,y:190,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},svg,M.c.s);
+  G.el("text",{x:5,y:14,"font-size":12,style:"fill:var(--muted)"},svg,"IN ENTRATA");
+  G.el("text",{x:315,y:70,"font-size":12,style:"fill:var(--muted)"},svg,"IN USCITA");
+  fx(svg);msg.innerHTML=M.m;
+}
+G.seg("#g01-mode",draw);draw("rules");
+</script>

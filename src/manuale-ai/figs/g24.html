@@ -1,0 +1,91 @@
+<figure class="fig">
+<p class="fig-title">Addestramento e inferenza <span class="tag">calcolo reale</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g24-sel" role="group" aria-label="Fase">
+    <button type="button" data-v="t" aria-pressed="true">Addestramento</button>
+    <button type="button" data-v="i" aria-pressed="false">Inferenza</button>
+  </div>
+  <button class="btn" id="g24-go" type="button"></button>
+</div>
+<div class="grid2">
+  <div>
+    <svg id="g24-svg" viewBox="0 0 340 230" role="img" aria-label="Dodici manopole che rappresentano i pesi: durante l'addestramento ruotano, durante l'inferenza restano ferme."></svg>
+    <div class="readout" style="margin-top:6px">
+      <div><small>Manopole girate</small><strong id="g24-moved">0</strong></div>
+      <div><small id="g24-l2"></small><strong id="g24-v2"></strong></div>
+    </div>
+    <div class="callout" id="g24-out" style="margin-top:8px;min-height:2.6em"></div>
+  </div>
+  <div>
+    <svg id="g24-cost" viewBox="0 0 340 260" role="img" aria-label="Grafico logaritmico della spesa cumulata: l'addestramento è una cifra fissa, l'inferenza cresce con le risposte e a un certo punto la supera."></svg>
+    <div class="controls">
+      <div class="ctl"><label for="g24-r">Risposte servite <output id="g24-ro"></output></label><input id="g24-r" type="range" min="6" max="12" step="0.05" value="8"></div>
+    </div>
+    <div class="readout"><div><small>Spesa di inferenza finora</small><strong id="g24-inf"></strong></div><div><small>Addestramento</small><strong>30 mln $</strong></div></div>
+  </div>
+</div>
+<figcaption>A sinistra: le dodici manopole sono i pesi. In addestramento ogni passo le gira un po' verso i valori che riducono l'errore; in inferenza le manopole restano ferme, il modello le legge soltanto e scrive la risposta un token alla volta. A destra: l'addestramento si paga una volta, l'inferenza a ogni risposta e per un grande servizio finisce per costare di più. Cifre ipotetiche per illustrare: 30 milioni di dollari per addestrare («decine di milioni») e 0,1 centesimi per risposta («una frazione di centesimo»); il punto d'incontro è calcolato da queste due ipotesi.</figcaption>
+</figure>
+<script>
+const S=G.$("#g24-svg"),C=G.$("#g24-cost");if(!S||!C)return;
+const r=G.rng(5);
+const K=12;
+const tgt=Array.from({length:K},()=>-120+240*r());
+const ang=Array.from({length:K},()=>-120+240*r());
+const start=ang.slice();
+let mode="t",moved=0,steps=0,ans="",tokIdx=0;
+const OUT=["Capitale","della","Francia?","→","Parigi","."];
+const cx=i=>40+(i%4)*86, cy=i=>45+Math.floor(i/4)*70;
+function err(){return Math.sqrt(ang.reduce((s,a,i)=>s+(a-tgt[i])*(a-tgt[i]),0)/K)/240;}
+function drawKnobs(){
+  G.clear(S);
+  for(let i=0;i<K;i++){
+    const a=ang[i]*Math.PI/180;
+    G.el("circle",{cx:cx(i),cy:cy(i),r:24,fill:"var(--surface-2)",stroke:mode==="t"?"var(--accent)":"var(--line)","stroke-width":2},S);
+    G.el("line",{x1:cx(i),y1:cy(i),x2:cx(i)+20*Math.sin(a),y2:cy(i)-20*Math.cos(a),stroke:"var(--ink)","stroke-width":3,"stroke-linecap":"round"},S);
+  }
+  G.el("text",{x:170,y:222,"text-anchor":"middle",style:"font-size:12px;fill:var(--muted)"},S,mode==="t"?"i pesi cambiano a ogni passo":"i pesi sono congelati: solo lettura");
+}
+function ui(){
+  G.$("#g24-go").textContent=mode==="t"?"Un passo di addestramento":"Genera un token";
+  G.$("#g24-moved").textContent=moved;
+  G.$("#g24-l2").textContent=mode==="t"?"Errore residuo":"Token prodotti";
+  G.$("#g24-v2").textContent=mode==="t"?G.fmt(err()*100,1)+"%":String(tokIdx);
+  G.$("#g24-out").textContent=mode==="t"?(steps?"Passo "+steps+": le manopole si sono spostate verso i valori giusti.":"Premi il bottone: ogni passo gira tutte le manopole."):(tokIdx?ans:"Prompt: «Capitale della Francia?» Premi il bottone: ogni token richiede di leggere le manopole, senza toccarle.");
+  drawKnobs();
+}
+G.seg("#g24-sel",v=>{mode=v;ui();});
+G.$("#g24-go").addEventListener("click",()=>{
+  if(mode==="t"){for(let i=0;i<K;i++)ang[i]+=(tgt[i]-ang[i])*0.3;moved+=K;steps++;}
+  else{if(tokIdx<OUT.length){tokIdx++;ans=OUT.slice(0,tokIdx).join(" ");}else{tokIdx=0;ans="";}}
+  ui();
+});
+// grafico costi: log-log
+const TR=3e7,PER=0.001; // dollari
+const PL=60,PT=12,PW=266,PH=200,lx0=6,lx1=12,ly0=2,ly1=11;
+const X=v=>PL+(v-lx0)/(lx1-lx0)*PW,Y=v=>PT+PH-(Math.log10(v)-ly0)/(ly1-ly0)*PH;
+const rs=G.$("#g24-r");
+function lab(n){return n>=9?(n===9?"1 mld":"10^"+n):(n===6?"1 mln":"10^"+n);}
+function drawCost(){
+  G.clear(C);
+  const lr=+rs.value,R=Math.pow(10,lr);
+  for(let e=lx0;e<=lx1;e+=2){G.el("line",{x1:X(e),x2:X(e),y1:PT,y2:PT+PH,stroke:"var(--grid)"},C);G.el("text",{x:X(e),y:PT+PH+14,"text-anchor":"middle",style:"font-size:10px;fill:var(--muted)"},C,e===6?"1 mln":e===9?"1 mld":"10^"+e);}
+  [3,5,7,9,11].forEach(e=>{G.el("line",{x1:PL,x2:PL+PW,y1:Y(Math.pow(10,e)),y2:Y(Math.pow(10,e)),stroke:"var(--grid)"},C);G.el("text",{x:PL-4,y:Y(Math.pow(10,e))+3,"text-anchor":"end",style:"font-size:10px;fill:var(--muted)"},C,e===3?"1 mila $":e===5?"100 mila":e===7?"10 mln":e===9?"1 mld":"100 mld");});
+  G.el("rect",{x:PL,y:PT,width:PW,height:PH,fill:"none",stroke:"var(--line)"},C);
+  G.el("text",{x:PL+PW/2,y:PT+PH+32,"text-anchor":"middle",style:"font-size:11px;fill:var(--muted)"},C,"risposte servite (scala log) →");
+  G.el("text",{x:9,y:PT+PH/2,"text-anchor":"middle",style:"font-size:11px;fill:var(--muted)",transform:`rotate(-90 9 ${PT+PH/2})`},C,"spesa cumulata in $ (log)");
+  G.el("line",{x1:X(lx0),x2:X(lx1),y1:Y(TR),y2:Y(TR),stroke:"var(--accent)","stroke-width":2.5},C);
+  G.el("line",{x1:X(lx0),y1:Y(PER*1e6),x2:X(lx1),y2:Y(PER*1e12),stroke:"var(--warn)","stroke-width":2.5},C);
+  const cross=Math.log10(TR/PER);
+  G.el("circle",{cx:X(cross),cy:Y(TR),r:4.5,fill:"var(--ink)"},C);
+  G.el("text",{x:X(cross)-6,y:Y(TR)-8,"text-anchor":"end",style:"font-size:11px"},C,"qui pareggiano");
+  G.el("text",{x:X(lx0)+6,y:Y(TR)+15,style:"font-size:11px;fill:var(--accent)"},C,"addestramento (una volta)");
+  G.el("text",{x:X(lx0)+6,y:Y(PER*1e6)+16,style:"font-size:11px;fill:var(--warn)"},C,"inferenza (a ogni risposta)");
+  G.el("line",{x1:X(lr),x2:X(lr),y1:PT,y2:PT+PH,stroke:"var(--ink)","stroke-dasharray":"4 3"},C);
+  const inf=R*PER;
+  G.$("#g24-ro").textContent=R>=1e9?G.fmt(R/1e9,R>=1e11?0:1)+" mld":G.fmt(R/1e6,R>=1e8?0:1)+" mln";
+  G.$("#g24-inf").textContent=inf>=1e9?G.fmt(inf/1e9,1)+" mld $":G.fmt(inf/1e6,1)+" mln $";G.$("#g24-ro").title="Inferenza: "+G.fmt(inf/1e6,2)+" mln $ · addestramento 30 mln $";
+}
+rs.addEventListener("input",()=>{drawCost();});
+drawCost();ui();
+</script>

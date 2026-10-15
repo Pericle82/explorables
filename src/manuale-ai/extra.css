@@ -1,0 +1,50 @@
+
+/* ===== glossario: voci ===== */
+.entry{scroll-margin-top:64px}
+.entry .sec-head{display:flex;flex-direction:column;gap:6px}
+.entry-num{font-family:var(--mono);font-size:.78rem;color:var(--accent)}
+.entry .video{font-family:var(--mono);font-size:.74rem;display:inline-flex;gap:6px;align-items:center;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--surface);color:var(--ink);width:max-content}
+.entry .video:hover{border-color:var(--accent);color:var(--accent)}
+.oneline{font-family:var(--serif);font-size:1.18rem;line-height:1.4;font-weight:500;border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin:14px 0 4px;max-width:72ch}
+.fld{margin:14px 0 0}
+.fld>h3{font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 6px}
+.fld p,.fld ul{max-width:72ch;margin:0 0 8px}
+.fld ul{padding-left:20px}.fld li{margin-bottom:6px}
+.fld.hist{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px}
+.fld.hist>h3{color:var(--accent)}
+.year{font-family:var(--mono);font-size:.8rem;font-weight:600;background:var(--accent-soft);color:var(--ink);border-radius:4px;padding:0 5px;white-space:nowrap}
+.fld.warn{background:var(--warn-soft);border-radius:8px;padding:12px 16px}
+.fld.warn>h3{color:var(--warn)}
+.fld.ex ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;max-width:none}
+.fld.ex li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.92rem;margin:0}
+details.vid{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+details.vid summary{cursor:pointer;padding:9px 14px;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+details.vid ol{list-style:none;margin:0;padding:4px 14px 12px}
+details.vid li{font-size:.9rem;margin:4px 0;display:grid;grid-template-columns:52px 1fr;gap:8px}
+details.vid li a{font-family:var(--mono);font-size:.8rem;text-decoration:none}
+.links{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:14px 0 0;font-size:.86rem}
+.links .lbl{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.chip{font-size:.82rem;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--surface);color:var(--ink);white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.prev{border-style:dashed}
+.chip b{font-family:var(--mono);font-weight:500;color:var(--accent);margin-right:3px}
+a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
+/* figure */
+.fig{margin:18px 0 6px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 16px;min-width:0}
+.fig figcaption{font-size:.84rem;color:var(--muted);margin-top:8px;max-width:72ch}
+.fig svg{display:block;width:100%;height:auto}
+.fig svg text{font-family:var(--sans);font-size:12px;fill:var(--ink)}
+.fig svg .mono,.chart text{font-family:var(--mono)}
+.fig .fig-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.part-intro{max-width:72ch;margin:10px 0 0;color:var(--muted)}
+.acr dt{font-family:var(--mono)}
+@media(max-width:480px){.fld.ex ul{grid-template-columns:1fr}.oneline{font-size:1.06rem}}
+@media(max-width:480px){.barrow{grid-template-columns:1fr 48px;row-gap:3px}.barrow>span:first-child{grid-column:1 / -1}}
+
+.ia3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0 4px;max-width:none}
+.ia3-box{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:.88rem;line-height:1.4}
+.ia3-box>b{font-family:var(--serif);font-size:1rem}
+.ia3-box small{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ia3-box:nth-child(3){border-color:var(--accent)}
+.ia3-axis{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.7rem;color:var(--muted);border-top:2px solid var(--line);border-image:linear-gradient(90deg,var(--line),var(--accent)) 1;padding-top:4px;margin-bottom:10px}
+.ia3-axis span:last-child{text-align:right;color:var(--accent)}

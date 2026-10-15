@@ -1,0 +1,69 @@
+<figure class="fig">
+<p class="fig-title">La pianta del Transformer, dall'ingresso all'uscita <span class="tag">illustrazione</span></p>
+<div class="grid2">
+  <div>
+    <svg id="g25-svg" viewBox="0 0 340 440" role="img" aria-label="Schema a blocchi verticale: testo, token, embedding con posizione, N blocchi ciascuno con attention e rete feed-forward, probabilità del prossimo token.">
+      <defs><marker id="g25-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker></defs>
+      <g class="g25-b" data-k="out" tabindex="0" role="button" aria-label="Probabilità del prossimo token" style="cursor:pointer">
+        <rect x="70" y="14" width="200" height="44" rx="8" style="fill:var(--good-soft);stroke:var(--good)"/>
+        <text x="170" y="33" text-anchor="middle" font-size="13" style="font-weight:600">Probabilità del</text>
+        <text x="170" y="49" text-anchor="middle" font-size="13" style="font-weight:600">prossimo token</text>
+      </g>
+      <line x1="170" y1="86" x2="170" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#g25-ah)"/>
+      <rect x="40" y="86" width="260" height="196" rx="10" style="fill:var(--surface-2);stroke:var(--line)" stroke-dasharray="5 4"/>
+      <text x="52" y="105" font-size="12" style="fill:var(--muted)">N blocchi uguali, pesi diversi</text>
+      <g class="g25-b" data-k="ffn" tabindex="0" role="button" aria-label="Rete feed-forward" style="cursor:pointer">
+        <rect x="70" y="118" width="200" height="44" rx="8" style="fill:var(--warn-soft);stroke:var(--warn)"/>
+        <text x="170" y="145" text-anchor="middle" font-size="13" style="font-weight:600">Rete feed-forward</text>
+      </g>
+      <line x1="170" y1="204" x2="170" y2="164" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#g25-ah)"/>
+      <g class="g25-b" data-k="att" tabindex="0" role="button" aria-label="Attention" style="cursor:pointer">
+        <rect x="70" y="204" width="200" height="44" rx="8" style="fill:var(--accent-soft);stroke:var(--accent)"/>
+        <text x="170" y="231" text-anchor="middle" font-size="13" style="font-weight:600">Attention</text>
+      </g>
+      <text x="170" y="270" text-anchor="middle" font-size="11" style="fill:var(--muted)">× N strati, uno sopra l'altro</text>
+      <line x1="170" y1="318" x2="170" y2="284" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#g25-ah)"/>
+      <g class="g25-b" data-k="emb" tabindex="0" role="button" aria-label="Embedding più posizione" style="cursor:pointer">
+        <rect x="70" y="318" width="200" height="44" rx="8" style="fill:var(--surface);stroke:var(--ink)"/>
+        <text x="170" y="337" text-anchor="middle" font-size="13" style="font-weight:600">Embedding</text>
+        <text x="170" y="353" text-anchor="middle" font-size="13" style="font-weight:600">+ posizione</text>
+      </g>
+      <line x1="170" y1="390" x2="170" y2="364" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#g25-ah)"/>
+      <g class="g25-b" data-k="tok" tabindex="0" role="button" aria-label="Token in ingresso" style="cursor:pointer">
+        <rect x="70" y="390" width="200" height="38" rx="8" style="fill:var(--surface);stroke:var(--ink)"/>
+        <text x="170" y="414" text-anchor="middle" font-size="13" style="font-weight:600">Token: il gatto era stanco</text>
+      </g>
+    </svg>
+  </div>
+  <div class="stack">
+    <div class="callout" id="g25-info" aria-live="polite"></div>
+    <div class="readout">
+      <div><small>Proposto da</small><strong>Google, giugno 2017</strong></div>
+      <div><small>Articolo</small><strong>«Attention Is All You Need»</strong></div>
+      <div><small>Addestramento originale</small><strong>circa 3 giorni e mezzo, 8 GPU (Graphics Processing Unit)</strong></div>
+    </div>
+    <p class="note">Nel disegno non c'è nessuna regola di grammatica e nessun dizionario: ci sono solo scatole che moltiplicano liste di numeri per pesi. Il sapere sta nei pesi, che la pianta non contiene.</p>
+  </div>
+</div>
+<figcaption>Si legge dal basso verso l'alto: tutti i token entrano insieme, ogni blocco li fa guardare tra loro (attention) e poi li rielabora uno per uno (feed-forward). Clicca una scatola per leggere che cosa fa. Il disegno è la pianta dell'edificio, non chi ci abita: gli abitanti sono i pesi.</figcaption>
+</figure>
+<script>
+const S=G.$("#g25-svg");if(!S)return;
+S.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const info={
+ tok:["Token","Il testo è già spezzato in pezzi (token). Non si legge un termine alla volta con il dito sul rigo: arrivano tutti insieme."],
+ emb:["Embedding più posizione","Ogni token diventa una lista di numeri (embedding). Poiché i token arrivano tutti insieme, si aggiunge anche l'informazione di dove si trova ciascuno."],
+ att:["Attention","Ogni token osserva gli altri e pesa quanto contano: nella frase sul gatto, «stanco» si lega al gatto e non al tavolo. Si calcola per tutti nello stesso momento, ed è il lavoro in cui le GPU eccellono."],
+ ffn:["Rete feed-forward","Dopo lo scambio di informazioni, ogni token viene rielaborato per conto proprio, con la stessa rete ma senza guardare gli altri."],
+ out:["Probabilità del prossimo token","In cima, l'ultima lista di numeri diventa una distribuzione di probabilità su tutto il vocabolario: il modello sceglie il prossimo token."]
+};
+function sel(k){
+  S.querySelectorAll(".g25-b").forEach(g=>{const on=g.dataset.k===k;g.querySelector("rect").setAttribute("stroke-width",on?3:1);});
+  G.$("#g25-info").innerHTML="<b>"+info[k][0]+".</b> "+info[k][1];
+}
+S.querySelectorAll(".g25-b").forEach(g=>{
+  g.addEventListener("click",()=>sel(g.dataset.k));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();sel(g.dataset.k);}});
+});
+sel("att");
+</script>

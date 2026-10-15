@@ -1,0 +1,64 @@
+<figure class="fig">
+<p class="fig-title">Allarga, filtra, riporta <span class="tag">calcolo reale</span></p>
+<div class="seg" id="g37-seg" role="group" aria-label="Scegli il token"></div>
+<svg id="g37-svg" style="margin:10px auto 0;max-width:520px" viewBox="0 0 400 330" role="img" aria-label="Il vettore di un token con 4 numeri viene allargato a 16, i valori negativi sono azzerati, poi il vettore torna a 4 numeri e si somma all'originale."></svg>
+<div class="callout" id="g37-msg" style="margin-top:8px"></div>
+<div class="readout" style="margin-top:8px"><div><small>ingresso + correzione = risultato (il vettore resta di d numeri)</small><strong id="g37-sum" style="font-size:.85rem"></strong></div></div>
+<p class="muted" style="font-size:.85rem;margin:14px 0 6px">I numeri veri di Llama 3 da 8 miliardi di parametri, per ogni strato:</p>
+<div class="bars" id="g37-bars">
+  <div class="barrow"><span>Feed-forward</span><div class="track"><div class="fill" style="width:81%"></div></div><span class="v">176 milioni</span></div>
+  <div class="barrow"><span>Attention</span><div class="track"><div class="fill" style="width:19%"></div></div><span class="v">42 milioni</span></div>
+</div>
+<figcaption>Sopra: lo schema d → più largo → d, con d = 4 e 16 valori intermedi invece di migliaia, pesi casuali fissi e filtro ReLU (Rectified Linear Unit); i calcoli sono veri, i numeri no. Scegli un token: la rete è la stessa per tutti, ma ciascuno passa da solo, senza vedere gli altri (di quello si occupa l'attention). Il risultato non sostituisce il vettore, vi si somma. In Llama 3 8B d è 4.096 e lo strato intermedio ha oltre 14.000 valori: la feed-forward pesa circa quattro quinti di ogni strato (176 su 218 milioni), e su 32 strati sono più di 5,5 miliardi di parametri.</figcaption>
+</figure>
+<script>
+const svg=G.$("#g37-svg"),seg=G.$("#g37-seg");if(!svg||!seg)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+const R=G.rng(37),r=()=>R()*2-1;
+const D=4,Hn=16;
+const W1=Array.from({length:Hn},()=>Array.from({length:D},()=>r()*1.1));
+const B1=Array.from({length:Hn},()=>r()*.3);
+const W2=Array.from({length:D},()=>Array.from({length:Hn},()=>r()*.55));
+const toks=["Parigi","si","trova","in"];
+const E=toks.map(()=>Array.from({length:D},()=>r()*1.2));
+toks.forEach((t,i)=>{const b=document.createElement("button");b.type="button";b.dataset.v=i;b.textContent=t;b.setAttribute("aria-pressed",i===0?"true":"false");seg.appendChild(b);});
+const get=G.seg("#g37-seg",v=>draw(+v));
+function ffn(x){
+  const pre=W1.map((w,k)=>w.reduce((s,v,i)=>s+v*x[i],0)+B1[k]);
+  const post=pre.map(v=>Math.max(0,v));
+  const out=W2.map(w=>w.reduce((s,v,k)=>s+v*post[k],0));
+  return {pre,post,out,sum:x.map((v,i)=>v+out[i])};
+}
+function col(x,vals,cx,rowH,top,half,label,sub,faded){
+  T(svg,cx,18,label,11.5,"middle");T(svg,cx,32,sub,11,"middle","var(--muted)");
+  G.el("line",{x1:cx,x2:cx,y1:top-2,y2:top+vals.length*rowH,stroke:"var(--line)"},svg);
+  vals.forEach((v,i)=>{
+    const w=Math.min(half,Math.abs(v)/2*half);
+    const y=top+i*rowH;
+    G.el("rect",{x:v>=0?cx:cx-w,y:y+1,width:Math.max(w,0.5),height:rowH-2,rx:2,fill:v>=0?"var(--accent)":"var(--good)",opacity:faded&&v===0?.2:.9},svg);
+  });
+}
+function draw(i){
+  const x=E[i],f=ffn(x);G.clear(svg);
+  const Y4=70,rh4=34,Y16=44,rh16=17.5;
+  col(x,x,46,rh4,Y4,34,"ingresso","d = 4 numeri",false);
+  G.el("path",{d:`M84 ${Y4} L138 ${Y16} L138 ${Y16+16*rh16} L84 ${Y4+4*rh4} Z`,fill:"var(--accent-soft)",opacity:.6},svg);
+  T(svg,111,Y4+4*rh4+24,"allarga",11,"middle","var(--muted)");
+  const cx=192;
+  T(svg,cx,18,"dopo il filtro",11.5,"middle");T(svg,cx,32,"16 valori, negativi a zero",11,"middle","var(--muted)");
+  G.el("line",{x1:cx,x2:cx,y1:Y16-2,y2:Y16+16*rh16,stroke:"var(--line)"},svg);
+  f.pre.forEach((v,k)=>{
+    const y=Y16+k*rh16,half=34,pw=Math.min(half,Math.abs(v)/2*half);
+    if(v<0){G.el("rect",{x:cx-pw,y:y+1,width:pw,height:rh16-2,fill:"none",stroke:"var(--muted)","stroke-dasharray":"2 2"},svg);T(svg,cx+5,y+rh16-5,"spento",11,"start","var(--muted)");}
+    else G.el("rect",{x:cx,y:y+1,width:Math.max(pw,.5),height:rh16-2,rx:2,fill:"var(--accent)",opacity:.9},svg);
+  });
+  G.el("path",{d:`M246 ${Y16} L300 ${Y4} L300 ${Y4+4*rh4} L246 ${Y16+16*rh16} Z`,fill:"var(--accent-soft)",opacity:.6},svg);
+  T(svg,273,Y4+4*rh4+24,"riporta a d",11,"middle","var(--muted)");
+  col(x,f.out,350,rh4,Y4,34,"correzione","uscita della rete",false);
+  const fm=v=>G.fmt(v,2);
+  G.$("#g37-sum").textContent="["+x.map(fm).join("; ")+"] + ["+f.out.map(fm).join("; ")+"] = ["+f.sum.map(fm).join("; ")+"]";
+  const off=f.pre.filter(v=>v<0).length;
+  G.$("#g37-msg").textContent="«"+toks[i]+"»: "+off+" valori su 16 sono stati azzerati dal filtro. Gli altri token passano dalla stessa rete, uno alla volta, senza influenzarsi.";
+}
+draw(0);
+</script>

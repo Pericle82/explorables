@@ -1,0 +1,47 @@
+<!-- after: Da dove viene -->
+<figure class="fig">
+<p class="fig-title">Matrioske e svolta del 2012 <span class="tag">illustrazione</span></p>
+<div class="grid2">
+  <div>
+    <svg id="g04-svg" viewBox="0 0 360 372" role="img" aria-label="Intelligenza artificiale contiene diverse famiglie: ricerca, regole degli esperti, pianificazione, ragionamento probabilistico e machine learning; il machine learning contiene le reti neurali, che contengono il deep learning."></svg>
+  </div>
+  <div class="stack" style="gap:10px;justify-content:center">
+    <p class="muted" style="margin:0;font-size:.9rem">Gara ImageNet 2012: errore di classificazione (più basso = meglio)</p>
+    <div class="bars" role="img" aria-label="Grafico a barre: AlexNet sbaglia il 15,3 per cento, il secondo classificato il 26,2 per cento.">
+      <div class="barrow" style="grid-template-columns:minmax(90px,130px) 1fr 52px"><span>AlexNet</span><div class="track"><div class="fill" id="g04-b1"></div></div><span class="v">15,3%</span></div>
+      <div class="barrow" style="grid-template-columns:minmax(90px,130px) 1fr 52px"><span>Secondo classificato</span><div class="track"><div class="fill" id="g04-b2" style="background:var(--muted)"></div></div><span class="v">26,2%</span></div>
+    </div>
+    <p class="note" style="margin:0">AlexNet (Hinton, Krizhevsky, Sutskever) lasciò quasi 11 punti percentuali di distanza, dove di solito i miglioramenti si contavano in decimali.</p>
+  </div>
+</div>
+<figcaption>A sinistra: il machine learning è una delle famiglie dell'intelligenza artificiale (le altre sono qui sotto forma di etichette), e dentro di lui ogni cerchio è un sottoinsieme del precedente, come in una matrioska. A destra: i due errori, con le cifre del capitolo; le barre partono da zero.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const svg=G.$("#g04-svg");if(!svg)return;
+G.$("#g04-b1").style.width=(15.3/30*100)+"%";G.$("#g04-b2").style.width=(26.2/30*100)+"%";
+const cx=146,bot=344,AX=180,AY=186,AR=178;
+G.el("circle",{cx:AX,cy:AY,r:AR,fill:"var(--surface-2)",stroke:"var(--line)","stroke-width":1.5},svg);
+G.el("text",{x:AX,y:32,"text-anchor":"middle","font-size":13,"font-weight":600},svg,"Intelligenza artificiale");
+G.el("text",{x:AX,y:48,"text-anchor":"middle","font-size":10,style:"fill:var(--muted)"},svg,"l’obiettivo; le famiglie di tecniche sono dentro");
+const rings=[
+ {r:100,t:"Machine learning",f:"var(--accent-soft)"},
+ {r:74,t:"Reti neurali",f:"var(--surface)"},
+ {r:50,t:"Deep learning",f:"var(--accent)",dark:true}];
+rings.forEach((o,i)=>{
+  const cy=bot-o.r;
+  G.el("circle",{cx,cy,r:o.r,fill:o.f,stroke:i===2?"var(--accent)":"var(--line)","stroke-width":1.5},svg);
+});
+rings.forEach((o,i)=>{
+  const cy=bot-o.r;
+  const y=i<2?cy-o.r+24:cy+4;
+  G.el("text",{x:cx,y,"text-anchor":"middle","font-size":i<2?12:12,"font-weight":600,style:o.dark?"fill:var(--bg)":""},svg,o.t);
+});
+const fam=[["ricerca"],["regole degli","esperti"],["pianificazione"],["ragionamento","probabilistico"]];
+fam.forEach((l,i)=>{
+  const cy=100+i*48,x=244,w=92,h=38;
+  G.el("rect",{x,y:cy-h/2,width:w,height:h,rx:18,fill:"var(--surface)",stroke:"var(--line)","stroke-width":1.2},svg);
+  l.forEach((t,j)=>G.el("text",{x:x+w/2,y:cy+(l.length===1?4:j*13-2),"text-anchor":"middle","font-size":11},svg,t));
+});
+fx(svg);
+</script>

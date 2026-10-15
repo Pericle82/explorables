@@ -1,0 +1,75 @@
+<figure class="fig">
+<p class="fig-title">Lista di probabilità, temperatura e dado <span class="tag">calcolo reale</span></p>
+<div class="row" style="margin-bottom:10px">
+  <div class="seg" id="g19-sel" role="group" aria-label="Scegli la frase">
+    <button type="button" data-v="0" aria-pressed="true">Il gatto dorme sul…</button>
+    <button type="button" data-v="1" aria-pressed="false">La capitale della Francia è…</button>
+    <button type="button" data-v="2" aria-pressed="false">Il numero di telefono di Anna è…</button>
+  </div>
+</div>
+<div class="bars" id="g19-bars"></div>
+<div class="controls" style="margin-top:12px">
+  <div class="ctl"><label for="g19-t">Temperatura (regola di scelta, esterna al modello) <output id="g19-to"></output></label><input id="g19-t" type="range" min="0.1" max="3" step="0.05" value="1"></div>
+</div>
+<div class="row" style="margin-top:10px">
+  <button class="btn" id="g19-top" type="button">Prendi il più probabile</button>
+  <button class="btn" id="g19-draw" type="button">Tira il dado (1 volta)</button>
+  <button class="btn ghost" id="g19-draw100" type="button">Tira 100 volte</button>
+  <button class="btn ghost" id="g19-clr" type="button">Azzera</button>
+</div>
+<div class="callout" id="g19-msg" style="margin-top:12px">Premi un bottone per scegliere un token.</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Somma delle probabilità</small><strong id="g19-sum"></strong></div>
+  <div><small>Più probabile</small><strong id="g19-max"></strong></div>
+  <div><small>Estrazioni fatte</small><strong id="g19-cnt">0</strong></div>
+</div>
+<figcaption>Le barre sono la lista che il modello produce; i punteggi di partenza sono scelti a mano in modo che a temperatura 1 diano le percentuali del capitolo (letto 32%, divano 25%…). Con la temperatura bassa la lista si appuntisce e il dado cade quasi sempre sul primo; alta, si appiattisce. Il modello non cambia: cambia solo la regola di scelta. Dopo le estrazioni vedi quante volte è uscito ogni token.</figcaption>
+</figure>
+<script>
+const B=G.$("#g19-bars");if(!B)return;
+// ogni scenario: token con probabilità a T=1 e N token minuscoli che si dividono il resto
+const S=[
+ {n:["letto","divano","tetto","tavolo"],p:[.32,.25,.11,.06],N:2000,lbl:"altri 2000 token"},
+ {n:["Parigi","Lione","Francia","Marsiglia"],p:[.95,.012,.008,.005],N:2000,lbl:"altri 2000 token"},
+ {n:["340…","333…","347…","328…"],p:[.04,.035,.03,.03],N:3000,lbl:"altri 3000 numeri"}];
+const rng=G.rng(7);
+let cur=0,counts=[],last="";
+const T=G.$("#g19-t");
+function dist(){
+  const s=S[cur],t=+T.value;
+  const rest=1-s.p.reduce((a,b)=>a+b,0);
+  const logits=s.p.map(Math.log).concat([Math.log(rest/s.N)]);
+  const w=logits.map(l=>Math.exp((l-logits[0])/t));
+  w[w.length-1]*=s.N;
+  const z=w.reduce((a,b)=>a+b,0);
+  return w.map(x=>x/z);
+}
+function render(){
+  const s=S[cur],p=dist(),names=s.n.concat([s.lbl]);
+  if(counts.length!==p.length)counts=p.map(()=>0);
+  const tot=counts.reduce((a,b)=>a+b,0);
+  B.innerHTML="";
+  p.forEach((v,i)=>{
+    const row=document.createElement("div");row.className="barrow";
+    const a=document.createElement("span");a.className=i<p.length-1?"mono":"muted";a.textContent=names[i]+(tot?"  ×"+counts[i]:"");
+    const tr=document.createElement("div");tr.className="track";
+    const f=document.createElement("div");f.className="fill";f.style.width=(v*100)+"%";f.style.transition="none";if(i===p.length-1)f.style.background="var(--line)";
+    tr.appendChild(f);
+    const vv=document.createElement("span");vv.className="v";vv.textContent=G.fmt(v*100,v<.1?1:0)+"%";
+    row.append(a,tr,vv);B.appendChild(row);
+  });
+  G.$("#g19-to").textContent=G.fmt(+T.value,2);
+  G.$("#g19-sum").textContent=G.fmt(p.reduce((a,b)=>a+b,0)*100,0)+"%";
+  G.$("#g19-max").textContent=names[0]+" "+G.fmt(p[0]*100,0)+"%";
+  G.$("#g19-cnt").textContent=tot;
+}
+function pick(){const p=dist();let r=rng(),i=0;for(;i<p.length-1;i++){r-=p[i];if(r<0)break;}return i;}
+function name(i){const s=S[cur];return i<s.n.length?"«"+s.n[i]+"»":"uno dei token minuscoli ("+s.lbl+")";}
+G.seg("#g19-sel",v=>{cur=+v;counts=[];G.$("#g19-msg").textContent="Premi un bottone per scegliere un token.";render();});
+T.addEventListener("input",render);
+G.$("#g19-top").addEventListener("click",()=>{G.$("#g19-msg").innerHTML="Regola «sempre il più probabile»: esce <b>"+name(0)+"</b>, ogni volta, identico.";});
+G.$("#g19-draw").addEventListener("click",()=>{const i=pick();counts[i]++;G.$("#g19-msg").innerHTML="Il dado è caduto su <b>"+name(i)+"</b>. Ritira: la lista è la stessa, l'esito può cambiare.";render();});
+G.$("#g19-draw100").addEventListener("click",()=>{for(let k=0;k<100;k++)counts[pick()]++;G.$("#g19-msg").innerHTML="100 estrazioni dalla stessa lista: guarda i conteggi accanto alle etichette.";render();});
+G.$("#g19-clr").addEventListener("click",()=>{counts=[];G.$("#g19-msg").textContent="Conteggi azzerati.";render();});
+render();
+</script>

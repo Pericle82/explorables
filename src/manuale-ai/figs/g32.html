@@ -1,0 +1,71 @@
+<figure class="fig">
+<p class="fig-title">Quattro teste leggono la stessa frase <span class="tag">illustrazione</span></p>
+<div class="seg" id="g32-seg" role="group" aria-label="Scegli la testa di attenzione">
+  <button type="button" aria-pressed="true" data-v="0">Testa 1</button>
+  <button type="button" aria-pressed="false" data-v="1">Testa 2</button>
+  <button type="button" aria-pressed="false" data-v="2">Testa 3</button>
+  <button type="button" aria-pressed="false" data-v="3">Testa 4</button>
+  <button type="button" aria-pressed="false" data-v="4">Una testa sola (media)</button>
+</div>
+<svg id="g32-svg" style="margin:10px auto 0;max-width:560px" viewBox="0 0 420 210" role="img" aria-label="La frase «Il gatto non salta perché era stanco»: archi dalla parola «era» verso le altre parole, più spessi dove il peso è maggiore."></svg>
+<div class="callout" id="g32-msg" style="margin-top:8px"></div>
+<svg id="g32-split" style="margin:14px auto 0;max-width:560px" viewBox="0 0 420 156" role="img" aria-label="Il vettore di 512 numeri diviso in 8 blocchi da 64, uno per testa; le uscite delle teste vengono affiancate e rimescolate in un unico vettore da 512."></svg>
+<figcaption>I pesi sono scelti a mano per chiarezza (ogni riga somma al 100%); nei modelli reali i ruoli emergono dall'addestramento e le etichette le attacchiamo noi dopo. Prova le quattro teste: guardano la stessa parola «era» ma ciascuna sceglie altro. L'ultimo pulsante mostra la media delle quattro, un quadro unico e sfocato in cui i legami si perdono. Sotto: nel Transformer del 2017 i 512 numeri di ogni token si dividono in 8 teste da 64, poi le uscite si affiancano e si rimescolano.</figcaption>
+</figure>
+<script>
+const svg=G.$("#g32-svg"),sp=G.$("#g32-split");if(!svg||!sp)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+const W=["Il","gatto","non","salta","perché","era","stanco"],Q=5;
+const raw=[
+ [.08,.62,.04,.06,.04,.12,.04],
+ [.02,.03,.03,.1,.70,.09,.03],
+ [.02,.06,.02,.05,.05,.14,.66],
+ [.03,.08,.06,.58,.1,.1,.05]];
+const H=raw.map(r=>{const s=r.reduce((a,b)=>a+b,0);return r.map(v=>v/s);});
+const avg=W.map((_,j)=>H.reduce((a,r)=>a+r[j],0)/4);
+const names=["Testa 1: segue il soggetto («gatto»)","Testa 2: guarda la parola precedente («perché»)","Testa 3: collega al predicato («stanco»)","Testa 4: cerca il verbo («salta»)","Una testa sola: la media delle quattro, nessun legame spicca"];
+const msgs=["Chi è che «era»? La testa 1 manda il peso sul soggetto: il gatto.","La testa 2 si limita alla parola appena prima.","La testa 3 unisce «era» a ciò che ne dice di più: stanco.","La testa 4 ricorda il verbo principale della frase.","Con un solo quadro la somma resta cento, quindi i pesi si spartiscono e la media cancella le relazioni diverse."];
+const X=i=>32+i*59,BY=130;
+let cur=0;
+function draw(){
+  G.clear(svg);
+  const w=cur===4?avg:H[cur];
+  w.forEach((v,j)=>{
+    if(j===Q)return;
+    const x1=X(Q),x2=X(j),h=Math.min(100,18+Math.abs(x2-x1)*.5);
+    G.el("path",{d:`M${x1} ${BY-18} Q${(x1+x2)/2} ${BY-18-h*1.6} ${x2} ${BY-18}`,fill:"none",stroke:"var(--accent)","stroke-width":(1+v*10).toFixed(1),"stroke-linecap":"round",opacity:Math.min(1,.2+v*1.4).toFixed(2)},svg);
+  });
+  W.forEach((t,j)=>{
+    const q=j===Q;
+    G.el("rect",{x:X(j)-26,y:BY-14,width:52,height:26,rx:6,fill:q?"var(--accent-soft)":"var(--surface-2)",stroke:q?"var(--accent)":"var(--line)"},svg);
+    T(svg,X(j),BY+4,t,12,"middle");
+    T(svg,X(j),BY+34,G.fmt(w[j]*100,0)+"%",11,"middle",j===Q?"var(--muted)":"var(--ink)");
+  });
+  T(svg,X(Q),BY+52,"pesi di «era»",11,"middle","var(--muted)");
+  T(svg,6,16,names[cur],11.5,"start","var(--muted)");
+  G.$("#g32-msg").textContent=msgs[cur];
+}
+G.seg("#g32-seg",v=>{cur=+v;draw();});
+// divisione 512 = 8 x 64
+(function(){
+  G.clear(sp);
+  const x0=20,w=380,bw=w/8;
+  T(sp,x0,14,"vettore del token: 512 numeri = 8 teste × 64",11,"start","var(--muted)");
+  for(let i=0;i<8;i++){
+    const on=i<4;
+    G.el("rect",{x:x0+i*bw+1,y:22,width:bw-2,height:24,rx:3,fill:on?"var(--accent-soft)":"var(--surface-2)",stroke:on?"var(--accent)":"var(--line)"},sp);
+    T(sp,x0+i*bw+bw/2,38,"64",11,"middle");
+  }
+  T(sp,x0,63,"ogni testa calcola la sua attenzione sui suoi 64 numeri",11,"start","var(--muted)");
+  for(let i=0;i<8;i++)G.el("path",{d:`M${x0+i*bw+bw/2} 68 L${x0+i*bw+bw/2} 80`,stroke:"var(--line)"},sp);
+  for(let i=0;i<8;i++){
+    const on=i<4;
+    G.el("rect",{x:x0+i*bw+1,y:80,width:bw-2,height:24,rx:3,fill:on?"var(--accent)":"var(--line)",opacity:on?.55:.5},sp);
+  }
+  T(sp,x0+w/2,118,"uscite affiancate: di nuovo 512 numeri",11,"middle");
+  G.el("path",{d:`M${x0+w/2} 122 L${x0+w/2} 128`,stroke:"var(--ink)","stroke-width":1.5},sp);
+  G.el("rect",{x:x0,y:128,width:w,height:22,rx:5,fill:"var(--good-soft)",stroke:"var(--good)"},sp);
+  T(sp,x0+w/2,143,"rimescolate: un unico vettore da 512 per token",11,"middle");
+})();
+draw();
+</script>

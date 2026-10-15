@@ -1,0 +1,109 @@
+<div class="fld"><h3>Come leggere il laboratorio qui sotto</h3>
+<p><b>Il grafico di sinistra sono i dati</b>: otto case di cui si conoscono la superficie e il prezzo vero (i punti neri). <b>La retta è il modello</b>, cioè la funzione <i>prezzo stimato = w × superficie + b</i>: per ogni superficie dà un prezzo. I <b>segmenti rossi</b> sono gli errori: la distanza tra il prezzo vero di ogni casa e quello stimato dalla retta.</p>
+<p><b>Muovendo a mano w e b</b> cambi la funzione: w ne cambia la pendenza (quante migliaia di euro aggiunge ogni metro quadro), b la sposta in su o in giù (il prezzo di partenza). Vedi subito quanto i dati si discostano dalla retta: i segmenti si allungano o si accorciano, e l'errore quadratico medio (la media dei quadrati dei segmenti) sale o scende.</p>
+<p><b>«Un passo di correzione»</b> fa da solo quello che faresti a mano: guarda gli errori, calcola in che verso girare w e b per ridurli e li gira di poco. <b>«20 passi»</b> ne esegue venti di seguito, e ogni clic ne aggiunge altri venti. Il grafico di destra registra l'errore dopo ogni passo.</p>
+<p><b>A che cosa tende l'errore.</b> Scende in fretta nei primi passi, poi sempre più piano, e dopo circa cento passi (cinque clic su «20 passi») smette di scendere: si ferma a <b>circa 18,9</b>, cioè uno scarto tipico di circa 4 mila euro per casa, con w ≈ 2,22 e b ≈ 41. Non arriva a zero, perché gli otto punti non stanno esattamente su una retta e nessuna retta può passare per tutti. Quel valore è il <b>minimo possibile per questo modello</b>: è l'errore della retta migliore, ed è quella retta che i passi di correzione hanno trovato. Altri clic non lo abbassano; per scendere ancora servirebbe un modello con più manopole, per esempio una curva invece di una retta.</p>
+<p>Il cerchio vuoto è la stima per una casa da 100 m² che non è tra i dati: è a questo che serve il modello, una volta trovati w e b.</p></div>
+<figure class="fig">
+<p class="fig-title">Le manopole del prezzo delle case <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div>
+    <svg id="g02-svg" viewBox="0 0 360 280" role="img" aria-label="Grafico: otto case con superficie e prezzo, una retta regolabile e i segmenti di errore tra retta e punti."></svg>
+  </div>
+  <div>
+    <svg id="g02-err" viewBox="0 0 360 280" role="img" aria-label="Grafico dell'errore quadratico medio in funzione dei passi di correzione."></svg>
+  </div>
+</div>
+<div class="controls" style="margin-top:12px">
+  <div class="ctl"><label for="g02-w">Manopola w (€ per m², in migliaia) <output id="g02-wo"></output></label><input id="g02-w" type="range" min="0" max="4" step="0.05" value="0.5"></div>
+  <div class="ctl"><label for="g02-b">Manopola b (prezzo base, migliaia €) <output id="g02-bo"></output></label><input id="g02-b" type="range" min="-100" max="200" step="1" value="20"></div>
+</div>
+<div class="row" style="margin-top:10px">
+  <button class="btn" id="g02-step" type="button">Un passo di correzione</button>
+  <button class="btn ghost" id="g02-many" type="button">20 passi</button>
+  <button class="btn ghost" id="g02-reset" type="button">Rimetti le manopole all'inizio</button>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Prezzo stimato = w × m² + b</small><strong id="g02-eq"></strong></div>
+  <div><small>Errore quadratico medio (MSE, Mean Squared Error)</small><strong id="g02-mse"></strong></div>
+  <div><small>Errore tipico</small><strong id="g02-rmse"></strong></div>
+  <div><small>Casa nuova da 100 m²</small><strong id="g02-new"></strong></div>
+  <div><small>Minimo possibile (retta migliore)</small><strong id="g02-min"></strong></div>
+  <div><small>Passi fatti</small><strong id="g02-n">0</strong></div>
+</div>
+<figcaption>Otto case inventate: superficie in m², prezzo in migliaia di euro. La linea verde tratteggiata nel grafico di destra è l’errore minimo raggiungibile con una retta; i passi di correzione ci arrivano e lì si fermano.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const S=G.$("#g02-svg"),E=G.$("#g02-err");if(!S||!E)return;
+const X=[40,55,65,80,95,110,125,140],Y=[130,160,190,215,250,290,310,355];
+const N=X.length;
+const sw=G.$("#g02-w"),sb=G.$("#g02-b");
+let w=+sw.value,b=+sb.value,hist=[],steps=0;
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const mx2=mean(X.map(x=>x*x));
+const LRW=0.45/mx2, LRB=0.45;
+const MX=mean(X),MY=mean(Y),WOPT=X.reduce((s,x,i)=>s+(x-MX)*(Y[i]-MY),0)/X.reduce((s,x)=>s+(x-MX)**2,0),BOPT=MY-WOPT*MX;
+function mse(w,b){return mean(X.map((x,i)=>{const e=w*x+b-Y[i];return e*e;}));}
+function step(){
+  const ew=X.map((x,i)=>w*x+b-Y[i]);
+  const gw=2*mean(ew.map((e,i)=>e*X[i])), gb=2*mean(ew);
+  w-=LRW*gw; b-=LRB*gb; steps++; hist.push(mse(w,b));
+}
+const PX=44,PY=14,PW=300,PH=224;
+const sx=v=>PX+(v-20)/(160-20)*PW, sy=v=>PY+PH-(v/400)*PH;
+function axes(svg,xt,yt,xl,yl,xfn,yfn){
+  xt.forEach(v=>{G.el("line",{x1:xfn(v),x2:xfn(v),y1:PY,y2:PY+PH,stroke:"var(--grid)"},svg);G.el("text",{x:xfn(v),y:PY+PH+15,"text-anchor":"middle","font-size":10,style:"fill:var(--muted)"},svg,String(v));});
+  yt.forEach(v=>{G.el("line",{x1:PX,x2:PX+PW,y1:yfn(v),y2:yfn(v),stroke:"var(--grid)"},svg);G.el("text",{x:PX-5,y:yfn(v)+3,"text-anchor":"end","font-size":10,style:"fill:var(--muted)"},svg,v>=1000?(v/1000)+"k":String(v));});
+  G.el("line",{x1:PX,x2:PX+PW,y1:PY+PH,y2:PY+PH,stroke:"var(--line)"},svg);
+  G.el("line",{x1:PX,x2:PX,y1:PY,y2:PY+PH,stroke:"var(--line)"},svg);
+  G.el("text",{x:PX+PW/2,y:PY+PH+31,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},svg,xl);
+  G.el("text",{x:12,y:PY+PH/2,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)",transform:`rotate(-90 12 ${PY+PH/2})`},svg,yl);
+}
+function draw(){
+  G.clear(S);
+  axes(S,[40,80,120,160],[0,100,200,300,400],"superficie (m²)","prezzo (migliaia €)",sx,sy);
+  const cl=v=>Math.max(0,Math.min(400,v));
+  X.forEach((x,i)=>{const p=w*x+b;G.el("line",{x1:sx(x),x2:sx(x),y1:sy(Y[i]),y2:sy(cl(p)),stroke:"var(--bad)","stroke-width":2,opacity:.75},S);});
+  const x1=20,x2=160;
+  const df=G.el("defs",{},S),cp=G.el("clipPath",{id:"g02-clip"},df);G.el("rect",{x:PX,y:PY,width:PW,height:PH},cp);
+  G.el("line",{x1:sx(x1),y1:sy(w*x1+b),x2:sx(x2),y2:sy(w*x2+b),stroke:"var(--accent)","stroke-width":2.5,"clip-path":"url(#g02-clip)"},S);
+  X.forEach((x,i)=>G.el("circle",{cx:sx(x),cy:sy(Y[i]),r:4.5,fill:"var(--ink)"},S));
+  const pn=Math.max(0,Math.min(400,w*100+b));G.el("circle",{cx:sx(100),cy:sy(pn),r:6,fill:"var(--surface)",stroke:"var(--accent)","stroke-width":2.5},S);G.el("text",{x:sx(100)+9,y:sy(pn)+(pn>300?16:-8),"font-size":11,style:"fill:var(--accent)"},S,"casa nuova");
+  G.el("text",{x:PX+6,y:PY+12,"font-size":11,style:"fill:var(--bad)"},S,"segmenti rossi = errori");fx(S);
+}
+function drawErr(){
+  G.clear(E);
+  const n=Math.max(hist.length-1,10);
+  const ymax=Math.max(...hist,1);
+  const ex=v=>PX+v/n*PW, ey=v=>PY+PH-(v/ymax)*PH;
+  const xt=[];const stp=n<=10?2:n<=30?5:10;for(let v=0;v<=n;v+=stp)xt.push(v);
+  const yt=[0,0.5,1].map(f=>Math.round(f*ymax/1000)*1000);
+  axes(E,xt,yt,"passi di correzione","errore quadratico medio",ex,ey);
+  {const mn=mse(WOPT,BOPT),yy=ey(mn);G.el("line",{x1:PX,x2:PX+PW,y1:yy,y2:yy,stroke:"var(--good)","stroke-dasharray":"5 4","stroke-width":1.5},E);G.el("text",{x:PX+PW-4,y:yy-5,"text-anchor":"end","font-size":11,style:"fill:var(--good)"},E,"minimo "+G.fmt(mn,1));}
+  if(hist.length>1){
+    const pts=hist.map((v,i)=>`${ex(i)},${ey(v)}`).join(" ");
+    G.el("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2.5},E);
+  }
+  hist.forEach((v,i)=>{ if(hist.length<=40||i===hist.length-1)G.el("circle",{cx:ex(i),cy:ey(v),r:3,fill:"var(--accent)"},E);});fx(E);
+}
+function readout(){
+  const m=mse(w,b);
+  G.$("#g02-wo").textContent=G.fmt(w,2);G.$("#g02-bo").textContent=G.fmt(b,0);
+  G.$("#g02-eq").textContent="prezzo = "+G.fmt(w,2)+" × m² "+(b<0?"− ":"+ ")+G.fmt(Math.abs(b),0);
+  G.$("#g02-mse").textContent=G.fmt(m,m<100?1:0);
+  G.$("#g02-rmse").textContent="± "+G.fmt(Math.sqrt(m),0)+" mila €";
+  G.$("#g02-n").textContent=steps;
+  const mn=mse(WOPT,BOPT);G.$("#g02-min").textContent=G.fmt(mn,1)+(m-mn<0.05?" ✓ raggiunto":" (mancano "+G.fmt(m-mn,m-mn<10?1:0)+")");
+  G.$("#g02-new").textContent=G.fmt(w,2)+" × 100 "+(b<0?"− ":"+ ")+G.fmt(Math.abs(b),0)+" = "+G.fmt(w*100+b,0)+" mila €";
+}
+function sync(){sw.value=w;sb.value=b;}
+function refresh(){draw();drawErr();readout();}
+function manual(){w=+sw.value;b=+sb.value;steps=0;hist=[mse(w,b)];refresh();}
+sw.addEventListener("input",manual);sb.addEventListener("input",manual);
+G.$("#g02-step").addEventListener("click",()=>{step();sync();refresh();});
+G.$("#g02-many").addEventListener("click",()=>{for(let i=0;i<20;i++)step();sync();refresh();});
+G.$("#g02-reset").addEventListener("click",()=>{sw.value=0.5;sb.value=20;manual();});
+hist=[mse(w,b)];
+refresh();
+</script>

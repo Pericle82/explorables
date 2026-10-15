@@ -1,0 +1,83 @@
+<figure class="fig">
+<p class="fig-title">Il ciclo dell'addestramento <span class="tag">calcolo reale</span></p>
+<div class="grid2">
+  <div>
+    <svg id="g08-cyc" viewBox="0 0 400 300" role="img" aria-label="Ciclo in quattro tappe: esempio con risposta giusta, previsione, errore, correzione dei pesi, poi si riparte."></svg>
+  </div>
+  <div>
+    <svg id="g08-cur" viewBox="0 0 360 300" role="img" aria-label="Curva dell'errore in funzione dei giri di addestramento."></svg>
+  </div>
+</div>
+<div class="row" style="margin-top:10px">
+  <span class="muted" style="font-size:.85rem">Passo di correzione:</span>
+  <div class="seg" id="g08-lr" role="group" aria-label="Ampiezza del passo di correzione">
+    <button type="button" data-v="0.02" aria-pressed="false">troppo piccolo</button>
+    <button type="button" data-v="0.3" aria-pressed="true">giusto</button>
+    <button type="button" data-v="1.03" aria-pressed="false">troppo grande</button>
+  </div>
+  <button class="btn" id="g08-play" type="button">Riavvia l'addestramento</button>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Giri fatti</small><strong id="g08-ep"></strong></div>
+  <div><small>Errore (MSE, Mean Squared Error)</small><strong id="g08-mse"></strong></div>
+  <div><small>Pesi (w, b)</small><strong id="g08-wb"></strong></div>
+</div>
+<p class="note" style="margin:10px 0 0">Nel 1989 Yann LeCun fece questo stesso ciclo su circa 7.000 cifre scritte a mano (griglie 16 × 16): la rete riconosceva il 95% di quelle mai viste.</p>
+<figcaption>Una rete minuscola (un solo peso w e un bias b) impara a stimare y da x su 12 esempi inventati: a ogni giro vede tutti gli esempi, misura l'errore e sposta i pesi di un passo. Con il passo troppo piccolo l'errore scende ma non finisce mai; troppo grande, i pesi oscillano da un lato all'altro e l'errore non scende, anzi risale.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const C=G.$("#g08-cyc"),U=G.$("#g08-cur");if(!C||!U)return;
+// ciclo
+const defs=G.el("defs",{},C);
+const mk=G.el("marker",{id:"g08-ah",viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto"},defs);
+G.el("path",{d:"M0 0L10 5L0 10z",fill:"var(--accent)"},mk);
+const nodes=[
+ {x:125,y:8,t:["1 Esempio","con la risposta giusta","(un «7» scritto a mano)"]},
+ {x:250,y:125,t:["2 Previsione","la rete risponde","(«forse un 1»)"]},
+ {x:125,y:242,t:["3 Errore","distanza dalla","risposta giusta"]},
+ {x:0,y:125,t:["4 Correzione","ogni peso si sposta","di un piccolo passo"]}];
+nodes.forEach((n,i)=>{
+  G.el("rect",{x:n.x,y:n.y,width:150,height:52,rx:8,fill:i===3?"var(--accent-soft)":"var(--surface-2)",stroke:i===3?"var(--accent)":"var(--line)","stroke-width":1.5},C);
+  n.t.forEach((s,j)=>G.el("text",{x:n.x+75,y:n.y+18+j*15,"text-anchor":"middle","font-size":j?11.5:14,"font-weight":j?400:700,style:j?"fill:var(--muted)":""},C,s));
+});
+const P=[ "M277 33 Q340 40 328 120","M328 179 Q335 250 277 267","M123 267 Q65 255 72 182","M72 122 Q65 45 123 33"];
+P.forEach(d=>G.el("path",{d,fill:"none",stroke:"var(--accent)","stroke-width":2.5,"marker-end":"url(#g08-ah)"},C));
+G.el("text",{x:200,y:145,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},C,"ripeti");
+fx(C);const cyc=G.el("text",{x:200,y:163,"text-anchor":"middle","font-size":13,"font-weight":700,style:"font-family:var(--mono)"},C,"");
+// dati
+const r=G.rng(11);const N=12,X=[],Y=[];
+for(let i=0;i<N;i++){const x=-1+2*i/(N-1);X.push(x);Y.push(0.8*x+0.3+(r()-0.5)*0.3);}
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const mse=(w,b)=>mean(X.map((x,i)=>{const e=w*x+b-Y[i];return e*e;}));
+const EPOCHS=40;
+function traj(lr){let w=-1.2,b=-1.2;const o=[{w,b,l:mse(w,b)}];
+  for(let k=0;k<EPOCHS;k++){const e=X.map((x,i)=>w*x+b-Y[i]);const gw=2*mean(e.map((v,i)=>v*X[i])),gb=2*mean(e);w-=lr*gw;b-=lr*gb;o.push({w,b,l:mse(w,b)});}
+  return o;}
+let lr=0.3,T=traj(lr),shown=EPOCHS,timer=null;
+const PX=48,PY=14,PW=296,PH=216;
+function draw(){
+  G.clear(U);
+  const ymax=T[0].l;
+  const ex=v=>PX+v/EPOCHS*PW,ey=v=>PY+PH-Math.min(v/ymax,1.05)*PH;
+  [0,10,20,30,40].forEach(v=>{G.el("line",{x1:ex(v),x2:ex(v),y1:PY,y2:PY+PH,stroke:"var(--grid)"},U);G.el("text",{x:ex(v),y:PY+PH+15,"text-anchor":"middle","font-size":10,style:"fill:var(--muted)"},U,String(v));});
+  [0,0.5,1].forEach(f=>{G.el("line",{x1:PX,x2:PX+PW,y1:ey(f*ymax),y2:ey(f*ymax),stroke:"var(--grid)"},U);G.el("text",{x:PX-5,y:ey(f*ymax)+3,"text-anchor":"end","font-size":10,style:"fill:var(--muted)"},U,G.fmt(f*ymax,1));});
+  G.el("line",{x1:PX,x2:PX+PW,y1:PY+PH,y2:PY+PH,stroke:"var(--line)"},U);G.el("line",{x1:PX,x2:PX,y1:PY,y2:PY+PH,stroke:"var(--line)"},U);
+  G.el("text",{x:PX+PW/2,y:PY+PH+32,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},U,"giri (epoche)");
+  G.el("text",{x:12,y:PY+PH/2,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)",transform:`rotate(-90 12 ${PY+PH/2})`},U,"errore (MSE)");
+  const pts=T.slice(0,shown+1).map((o,i)=>`${ex(i)},${ey(o.l)}`).join(" ");
+  G.el("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2.5,"stroke-linejoin":"round"},U);
+  const o=T[shown];
+  G.el("circle",{cx:ex(shown),cy:ey(o.l),r:4.5,fill:"var(--accent)"},U);
+  G.$("#g08-ep").textContent=shown;G.$("#g08-mse").textContent=G.fmt(o.l,3);
+  G.$("#g08-wb").textContent=G.fmt(o.w,2)+" ; "+G.fmt(o.b,2);
+  fx(U);cyc.textContent="giro "+shown;cyc.style.fontSize="13px";
+}
+function play(){
+  if(timer)clearInterval(timer);shown=0;draw();
+  timer=setInterval(()=>{shown++;draw();if(shown>=EPOCHS){clearInterval(timer);timer=null;}},90);
+}
+G.seg("#g08-lr",v=>{lr=+v;T=traj(lr);if(timer){clearInterval(timer);timer=null;}shown=EPOCHS;draw();});
+G.$("#g08-play").addEventListener("click",play);
+draw();
+</script>

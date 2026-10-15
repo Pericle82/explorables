@@ -1,0 +1,53 @@
+<figure class="fig">
+<p class="fig-title">Il tavolo di lavoro del modello <span class="tag">illustrazione</span></p>
+<p class="muted" style="margin:0 0 6px;font-size:.85rem">Capienza della finestra, in token (scala logaritmica)</p>
+<div class="bars" id="g23-hist"></div>
+<div class="controls" style="margin-top:16px">
+  <div class="ctl"><label for="g23-w">Capienza della finestra (token, in miniatura) <output id="g23-wo"></output></label><input id="g23-w" type="range" min="6" max="60" step="1" value="30"></div>
+  <div class="ctl"><label for="g23-n">Testo scritto finora (token) <output id="g23-no"></output></label><input id="g23-n" type="range" min="1" max="60" step="1" value="40"></div>
+</div>
+<div class="tokens" id="g23-tok" style="margin-top:12px"></div>
+<div class="callout" id="g23-msg" style="margin-top:12px"></div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Posti per il prompt</small><strong id="g23-room"></strong></div>
+  <div><small>Posti per la risposta</small><strong id="g23-rep"></strong></div>
+  <div><small>Token dimenticati</small><strong id="g23-lost"></strong></div>
+</div>
+<figcaption>In alto, le capienze citate nel capitolo (512 token nel 2018, 2048 per GPT-3, 8000 e 32000 per GPT-4, 128.000 dal 2024, fino al milione). Sotto, un modello in miniatura con parole al posto dei token: la finestra contiene prompt e risposta insieme (i quadrati tratteggiati sono lo spazio riservato alla risposta). Aumenta il testo scritto: i token più vecchi escono dalla finestra, diventano grigi e per il modello non esistono più. Il testo è inventato.</figcaption>
+</figure>
+<script>
+const H=G.$("#g23-hist");if(!H)return;
+[["2018 · primo GPT",512],["2020 · GPT-3",2048],["GPT-4",8000],["GPT-4 esteso",32000],["dal 2024, tipico",128000],["alcuni modelli recenti",1000000]].forEach(([l,v])=>{
+  const row=document.createElement("div");row.className="barrow";
+  const a=document.createElement("span");a.textContent=l;
+  const tr=document.createElement("div");tr.className="track";
+  const f=document.createElement("div");f.className="fill";f.style.width=(Math.log10(v)/6*100)+"%";tr.appendChild(f);
+  const x=document.createElement("span");x.className="v";x.style.fontSize=".78rem";x.textContent=v>=1e6?"1 mln":v.toLocaleString("it-IT");
+  row.append(a,tr,x);H.appendChild(row);
+});
+const TXT="Ciao , mi chiamo Marta e abito a Roma . Ho due gatti e un cane di nome Pepe . Domani vorrei organizzare una cena per sei persone con piatti vegetariani . Prima però dimmi : come mi chiamo e che animali ho ?".split(" ");
+const L=TXT.length; // 
+const sw=G.$("#g23-w"),sn=G.$("#g23-n");
+sn.max=L;sn.value=Math.min(40,L);
+const RES=4;
+function render(){
+  const W=+sw.value,N=+sn.value,room=Math.max(W-RES,1);
+  const first=Math.max(N-room,0);
+  const T=G.$("#g23-tok");T.innerHTML="";
+  for(let i=0;i<N;i++){
+    const e=document.createElement("span");e.className="tok";e.style.cursor="default";e.textContent=TXT[i];
+    if(i<first){e.style.cssText+=";opacity:.4;text-decoration:line-through;background:var(--surface-2);color:var(--muted)";}
+    else e.className="tok resp";
+    if(TXT[i]==="Marta"){e.style.outline="2px solid var(--warn)";}
+    T.appendChild(e);
+  }
+  for(let j=0;j<RES;j++){const e=document.createElement("span");e.className="tok";e.style.cssText="cursor:default;border-style:dashed;color:var(--muted)";e.textContent="▢";T.appendChild(e);}
+  const lost=first,martaIn=first<=TXT.indexOf("Marta");
+  G.$("#g23-wo").textContent=W;G.$("#g23-no").textContent=N;
+  G.$("#g23-room").textContent=room;G.$("#g23-rep").textContent=Math.min(RES,W);G.$("#g23-lost").textContent=lost;
+  const asks=N>=L;
+  G.$("#g23-msg").innerHTML=lost===0?"Tutto il testo sta nella finestra: il modello lo legge per intero.":(martaIn?"Sono usciti <b>"+lost+"</b> token, ma «Marta» è ancora dentro.":"«<b>Marta</b>» è uscito dalla finestra: se ora chiedi «come mi chiamo?», il modello non può saperlo.");
+}
+sw.addEventListener("input",render);sn.addEventListener("input",render);
+render();
+</script>

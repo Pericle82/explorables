@@ -1,0 +1,70 @@
+<div class="fld"><h3>Peso e parametro: che differenza c'è</h3>
+<p><b>Parametro</b> è la parola generale: qualunque numero del modello che l'addestramento regola (#6). <b>Peso</b> è il nome di un tipo particolare di parametro: quello che <b>moltiplica un ingresso</b>. Ogni peso è un parametro, ma non ogni parametro è un peso.</p>
+<p>Prendi un nodo con tre ingressi A, B e C. Il suo conto è <span class="mono">w<sub>A</sub>×A + w<sub>B</sub>×B + w<sub>C</sub>×C + b</span>. I numeri w<sub>A</sub>, w<sub>B</sub> e w<sub>C</sub> sono <b>pesi</b>: ciascuno è legato a un ingresso e dice quanto quell'ingresso conta. Il numero b non moltiplica nessun ingresso: si aggiunge alla somma e sposta la soglia oltre la quale il nodo dice sì. Si chiama <b>bias</b>. In tutto sono quattro parametri: tre pesi e un bias.</p>
+<div class="scroll-x"><table class="gtable" style="max-width:640px"><thead><tr><th></th><th>che cosa fa</th><th>nel nodo A, B, C</th><th>nelle case (#2)</th></tr></thead><tbody>
+<tr><td><b>peso</b></td><td>moltiplica un ingresso: quanto conta</td><td>w<sub>A</sub>, w<sub>B</sub>, w<sub>C</sub></td><td>w, migliaia di euro per m²</td></tr>
+<tr><td><b>bias</b></td><td>si aggiunge alla somma: sposta la soglia</td><td>b</td><td>b, il prezzo di partenza</td></tr>
+<tr><td><b>parametri</b></td><td>tutti i numeri regolati dall'addestramento</td><td>4 (3 pesi + 1 bias)</td><td>2 (1 peso + 1 bias)</td></tr>
+</tbody></table></div>
+<p>Nei modelli grandi i bias sono pochissimi rispetto ai pesi, e in molti modelli linguistici recenti non ci sono proprio. Per questo, nel parlare comune, «pesi» e «parametri» si usano come sinonimi: «scaricare i pesi di un modello» vuol dire scaricare tutti i suoi parametri, e i 7 miliardi di parametri di un modello sono, quasi tutti, pesi.</p>
+</div>
+<figure class="fig">
+<p class="fig-title">Quanto conta un ingresso <span class="tag">calcolo reale</span></p>
+<svg id="g07-svg" style="max-width:560px;margin:0 auto" viewBox="0 0 400 240" role="img" aria-label="Tre ingressi con i loro pesi: lo spessore e il colore delle frecce mostrano quanto ciascuno spinge verso il sì o verso il no."></svg>
+<div class="controls" style="margin-top:8px">
+  <div class="ctl"><label for="g07-wa">peso di A <output id="g07-wao"></output></label><input id="g07-wa" type="range" min="-2" max="2" step="0.1" value="1.2"></div>
+  <div class="ctl"><label for="g07-wb">peso di B <output id="g07-wbo"></output></label><input id="g07-wb" type="range" min="-2" max="2" step="0.1" value="0.6"></div>
+  <div class="ctl"><label for="g07-wc">peso di C <output id="g07-wco"></output></label><input id="g07-wc" type="range" min="-2" max="2" step="0.1" value="0"></div>
+</div>
+<div class="row" style="margin-top:10px">
+  <span class="muted" style="font-size:.85rem">Prova:</span>
+  <button class="btn ghost" id="g07-veto" type="button">B come veto (−2)</button>
+  <button class="btn ghost" id="g07-zero" type="button">B non incide (0)</button>
+  <button class="btn ghost" id="g07-reset" type="button">Ricomincia</button>
+</div>
+<div class="readout" style="margin-top:12px">
+  <div><small>Somma (ingresso × peso)</small><strong id="g07-sum"></strong></div>
+  <div><small>Decisione (sì se la somma supera 1)</small><strong id="g07-dec"></strong></div>
+</div>
+<div class="callout" id="g07-msg" style="margin-top:10px"></div>
+<figcaption>I tre ingressi sono fissi (A = 0,9, B = 0,7, C = 0,4; numeri inventati); cambia solo il peso. Freccia accesa e spessa: l'ingresso spinge verso il sì; rossa: spinge contro, come un veto; tratteggiata: non incide. In ogni freccia è scritto il contributo ingresso × peso.</figcaption>
+</figure>
+<script>
+const fx=s=>s.querySelectorAll("text[font-size]").forEach(t=>{t.style.fontSize=t.getAttribute("font-size")+"px";});
+const svg=G.$("#g07-svg");if(!svg)return;
+const xs={a:0.9,b:0.7,c:0.4},S={a:G.$("#g07-wa"),b:G.$("#g07-wb"),c:G.$("#g07-wc")};
+const ys={a:40,b:120,c:200};
+function draw(){
+  G.clear(svg);let sum=0;
+  ["a","b","c"].forEach(k=>{
+    const w=+S[k].value,c=xs[k]*w;sum+=c;
+    const col=Math.abs(w)<0.05?"var(--line)":w>0?"var(--accent)":"var(--bad)";
+    G.el("line",{x1:76,y1:ys[k],x2:274,y2:120,stroke:col,"stroke-width":1+Math.abs(w)*3.5,"stroke-dasharray":Math.abs(w)<0.05?"5 5":"none",opacity:.9},svg);
+    G.el("circle",{cx:50,cy:ys[k],r:26,fill:"var(--surface-2)",stroke:"var(--line)","stroke-width":2},svg);
+    G.el("text",{x:50,y:ys[k]-2,"text-anchor":"middle","font-size":13,"font-weight":700},svg,k.toUpperCase());
+    G.el("text",{x:50,y:ys[k]+13,"text-anchor":"middle","font-size":12,style:"font-family:var(--mono);fill:var(--muted)"},svg,G.fmt(xs[k],1));
+    const t=0.45,lx=76+(274-76)*t,ly=ys[k]+(120-ys[k])*t;
+    G.el("rect",{x:lx-58,y:ly-18,width:116,height:18,rx:4,fill:"var(--surface)",opacity:.92},svg);
+    G.el("text",{x:lx,y:ly-5,"text-anchor":"middle","font-size":12,style:"font-family:var(--mono)"},svg,G.fmt(xs[k],1)+" × "+G.fmt(w,1)+" = "+G.fmt(c,2));
+  });
+  const yes=sum>1;
+  G.el("circle",{cx:330,cy:120,r:44,fill:yes?"var(--good-soft)":"var(--bad-soft)",stroke:yes?"var(--good)":"var(--bad)","stroke-width":3},svg);
+  G.el("text",{x:330,y:114,"text-anchor":"middle","font-size":13,style:"fill:var(--muted)"},svg,"somma");
+  G.el("text",{x:330,y:136,"text-anchor":"middle","font-size":16,"font-weight":700,style:"font-family:var(--mono)"},svg,G.fmt(sum,2));
+  G.el("text",{x:330,y:190,"text-anchor":"middle","font-size":14,"font-weight":700,style:"fill:"+(yes?"var(--good)":"var(--bad)")},svg,yes?"SÌ":"NO");
+  ["a","b","c"].forEach(k=>G.$("#g07-w"+k+"o").textContent=G.fmt(+S[k].value,1));
+  G.$("#g07-sum").textContent=G.fmt(sum,2);G.$("#g07-dec").textContent=yes?"sì":"no";
+  const neg=["a","b","c"].filter(k=>+S[k].value<-0.05).map(k=>k.toUpperCase());
+  const zero=["a","b","c"].filter(k=>Math.abs(+S[k].value)<0.05).map(k=>k.toUpperCase());
+  let m="";
+  if(neg.length)m+="<b>Peso negativo ("+neg.join(", ")+"):</b> toglie dalla somma, come un veto. Non è un peso «rotto»: dice la presenza di un tratto contro la risposta. ";
+  if(zero.length)m+="<b>Peso vicino a zero ("+zero.join(", ")+"):</b> quell'ingresso non incide, qualunque valore abbia. ";
+  if(!m)m="Tutti i pesi sono positivi: ogni ingresso spinge verso il sì, di più o di meno a seconda del peso.";
+  fx(svg);G.$("#g07-msg").innerHTML=m;
+}
+Object.values(S).forEach(e=>e.addEventListener("input",draw));
+G.$("#g07-veto").addEventListener("click",()=>{S.b.value=-2;draw();});
+G.$("#g07-zero").addEventListener("click",()=>{S.b.value=0;draw();});
+G.$("#g07-reset").addEventListener("click",()=>{S.a.value=1.2;S.b.value=0.6;S.c.value=0;draw();});
+draw();
+</script>

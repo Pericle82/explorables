@@ -1,0 +1,60 @@
+<figure class="fig">
+<p class="fig-title">Stesse parole, ordine diverso <span class="tag">calcolo reale</span></p>
+<div class="seg" id="g33-seg" role="group" aria-label="Con o senza posizione">
+  <button type="button" aria-pressed="true" data-v="no">Senza posizione</button>
+  <button type="button" aria-pressed="false" data-v="si">Con posizione sommata</button>
+</div>
+<div class="stack" style="margin-top:10px">
+  <div class="row"><span class="muted mono" style="min-width:5.5em">frase A</span><div class="tokens" id="g33-a"></div></div>
+  <div class="row"><span class="muted mono" style="min-width:5.5em">frase B</span><div class="tokens" id="g33-b"></div></div>
+</div>
+<div class="callout" id="g33-msg" style="margin-top:8px"></div>
+<p class="muted" style="font-size:.85rem;margin:14px 0 4px">La posizione è un vettore: ecco le onde sinusoidali del 2017 (versione ridotta a 64 numeri; nel Transformer erano 512).</p>
+<svg id="g33-svg" style="display:block;margin:0 auto;max-width:560px" viewBox="0 0 440 290" role="img" aria-label="Mappa di calore: righe le posizioni da 0 a 39, colonne le 64 dimensioni del vettore posizionale, colore dato da seno e coseno."></svg>
+<div class="controls" style="margin-top:8px">
+  <div class="ctl"><label for="g33-p">Posizione del token <output id="g33-po"></output></label><input id="g33-p" type="range" min="0" max="39" step="1" value="5"></div>
+</div>
+<div class="readout" style="margin-top:10px">
+  <div><small>Dimensioni 0 e 1: sin, cos (onda veloce)</small><strong id="g33-r0"></strong></div>
+  <div><small>Dimensioni 32 e 33 (onda lenta)</small><strong id="g33-r1"></strong></div>
+  <div><small>Dimensioni 62 e 63 (onda lentissima)</small><strong id="g33-r2"></strong></div>
+</div>
+<figcaption>In alto: l'attention da sola vede solo l'insieme dei token, quindi «cane morde uomo» e «uomo morde cane» sarebbero identiche; sommando un vettore di posizione ogni token cambia a seconda del posto. In basso: PE(pos, 2i) = sin(pos / 10000^(2i/64)) e PE(pos, 2i+1) = cos(…), calcolate davvero. Colonne a sinistra: onde veloci (come la lancetta dei secondi); a destra: onde lente (le ore). Ogni riga è un vettore diverso. Muovi il cursore per evidenziare una posizione.</figcaption>
+</figure>
+<script>
+const svg=G.$("#g33-svg");if(!svg)return;
+const T=(p,x,y,s,sz,a,f)=>{const t=G.el("text",{x,y,"text-anchor":a||"start"},p,s);t.style.fontSize=(sz||11)+"px";if(f)t.style.fill=f;return t;};
+const A=["cane","morde","uomo"],B=["uomo","morde","cane"];
+function pills(id,ws,pos){
+  const c=G.$(id);c.innerHTML="";
+  ws.forEach((w,i)=>{const s=document.createElement("span");s.className="tok";s.textContent=pos?w+" + p"+i:w;c.appendChild(s);});
+}
+const getMode=G.seg("#g33-seg",v=>show(v));
+function show(m){
+  const pos=m==="si";
+  pills("#g33-a",A,pos);pills("#g33-b",B,pos);
+  G.$("#g33-msg").textContent=pos?"Ora «cane + p0» e «cane + p2» sono vettori diversi: il modello distingue chi morde e chi è morso.":"Gli stessi tre vettori, solo in ordine diverso: per l'attention le due frasi sono lo stesso insieme di parole.";
+}
+show("no");
+const NP=40,D=64,PX=34,PY=4,cw=(440-PX-6)/D,rh=(250-PY)/NP;
+const pe=(p,k)=>{const i=Math.floor(k/2),a=p/Math.pow(10000,2*i/D);return k%2?Math.cos(a):Math.sin(a);};
+const sl=G.$("#g33-p");
+function draw(){
+  G.clear(svg);
+  const sel=+sl.value;
+  for(let p=0;p<NP;p++)for(let k=0;k<D;k++){
+    const v=pe(p,k);
+    G.el("rect",{x:(PX+k*cw).toFixed(2),y:(PY+p*rh).toFixed(2),width:(cw+.3).toFixed(2),height:(rh+.3).toFixed(2),fill:v>=0?"var(--accent)":"var(--good)",opacity:Math.abs(v).toFixed(2)},svg);
+  }
+  G.el("rect",{x:PX-1,y:PY+sel*rh-1,width:D*cw+2,height:rh+2,fill:"none",stroke:"var(--ink)","stroke-width":1.8},svg);
+  [0,10,20,30,39].forEach(p=>T(svg,PX-5,PY+p*rh+rh/2+4,String(p),12,"end","var(--muted)"));
+  T(svg,10,PY+NP*rh/2,"posizione",12,"middle","var(--muted)").setAttribute("transform",`rotate(-90 10 ${PY+NP*rh/2})`);
+  [0,16,32,48,63].forEach(k=>T(svg,PX+k*cw+cw/2,PY+NP*rh+14,String(k),12,"middle","var(--muted)"));
+  T(svg,PX+D*cw/2,PY+NP*rh+30,"dimensione del vettore (due tinte: valori positivi e negativi)",12,"middle","var(--muted)");
+  G.$("#g33-po").textContent=sel;
+  const f=(k)=>G.fmt(pe(sel,k),2)+" ; "+G.fmt(pe(sel,k+1),2);
+  G.$("#g33-r0").textContent=f(0);G.$("#g33-r1").textContent=f(32);G.$("#g33-r2").textContent=f(62);
+}
+sl.addEventListener("input",draw);
+draw();
+</script>

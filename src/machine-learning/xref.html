@@ -1,0 +1,43 @@
+
+<!-- xpl:config (riferimenti incrociati di questa guida) -->
+<script>
+window.XREF_CONFIG={
+  skip:".lab,.cards,.recap,.gloss,.gtable,.readout,.callout,",
+  ids:[],
+  rules:[
+    {re:"capitolo 1(?![0-9])",to:"#s1",flags:"i",first:false},
+    {re:"capitolo 2(?![0-9])",to:"#s2",flags:"i",first:false},
+    {re:"capitolo 3(?![0-9])",to:"#s3",flags:"i",first:false},
+    {re:"capitolo 4(?![0-9])",to:"#s4",flags:"i",first:false},
+    {re:"capitolo 5(?![0-9])",to:"#s5",flags:"i",first:false},
+    {re:"capitolo 6(?![0-9])",to:"#s6",flags:"i",first:false},
+    {re:"capitolo 7(?![0-9])",to:"#s7",flags:"i",first:false},
+    {re:"capitolo 8(?![0-9])",to:"#s8",flags:"i",first:false},
+    {re:"capitolo 9(?![0-9])",to:"#s9",flags:"i",first:false},
+    {re:"capitolo 10(?![0-9])",to:"#s10",flags:"i",first:false},
+    {re:"capitolo 11(?![0-9])",to:"#s11",flags:"i",first:false},
+    {re:"capitolo 12(?![0-9])",to:"#s12",flags:"i",first:false},
+    {re:"capitolo 13(?![0-9])",to:"#s13",flags:"i",first:false},
+    {re:"capitolo 14(?![0-9])",to:"#s14",flags:"i",first:false},
+    {re:"discesa del gradiente",to:"#s3",flags:"i"},
+    {re:"learning rate",to:"#s3",flags:"i"},
+    {re:"z-score|feature scaling|scaling",to:"#s4-scaling",flags:"i"},
+    {re:"feature engineering",to:"#s4-feature",flags:"i"},
+    {re:"regressione logistica|sigmoide",to:"#s5",flags:"i"},
+    {re:"regolarizzazione",to:"#s6-reg",flags:"i"},
+    {re:"overfitting|underfitting",to:"#s6",flags:"i"},
+    {re:"ReLU",to:"#s8-act"},{re:"softmax",to:"#s8-softmax",flags:"i"},{re:"\\bAdam\\b",to:"#s8-adam"},
+    {re:"bias e varianza|alta varianza|alto bias",to:"#s9-bv",flags:"i"},
+    {re:"precisione e recall|\\bF1\\b",to:"#s9-skew",flags:"i"},
+    {re:"entropia|information gain",to:"#s10-entropia",flags:"i"},
+    {re:"random forest|XGBoost|boosting",to:"#s10-ensemble",flags:"i"},
+    {re:"k-means|centroid[ei]",to:"#s11",flags:"i"},
+    {re:"gaussiana",to:"#s12-gauss",flags:"i"},
+    {re:"filtro collaborativo",to:"#s13",flags:"i"},
+    {re:"equazione di Bellman|funzione Q",to:"#s14-q",flags:"i"},
+    {re:"fattore di sconto|ritorno",to:"#s14-return",flags:"i"},
+    {re:"\\bDQN\\b|Deep Q-Network",to:"#s14-dqn"}
+  ],
+  gloss:{selector:"dl.gloss",skip:["Feature","Policy"],extra:{"Funzione costo J":["funzione costo","costo J"],"Regolarizzazione λ":["regolarizzazione"],"Soglia ε":["soglia ε"],"Funzione Q(s, a)":["funzione Q"]}}
+};
+</script>

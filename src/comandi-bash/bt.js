@@ -1,0 +1,10 @@
+const { chromium } = require('playwright');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1100,height:900}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!/net::/.test(m.text()))errs.push(m.text())});
+await p.goto('file://'+__dirname+'/test.html');await p.waitForTimeout(800);
+const run=async c=>{await p.fill('.term input',c);await p.press('.term input','Enter');};
+for(const c of ['pwd','ls','ls -la','cd Documenti','ls -l','cd "Fatture 2026"','pwd','cd ..','cat appunti.txt','echo $SHELL','type cd ls','ls --help','grep ciao','man ls','cd -','ls /etc /tmp','ls -z'])await run(c);
+const txt=await p.textContent('.term-out');console.log(txt.slice(0,2600));console.log('ERRS',errs);
+await p.setViewportSize({width:400,height:800});await p.waitForTimeout(300);console.log('sw',await p.evaluate(()=>document.documentElement.scrollWidth));
+await p.setViewportSize({width:1100,height:900});const e=await p.$('.term');await e.scrollIntoViewIfNeeded();await e.screenshot({path:__dirname+'/term.png'});
+await b.close();})();

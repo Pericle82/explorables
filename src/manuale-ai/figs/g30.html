@@ -1,0 +1,60 @@
+<figure class="fig">
+<p class="fig-title">Le parole della stessa frase si guardano tra loro <span class="tag">calcolo reale</span></p>
+<div class="row" style="margin-bottom:8px">
+  <div class="seg" id="g30-seg" role="group" aria-label="Maschera">
+    <button type="button" data-v="free" aria-pressed="true">Libera (encoder)</button>
+    <button type="button" data-v="mask" aria-pressed="false">Con benda (decoder)</button>
+  </div>
+</div>
+<svg id="g30-svg" viewBox="0 0 400 270" role="img" aria-label="La frase «The FBI is chasing a criminal on the run» con archi dalla parola scelta verso le altre parole della stessa frase, spessi in proporzione al peso."></svg>
+<div class="callout" id="g30-msg" aria-live="polite" style="margin-top:8px"></div>
+<figcaption>Frase d'esempio: «The FBI (Federal Bureau of Investigation) is chasing a criminal on the run». Clicca una parola: gli archi mostrano a chi dà peso, compresa sé stessa (cerchietto). I punteggi sono scelti a mano, la softmax è vera; con la benda le parole a destra sono escluse, ed è questo che permette di scrivere un token alla volta.</figcaption>
+</figure>
+<script>
+const S=G.$("#g30-svg");if(!S)return;
+const T=["The","FBI","is","chasing","a","criminal","on","the","run"];
+const N=T.length;
+// punteggi grezzi inventati: riga = parola che guarda
+const SC=[
+ [2,1,0,0,0,0,0,0,0],
+ [0.5,2,0.5,2,0,1.5,0,0,0.5],
+ [0,3,1,1.5,0,0,0,0,0],
+ [0,3.5,0.5,1.5,0,3,0,0,1],
+ [0,0,0,0.5,1,3,0,0,0],
+ [0,1.5,0,3,2,1.5,0,0,1.5],
+ [0,0.5,0,1.5,0,2,1,1,2],
+ [0,0,0,0,0,0,0.5,1,3],
+ [0,2,0,3,0,3.5,2,1.5,1.5]
+];
+let cur=8;
+const get=G.seg("#g30-seg",()=>draw());
+const X=i=>24+i*44;
+function softmax(a){const m=Math.max(...a);const e=a.map(v=>Math.exp(v-m));const s=e.reduce((x,y)=>x+y,0);return e.map(v=>v/s);}
+function draw(){
+  G.clear(S);const mask=get()==="mask";
+  const sc=SC[cur].map((v,j)=>mask&&j>cur?-1e9:v);
+  const w=softmax(sc);
+  const WY=190;
+  T.forEach((t,j)=>{
+    const x=X(j);
+    const on=j===cur;
+    const g=G.el("g",{style:"cursor:pointer",tabindex:0,role:"button","aria-label":t},S);
+    G.el("rect",{x:x-20,y:WY,width:40,height:28,rx:6,style:`fill:${on?"var(--accent-soft)":"var(--surface)"};stroke:${on?"var(--accent)":"var(--line)"};stroke-width:${on?2.5:1}`},g);
+    G.el("text",{x:x,y:WY+19,"text-anchor":"middle",style:`font-size:12px;fill:${mask&&j>cur?"var(--muted)":"var(--ink)"}`},g,t);
+    g.addEventListener("click",()=>{cur=j;draw();});
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cur=j;draw();}});
+    G.el("text",{x:x,y:WY+46,"text-anchor":"middle",style:`font-size:12px;fill:${w[j]>0.15?"var(--accent)":"var(--muted)"};font-weight:${w[j]>0.15?700:400}`},S,w[j]<0.005?"–":G.fmt(w[j]*100,0)+"%");
+  });
+  const tx=X(cur);
+  w.forEach((p,j)=>{
+    if(p<0.01)return;
+    const x2=X(j);
+    if(j===cur){G.el("circle",{cx:tx,cy:WY-8,r:5+p*14,fill:"none",style:`stroke:var(--accent);stroke-width:${1+p*8};opacity:.85`},S);return;}
+    const d=Math.abs(x2-tx),h=Math.min(170,28+d*0.5);
+    G.el("path",{d:`M${tx},${WY} C${tx},${WY-h*1.25} ${x2},${WY-h*1.25} ${x2},${WY}`,fill:"none",style:`stroke:var(--accent);stroke-width:${0.8+p*9};opacity:${0.25+p*0.75};stroke-linecap:round`},S);
+  });
+  const top=w.map((v,i)=>[v,i]).filter(p=>p[1]!==cur).sort((a,b)=>b[0]-a[0])[0];
+  G.$("#g30-msg").innerHTML="«<b>"+T[cur]+"</b>» guarda soprattutto «<b>"+T[top[1]]+"</b>» ("+G.fmt(top[0]*100,0)+"%)"+(mask?"; le parole a destra sono coperte dalla benda.":".")+" Tra i pesi ci sono anche "+G.fmt(w[cur]*100,0)+"% per sé stessa.";
+}
+draw();
+</script>

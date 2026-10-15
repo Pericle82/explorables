@@ -1,0 +1,54 @@
+<figure class="fig">
+<p class="fig-title">La «benda» del decoder e le tre famiglie <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:8px">
+  <div class="seg" id="g28-seg" role="group" aria-label="Tipo di blocco">
+    <button type="button" data-v="enc" aria-pressed="false">Encoder: vede tutto</button>
+    <button type="button" data-v="dec" aria-pressed="true">Decoder: con la benda</button>
+  </div>
+</div>
+<div class="grid2">
+  <div>
+    <svg id="g28-svg" viewBox="0 0 340 320" role="img" aria-label="Tabella 5 per 5: le righe sono i token che leggono, le colonne i token che possono vedere. Nel decoder le celle a destra della diagonale sono coperte."></svg>
+    <div class="callout" id="g28-msg" aria-live="polite" style="margin-top:6px"></div>
+  </div>
+  <div>
+    <table class="gtable">
+      <thead><tr><th>Famiglia</th><th>Come legge</th><th>Esempi e usi</th></tr></thead>
+      <tbody>
+        <tr><td>Solo encoder</td><td>tutto, in un passaggio</td><td>BERT (Bidirectional Encoder Representations from Transformers): classificare, cercare</td></tr>
+        <tr><td>Solo decoder</td><td>solo il passato, un token alla volta</td><td>GPT (Generative Pre-trained Transformer), Claude, Llama: scrivere testo</td></tr>
+        <tr><td>Encoder + decoder</td><td>una metà legge, l'altra scrive</td><td>traduzione (2014–2017), Whisper</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Il primo GPT (2018, OpenAI) tenne solo la metà decoder: 12 layer, 117 milioni di parametri, meglio dei riferimenti in 9 compiti su 12.</p>
+  </div>
+</div>
+<figcaption>Ogni riga è un token che sta costruendo il proprio vettore; le celle piene sono i token che può guardare. Cambia modalità e clicca una riga: con la benda il token 3 non vede il 4 e il 5, perché durante la generazione non esistono ancora. In addestramento, senza benda il token 5 copierebbe il 6 invece di indovinarlo.</figcaption>
+</figure>
+<script>
+const S=G.$("#g28-svg");if(!S)return;
+const T=["Il","gatto","era","troppo","stanco"];
+let row=2;
+const get=G.seg("#g28-seg",()=>draw());
+function draw(){
+  G.clear(S);const dec=get()==="dec";
+  const x0=64,y0=44,c=54;
+  G.el("text",{x:x0+2.5*c,y:16,"text-anchor":"middle",style:"font-size:12px;fill:var(--muted)"},S,"token che può essere guardato →");
+  T.forEach((t,j)=>G.el("text",{x:x0+j*c+c/2,y:36,"text-anchor":"middle",style:"font-size:12px"},S,t));
+  T.forEach((t,i)=>{
+    const g=G.el("g",{style:"cursor:pointer",tabindex:0,role:"button","aria-label":"Riga "+t},S);
+    G.el("text",{x:x0-6,y:y0+i*c+c/2+4,"text-anchor":"end",style:`font-size:12px;${i===row?"font-weight:700":""}`},g,t);
+    T.forEach((u,j)=>{
+      const vis=!dec||j<=i;
+      G.el("rect",{x:x0+j*c+2,y:y0+i*c+2,width:c-4,height:c-4,rx:5,style:`fill:${vis?(i===row?"var(--accent)":"var(--accent-soft)"):"var(--surface-2)"};stroke:${i===row?"var(--accent)":"var(--line)"}`},g);
+      if(!vis)G.el("text",{x:x0+j*c+c/2,y:y0+i*c+c/2+5,"text-anchor":"middle",style:"font-size:14px;fill:var(--muted)"},g,"✕");
+    });
+    g.addEventListener("click",()=>{row=i;draw();});
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();row=i;draw();}});
+  });
+  G.el("text",{x:10,y:y0+2.5*c,"text-anchor":"middle",style:"font-size:12px;fill:var(--muted)",transform:`rotate(-90 10 ${y0+2.5*c})`},S,"token che legge");
+  const n=dec?row+1:T.length;
+  G.$("#g28-msg").innerHTML="«<b>"+T[row]+"</b>» (token "+(row+1)+") vede "+n+" token su "+T.length+(dec?": se stesso e quelli prima.":": tutta la frase.");
+}
+draw();
+</script>

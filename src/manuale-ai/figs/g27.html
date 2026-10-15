@@ -1,0 +1,54 @@
+<figure class="fig">
+<p class="fig-title">L'encoder: ogni token vede tutta la frase <span class="tag">illustrazione</span></p>
+<div class="row" style="margin-bottom:8px">
+  <div class="seg" id="g27-seg" role="group" aria-label="Modo di lettura">
+    <button type="button" data-v="both" aria-pressed="true">Encoder: legge in entrambe le direzioni</button>
+    <button type="button" data-v="left" aria-pressed="false">Solo le parole precedenti</button>
+  </div>
+</div>
+<svg id="g27-svg" viewBox="0 0 400 250" style="max-width:600px;display:block;margin:0 auto" role="img" aria-label="Cinque parole in ingresso, frecce bidirezionali dalla parola scelta verso quelle che può vedere, e cinque vettori in uscita."></svg>
+<div class="callout" id="g27-msg" aria-live="polite" style="margin-top:8px"></div>
+<figcaption>Clicca una parola. Nell'encoder, come in BERT (Bidirectional Encoder Representations from Transformers, 110 milioni di parametri nella versione base), la parola scelta considera anche quelle che seguono; con la sola lettura a sinistra non vede più le parole a destra. In ogni caso escono cinque vettori per cinque parole: stessa lunghezza dell'ingresso, ma più ricchi. I colori dei vettori sono inventati.</figcaption>
+</figure>
+<script>
+const S=G.$("#g27-svg");if(!S)return;
+const T=["Il","gatto","era","troppo","stanco"];
+const get=G.seg("#g27-seg",()=>draw());
+let cur=1;
+const X=i=>40+i*80;
+function draw(){
+  G.clear(S);const mode=get();
+  const seen=j=>mode==="both"||j<=cur;
+  const defs=G.el("defs",{},S);
+  const mk=G.el("marker",{id:"g27-ah",viewBox:"0 0 10 10",refX:5,refY:5,markerWidth:6,markerHeight:6,orient:"auto-start-reverse"},defs);
+  G.el("path",{d:"M0,0 L10,5 L0,10 z",style:"fill:var(--accent)"},mk);
+  const WY=140;
+  T.forEach((t,i)=>{
+    const x=X(i);
+    for(let r=0;r<4;r++){
+      const sh=((i*7+r*5)%9)/9;
+      G.el("rect",{x:x-15,y:24+r*14,width:30,height:12,rx:2,style:`fill:var(--accent);opacity:${0.15+sh*0.7}`},S);
+    }
+    G.el("text",{x:x,y:16,"text-anchor":"middle",style:"font-size:12px;fill:var(--muted)"},S,"vettore "+(i+1));
+    const on=i===cur;
+    const g=G.el("g",{style:"cursor:pointer",tabindex:0,role:"button","aria-label":"Parola "+t},S);
+    G.el("rect",{x:x-34,y:WY,width:68,height:30,rx:7,style:`fill:${on?"var(--accent-soft)":seen(i)?"var(--surface)":"var(--surface-2)"};stroke:${on?"var(--accent)":"var(--line)"};stroke-width:${on?2.5:1}`},g);
+    G.el("text",{x:x,y:WY+20,"text-anchor":"middle",style:`font-size:15px;fill:${seen(i)||on?"var(--ink)":"var(--muted)"}`},g,t);
+    g.addEventListener("click",()=>{cur=i;draw();});
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cur=i;draw();}});
+  });
+  const tx=X(cur);
+  G.el("line",{x1:tx,x2:tx,y1:WY-2,y2:84,style:"stroke:var(--accent);stroke-width:2.5","marker-end":"url(#g27-ah)"},S);
+  T.forEach((t,j)=>{
+    if(j===cur)return;
+    const x2=X(j),d=Math.abs(x2-tx),dep=22+d*0.28;
+    const p=`M${tx},${WY+32} C${tx},${WY+32+dep} ${x2},${WY+32+dep} ${x2},${WY+34}`;
+    if(seen(j))G.el("path",{d:p,fill:"none",style:"stroke:var(--accent);stroke-width:2","marker-start":"url(#g27-ah)","marker-end":"url(#g27-ah)"},S);
+    else{G.el("path",{d:p,fill:"none",style:"stroke:var(--line);stroke-width:1.5;stroke-dasharray:3 4"},S);
+      G.el("text",{x:x2,y:WY+60,"text-anchor":"middle",style:"font-size:12px;fill:var(--bad)"},S,"non visibile");}
+  });
+  const nS=T.filter((_,j)=>seen(j)).length;
+  G.$("#g27-msg").innerHTML="Per costruire il vettore di «<b>"+T[cur]+"</b>», l'encoder guarda "+nS+" parole su "+T.length+(mode==="both"?": tutta la frase, prima e dopo.":": solo fino a sé stessa.");
+}
+draw();
+</script>
