@@ -396,6 +396,11 @@
       ],
       "history": [
         {
+          "version": "1.8",
+          "date": "2026-10-15",
+          "notes": "Capitolo 7: peso e parametro, che differenza c'è (parametro è ogni numero regolato dall'addestramento, peso è il parametro che moltiplica un ingresso, bias quello che sposta la soglia), con tabella sul nodo a tre ingressi e sul laboratorio delle case, e perché nel parlare comune pesi e parametri sono usati come sinonimi"
+        },
+        {
           "version": "1.7",
           "date": "2026-10-14",
           "notes": "Capitolo 1: storia riordinata e Deep Blue spiegato (albero delle mosse, voto alle posizioni con una formula scritta da programmatori e maestri, in fondo una procedura classica che funziona perché negli scacchi le regole si sanno scrivere, a differenza dei pixel di una foto); schema dei tre modi di sostituire la procedura (ricerca, regole degli esperti, machine learning); rimossa la linea del tempo"
@@ -436,8 +441,8 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.7",
-      "updated": "2026-10-14"
+      "version": "1.8",
+      "updated": "2026-10-15"
     }
   ]
 }

@@ -2,6 +2,9 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-15
+- **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.8: Capitolo 7: peso e parametro, che differenza c'è (parametro è ogni numero regolato dall'addestramento, peso è il parametro che moltiplica un ingresso, bias quello che sposta la soglia), con tabella sul nodo a tre ingressi e sul laboratorio delle case, e perché nel parlare comune pesi e parametri sono usati come sinonimi
+
 ## 2026-10-14
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.7: Capitolo 1: storia riordinata e Deep Blue spiegato (albero delle mosse, voto alle posizioni con una formula scritta da programmatori e maestri, in fondo una procedura classica che funziona perché negli scacchi le regole si sanno scrivere, a differenza dei pixel di una foto); schema dei tre modi di sostituire la procedura (ricerca, regole degli esperti, machine learning); rimossa la linea del tempo
 

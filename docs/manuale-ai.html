@@ -583,6 +583,16 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 <div class="sec-head"><span class="eyebrow">#7 · Le fondamenta</span><h2>Peso</h2></div>
 <p class="oneline">Un peso è il numero che stabilisce quanto un ingresso conta per una singola decisione del modello, e l'insieme di tutti i pesi è ciò che la rete ha imparato.</p>
 <div class="fld "><h3>Definizione</h3><p>Ogni nodo della rete riceve dei valori in ingresso e, per ciascuno, ha un peso. Il nodo moltiplica ogni ingresso per il suo peso, somma tutto e da quel totale ricava la decisione. Un peso positivo spinge verso il sì, uno negativo spinge verso il no come un veto, e uno vicino a zero non incide.</p></div>
+<div class="fld"><h3>Peso e parametro: che differenza c'è</h3>
+<p><b>Parametro</b> è la parola generale: qualunque numero del modello che l'addestramento regola (#6). <b>Peso</b> è il nome di un tipo particolare di parametro: quello che <b>moltiplica un ingresso</b>. Ogni peso è un parametro, ma non ogni parametro è un peso.</p>
+<p>Prendi un nodo con tre ingressi A, B e C. Il suo conto è <span class="mono">w<sub>A</sub>×A + w<sub>B</sub>×B + w<sub>C</sub>×C + b</span>. I numeri w<sub>A</sub>, w<sub>B</sub> e w<sub>C</sub> sono <b>pesi</b>: ciascuno è legato a un ingresso e dice quanto quell'ingresso conta. Il numero b non moltiplica nessun ingresso: si aggiunge alla somma e sposta la soglia oltre la quale il nodo dice sì. Si chiama <b>bias</b>. In tutto sono quattro parametri: tre pesi e un bias.</p>
+<div class="scroll-x"><table class="gtable" style="max-width:640px"><thead><tr><th></th><th>che cosa fa</th><th>nel nodo A, B, C</th><th>nelle case (#2)</th></tr></thead><tbody>
+<tr><td><b>peso</b></td><td>moltiplica un ingresso: quanto conta</td><td>w<sub>A</sub>, w<sub>B</sub>, w<sub>C</sub></td><td>w, migliaia di euro per m²</td></tr>
+<tr><td><b>bias</b></td><td>si aggiunge alla somma: sposta la soglia</td><td>b</td><td>b, il prezzo di partenza</td></tr>
+<tr><td><b>parametri</b></td><td>tutti i numeri regolati dall'addestramento</td><td>4 (3 pesi + 1 bias)</td><td>2 (1 peso + 1 bias)</td></tr>
+</tbody></table></div>
+<p>Nei modelli grandi i bias sono pochissimi rispetto ai pesi, e in molti modelli linguistici recenti non ci sono proprio. Per questo, nel parlare comune, «pesi» e «parametri» si usano come sinonimi: «scaricare i pesi di un modello» vuol dire scaricare tutti i suoi parametri, e i 7 miliardi di parametri di un modello sono, quasi tutti, pesi.</p>
+</div>
 <figure class="fig">
 <p class="fig-title">Quanto conta un ingresso <span class="tag">calcolo reale</span></p>
 <svg id="g07-svg" style="max-width:560px;margin:0 auto" viewBox="0 0 400 240" role="img" aria-label="Tre ingressi con i loro pesi: lo spessore e il colore delle frecce mostrano quanto ciascuno spinge verso il sì o verso il no."></svg>
