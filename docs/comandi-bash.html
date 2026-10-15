@@ -417,6 +417,68 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <div class="term" data-term data-cwd="/home/joe/Documenti" data-try="cat prezzi.csv§awk -F',' '{print $2}' prezzi.csv§awk -F',' 'NR>1 {print $1, $3}' prezzi.csv§awk -F',' '$1==&quot;latte&quot; {print $2}' prezzi.csv§cut -d',' -f1,2 prezzi.csv§cat vendite.txt§awk '{print $3}' vendite.txt§lsof -i :8082§lsof -i :8082 | awk '{print $3}'§lsof -i :8082 | awk 'NR>1 {print $2}'§lsof -t -i :8082§lsof -i :9000; echo &quot;exit: $?&quot;§awk &quot;{print $2}&quot; vendite.txt§lsof -i :5432§sudo lsof -i :5432§kill $(lsof -t -i :8082)§lsof -i :8082"></div>
     <p class="note">La simulazione di awk copre ciò che c'è in questa scheda (campi, -F, NR, condizioni di uguaglianza e confronto, print con e senza virgola, $0); quella di lsof conosce <span class="k">-i :porta</span>, <span class="k">-t</span>, <span class="k">-P</span>, <span class="k">-n</span> e un processo di un altro utente che senza <span class="k">sudo</span> non vedi. <span class="k">grep</span> è disponibile in forma minima perché serve negli esempi: avrà la sua scheda.</p>
   </div>
+  <!-- ============ SCHEDA · chi occupa una porta ============ -->
+  <h3 id="cmd-porta" class="anchor">lsof, ss, netstat · chi occupa una porta, e come liberarla</h3>
+  <div class="prose stack">
+    <p class="q">Lanci un progetto e ricevi «Port 4173 is already in use». <b>Chi la sta usando, e come la liberi?</b></p>
+  </div>
+  <div class="phasecard">
+    <div class="pc"><b>Che cosa fa</b>Ogni programma che accetta connessioni (un server web, un database, l'anteprima di un progetto) si mette «in ascolto» su una porta, e finché è acceso nessun altro può prenderla. Questi comandi dicono quale processo la tiene: il suo nome e il suo PID (Process ID, il numero che il sistema dà a ogni programma in esecuzione).</div>
+    <div class="pc"><b>Come si scrive</b><span class="k">lsof -i :PORTA</span> · solo chi è in ascolto: <span class="k">lsof -iTCP:PORTA -sTCP:LISTEN -n -P</span> · solo il PID: <span class="k">lsof -ti:PORTA</span></div>
+    <div class="pc"><b>Linux · macOS</b>lsof c'è su entrambi e si usa allo stesso modo. ss esiste solo su Linux. netstat c'è su entrambi ma con opzioni diverse: <span class="k">-p</span> su Linux vuol dire «processo», su macOS «protocollo».</div>
+  </div>
+
+  <div class="vx"><p class="vx-cap">Il comando più diretto, e la forma precisa</p><div class="vx-code"><div class="vx-code-h"><span>bash · chi usa la porta 4173</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm"># tutto ciò che riguarda la porta 4173</span>
+</span><span class="ln">lsof -i :4173
+</span><span class="ln"><span class="tk-cm"># solo i processi in ascolto (LISTEN), con numeri al posto dei nomi</span>
+</span><span class="ln hl">lsof -iTCP:4173 -sTCP:LISTEN -n -P
+</span></code></pre></div></div>
+  <div class="prose stack">
+    <p><b>Come si legge la seconda forma.</b> <span class="k">-iTCP:4173</span> limita la ricerca alle connessioni TCP (Transmission Control Protocol, il protocollo di quasi tutti i server web) sulla porta 4173. <span class="k">-sTCP:LISTEN</span> filtra per stato e tiene solo chi è <i>in ascolto</i>, scartando le connessioni già aperte da un browser verso quel server, che con la prima forma comparirebbero mescolate. <span class="k">-n</span> e <span class="k">-P</span> dicono a lsof di non tradurre gli indirizzi in nomi di host e le porte in nomi di servizio: l'output arriva più in fretta e leggi <span class="k">4173</span> invece di un nome che potresti non riconoscere.</p>
+  </div>
+
+  <div class="vx"><p class="vx-cap">Le alternative, e la forma per gli script</p><div class="vx-code"><div class="vx-code-h"><span>bash · ss, netstat, solo il PID</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm"># ss: il moderno, preferito su Linux al posto di netstat (-l ascolto, -t TCP, -n numeri, -p processo)</span>
+</span><span class="ln">ss -ltnp <span class="tk-str">'sport = :4173'</span>
+</span><span class="ln"><span class="tk-cm"># netstat, se ss non c'è (forma Linux; su macOS: netstat -anv -p tcp | grep 4173)</span>
+</span><span class="ln">netstat -tlnp | grep 4173
+</span><span class="ln"><span class="tk-cm"># solo il PID, comodo negli script: -t (terse) attaccato a -i</span>
+</span><span class="ln hl">lsof -ti:4173
+</span><span class="ln"><span class="tk-cm"># … e concatenato a kill, per liberare la porta al volo</span>
+</span><span class="ln">kill $(lsof -ti:4173)
+</span><span class="ln"><span class="tk-cm"># se il processo non risponde alla chiusura normale, la forma forzata</span>
+</span><span class="ln">kill -9 $(lsof -ti:4173)
+</span></code></pre></div></div>
+  <div class="prose stack">
+    <p><b>Perché funziona <span class="k">kill $(lsof -ti:4173)</span>.</b> È la sostituzione di comando vista nella scheda su awk: la shell esegue prima <span class="k">lsof -ti:4173</span>, che stampa solo il PID (per esempio <span class="k">7731</span>), e lo mette al posto di <span class="k">$(…)</span>. Il comando che parte davvero è <span class="k">kill 7731</span>.</p>
+    <p><b>kill o kill -9?</b> <span class="k">kill</span> da solo manda il segnale TERM: chiede al programma di chiudersi, e il programma può salvare, chiudere i file e liberare la porta in ordine. <span class="k">kill -9</span> manda KILL: il sistema lo termina all'istante, senza dargli modo di fare pulizia. Conviene provare prima senza <span class="k">-9</span>, e usarlo solo se il processo resta lì.</p>
+    <p><b>Un caso tipico: la 4173.</b> È la porta predefinita di <span class="k">vite preview</span>, l'anteprima della build di un progetto Vite (React, Vue, Svelte…); <span class="k">vite</span> in sviluppo usa la 5173. Se la trovi occupata, quasi sempre è un'anteprima lanciata in un altro terminale e rimasta accesa: nella colonna COMMAND di lsof compare <span class="k">node</span>, perché Vite gira dentro Node.js.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Dove si inciampa</h3></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="diag-title">«kill: usage: kill [-s sigspec …]»</div>
+        <p class="note" style="border-color:var(--bad)">La porta era già libera: <span class="k">lsof -ti:4173</span> non ha stampato nulla, quindi <span class="k">$(…)</span> è diventato vuoto e <span class="k">kill</span> è partito senza PID. Non è un errore grave, ma negli script conviene controllare prima: <span class="k">pid=$(lsof -ti:4173) &amp;&amp; kill $pid</span>.</p>
+        <div class="diag-title">«lsof non mostra nulla, ma la porta è occupata»</div>
+        <p class="note" style="border-color:var(--bad)">Il processo è di un altro utente o di root, e lsof senza privilegi mostra solo i tuoi: <span class="k">sudo lsof -iTCP:4173 -sTCP:LISTEN -n -P</span>. Su macOS, se la porta è pubblicata da Docker, vedrai al massimo <span class="k">com.docker.backend</span>: il processo vero sta nel container (<span class="k">docker ps</span>).</p>
+      </div>
+      <div class="stack">
+        <div class="diag-title">«ss: command not found» sul Mac</div>
+        <p class="note" style="border-color:var(--warn)">ss fa parte di iproute2, che esiste solo su Linux. Sul Mac usa lsof, oppure <span class="pill ko">macOS</span> <span class="k">netstat -anv -p tcp | grep 4173</span>.</p>
+        <div class="diag-title">«netstat -tlnp: illegal option» sul Mac</div>
+        <p class="note" style="border-color:var(--warn)">Le opzioni di netstat sono diverse tra Linux (net-tools) e macOS (BSD): su macOS non c'è <span class="k">-l</span> e <span class="k">-p</span> vuol dire protocollo. Su Linux recenti, invece, netstat può non essere installato del tutto: lì si usa ss.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><h3>Prova: chi occupa la 4173</h3><span class="tag">simulazione · processi finti</span></div>
+    <p>Nel sistema finto un <span class="k">node</span> (un <span class="k">vite preview</span> dimenticato) ascolta sulla 4173, oltre ai processi della scheda precedente. Trova chi è, liberala e verifica.</p>
+    <div class="term" data-term data-cwd="/home/joe" data-try="lsof -i :4173§lsof -iTCP:4173 -sTCP:LISTEN -n -P§ss -ltnp 'sport = :4173'§netstat -tlnp | grep 4173§lsof -ti:4173§kill $(lsof -ti:4173)§lsof -ti:4173; echo &quot;exit: $?&quot;§kill $(lsof -ti:4173)"></div>
+    <p class="note">La simulazione mostra ss e netstat nella forma Linux e segnala la differenza su macOS. Gli ultimi due comandi riproducono i due errori più comuni: la porta è già libera, quindi lsof non stampa nulla e kill parte senza PID.</p>
+  </div>
+
 </section>
 
 <!-- ============ RIEPILOGO ============ -->
@@ -428,7 +490,10 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <tr><td class="mono">|</td><td>pipe: passa l'output di un comando come input al successivo</td><td class="mono">lsof -i :8082 | awk 'NR&gt;1 {print $2}'</td><td>identica</td></tr>
       <tr><td class="mono">awk</td><td>legge righe, le spezza in colonne, filtra e stampa</td><td class="mono">awk -F',' 'NR&gt;1 {print $1, $3}' f.csv</td><td>gawk vs awk BSD: le forme di base sono identiche</td></tr>
       <tr><td class="mono">cut</td><td>estrae colonne con un separatore fisso</td><td class="mono">cut -d',' -f3 f.csv</td><td>identica</td></tr>
-      <tr><td class="mono">lsof -i</td><td>chi ha aperto una porta di rete</td><td class="mono">lsof -t -i :8082</td><td>identica; alternative ss (Linux) / netstat -anv (macOS)</td></tr>
+      <tr><td class="mono">lsof -i</td><td>chi ha aperto una porta di rete</td><td class="mono">lsof -iTCP:4173 -sTCP:LISTEN -n -P</td><td>identica</td></tr>
+      <tr><td class="mono">ss</td><td>porte in ascolto e processi (moderno)</td><td class="mono">ss -ltnp 'sport = :4173'</td><td>solo Linux</td></tr>
+      <tr><td class="mono">netstat</td><td>porte in ascolto (vecchio)</td><td class="mono">netstat -tlnp | grep 4173</td><td>Linux; macOS: netstat -anv -p tcp</td></tr>
+      <tr><td class="mono">kill</td><td>chiude un processo dato il PID</td><td class="mono">kill $(lsof -ti:4173)</td><td>identica; -9 forza la chiusura</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -592,14 +657,35 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     return rec=>{const lv=L==="NR"?rec.NR:L==="NF"?rec.NF:field(rec,+L.slice(1));const isStr=R.startsWith('"');const rv=isStr?R.slice(1,-1):+R;const a=isStr?String(lv):+lv;
       switch(op){case "==":return a==rv;case "!=":return a!=rv;case ">":return a>rv;case "<":return a<rv;case ">=":return a>=rv;case "<=":return a<=rv;}return false;};}
   /* ---- lsof -i ---- */
-  CMDS.lsof={help:"elenca chi ha aperto file e porte (qui: -i per le porte)",man:"lsof - list open files\n\nSYNOPSIS\n       lsof [-t] [-P] [-n] [-i [:port]]\n\n  -i [:port]  connessioni di rete, opzionalmente solo su una porta\n  -t          solo i PID, uno per riga (per gli script)\n  -P -n       non tradurre porte e indirizzi in nomi (più veloce)\n\nMostra solo i processi del tuo utente: per gli altri serve sudo. Identico su Linux e macOS; alternative: ss -ltnp (Linux), netstat -anv (macOS).",
-    run(ctx,args){let net=false,port=null,terse=false;for(let i=0;i<args.length;i++){const a=args[i];if(a==="-i"){net=true;const nx=args[i+1];if(nx&&/^:\d+$/.test(nx)){port=+nx.slice(1);i++;}}else if(/^-i:\d+$/.test(a)){net=true;port=+a.slice(3);}else if(/^-[tPnPt]+$/.test(a)){if(a.includes("t"))terse=true;}else if(a.startsWith("-"))return {out:`lsof: unknown option -- ${a.slice(1)}\nlsof 4.99.0\n latest revision: https://github.com/lsof-org/lsof`,code:1};else return {out:`lsof: status error on ${a}: No such file or directory`,code:1};}
+  CMDS.lsof={help:"elenca chi ha aperto file e porte (qui: -i per le porte)",man:"lsof - list open files\n\nSYNOPSIS\n       lsof [-t] [-P] [-n] [-i [TCP][:port]] [-sTCP:LISTEN]\n\n  -i [:port]  connessioni di rete, opzionalmente solo su una porta\n  -iTCP:port  solo TCP su quella porta (forme attaccate: -i:4173, -ti:4173)\n  -sTCP:LISTEN  solo i socket in ascolto\n  -t          solo i PID, uno per riga (per gli script)\n  -P -n       non tradurre porte e indirizzi in nomi (più veloce)\n\nMostra solo i processi del tuo utente: per gli altri serve sudo. Identico su Linux e macOS; alternative: ss -ltnp (Linux), netstat -anv (macOS).",
+    run(ctx,args){let net=false,port=null,terse=false;
+      const takeI=s=>{net=true;const m=/^(?:TCP|tcp|UDP|udp|4|6)?(?:@[^:]*)?:(\d+)$/.exec(s);if(m)port=+m[1];else if(!/^(TCP|tcp|UDP|udp|4|6)$/.test(s))return false;return true;};
+      for(let i=0;i<args.length;i++){const a=args[i];
+        if(a==="-i"){net=true;const nx=args[i+1];if(nx&&!nx.startsWith("-")&&takeI(nx))i++;}
+        else if(/^-[tnP]*i/.test(a)){const k=a.indexOf("i");if(a.slice(1,k).includes("t"))terse=true;const rest=a.slice(k+1);if(rest){if(!takeI(rest))return {out:`lsof: unacceptable Internet address: ${rest}`,code:1};}else net=true;}
+        else if(a==="-s"){i++;}
+        else if(/^-s(TCP|UDP):/i.test(a)){}
+        else if(/^-[tPn]+$/.test(a)){if(a.includes("t"))terse=true;}
+        else if(a.startsWith("-"))return {out:`lsof: unknown option -- ${a.slice(1)}\nlsof 4.99.0\n latest revision: https://github.com/lsof-org/lsof`,code:1};
+        else return {out:`lsof: status error on ${a}: No such file or directory`,code:1};}
       if(!net)return {out:"(in questa simulazione lsof conosce solo la forma -i [:porta])",code:1};
       const vis=ctx.procs.filter(p=>(ctx.root||p.user===USER)&&(port==null||p.port===port));
       if(!vis.length){const hidden=ctx.procs.some(p=>port!=null&&p.port===port&&p.user!==USER);return {out:"",code:1,hint:hidden?`nessun output ed exit 1, ma la porta ${port} è occupata da un processo di un altro utente: lsof mostra solo i tuoi, prova con sudo`:port!=null?`nessun output ed exit 1: nessun processo del tuo utente usa la porta ${port}`:null};}
       if(terse)return {out:vis.map(p=>p.pid).join("\n"),code:0};
       const row=p=>`${p.cmd.padEnd(8)} ${String(p.pid).padStart(6)} ${(ctx.root&&p.user!==USER?p.user:p.user).padEnd(9)} ${p.fd.padEnd(4)} ${p.type.padEnd(5)} 0x${(p.pid*2654435761%0xffffffff).toString(16).padStart(8,"0")}      0t0  TCP *:${p.port} (LISTEN)`;
       return {out:"COMMAND     PID USER      FD   TYPE  DEVICE SIZE/OFF NODE NAME\n"+vis.map(row).join("\n"),code:0};}};
+  /* ---- ss (Linux) ---- */
+  CMDS.ss={help:"socket statistics: porte e connessioni (Linux, al posto di netstat)",man:"ss - another utility to investigate sockets\n\nSYNOPSIS\n       ss [-l] [-t] [-n] [-p] [filtro]\n\n  -l  solo in ascolto (LISTEN)   -t  solo TCP\n  -n  numeri, non nomi           -p  mostra il processo\n  filtro: 'sport = :4173' (porta locale)\n\nSolo Linux (pacchetto iproute2). Su macOS non esiste: usa lsof o netstat -anv.",
+    run(ctx,args){let port=null,proc=false;for(const a of args){if(/^-[ltnpau]+$/.test(a)){if(a.includes("p"))proc=true;}else{const m=/sport\s*=\s*:(\d+)/.exec(a);if(m)port=+m[1];else return {out:`ss: bad filter: ${a}`,code:1};}}
+      const vis=ctx.procs.filter(p=>port==null||p.port===port);
+      const row=p=>`LISTEN 0      511    ${(p.type==="IPv6"?"*":"0.0.0.0")+":"+p.port}`.padEnd(42)+`${p.type==="IPv6"?"*:*":"0.0.0.0:*"}`.padEnd(12)+(proc&&(ctx.root||p.user===USER)?` users:(("${p.cmd}",pid=${p.pid},fd=${parseInt(p.fd)}))`:"");
+      return {out:"State  Recv-Q Send-Q Local Address:Port".padEnd(42)+"Peer Address:Port Process\n"+vis.map(row).join("\n"),code:0,hint:vis.some(p=>p.user!==USER)&&proc&&!ctx.root?"le righe senza «users:(…)» sono processi di altri utenti: senza sudo ss non mostra chi sono":null,mac:"ss esiste solo su Linux: su macOS usa lsof -iTCP:PORTA -sTCP:LISTEN -n -P oppure netstat -anv -p tcp"};}};
+  /* ---- netstat ---- */
+  CMDS.netstat={help:"porte e connessioni (vecchio ma presente quasi ovunque)",man:"netstat - print network connections\n\nLinux (net-tools):  netstat -tlnp   (-t TCP, -l in ascolto, -n numeri, -p processo)\nmacOS (BSD):        netstat -anv -p tcp   (-p lì vuol dire protocollo, non processo)\n\nSu Linux recenti può non essere installato: usa ss.",
+    run(ctx,args){if(!args.some(a=>/^-[a-z]*l/.test(a)||/^-[a-z]*a/.test(a)))return {out:"(in questa simulazione netstat conosce netstat -tlnp)",code:1};
+      const proc=args.some(a=>/^-[a-z]*p/.test(a));
+      const row=p=>"tcp".padEnd(9)+"0      0 "+`${p.type==="IPv6"?":::":"0.0.0.0:"}${p.port}`.padEnd(24)+`${p.type==="IPv6"?":::*":"0.0.0.0:*"}`.padEnd(24)+"LISTEN      "+(proc?(ctx.root||p.user===USER?`${p.pid}/${p.cmd}`:"-"):"");
+      return {out:"Active Internet connections (only servers)\nProto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\n"+ctx.procs.map(row).join("\n"),code:0,mac:"questa è la forma Linux (net-tools); su macOS -p significa «protocollo»: netstat -anv -p tcp | grep 4173"};}};
   /* ---- kill ---- */
   CMDS.kill={help:"manda un segnale a un processo (di default TERM, che lo chiude)",man:"kill - send a signal to a process\n\nSYNOPSIS\n       kill [-9] pid...\n\nSenza opzioni manda SIGTERM (chiusura gentile); -9 manda SIGKILL (chiusura forzata, il processo non può rifiutare).",
     run(ctx,args){const pids=args.filter(a=>!a.startsWith("-"));if(!pids.length)return {out:"kill: usage: kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]",code:2,hint:args.length?null:"kill senza PID: succede quando $(…) ha restituito una stringa vuota, per esempio perché lsof non ha trovato nulla"};
@@ -608,7 +694,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   CMDS.sudo={help:"esegue un comando come amministratore (root)",run(){return {out:"usage: sudo command",code:1};}};
 
   /* ---- UI ---- */
-  function mkprocs(){return [{cmd:"java",pid:12345,user:"joe",fd:"45u",type:"IPv6",port:8082},{cmd:"node",pid:4021,user:"joe",fd:"22u",type:"IPv4",port:3000},{cmd:"postgres",pid:812,user:"postgres",fd:"7u",type:"IPv4",port:5432}];}
+  function mkprocs(){return [{cmd:"java",pid:12345,user:"joe",fd:"45u",type:"IPv6",port:8082},{cmd:"node",pid:4021,user:"joe",fd:"22u",type:"IPv4",port:3000},{cmd:"node",pid:7731,user:"joe",fd:"24u",type:"IPv6",port:4173},{cmd:"postgres",pid:812,user:"postgres",fd:"7u",type:"IPv4",port:5432}];}
   function makeTerm(root){const ctx={fs:mkfs(),cwd:root.dataset.cwd||HOME,prev:null,hist:[],clear:false,last:0,procs:mkprocs(),stdin:null,root:false};
     const tries=(root.dataset.try||"").split("§").filter(Boolean);
     root.innerHTML=`<div class="term-bar"><i></i><i></i><i></i><span>bash · simulazione</span></div><div class="term-out" aria-live="polite"></div><div class="term-in"><span class="pr"></span><input type="text" spellcheck="false" autocomplete="off" aria-label="Riga di comando"></div>${tries.length?`<div class="term-try">${tries.map(t=>`<button type="button" data-cmd="${esc(t).replace(/"/g,"&quot;")}">${esc(t)}</button>`).join("")}</div>`:""}`;
