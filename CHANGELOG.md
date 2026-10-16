@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-16
+- **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.2: Capitolo 4: esempio svolto di normalizzazione per media (mean normalization) sulle superfici delle case del capitolo 1, con il confronto tra media vera e punto medio e l'uso degli stessi valori in previsione
 - **Dentro l'inferenza** (`inferenza-llm`) v1.1: Capitolo 1: rimando al laboratorio sulla softmax della guida sul machine learning
 - **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.3: Sezione 5: la soglia del guardrail collegata a precisione e recall della guida sul machine learning, e perché qui conta il tasso di falsi positivi
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.1: Capitolo 8: rimando a Neural Network Driving come esempio di rete allenata senza gradiente, per evoluzione

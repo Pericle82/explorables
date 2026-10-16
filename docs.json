@@ -390,6 +390,11 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-16",
+          "notes": "Capitolo 4: esempio svolto di normalizzazione per media (mean normalization) sulle superfici delle case del capitolo 1, con il confronto tra media vera e punto medio e l'uso degli stessi valori in previsione"
+        },
+        {
           "version": "1.1",
           "date": "2026-10-16",
           "notes": "Capitolo 8: rimando a Neural Network Driving come esempio di rete allenata senza gradiente, per evoluzione"
@@ -400,7 +405,7 @@
           "notes": "Prima versione: guida originale sul programma della Machine Learning Specialization in 14 capitoli, riepilogo e glossario, 16 laboratori con la matematica reale (retta e costo, discesa del gradiente, scaling, regressione logistica, overfitting, rete neurale, softmax, curve di apprendimento, precisione e recall, entropia, k-means, anomalie, filtro collaborativo, rover e Bellman)"
         }
       ],
-      "version": "1.1",
+      "version": "1.2",
       "updated": "2026-10-16"
     },
     {

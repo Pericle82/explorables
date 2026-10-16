@@ -8,3 +8,4 @@ Sorgenti: `p1.html`–`p3.html` (testo per parte), `js1.js`–`js3.js` (laborato
 - 16 laboratori con matematica reale su dati generati con seme fisso.
 - Accento: Prugna.
 - 16/10/2026 (v1.1): rimando a neural-network-driving #s4 nel capitolo 8, dopo la backpropagation, come esempio di rete allenata senza gradiente (sovrapposizione con NND sezione 3 ridotta a rimandi reciproci).
+- 16/10/2026 (v1.2): capitolo 4, esempio svolto di normalizzazione per media (traduzione scelta per *mean normalization*, la stessa usata nel capitolo 13) sulle sei superfici del capitolo 1 (μ = 88,3, range 80): valori in un tratto largo 1 dentro [−1, 1], media zero, confronto con il punto medio 90; in previsione si riusano μ, min e max del training set. Niente μ nelle intestazioni delle tabelle: `.vx-table` le mette in maiuscolo (μ diventa M).
