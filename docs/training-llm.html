@@ -839,7 +839,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <p class="zq-q">«La rete ha tanti nodi d'ingresso quanti numeri hanno tutti i vettori della frase?»</p>
     <p>No. Una frase di 4 token porta 4 × 4.096 = 16.384 numeri, ma la rete non ha 16.384 ingressi. È un insieme di pesi fatto per <b>un solo vettore</b> da 4.096 numeri, e lo stesso insieme si applica a ogni vettore, tutti nello stesso momento: come quattro calcolatrici uguali che fanno lo stesso conto nello stesso istante.</p>
     <p>Anche dentro la rete la larghezza resta quella. Tra uno strato e l'altro ogni vettore ha sempre 4.096 numeri. L'unico punto in cui si allarga è la parte in cui ogni vettore «ragiona da solo»: lì passa a 11.008 numeri e poi torna a 4.096. Non esiste un ingresso più grande o più piccolo del vettore: la rete è costruita su misura per lei.</p>
-    <p>Per questo una frase più lunga non cambia la rete. Con 4 token ci sono 4 vettori, con 400 ce ne sono 400: più vettori, stessi pesi. Cambia solo quanto lavoro c'è da fare.</p>
+    <p>Per questo una frase più lunga non cambia la rete. Con 4 token ci sono 4 vettori, con 400 ce ne sono 400: più vettori, stessi pesi. Cambia solo quanto lavoro c'è da fare. L'esempio con le matrici, numero per numero e con uno step di training su una frase corta e una lunga, è nel capitolo 2, nella sezione sulle frasi di lunghezza diversa.</p>
 
     <p class="zq-q">«Dove stanno gli embedding? In memoria?»</p>
     <p>La parola «embedding» indica due cose diverse, e stanno in posti diversi.</p>
@@ -949,6 +949,7 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
     <a href="#c-grad" class="box hot">Gradiente<small>backpropagation</small></a><span class="arr">→</span>
     <a href="#c-step" class="box">Step<small>learning rate</small></a><span class="arr">→</span>
     <a href="#c-batch" class="box">Ritmo<small>batch, epoch</small></a><span class="arr">→</span>
+    <a href="#c-varlen" class="box">Frasi lunghe e corte<small>stessi pesi</small></a><span class="arr">→</span>
     <a href="#c-change" class="box">Che cosa cambia<small>nei pesi</small></a>
   </div>
 
@@ -1074,6 +1075,42 @@ table.mt.small td,table.mt.small th{font-size:.78rem;padding:3px 6px}
       <div class="ctl"><label for="cB">Batch size B (sequenze per batch)</label><input id="cB" class="txt" type="number" min="1"></div>
     </div>
     <div class="calc" id="calcOut"></div>
+  </div>
+
+  <!-- FRASI DI LUNGHEZZA DIVERSA -->
+  <h3 id="c-varlen" class="anchor">Una frase lunga quanto si vuole, una rete con ingressi fissi: l'esempio con le matrici</h3>
+  <div class="prose stack">
+    <p class="q">Una rete ha un numero fisso di nodi d'ingresso. Come fanno una frase di 3 token e una di 6 a entrare nella stessa rete, e come fa la rete a imparare da tutte e due?</p>
+    <p><b>I nodi d'ingresso non contano i token: contano i numeri di un solo vettore.</b> Nell'esempio qui sotto ogni token è un vettore di 2 numeri, quindi la rete ha 2 nodi d'ingresso. La frase entra come una matrice X con <b>una riga per token</b> e <b>una colonna per nodo</b>: 3 token danno una matrice 3 × 2, 6 token una matrice 6 × 2. Una frase più lunga aggiunge righe, mai colonne.</p>
+    <p>Il conto di uno strato è il prodotto X W. La matrice dei pesi W ha tante righe quante sono le colonne di X (2) e non sa quante righe ha X: si applica a ogni riga allo stesso modo, una riga alla volta, e restituisce una riga per token. È come una formula di un foglio di calcolo trascinata in basso: la formula è una sola, le righe sono quante ne hai. Con la regola delle dimensioni del capitolo 1: (n × 2)(2 × 2) = n × 2, qualunque sia n.</p>
+    <p><b>C'è un solo punto in cui la grandezza dipende dalla frase: l'attention.</b> Per far parlare i token tra loro serve una tabella con una casella per ogni coppia di token, quindi n × n: 3 × 3 per la frase corta, 6 × 6 per la lunga. Ma quella tabella <b>non è fatta di pesi</b>: si calcola ogni volta dalla frase, con i prodotti scalari tra le righe, come nella sezione sull'attention del capitolo 1. Cresce con la frase senza aggiungere niente da imparare.</p>
+    <p><b>E il training?</b> Il bersaglio è la frase stessa spostata di un posto: la riga del token 1 deve prevedere il token 2, la riga del token 2 il token 3, e così via. Con n righe escono n previsioni e n errori, e la loss è la loro media. Il gradiente di W si calcola con un prodotto in cui n sparisce: (2 × n)(n × 2) = 2 × 2. In pratica è la <b>somma dei suggerimenti di tutte le righe</b>: ogni token dice di quanto vorrebbe spostare ciascuno dei 4 pesi, e i suggerimenti si sommano. Che le righe siano 3 o 6, il gradiente ha la forma di W e lo step W ← W − η × gradiente si fa sempre allo stesso modo.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><h3>Laboratorio: la stessa rete, una frase corta e una lunga</h3><span class="tag">matematica reale</span></div>
+    <p>Passa dalla frase corta alla lunga e guarda quali dimensioni cambiano; poi premi «Uno step di training» qualche volta e torna all'altra frase: i 4 pesi di W sono gli stessi, e migliorano anche lì.</p>
+    <div class="controls">
+      <div class="ctl" style="flex:0 1 auto"><label>Frase di training</label><div class="seg" id="vlS" role="group" aria-label="Frase"><button aria-pressed="true" data-v="0">corta: il gatto dorme sul</button><button aria-pressed="false" data-v="1">lunga: il gatto dorme sul divano il gatto</button></div></div>
+    </div>
+    <div class="row"><button class="btn" id="vlStep">Uno step di training</button><button class="btn ghost" id="vlStep10">10 step</button><button class="btn ghost" id="vlReset">Pesi iniziali</button></div>
+    <div class="readout" id="vlRead"></div>
+    <div class="formula" id="vlDims"></div>
+    <div class="qk-grid">
+      <div class="qk-box"><div class="diag-title">1 · X: righe di E <small id="vlXs"></small></div><table class="gtable qk-m" id="vlX"></table></div>
+      <div class="qk-box wide"><div class="diag-title">2 · A: pesi dell'attention <small id="vlAs"></small></div><table class="gtable qk-m" id="vlA"></table></div>
+      <div class="qk-box"><div class="diag-title">3 · M = A X <small id="vlMs"></small></div><table class="gtable qk-m" id="vlM"></table></div>
+      <div class="qk-box"><div class="diag-title">4 · W: i pesi che si imparano <small>2 × 2, sempre</small></div><table class="gtable qk-m" id="vlW"></table></div>
+      <div class="qk-box"><div class="diag-title">5 · H = M W <small id="vlHs"></small></div><table class="gtable qk-m" id="vlH"></table></div>
+      <div class="qk-box wide"><div class="diag-title">6 · P = softmax(H Eᵀ): probabilità del token dopo <small id="vlPs"></small></div><table class="gtable qk-m" id="vlP"></table></div>
+      <div class="qk-box wide"><div class="diag-title">7 · Gradiente di W <small id="vlGs"></small></div><table class="gtable qk-m" id="vlG"></table></div>
+    </div>
+    <div class="calc" id="vlLoss"></div>
+    <p class="callout" id="vlMsg" aria-live="polite"></p>
+    <p class="note">Come si legge. Nel pannello 1 ogni riga è il vettore di un token, letto dalla tabella E (il 1 · 0, gatto 0,3 · 1, dorme −0,8 · 0,6, sul −0,8 · −0,6, divano 0,3 · −1). Nel pannello 2 la riga i dice quanto il token i guarda ciascun token fino a sé (le caselle in grigio sono i token futuri, che non può vedere); ogni riga somma a 1. Nel pannello 6 ogni riga è una previsione, con il bersaglio evidenziato: è la casella che il training vuole portare verso 1. Che cosa è semplificato: i punteggi dell'attention sono il prodotto scalare diretto tra i vettori (un modello vero li moltiplica prima per W<sub>q</sub> e W<sub>k</sub>, capitolo 9, sezione D), non c'è codifica della posizione, non c'è MLP, la tabella E è fissa e si allena soltanto W, con learning rate η = 1. In un modello vero si allenano tutti i pesi, e il gradiente di ciascuno ha la forma del suo peso per lo stesso motivo.</p>
+  </div>
+  <div class="prose stack">
+    <p><b>Frasi di lunghezze diverse nello stesso batch.</b> Una sola frase può avere qualunque lunghezza; un batch no, perché le sequenze vengono messe una sopra l'altra in un tensore B × L × d, e una pila di matrici deve avere righe della stessa lunghezza. Nel pre-training non è un problema: il testo dei documenti viene messo in fila, separato dal token di fine documento, e tagliato a pezzi di esattamente L token (si chiama <i>packing</i>). Nel fine-tuning, dove ogni esempio è una conversazione con la sua lunghezza, le sequenze corte si allungano con un token di riempimento (<i>padding</i>) e una maschera esclude quelle posizioni dall'attention e dalla loss: le righe di riempimento esistono nei conti, ma non votano nel gradiente.</p>
+    <p><b>Allora perché esiste una lunghezza massima del contesto?</b> Non per i pesi, che non cambiano con la lunghezza, ma per due altri motivi. Il primo è il costo: la tabella dell'attention è n × n, quindi raddoppiando la frase memoria e calcolo dell'attention si quadruplicano. Il secondo è l'esperienza: il modello ha imparato le posizioni solo fino alla lunghezza delle sequenze viste in training, e oltre quella la codifica della posizione gli presenta distanze che non ha mai incontrato.</p>
   </div>
 
   <!-- CHE COSA CAMBIA -->
@@ -3666,6 +3703,56 @@ drawQK();
 
 <!-- xpl:config (riferimenti incrociati di questa guida) -->
 <script>
+/* ---------- v2.5: frasi di lunghezza diversa nella stessa rete, con uno step di training (#c-varlen) ---------- */
+(function(){
+const $=id=>document.getElementById(id);
+if(!$("vlX"))return;
+const fmt=(v,d=2)=>(Math.abs(v)<0.5*Math.pow(10,-d)?0:v).toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d}).replace("-","−");
+const matmul=(A,B)=>A.map(r=>B[0].map((_,j)=>r.reduce((s,v,k)=>s+v*B[k][j],0)));
+const T=M=>M[0].map((_,j)=>M.map(r=>r[j]));
+const softmax=z=>{const m=Math.max(...z),e=z.map(v=>Math.exp(v-m)),s=e.reduce((a,b)=>a+b);return e.map(v=>v/s);};
+function table(t,M,{rows=[],cols=[],d=2,cls=()=>"",txt=null}={}){let h="";if(cols.length)h+="<thead><tr>"+(rows.length?"<th></th>":"")+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+  h+="<tbody>"+M.map((r,i)=>"<tr>"+(rows.length?`<th>${rows[i]}</th>`:"")+r.map((v,j)=>`<td class="mono ${cls(i,j,v)}">${txt?txt(i,j,v):fmt(v,d)}</td>`).join("")+"</tr>").join("")+"</tbody>";t.innerHTML=h;}
+const VOC=["il","gatto","dorme","sul","divano"];
+const E=[[1,0],[0.3,1],[-0.8,0.6],[-0.8,-0.6],[0.3,-1]];
+const SENT=[[0,1,2,3],[0,1,2,3,4,0,1]];
+const W0=[[1,0],[0,1]],ETA=1;
+let W=W0.map(r=>r.slice()),s=0,steps=0,lastLoss=null;
+function forward(k){const seq=SENT[k],ids=seq.slice(0,-1),y=seq.slice(1),n=ids.length;
+  const X=ids.map(i=>E[i]);
+  const A=X.map((xi,i)=>{const z=X.map((xj,j)=>j<=i?(xi[0]*xj[0]+xi[1]*xj[1])/Math.SQRT2:-Infinity);return softmax(z);});
+  const M=matmul(A,X),H=matmul(M,W),Z=matmul(H,T(E)),P=Z.map(softmax);
+  const li=P.map((p,i)=>-Math.log(p[y[i]])),L=li.reduce((a,b)=>a+b,0)/n;
+  const ok=P.filter((p,i)=>p.indexOf(Math.max(...p))===y[i]).length;
+  const dZ=P.map((p,i)=>p.map((v,j)=>(v-(j===y[i]?1:0))/n)),dH=matmul(dZ,E),G=matmul(T(M),dH);
+  return {ids,y,n,X,A,M,H,P,li,L,ok,G};}
+function draw(){const f=forward(s),o=forward(1-s),n=f.n,r=f.ids.map((t,i)=>`${i+1} · ${VOC[t]}`);
+  const sh=(a,b)=>`${a} × ${b}`;
+  $("vlXs").textContent=sh(n,2);$("vlAs").textContent=sh(n,n)+", calcolata";$("vlMs").textContent=`(${sh(n,n)})(${sh(n,2)}) = ${sh(n,2)}`;
+  $("vlHs").textContent=`(${sh(n,2)})(2 × 2) = ${sh(n,2)}`;$("vlPs").textContent=`(${sh(n,2)})(2 × 5) = ${sh(n,5)}`;$("vlGs").textContent=`Mᵀ dH: (${sh(2,n)})(${sh(n,2)}) = 2 × 2`;
+  table($("vlX"),f.X,{rows:r,cols:["nodo 1","nodo 2"],d:1});
+  table($("vlA"),f.A,{rows:r,cols:f.ids.map((_,j)=>String(j+1)),cls:(i,j)=>j>i?"masked":"",txt:(i,j,v)=>j>i?"·":fmt(v)});
+  table($("vlM"),f.M,{rows:r,cols:["nodo 1","nodo 2"]});
+  table($("vlW"),W,{rows:["da nodo 1","da nodo 2"],cols:["a 1","a 2"]});
+  table($("vlH"),f.H,{rows:r,cols:["1","2"]});
+  table($("vlP"),f.P,{rows:f.ids.map((t,i)=>`${VOC[t]} → «${VOC[f.y[i]]}»`),cols:VOC,cls:(i,j)=>j===f.y[i]?"on":""});
+  table($("vlG"),f.G,{rows:["da nodo 1","da nodo 2"],cols:["a 1","a 2"],d:3});
+  $("vlDims").innerHTML=`X <b>${sh(n,2)}</b> → A <b>${sh(n,n)}</b> → M <b>${sh(n,2)}</b> → × W <b>2 × 2</b> → H <b>${sh(n,2)}</b> → × Eᵀ <b>2 × 5</b> → P <b>${sh(n,5)}</b> &nbsp;·&nbsp; pesi da imparare: <b>4</b>`;
+  const short=s===0?f:o,long=s===0?o:f;
+  $("vlRead").innerHTML=`<div><small>step fatti</small><strong>${steps}</strong></div><div><small>loss, frase corta (3 previsioni)</small><strong>${fmt(short.L,3)}</strong></div><div><small>loss, frase lunga (6 previsioni)</small><strong>${fmt(long.L,3)}</strong></div><div><small>previsioni giuste</small><strong>${short.ok}/3 · ${long.ok}/6</strong></div>`;
+  $("vlLoss").innerHTML=f.li.map((l,i)=>`<div>riga ${i+1}: −ln p(«${VOC[f.y[i]]}») = −ln ${fmt(f.P[i][f.y[i]],3)} = <b>${fmt(l,3)}</b></div>`).join("")+`<div>loss = media delle ${n} righe = <b>${fmt(f.L,3)}</b></div>`;
+  let m;
+  if(steps===0)m=`<b>Prima del training.</b> La frase ${s===0?"corta":"lunga"} ha ${n} token d'ingresso: X ha ${n} righe e sempre 2 colonne, perché i nodi d'ingresso sono i 2 numeri di un vettore. A è ${sh(n,n)}, ma non contiene pesi: è calcolata dalla frase. W è la matrice identità e lascia i vettori come sono, quindi ogni riga tende a prevedere il token che ha già davanti invece di quello dopo: ${f.ok} previsioni giuste su ${n}. Il gradiente nel pannello 7 è 2 × 2 come W: premi «Uno step di training».`;
+  else m=`<b>Dopo ${steps} step.</b> La loss della frase scelta è ${fmt(f.L,3)}${lastLoss!=null?` (prima dell'ultimo step era ${fmt(lastLoss,3)})`:""}, quella dell'altra frase ${fmt(o.L,3)}. Gli step cambiano solo i 4 numeri di W, e la stessa W serve alla frase da ${f.n} token e a quella da ${o.n}: per questo, allenando su una frase, la loss scende anche sull'altra.${steps>=5?" W sta diventando una rotazione ingrandita: gira il vettore di ogni token verso quello del token che di solito lo segue, e lo allunga perché la previsione sia più sicura.":""}`;
+  $("vlMsg").innerHTML=m;}
+function step(k){for(let t=0;t<k;t++){const f=forward(s);lastLoss=f.L;W=W.map((r,i)=>r.map((v,j)=>v-ETA*f.G[i][j]));steps++;}draw();}
+$("vlS").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$("vlS").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));s=+b.dataset.v;lastLoss=null;draw();});
+$("vlStep").addEventListener("click",()=>step(1));$("vlStep10").addEventListener("click",()=>step(10));
+$("vlReset").addEventListener("click",()=>{W=W0.map(r=>r.slice());steps=0;lastLoss=null;draw();});
+draw();
+})();
+</script>
+<script>
 window.XREF_CONFIG={
   skip:".lab,.thesis,.map,.flowline,.status,.recap,.bridge,.phasecard,",
   ids:[{sel:"h3",text:"Glossario dei termini che ritornano",id:"c-gloss"},{sel:".lab-head h3",text:"Laboratorio: schedule del learning rate",id:"lab-lr"},{sel:".lab-head h3",text:"Laboratorio: backpropagation su una catena di due pesi",id:"lab-chain"}],
@@ -3679,7 +3766,7 @@ window.XREF_CONFIG={
     {re:"neuron[ei]",to:"#c-nn",flags:"i"},{re:"ret[ei] ricorrent[ei]|RNN",to:"#c-rnn",flags:"i"},{re:"finestra fissa",to:"#c-nn",flags:"i"},{re:"concatenazion[ei]|concatenat[oiae]",to:"#c-fw",flags:"i"},{re:"parametri e attivazioni|attivazion[ei]",to:"#c-qkv",flags:"i"},{re:"laboratorio sulla rete numero per numero",to:"#c-fw",flags:"i"},{re:"sezione D, c'è il conto completo",to:"#c-qkv",flags:"i"},{re:"finestra di contesto",to:"#c-faq",flags:"i"},{re:"KV cache",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3"},
     {re:"guida sull'inferenza, nel capitolo sulla cache KV",to:"https://pericle82.github.io/explorables/inferenza-llm/#cap-3"},{re:"guida sull'ingegneria dei sistemi basati sui modelli linguistici",to:"https://pericle82.github.io/explorables/ai-engineering/"},{re:"capitolo sul retrieval",to:"https://pericle82.github.io/explorables/ai-engineering/#s2"},{re:"capitolo sulla memoria",to:"https://pericle82.github.io/explorables/ai-engineering/#s4"},{re:"guida sull'auto che impara a guidare, nella sezione sulla rete neurale",to:"https://pericle82.github.io/explorables/neural-network-driving/#s3"},{re:"guida sulle architetture LLM",to:"https://pericle82.github.io/explorables/architetture-llm/",flags:"i"},
     {re:"capitolo 9",to:"#deep",flags:"i",first:false},{re:"modello in miniatura",to:"#c-toy",flags:"i"},{re:"generazione autoregressiva|autoregressiv[oa]",to:"#c-gen",flags:"i"},
-    {re:"training dal vivo",to:"#live",flags:"i"},
+    {re:"training dal vivo",to:"#live",flags:"i"},{re:"sezione sulle frasi di lunghezza diversa",to:"#c-varlen",flags:"i",first:false},
     {re:"fase 1",to:"#pre",flags:"i",first:false},{re:"fase 2",to:"#sft",flags:"i",first:false},{re:"fase 3",to:"#dpo",flags:"i",first:false},{re:"fase 4",to:"#grpo",flags:"i",first:false},{re:"fase 5",to:"#opd",flags:"i",first:false},
     {re:"SFT",to:"#sft"},{re:"DPO",to:"#dpo"},{re:"RLHF",to:"#dpo"},{re:"PPO",to:"#dpo"},{re:"reward model",to:"#dpo",flags:"i"},
     {re:"GRPO",to:"#grpo"},{re:"RLVR",to:"#grpo"},{re:"policy gradient",to:"#grpo",flags:"i"},{re:"verificatore",to:"#grpo",flags:"i"},

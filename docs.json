@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.4",
-      "updated": "2026-10-04",
+      "version": "2.5",
+      "updated": "2026-10-16",
       "history": [
+        {
+          "version": "2.5",
+          "date": "2026-10-16",
+          "notes": "Capitolo 2: frasi di lunghezza diversa nella stessa rete, con un esempio a matrici (X n × 2, attention n × n calcolata, W 2 × 2) e uno step di training reale su una frase corta e una lunga; packing, padding e perché esiste una lunghezza massima del contesto"
+        },
         {
           "version": "2.4",
           "date": "2026-10-04",

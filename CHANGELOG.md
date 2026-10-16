@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-16
+- **Anatomia del Training LLM** (`training-llm`) v2.5: Capitolo 2: frasi di lunghezza diversa nella stessa rete, con un esempio a matrici (X n × 2, attention n × n calcolata, W 2 × 2) e uno step di training reale su una frase corta e una lunga; packing, padding e perché esiste una lunghezza massima del contesto
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.2: Capitolo 4: esempio svolto di normalizzazione per media (mean normalization) sulle superfici delle case del capitolo 1, con il confronto tra media vera e punto medio e l'uso degli stessi valori in previsione
 - **Dentro l'inferenza** (`inferenza-llm`) v1.1: Capitolo 1: rimando al laboratorio sulla softmax della guida sul machine learning
 - **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.3: Sezione 5: la soglia del guardrail collegata a precisione e recall della guida sul machine learning, e perché qui conta il tasso di falsi positivi
