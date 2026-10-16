@@ -140,6 +140,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <ul>
       <li><a href="https://pericle82.github.io/explorables/training-llm/#c-alg">Anatomia del Training LLM · Richiamo di algebra</a> <span>— vettori e prodotto matrice × vettore, usati nel forward pass della sezione 3.</span></li>
       <li><a href="https://pericle82.github.io/explorables/training-llm/#c-loss">Anatomia del Training LLM · La loss e la discesa del gradiente</a> <span>— il metodo «standard» che la sezione 4 sostituisce con la neuroevoluzione.</span></li>
+      <li><a href="https://pericle82.github.io/explorables/machine-learning/#s7">Machine learning · Reti neurali (capitoli 7 e 8)</a> <span>— lo stesso neurone visto come regressione logistica, le funzioni di attivazione e una rete che impara con il gradiente: utile per confrontare il forward pass della sezione 3 con un training classico.</span></li>
     </ul>
   </aside>
   <div class="cards">
@@ -265,7 +266,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 
   <h3 id="s3-forward" class="anchor">Il forward pass e le attivazioni</h3>
   <div class="prose stack">
-    <p>Il calcolo procede strato per strato: si moltiplica la matrice dei pesi <code>W</code> per il vettore degli input, si somma il vettore dei bias <code>b</code>, si applica l'attivazione <code>σ</code> elemento per elemento, e il risultato è l'input dello strato successivo. Per lo strato nascosto e per l'uscita si usa la <b>tanh</b> (tangente iperbolica), che schiaccia qualunque numero in [−1, 1]: è l'intervallo naturale per uno sterzo, dove −0,98 significa «quasi tutto a sinistra» e 0 «dritto». Negli strati nascosti va bene anche la ReLU (Rectified Linear Unit, <code>max(0, x)</code>). Implementarlo a mano con due cicli e un <code>Float32Array</code>, senza librerie, è la parte più didattica del progetto: la formula sotto diventa una decina di righe.</p>
+    <p>Il calcolo procede strato per strato: si moltiplica la matrice dei pesi <code>W</code> per il vettore degli input, si somma il vettore dei bias <code>b</code>, si applica l'attivazione <code>σ</code> elemento per elemento, e il risultato è l'input dello strato successivo. Per lo strato nascosto e per l'uscita si usa la <b>tanh</b> (tangente iperbolica), che schiaccia qualunque numero in [−1, 1]: è l'intervallo naturale per uno sterzo, dove −0,98 significa «quasi tutto a sinistra» e 0 «dritto». Negli strati nascosti va bene anche la ReLU (Rectified Linear Unit, <code>max(0, x)</code>). Implementarlo a mano con due cicli e un <code>Float32Array</code>, senza librerie, è la parte più didattica del progetto: la formula sotto diventa una decina di righe. Lo stesso calcolo, con la sigmoide e la ReLU al posto della tanh e una rete che impara con il gradiente invece che per evoluzione, è nel capitolo 7 della guida sul machine learning.</p>
   </div>
   <div class="formula">h = tanh(W₁ · x + b₁)      y = tanh(W₂ · h + b₂)      x ∈ ℝ⁸ · h ∈ ℝ⁶ · y ∈ ℝ⁴</div>
 
@@ -312,7 +313,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>Non esiste un dataset di guida corretta: molte auto provano, le migliori si riproducono con errori di copia</h2>
   </div>
   <div class="prose stack">
-    <p>Il modo standard di addestrare una rete, l'apprendimento supervisionato con la discesa del gradiente, ha bisogno di due cose che qui mancano. Servirebbero esempi di «input → output giusto», e nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto. E servirebbe un errore <em>derivabile</em> rispetto ai pesi; invece l'unico segnale disponibile è «quanto sei arrivato lontano», arriva alla fine della corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni: non c'è un gradiente da seguire. L'apprendimento per rinforzo (RL, Reinforcement Learning) risolve questo con tecniche come PPO (Proximal Policy Optimization); la <b>neuroevoluzione</b> lo risolve rinunciando al gradiente del tutto, e per un problema con 82 parametri è più semplice e spesso altrettanto efficace.</p>
+    <p>Il modo standard di addestrare una rete, l'apprendimento supervisionato con la discesa del gradiente, ha bisogno di due cose che qui mancano. Servirebbero esempi di «input → output giusto», e nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto. E servirebbe un errore <em>derivabile</em> rispetto ai pesi; invece l'unico segnale disponibile è «quanto sei arrivato lontano», arriva alla fine della corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni: non c'è un gradiente da seguire. L'apprendimento per rinforzo (RL, Reinforcement Learning) risolve questo con tecniche come PPO (Proximal Policy Optimization); la <b>neuroevoluzione</b> lo risolve rinunciando al gradiente del tutto, e per un problema con 82 parametri è più semplice e spesso altrettanto efficace. Come funziona la discesa a cui qui si rinuncia, passo per passo su una retta, lo mostra il capitolo 3 della guida sul machine learning.</p>
   </div>
 
   <h3 id="s4-fitness" class="anchor">La fitness: un numero per auto, e il modo in cui viene imbrogliato</h3>
@@ -637,7 +638,9 @@ window.XREF_CONFIG={
     {re:"Jupytext",to:"#s5-tag"},
     {re:"nbgrader",to:"#s5-tag"},
     {re:"discesa del gradiente",to:"https://pericle82.github.io/explorables/training-llm/",k:"Altra guida",t:"Anatomia del Training LLM",body:"<p>Loss, softmax e gradient descent: come si addestra una rete quando un gradiente esiste, e un training dal vivo nel browser.</p>",flags:"i",first:false},
-    {re:"machine learning classico",to:"https://pericle82.github.io/explorables/training-llm/",k:"Altra guida",t:"Anatomia del Training LLM",body:"<p>Dataset, training set e loss: i concetti base dell'addestramento con il gradiente.</p>",flags:"i"}
+    {re:"machine learning classico",to:"https://pericle82.github.io/explorables/machine-learning/#s9",k:"Altra guida",t:"Machine learning · Diagnosi",body:"<p>Training set, cross-validation set e test set: perché un modello si misura su dati che non ha visto, e come bias e varianza dicono se ha memorizzato.</p>",flags:"i"},
+    {re:"capitolo 7 della guida sul machine learning",to:"https://pericle82.github.io/explorables/machine-learning/#s7",k:"Altra guida",t:"Machine learning · Reti neurali",body:"<p>Il neurone come regressione logistica, la forward propagation strato per strato e una rete addestrata nel browser che impara un confine curvo.</p>",flags:"i",first:false},
+    {re:"capitolo 3 della guida sul machine learning",to:"https://pericle82.github.io/explorables/machine-learning/#s3",k:"Altra guida",t:"Machine learning · Discesa del gradiente",body:"<p>Il costo come una ciotola e la discesa un passo alla volta nella direzione più ripida, con il learning rate α e un laboratorio su J(w).</p>",flags:"i",first:false}
   ],
   gloss:{selector:"dl.gloss",skip:["VelF"],extra:{"Neuroevoluzione":["neuroevolutivo"],"Modello a bicicletta":["bicycle model"]}}
 };

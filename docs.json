@@ -298,6 +298,11 @@
       ],
       "history": [
         {
+          "version": "1.3",
+          "date": "2026-10-16",
+          "notes": "Sezione 5: la soglia del guardrail collegata a precisione e recall della guida sul machine learning, e perché qui conta il tasso di falsi positivi"
+        },
+        {
           "version": "1.2",
           "date": "2026-10-02",
           "notes": "Allucinazione e grounding nel RAG; prompt caching del provider distinto dalla cache del gateway; prefill e decode nel TTFT; inferenza tra le letture consigliate"
@@ -313,8 +318,8 @@
           "notes": "Prima versione: i sei strati del portfolio ai-engineering-portfolio (async, gateway, RAG, agenti, memoria, eval, capstone) con laboratori su percentili e cache, circuit breaker, RRF e recall@k, macchina a stati con crash e ripresa, selezione dei ricordi, kappa di Cohen e soglia dei guardrail"
         }
       ],
-      "version": "1.2",
-      "updated": "2026-10-02"
+      "version": "1.3",
+      "updated": "2026-10-16"
     },
     {
       "slug": "neural-network-driving",
@@ -328,6 +333,11 @@
       ],
       "history": [
         {
+          "version": "1.2",
+          "date": "2026-10-16",
+          "notes": "Rimandi alla guida sul machine learning: lettura consigliata sulle reti neurali, capitolo 7 dal forward pass, capitolo 3 dalla discesa del gradiente, capitolo 9 dalla generalizzazione"
+        },
+        {
           "version": "1.1",
           "date": "2026-10-02",
           "notes": "Revisione: modello a bicicletta (il raggio non dipende dalla velocità), crossover a un punto, discesa del gradiente e apprendimento supervisionato; letture consigliate in testa"
@@ -338,8 +348,8 @@
           "notes": "Prima versione: mondo simulato (modello a bicicletta), sensori a raycasting, rete 8-6-4 con grafo interattivo, neuroevoluzione con simulazione in pista, dal video al repo a tappe."
         }
       ],
-      "version": "1.1",
-      "updated": "2026-10-02"
+      "version": "1.2",
+      "updated": "2026-10-16"
     },
     {
       "slug": "inferenza-llm",
@@ -353,13 +363,18 @@
       ],
       "history": [
         {
+          "version": "1.1",
+          "date": "2026-10-16",
+          "notes": "Capitolo 1: rimando al laboratorio sulla softmax della guida sul machine learning"
+        },
+        {
           "version": "1.0",
           "date": "2026-10-02",
           "notes": "Prima versione: ciclo di generazione, campionamento (top-k, top-p, min-p), cache KV, prefill contro decode, batching e PagedAttention, decodifica speculativa, output strutturato"
         }
       ],
-      "version": "1.0",
-      "updated": "2026-10-02"
+      "version": "1.1",
+      "updated": "2026-10-16"
     },
     {
       "slug": "machine-learning",
@@ -375,13 +390,18 @@
       ],
       "history": [
         {
+          "version": "1.1",
+          "date": "2026-10-16",
+          "notes": "Capitolo 8: rimando a Neural Network Driving come esempio di rete allenata senza gradiente, per evoluzione"
+        },
+        {
           "version": "1.0",
           "date": "2026-10-04",
           "notes": "Prima versione: guida originale sul programma della Machine Learning Specialization in 14 capitoli, riepilogo e glossario, 16 laboratori con la matematica reale (retta e costo, discesa del gradiente, scaling, regressione logistica, overfitting, rete neurale, softmax, curve di apprendimento, precisione e recall, entropia, k-means, anomalie, filtro collaborativo, rover e Bellman)"
         }
       ],
-      "version": "1.0",
-      "updated": "2026-10-04"
+      "version": "1.1",
+      "updated": "2026-10-16"
     },
     {
       "slug": "manuale-ai",

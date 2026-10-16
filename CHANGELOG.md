@@ -2,6 +2,12 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-16
+- **Dentro l'inferenza** (`inferenza-llm`) v1.1: Capitolo 1: rimando al laboratorio sulla softmax della guida sul machine learning
+- **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.3: Sezione 5: la soglia del guardrail collegata a precisione e recall della guida sul machine learning, e perché qui conta il tasso di falsi positivi
+- **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.1: Capitolo 8: rimando a Neural Network Driving come esempio di rete allenata senza gradiente, per evoluzione
+- **Neural Network Driving** (`neural-network-driving`) v1.2: Rimandi alla guida sul machine learning: lettura consigliata sulle reti neurali, capitolo 7 dal forward pass, capitolo 3 dalla discesa del gradiente, capitolo 9 dalla generalizzazione
+
 ## 2026-10-15
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.8: Capitolo 7: peso e parametro, che differenza c'è (parametro è ogni numero regolato dall'addestramento, peso è il parametro che moltiplica un ingresso, bias quello che sposta la soglia), con tabella sul nodo a tre ingressi e sul laboratorio delle case, e perché nel parlare comune pesi e parametri sono usati come sinonimi
 

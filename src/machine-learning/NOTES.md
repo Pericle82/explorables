@@ -7,3 +7,4 @@ Sorgenti: `p1.html`–`p3.html` (testo per parte), `js1.js`–`js3.js` (laborato
 ## Decisioni
 - 16 laboratori con matematica reale su dati generati con seme fisso.
 - Accento: Prugna.
+- 16/10/2026 (v1.1): rimando a neural-network-driving #s4 nel capitolo 8, dopo la backpropagation, come esempio di rete allenata senza gradiente (sovrapposizione con NND sezione 3 ridotta a rimandi reciproci).

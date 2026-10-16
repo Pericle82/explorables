@@ -522,6 +522,7 @@ html{scroll-behavior:smooth}
   <h3 id="s5-guardrail" class="anchor">Un guardrail che blocca troppo è un bug di prodotto</h3>
   <div class="prose stack">
     <p>I <b>guardrail</b> stanno prima e dopo il modello: in input rilevano prompt injection, dati personali (PII, Personally Identifiable Information) e argomenti sensibili; in output verificano lo schema, la tossicità e che le citazioni esistano davvero nelle fonti. Ognuno ha un dataset con esempi positivi e negativi, e si misura in due numeri, non uno: il <b>recall</b> (quanti attacchi blocca) e il <b>tasso di falsi positivi</b> (quanto traffico legittimo blocca). Un classificatore con soglia bassa ha recall alto e blocca conversazioni normali; con soglia alta lascia passare attacchi. La soglia si sceglie guardando entrambi, con un budget di latenza esplicito, e il <b>red teaming</b> (una suite di attacchi per categoria, provata prima e dopo) dice se i guardrail servono a qualcosa.</p>
+    <p>È lo stesso compromesso della soglia tra precisione e recall della guida sul machine learning, con una coppia di numeri diversa. La precisione dice quante delle richieste bloccate erano davvero attacchi, e dipende da quanto sono rari: su mille richieste con un solo attacco, un tasso di falsi positivi dell'1% blocca una decina di richieste legittime, e la precisione scende sotto il 10% anche se il guardrail ferma l'attacco. Il tasso di falsi positivi invece si misura sul solo traffico legittimo e dice direttamente quanti utenti normali il guardrail disturba: per questo, qui, è il secondo numero da guardare.</p>
   </div>
 
   <div class="lab">
@@ -876,6 +877,7 @@ window.XREF_CONFIG={
     {re:"POSTMORTEM\\.md",to:"#s6-design"},
     {re:"guida sulle transazioni",to:"https://pericle82.github.io/explorables/transazioni/",k:"Altra guida",t:"Quando il COMMIT non basta più",body:"<p>Transazioni, ACID, WAL e recovery, isolamento, lock, saga e outbox: la persistenza su cui poggiano memoria e stato durevole.</p>",flags:"i",first:false},
     {re:"guida sui database vettoriali",to:"https://pericle82.github.io/explorables/transazioni/#cap-16",k:"Altra guida",t:"Le altre famiglie di database",body:"<p>Redis, documentali, wide-column e vettoriali: embedding, distanze, indici ANN e il confine transazionale di ciascuna famiglia.</p>",flags:"i",first:false},
+    {re:"guida sul machine learning",to:"https://pericle82.github.io/explorables/machine-learning/#s9-skew",k:"Altra guida",t:"Machine learning · Precisione e recall",body:"<p>Veri e falsi positivi, precisione, recall e F1 su dati sbilanciati, con un laboratorio sulla soglia che li scambia.</p>",flags:"i",first:false},
     {re:"structured output",to:"https://pericle82.github.io/explorables/assistente-agente/#json-valido",k:"Altra guida",t:"Da assistente ad agente",body:"<p>Tool, structured output e il passaggio dall'assistente che risponde all'agente che agisce.</p>",flags:"i"}
   ],
   gloss:{selector:"dl.gloss",skip:["Budget","Falso positivo"],extra:{"Percentile":["percentili"],"Kappa di Cohen":["kappa"],"RRF":["Reciprocal Rank Fusion"],"MCP":["Model Context Protocol"]}}
