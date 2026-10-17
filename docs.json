@@ -543,6 +543,47 @@
       ],
       "version": "1.10",
       "updated": "2026-10-17"
+    },
+    {
+      "slug": "epso-ad8",
+      "title": "Preparazione EPSO AD 8",
+      "description": "Il concorso EPSO/AD/430/26 in intelligenza artificiale e cybersicurezza, mansione per mansione: MLOps, AI Act, protezione dei dati, AI affidabile, rischio, zero trust, SOC, NIS2 e regolamento 2023/2841, con laboratori ed esercitazioni per capitolo.",
+      "tags": [
+        "EPSO",
+        "concorsi UE",
+        "AI Act",
+        "cybersicurezza"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-10-17",
+          "notes": "Prima versione"
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-10-17"
+    },
+    {
+      "slug": "epso-ad7",
+      "title": "Preparazione EPSO AD 7",
+      "description": "Il concorso EPSO/AD/429/26 in quattro settori: infrastruttura ICT, gestione di progetti (PM², valore acquisito, appalti), cloud e reti, data science (pipeline, tecnologie semantiche, statistica, governance dei dati), con laboratori ed esercitazioni.",
+      "tags": [
+        "EPSO",
+        "concorsi UE",
+        "cloud",
+        "project management",
+        "data science"
+      ],
+      "history": [
+        {
+          "version": "1.0",
+          "date": "2026-10-17",
+          "notes": "Prima versione"
+        }
+      ],
+      "version": "1.0",
+      "updated": "2026-10-17"
     }
   ]
 }

@@ -1,0 +1,235 @@
+{
+  "slug": "epso-ad8",
+  "title": "Preparazione EPSO AD 8",
+  "area": "Concorsi EPSO",
+  "questions": [
+    {
+      "id": "ad8-01",
+      "title": "Un modello che peggiora in silenzio",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        3
+      ],
+      "prompt": "Un modello che classifica le domande di rimborso aveva un'accuratezza del 92% al rilascio; dopo otto mesi gli operatori lamentano errori, ma nessun allarme è scattato. Spiega quali tipi di deriva possono essere in gioco e come distinguerli, come useresti il PSI e con quali soglie, che cosa avrebbe dovuto prevedere il ciclo MLOps (versioni, monitoraggio, rilascio) e quale strategia di rilascio sceglieresti per il modello riaddestrato.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Data drift: cambia la distribuzione degli input; concept drift: cambia la relazione tra input ed esito; si distinguono confrontando distribuzioni delle feature e prestazioni su etichette recenti."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "PSI = Σ (p − q) · ln(p/q) sulle classi della variabile: sotto 0,1 stabile, 0,1–0,25 da indagare, oltre 0,25 cambiamento forte; piccoli spostamenti possono non far scattare la soglia, quindi si monitorano anche le prestazioni."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "MLOps: versionare dati, codice e modello, registro dei modelli, riproducibilità, monitoraggio di input, output e prestazioni con allarmi, riaddestramento pianificato o innescato."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Rilascio prudente: shadow (il nuovo modello calcola senza decidere) o canary/A-B con rientro rapido; confronto con il modello in produzione sulle stesse metriche."
+        }
+      ]
+    },
+    {
+      "id": "ad8-02",
+      "title": "Un filtro per i candidati",
+      "difficulty": "molto alta",
+      "time": 600,
+      "maxChars": 1700,
+      "chapters": [
+        5,
+        6
+      ],
+      "prompt": "Un'istituzione dell'Unione vuole usare un sistema di AI di un fornitore privato per ordinare le candidature a una procedura di selezione. Classifica il sistema secondo l'AI Act, indica gli obblighi del fornitore e del deployer, spiega quale valutazione d'impatto serve sui diritti fondamentali e quale sulla protezione dei dati (con quale regolamento, visto che il deployer è un'istituzione) e come si garantisce la sorveglianza umana.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Alto rischio: Allegato III, punto 4 (occupazione, selezione del personale); obblighi del fornitore agli articoli 9–17 (gestione del rischio, dati, documentazione tecnica, registrazione degli eventi, trasparenza, sorveglianza umana, accuratezza e robustezza), valutazione della conformità e marcatura CE."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Deployer: uso secondo le istruzioni, sorveglianza umana da persone competenti, conservazione dei log, informazione dei candidati; come ente pubblico, valutazione d'impatto sui diritti fondamentali (FRIA, art. 27) e registrazione dell'uso."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Protezione dei dati: per un'istituzione vale l'EUDPR (Regolamento 2018/1725), vigilanza del GEPD; DPIA per trattamento ad alto rischio; limiti alle decisioni basate unicamente su trattamento automatizzato."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Sorveglianza umana effettiva: chi decide comprende i limiti del sistema, può non seguirlo e interromperlo, evita l'eccessivo affidamento."
+        }
+      ]
+    },
+    {
+      "id": "ad8-03",
+      "title": "Equo per chi?",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1400,
+      "chapters": [
+        7
+      ],
+      "prompt": "Un modello assegna un punteggio di rischio di frode; a parità di soglia segnala il 12% di un gruppo e il 6% dell'altro, mentre la frode reale è simile nei due gruppi. Spiega quali metriche di equità useresti per descrivere il problema, perché non si possono soddisfare tutte insieme, come spiegheresti una singola decisione a chi la contesta e quali rischi specifici aggiungerebbe un'interfaccia basata su un LLM (OWASP).",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Parità statistica (stessa quota di positivi), pari opportunità (stesso tasso di veri positivi), parità degli errori (stessi falsi positivi e negativi); qui con frode reale simile la differenza nelle segnalazioni indica falsi positivi diversi."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Quando i tassi di base differiscono, calibrazione e parità degli errori non possono valere insieme (teoremi di incompatibilità): la scelta della metrica è una decisione di valore, da documentare."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Spiegazione locale (per esempio SHAP o controfattuali: che cosa avrebbe cambiato l'esito), tracciabilità e log per l'audit, diritto a una spiegazione e a un intervento umano."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "OWASP Top 10 LLM: prompt injection, divulgazione di informazioni sensibili, gestione impropria dell'output, autonomia eccessiva (excessive agency)."
+        }
+      ]
+    },
+    {
+      "id": "ad8-04",
+      "title": "Il rischio in euro",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1400,
+      "chapters": [
+        9
+      ],
+      "prompt": "Il server di posta di un'agenzia vale 200.000 euro; un ransomware ne distruggerebbe il 40% del valore, ed è atteso in media una volta ogni quattro anni. Una soluzione EDR costa 15.000 euro l'anno e ridurrebbe la frequenza a una volta ogni vent'anni. Calcola SLE, ALE prima e dopo e il valore della contromisura; poi spiega come si valuta e si dà priorità a una vulnerabilità con CVSS e perché il punteggio di base non basta.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "SLE = 200.000 × 0,4 = 80.000 €; ALE prima = 80.000 × 0,25 = 20.000 €/anno; dopo = 80.000 × 0,05 = 4.000 €/anno; valore = 20.000 − 4.000 − 15.000 = 1.000 €/anno: conviene, di poco."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Le risposte al rischio sono mitigare, trasferire, evitare, accettare; il rischio residuo va accettato formalmente dal proprietario."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "CVSS misura la gravità tecnica (vettore, complessità, privilegi, interazione, impatto su riservatezza, integrità, disponibilità); la priorità considera anche lo sfruttamento reale (per esempio il catalogo KEV, EPSS), l'esposizione e il valore dell'asset."
+        }
+      ]
+    },
+    {
+      "id": "ad8-05",
+      "title": "Una notifica che scade",
+      "difficulty": "molto alta",
+      "time": 600,
+      "maxChars": 1600,
+      "chapters": [
+        11,
+        12
+      ],
+      "prompt": "Un'agenzia dell'Unione scopre alle 9 di lunedì che un aggressore ha esfiltrato dati personali di cittadini da un sistema esposto. Descrivi le fasi della risposta all'incidente, che cosa preserveresti per l'analisi forense e perché, e quali notifiche sono dovute, a chi e con quali termini, secondo il Regolamento 2023/2841 e il regolamento sulla protezione dei dati applicabile.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Fasi: preparazione, rilevamento e analisi, contenimento, eradicazione, ripristino, attività successive (lezioni apprese), secondo NIST SP 800-61."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Forense: preservare prove volatili prima dello spegnimento, immagini dei dischi con hash, catena di custodia, log centralizzati e sincronizzati; non distruggere le tracce ripristinando troppo presto."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Regolamento 2023/2841: notifica al CERT-UE di un incidente significativo con allerta precoce entro 24 ore, notifica entro 72 ore, relazione finale entro un mese."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Violazione di dati personali per un'istituzione: EUDPR, notifica al GEPD entro 72 ore se c'è un rischio, e alle persone interessate senza ritardo se il rischio è elevato."
+        }
+      ]
+    },
+    {
+      "id": "ad8-06",
+      "title": "Zero trust per il telelavoro",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        10
+      ],
+      "prompt": "Un'organizzazione dà accesso remoto con una VPN che porta l'utente su tutta la rete interna e una password. Proponi un'architettura zero trust secondo il NIST SP 800-207, spiega come cambierebbero autenticazione e autorizzazione, quale ruolo hanno segmentazione e telemetria, e quali algoritmi crittografici andranno sostituiti per la minaccia quantistica e con che cosa.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Zero trust: nessuna fiducia per posizione; ogni accesso verificato da un punto di decisione delle politiche (PDP/PEP) secondo identità, stato del dispositivo e contesto; accesso alla singola applicazione, non alla rete."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Autenticazione a più fattori resistente al phishing (FIDO2), privilegio minimo, accessi privilegiati gestiti (PAM), sessioni brevi e rivalutate."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Microsegmentazione per limitare il movimento laterale, telemetria continua (EDR, SIEM) che alimenta le decisioni."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "RSA e curve ellittiche vanno sostituiti con algoritmi post-quantistici standardizzati: ML-KEM (FIPS 203) per lo scambio di chiavi, ML-DSA e SLH-DSA (FIPS 204 e 205) per le firme."
+        }
+      ]
+    },
+    {
+      "id": "ad8-07",
+      "title": "Chi risponde a quale legge",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        12
+      ],
+      "prompt": "Confronta il Regolamento 2023/2841, la direttiva NIS2 e il Cyber Resilience Act: a chi si applicano, chi vigila, quali obblighi principali impongono. Poi spiega quale livello di firma elettronica serve perché un documento firmato a distanza abbia lo stesso effetto di una firma autografa in tutta l'Unione e che cosa aggiunge il portafoglio europeo di identità digitale.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Regolamento 2023/2841: istituzioni, organi e organismi dell'Unione; quadro di gestione del rischio, piani, notifiche al CERT-UE; comitato interistituzionale per la cybersicurezza (IICB)."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "NIS2 (Direttiva 2022/2555): soggetti essenziali e importanti negli Stati membri, autorità nazionali e CSIRT, misure di gestione del rischio, responsabilità degli organi di gestione, notifiche 24h/72h/un mese."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Cyber Resilience Act (Regolamento 2024/2847): prodotti con elementi digitali immessi sul mercato; sicurezza fin dalla progettazione, gestione delle vulnerabilità per il ciclo di vita, segnalazione delle vulnerabilità sfruttate, marcatura CE."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Solo la firma elettronica qualificata equivale per legge alla firma autografa ed è riconosciuta in tutti gli Stati membri (eIDAS); il portafoglio EUDI (Regolamento 2024/1183) permette di presentare identità e attestati e di firmare in modo qualificato."
+        }
+      ]
+    }
+  ]
+}

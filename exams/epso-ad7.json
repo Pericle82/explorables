@@ -1,0 +1,274 @@
+{
+  "slug": "epso-ad7",
+  "title": "Preparazione EPSO AD 7",
+  "area": "Concorsi EPSO",
+  "questions": [
+    {
+      "id": "ad7-01",
+      "title": "Un servizio da far stare in piedi",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        3
+      ],
+      "prompt": "Un'agenzia ospita il registro dei fascicoli su un server con disponibilità 99,5%, un database al 99,8% e una rete al 99,9%, in serie. Il backup completo si fa ogni notte all'una, su un array RAID 5 nello stesso locale. Calcola la disponibilità del servizio e il fermo atteso all'anno; indica quale componente conviene raddoppiare e quanto si guadagna; spiega che cosa non va nel piano di backup e quale RPO garantisce davvero.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "In serie le disponibilità si moltiplicano: 0,995 × 0,998 × 0,999 ≈ 0,992 (99,2%), circa 70 ore di fermo all'anno (0,8% di 8.760 ore)."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Conviene raddoppiare l'anello debole, il server: in parallelo 1 − 0,005² ≈ 0,999975, e il servizio sale a circa 99,7% (fermo di circa 26 ore); il modello assume guasti indipendenti."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il RAID non è un backup: protegge dal guasto di un disco, non da cancellazioni, ransomware o incendio; tenere il backup nello stesso locale viola la regola 3-2-1 (tre copie, due supporti, una fuori sede, meglio anche immutabile)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Con un backup notturno l'RPO nel caso peggiore è vicino a 24 ore; l'RPO misura i dati persi, l'RTO il tempo di fermo, che va fissato a parte con la BIA."
+        }
+      ]
+    },
+    {
+      "id": "ad7-02",
+      "title": "Il guasto che torna ogni lunedì",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1300,
+      "chapters": [
+        4
+      ],
+      "prompt": "Ogni lunedì mattina il portale delle domande di sovvenzione rallenta fino a diventare inutilizzabile; il service desk riavvia il server e tutto riparte. Il contratto con il fornitore esterno prevede uno SLA con disponibilità mensile del 99,9%. Usando il vocabolario di ITIL 4 e di SRE, descrivi come andrebbe gestita la situazione, che cosa misura lo SLA e quanto fermo concede in un mese di 30 giorni, e che cosa dovrebbe succedere ai rilasci se il budget è esaurito.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Il riavvio è gestione dell'incidente (ripristinare il servizio in fretta); la ricorrenza va trattata come problema, con analisi della causa radice ed errore noto con soluzione temporanea finché non si rimuove la causa."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "La correzione definitiva passa dalla gestione dei cambiamenti (valutazione, approvazione, eventualmente CAB), non da interventi improvvisati."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "99,9% su 30 giorni concede (1 − 0,999) × 43.200 = 43,2 minuti di fermo: è l'error budget; SLA verso il cliente, OLA tra reparti interni, contratto di supporto con il fornitore."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Con il budget esaurito la regola SRE è fermare i rilasci di nuove funzioni e dedicare il lavoro all'affidabilità; SLI è ciò che si misura, SLO l'obiettivo interno."
+        }
+      ]
+    },
+    {
+      "id": "ad7-03",
+      "title": "Comprare un supercomputer più grande",
+      "difficulty": "alta",
+      "time": 480,
+      "maxChars": 1300,
+      "chapters": [
+        5
+      ],
+      "prompt": "Un gruppo di ricerca chiede di passare da 256 a 4.096 processori per un codice di simulazione parallelizzabile al 98%. Valuta la richiesta con la legge di Amdahl: accelerazione attuale, accelerazione richiesta, limite teorico. Che cosa consiglieresti invece, e in quale caso la richiesta avrebbe senso (legge di Gustafson)? Collega infine la minaccia quantistica alle decisioni che un'amministrazione deve prendere oggi.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Amdahl: S = 1 / ((1 − p) + p/N). Con p = 0,98: N = 256 → circa 42,5; N = 4.096 → circa 49,4; limite 1/0,02 = 50. Sedici volte i processori per circa il 16% in più."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Conviene ridurre la parte seriale (o accettare l'efficienza bassa solo se il costo è irrilevante); l'efficienza a 4.096 processori è circa l'1%."
+        },
+        {
+          "id": "c3",
+          "weight": 1,
+          "text": "Gustafson: se con più processori si affronta un problema più grande (scalabilità debole), la parte parallela cresce e la richiesta può avere senso."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Shor rompe RSA e curve ellittiche: oggi si prepara la migrazione post-quantistica (inventario degli algoritmi, agilità crittografica, rischio «raccogli ora, decifra dopo»); Grover impone chiavi simmetriche più lunghe."
+        }
+      ]
+    },
+    {
+      "id": "ad7-04",
+      "title": "Il progetto a metà strada",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1600,
+      "chapters": [
+        6,
+        7
+      ],
+      "prompt": "Un progetto di gestione documentale gestito con PM² ha un budget di 2 milioni di euro. Alla revisione di metà anno il piano prevedeva 1 milione di lavoro fatto; il lavoro effettivamente completato vale 800.000 euro a budget e la spesa è di 1 milione. Calcola gli indici del valore acquisito e la stima a completamento, interpreta la situazione e spiega chi deve decidere che cosa secondo la governance di PM², dicendo come si accorcerebbe la durata se il ritardo fosse sul percorso critico.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "PV = 1.000.000, EV = 800.000, AC = 1.000.000: CPI = 0,8, SPI = 0,8; il progetto è in ritardo e sopra i costi; EAC = BAC/CPI = 2,5 milioni, VAC = −500.000 €."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "In PM² il Project Manager gestisce l'esecuzione e segnala; lo scostamento oltre le tolleranze sale al comitato direttivo (PSC); il Project Owner possiede il business case, che va riverificato: un progetto non più giustificato si ferma."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Si accorcia solo agendo sul percorso critico: crashing (più risorse, più costo) o fast tracking (sovrapporre attività, più rischio); accelerare attività con margine non serve."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Ogni modifica di ambito, tempi o costi passa dal controllo dei cambiamenti e aggiorna la baseline, evitando lo scope creep."
+        }
+      ]
+    },
+    {
+      "id": "ad7-05",
+      "title": "Una gara per il nuovo sistema",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        8
+      ],
+      "prompt": "Un'istituzione dell'Unione deve acquistare lo sviluppo agile di un nuovo sistema per quattro anni, con lavori che emergeranno strada facendo. Descrivi lo strumento contrattuale e la procedura che useresti, l'ordine dei criteri con cui si valutano le offerte e un esempio di errore tipico nel definirli, come si concilia un contratto scritto prima con un ambito che cambia, e come si previene il lock-in.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Contratto quadro (di norma fino a quattro anni) eseguito con contratti specifici o buoni d'ordine; con più fornitori, cascata o riapertura della concorrenza; procedura aperta o ristretta secondo il regolamento finanziario (2024/2509)."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Criteri di esclusione, poi di selezione (capacità dell'offerente), poi di aggiudicazione (offerta economicamente più vantaggiosa, spesso miglior rapporto qualità/prezzo); errore tipico: usare l'esperienza dell'impresa come criterio di aggiudicazione, valutando due volte la stessa cosa."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Con Scrum tempo e costo sono fissati per sprint e l'ambito si adatta: il contratto acquista capacità a sprint o pacchetti con Definition of Done e criteri di accettazione, non un ambito fisso; i cambiamenti sostanziali richiedono una nuova procedura."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Contro il lock-in: standard e formati aperti, documentazione obbligatoria, diritti sul codice, clausola di trasferimento e piano di uscita fin dal capitolato."
+        }
+      ]
+    },
+    {
+      "id": "ad7-06",
+      "title": "Portare i fascicoli nel cloud",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1600,
+      "chapters": [
+        9
+      ],
+      "prompt": "Un'agenzia vuole spostare nel cloud pubblico il proprio sistema di gestione dei fascicoli, che contiene dati personali, scegliendo tra tenerlo su macchine virtuali o passare a un SaaS. Confronta le due opzioni in termini di modello di servizio e responsabilità condivisa, indica i requisiti normativi europei da considerare, e spiega come ragioneresti sui costi di un server applicativo acceso 10 ore al giorno con uno sconto del 40% per l'impegno di un anno.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Macchine virtuali = IaaS (rehost): il cliente gestisce sistema operativo, middleware, applicazione, dati e accessi; SaaS (repurchase): il fornitore gestisce l'applicazione, ma dati, utenti e accessi restano sempre del cliente."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "GDPR/EUDPR: il fornitore è responsabile del trattamento con contratto (art. 28 GDPR, art. 29 EUDPR), trasferimenti fuori SEE solo con una base del capo V; sovranità: localizzazione, chiavi gestite dal cliente, esposizione a leggi di paesi terzi; certificazioni ISO 27001/27017/27018, EUCS in preparazione."
+        },
+        {
+          "id": "c3",
+          "weight": 1,
+          "text": "Data Act, capo VI: diritto di cambiare fornitore, esportazione dei dati, fine delle spese di uscita dal 12 gennaio 2027; piano di uscita scritto prima di entrare."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Pareggio dell'impegno a 24 × (1 − 0,4) = 14,4 ore al giorno: a 10 ore conviene il consumo, meglio ancora spegnere fuori orario; FinOps: etichette, attribuzione dei costi, dimensionamento, budget e allarmi."
+        }
+      ]
+    },
+    {
+      "id": "ad7-07",
+      "title": "Una sede, tre reti",
+      "difficulty": "media",
+      "time": 540,
+      "maxChars": 1400,
+      "chapters": [
+        10
+      ],
+      "prompt": "Una nuova sede ha 50 postazioni, 20 telefoni IP e 10 server, e deve collegarsi alla sede centrale. Ti è assegnato il blocco 10.20.30.0/24. Proponi una divisione in sottoreti (con prefissi, intervalli e host utilizzabili), spiega come le separeresti e controlleresti il traffico tra loro, e confronta MPLS, VPN su Internet e SD-WAN per il collegamento, dicendo quale trasporto preferisce la voce e perché.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Esempio valido: postazioni 10.20.30.0/26 (62 host, .1–.62), telefoni 10.20.30.64/27 (30 host), server 10.20.30.96/28 (14 host) o /27; host utilizzabili = 2^(32−prefisso) − 2, primo indirizzo rete e ultimo broadcast."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Una VLAN per sottorete; il traffico tra VLAN passa da router o firewall dove si applicano le regole (segmentazione), con NAC/802.1X per ammettere i dispositivi; il NAT non è una misura di sicurezza."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "MPLS: rete dell'operatore con QoS garantita ma costosa; VPN IPsec su Internet: economica senza garanzie; SD-WAN: combina i collegamenti e instrada per applicazione con politiche centrali."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "La voce preferisce UDP e QoS: un pacchetto in ritardo è inutile, meglio perderlo; contano latenza, jitter e perdita più della banda."
+        }
+      ]
+    },
+    {
+      "id": "ad7-08",
+      "title": "Dal portale alle decisioni",
+      "difficulty": "molto alta",
+      "time": 600,
+      "maxChars": 1700,
+      "chapters": [
+        11,
+        12,
+        13
+      ],
+      "prompt": "Un servizio di dati aperti vuole sapere se un nuovo modulo di download aumenta i completamenti: su 2.000 visitatori per versione, A completa al 10% e B al 12%. Valuta l'esperimento (ipotesi, statistica, valore p, intervallo, errori possibili). Poi descrivi l'architettura con cui raccoglieresti gli eventi del portale e li renderesti analizzabili, come descriveresti i dataset perché siano trovati su data.europa.eu, e quale atto europeo obbliga a pubblicare gratis i dati di elevato valore.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "H0: nessuna differenza; test z su due proporzioni con proporzione comune 0,11: errore standard ≈ 0,0099, z ≈ 2,02, p ≈ 0,043 a due code: significativo ad α = 0,05 ma non a 0,01; intervallo al 95% della differenza circa da 0,1 a 3,9 punti; errore di I tipo con probabilità α, non fermarsi al primo p favorevole."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Eventi in streaming (per esempio Kafka) o batch, caricati grezzi e trasformati nella destinazione (ELT) in strati grezzo/pulito/pronto, su lakehouse o warehouse con schema a stella (fatti: download; dimensioni: dataset, tempo, paese), test di qualità e lineage."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Metadati in DCAT-AP (RDF), temi da EuroVoc (SKOS), URI stabili; i principi FAIR."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Direttiva (UE) 2019/1024 sui dati aperti e Regolamento di esecuzione (UE) 2023/138 sui dati di elevato valore: gratis, leggibili da macchina, via API; se ci sono dati personali resta il GDPR."
+        }
+      ]
+    }
+  ]
+}

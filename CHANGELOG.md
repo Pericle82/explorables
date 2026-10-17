@@ -3,6 +3,8 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-17
+- **Preparazione EPSO AD 7** (`epso-ad7`) v1.0: Prima versione
+- **Preparazione EPSO AD 8** (`epso-ad8`) v1.0: Prima versione
 - **Da Assistente ad Agente** (`assistente-agente`) v1.7: Correzione: nel capitolo 1 i limiti sono tre più un vincolo pratico, la lunghezza massima del contesto
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.10: Correzioni: capitolo 38, 14.336 × 32 = 458.752 filtri per token; capitolo 37, i due terzi dei parametri valgono per i transformer di allora (in Llama 3 sono quattro quinti); capitolo 24, il modello da 27 miliardi entra in 32 GB perché i pesi sono compressi a 4 bit
 - **Neural Network Driving** (`neural-network-driving`) v1.4: Correzioni: la rete ha 82 parametri (72 pesi e 10 bias), non 82 pesi; nel grafo gli archi sono 72, non centinaia; le copie della pista sono una per auto

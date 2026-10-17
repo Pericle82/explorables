@@ -79,8 +79,8 @@ window.XREF_CONFIG = {
 | Blu acciaio | `#2C5C8F` / `#DBE6F2` | `#7FB2E5` / `#1B2C40` | assistente-agente, transazioni |
 | Ambra | `#8A5A0B` / `#F2E4C8` | `#E2AA4E` / `#3A2D14` | architetture-llm, ai-engineering |
 | Bordeaux | `#8A3048` / `#F3DCE2` | `#E08AA0` / `#3D1C26` | neural-network-driving |
-| Ardesia | `#4A5A7A` / `#E0E5EE` | `#A6B4D4` / `#232B3A` | inferenza-llm |
-| Oliva | `#5E6B1E` / `#E6EAD0` | `#B7C45A` / `#2E3316` | comandi-bash |
+| Ardesia | `#4A5A7A` / `#E0E5EE` | `#A6B4D4` / `#232B3A` | inferenza-llm, epso-ad8 |
+| Oliva | `#5E6B1E` / `#E6EAD0` | `#B7C45A` / `#2E3316` | comandi-bash, epso-ad7 |
 | Prugna | `#6B3A7D` / `#EAD9F0` | `#C79BDC` / `#2E1D36` | machine-learning |
 | Terracotta | `#9C4A26` / `#F4E0D6` | `#E59872` / `#3C231A` | manuale-ai |
 
