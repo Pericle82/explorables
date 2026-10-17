@@ -1,0 +1,382 @@
+{
+  "slug": "inferenza-llm",
+  "title": "Dentro l'inferenza",
+  "area": "Inferenza LLM",
+  "questions": [
+    {
+      "id": "inf-01",
+      "title": "Il riassunto tagliato a metà frase",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [
+        1
+      ],
+      "prompt": "Un'applicazione chiama l'API (Application Programming Interface) di un modello per riassumere documenti da 3.000 token. Alcuni riassunti finiscono a metà frase e il team pensa a un difetto del modello. Spiega come il modello genera la risposta, in quali tre casi il ciclo si ferma, quale di questi ha prodotto il problema e come lo si diagnostica. Spiega poi perché i 3.000 token del documento costano una sola passata in avanti, mentre un riassunto di 400 token ne richiede circa 400.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il ciclo ha quattro passi: una passata in avanti produce i logit, la softmax li trasforma in probabilità, una regola di scelta estrae un token, il token si accoda al testo e si riparte; il modello prevede un token alla volta, senza un piano della frase."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Il ciclo si ferma in tre casi: il modello sceglie il token di fine (EOS, End Of Sequence), compare una sequenza di stop indicata da chi chiama, si raggiunge il limite massimo di token in uscita. Il riassunto tagliato è il terzo caso, che l'API (Application Programming Interface) segnala con un motivo di arresto diverso, da controllare."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il prompt è tutto noto in anticipo e, grazie alla maschera causale (ogni token guarda solo i precedenti), i calcoli delle varie posizioni non dipendono l'uno dall'altro: si elabora tutto nella stessa passata (prefill), la cui ultima posizione dà già i logit del primo token di risposta."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "La risposta non si può parallelizzare: il token successivo non esiste finché il precedente non è stato scelto, quindi il decode richiede una passata per ogni token in uscita, in sequenza (circa 400 passate per 400 token)."
+        }
+      ]
+    },
+    {
+      "id": "inf-02",
+      "title": "Variabili dal nome impossibile",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        2
+      ],
+      "prompt": "Un assistente di programmazione genera funzioni con nomi di variabile a volte assurdi, oppure scritti in modo diverso a poche righe di distanza. La configurazione è: temperatura 1,3, top-p 0,95 e una penalità di presenza alta «per evitare ripetizioni». Spiega che cosa fa ciascuno dei tre parametri, perché insieme producono il difetto e come riconfigureresti il sistema per il codice. Quale filtro alternativo regge meglio le temperature alte, e con quale limite?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La temperatura divide i logit prima della softmax: sopra 1 appiattisce la distribuzione e dà più probabilità ai token della coda; estraendo spesso si pesca prima o poi un token improbabile, e uno solo può far deragliare il resto."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Il top-p tiene il gruppo più piccolo di token la cui probabilità cumulata supera p e rinormalizza; con temperature alte la coda si gonfia e il nucleo si allarga molto, quindi il filtro protegge poco."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "La penalità di presenza sottrae un valore fisso al logit di ogni token già comparso: è uno strumento grossolano che non distingue una ripetizione noiosa da una necessaria, come il nome di una variabile in un codice, e valori alti peggiorano la qualità."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Rimedio: abbassare la temperatura (verso 0, dove si passa al greedy deterministico) e togliere o ridurre le penalità. Il min-p tiene i token con probabilità almeno pmin × quella del migliore, una soglia relativa che regge meglio le temperature alte; limite: è più recente e non tutte le API (interfacce di programmazione) lo espongono."
+        }
+      ]
+    },
+    {
+      "id": "inf-03",
+      "title": "Temperatura 0, risposte diverse",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        2,
+        5
+      ],
+      "prompt": "Un servizio di classificazione usa temperatura 0 e un seed fisso, ma la stessa richiesta, ripetuta in orari diversi, a volte riceve risposte diverse. Il team sospetta che il generatore di numeri casuali sia difettoso. Spiega perché il sospetto è fuori strada e quali ingredienti, combinati, producono la differenza. Che cosa dovrebbe garantire un provider per offrire una riproducibilità vera, e che cosa costerebbe?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "A temperatura 0 la scelta è greedy, cioè sempre il token più probabile: il generatore pseudocasuale e il seed non decidono nulla. La causa è numerica più che casuale."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La virgola mobile non è associativa: (a + b) + c può differire di poco da a + (b + c), quindi una somma di migliaia di termini dà risultati leggermente diversi se cambia l'ordine."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "L'ordine dipende dal carico: il server mette insieme le richieste di più utenti nello stesso batch e, a seconda di quante sono, le librerie scelgono strategie di calcolo che sommano in ordine diverso; la stessa richiesta non è calcolata sempre allo stesso modo."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Basta un quasi-pareggio tra due token: una differenza nell'ultima cifra dei logit cambia il vincitore, e da lì la risposta prosegue su un'altra strada, con differenze che si accumulano."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Per questo il seed è offerto di solito come garanzia «per quanto possibile»; la riproducibilità vera richiede calcoli che diano lo stesso risultato qualunque sia la dimensione del batch, e costa un po' di velocità."
+        }
+      ]
+    },
+    {
+      "id": "inf-04",
+      "title": "128.000 token in una sola conversazione",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        3
+      ],
+      "prompt": "Dovete servire una sola conversazione da 128.000 token con Llama 3 8B (32 strati, 8 teste KV (key-value) di dimensione 128, numeri in bf16 (bfloat16), cioè 2 byte) su una GPU (Graphics Processing Unit) da 80 GB; i pesi in bf16 occupano 16 GB. Calcola la memoria della cache KV per token e per la conversazione, spiega da dove viene ogni fattore della formula e verifica se tutto entra. Rifai poi il conto per un modello identico ma con 32 teste KV, una per ogni testa di query, e spiega che cosa cambia e che cosa no con la GQA (Grouped-Query Attention).",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Byte per token = 2 × strati × teste KV × dtesta × byte per numero = 2 × 32 × 8 × 128 × 2 = 131.072 byte = 128 KiB; il 2 conta key e value, e la cache si tiene per ogni strato e testa KV."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Con 128.000 token la cache è circa 16 GiB, dello stesso ordine dei pesi (16 GB): insieme restano sotto gli 80 GB, quindi la conversazione entra."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Con 32 teste KV (attenzione completa, MHA, Multi-Head Attention) la cache è quattro volte più grande: 512 KiB per token, circa 62,5 GiB (circa 67 GB) per la conversazione, che con i 16 GB di pesi supera gli 80 GB: non entra."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "La GQA divide le teste di query in gruppi e ogni gruppo condivide una coppia key-value (in Llama 3 8B gruppi da quattro: 32 teste di query, 8 KV). Le query restano tutte: ogni testa cerca cose diverse, ma negli stessi archivi."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "La perdita di qualità della GQA è piccola; la MQA (Multi-Query Attention, una sola coppia key-value per tutte le teste) ne ha una più evidente, per questo la GQA è la scelta più comune. Altre strade: MLA, finestre sugli ultimi token, cache quantizzata a 8 bit."
+        }
+      ]
+    },
+    {
+      "id": "inf-05",
+      "title": "Il decoder che ricomincia da capo",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        1,
+        3
+      ],
+      "prompt": "Un collega scrive un decoder giocattolo che, per generare ogni token, rielabora da capo tutto il testo (prompt più risposta già prodotta). Il prompt è di 2.000 token e la risposta di 100. Conta quanti token vengono elaborati in totale con questo schema e quanti con la cache KV (key-value), e di quante volte differiscono. Spiega perché la cache non cambia il risultato e dove si paga il risparmio.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Senza cache ogni passata rielabora tutto il testo: 100 × 2.000 + (0 + 1 + … + 99) = 200.000 + 4.950 = 204.950 token elaborati."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Con la cache si elaborano 2.000 token nel prefill e poi uno per passata: circa 2.100 in tutto. Il rapporto è circa 100 volte (≈ 98) e cresce con la lunghezza."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Per la maschera causale un token non guarda mai quelli successivi: il suo vettore in ogni strato non cambia quando la risposta si allunga, quindi key e value di un token sono identici da una passata all'altra e ricalcolarli sarebbe puro spreco."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "A ogni passata di decode si calcolano query, key e value del solo token nuovo, si aggiungono key e value alla cache e si legge la cache per l'attenzione; la query serve una volta e si butta."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Il prezzo è la memoria: key e value restano per tutta la conversazione, per ogni strato e testa KV, e la cache cresce in modo lineare con i token e con le conversazioni servite insieme (128 KiB per token in Llama 3 8B)."
+        }
+      ]
+    },
+    {
+      "id": "inf-06",
+      "title": "Due reclami, due colli di bottiglia",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        4
+      ],
+      "prompt": "Due reclami sullo stesso servizio. Primo: incollando un documento da 30.000 token nella chat passano molti secondi prima che compaia la prima parola, poi il testo scorre veloce. Secondo: con domande brevi la prima parola arriva subito, ma una risposta lunga scorre lentamente. Per ciascun caso dì quale metrica (TTFT, Time To First Token, oppure TPOT, Time Per Output Token) è in gioco, quale fase e quale risorsa della GPU (Graphics Processing Unit) fa da collo di bottiglia, e perché. Calcola poi la latenza totale di una risposta di 300 token con TTFT di 2 s e TPOT di 20 ms.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Primo caso: TTFT alto (coda, rete e prefill, che cresce con la lunghezza del prompt). Il prefill è compute-bound: ogni peso letto viene usato migliaia di volte e il limite è la potenza di calcolo (FLOPS, operazioni in virgola mobile al secondo); per prompt molto lunghi pesa anche il quadrato, per via dell'attenzione."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Secondo caso: TPOT alto. Il decode è memory-bound: ogni passata rilegge tutti i pesi (16 GB per 8 miliardi di parametri in bf16, bfloat16) per produrre un solo token, circa due operazioni per peso, e in più rilegge la cache KV (key-value) che cresce; i circuiti di calcolo aspettano quasi sempre la memoria."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Con una banda di qualche TB/s (terabyte al secondo), leggere 16 GB richiede alcuni millisecondi: è il tempo minimo per token qualunque sia la potenza di calcolo della scheda, quindi una GPU con più calcolo non accelera il decode."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Latenza totale ≈ TTFT + (n − 1) × TPOT = 2 + 299 × 0,02 ≈ 8 s (7,98 s)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "In una chat con streaming conta soprattutto il TTFT, in un'elaborazione batch il numero di token al secondo; i token di ragionamento dei modelli che «ragionano» sono token in uscita a tutti gli effetti e allungano l'attesa."
+        }
+      ]
+    },
+    {
+      "id": "inf-07",
+      "title": "L'orario nel prompt di sistema",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        4
+      ],
+      "prompt": "Un'applicazione invia ogni richiesta con un prompt di sistema di 8.000 token (istruzioni e definizioni dei tool), più 2.000 token di domanda, e riceve 500 token di risposta. Il provider offre il prompt caching, ma dopo l'integrazione il costo non scende: la prima riga del prompt di sistema contiene la data e l'ora correnti. Spiega perché la cache non scatta e come correggere. Calcola poi il costo di una richiesta senza e con cache una volta corretto, con prezzi per milione di token di 3 $ in ingresso, 0,30 $ per i token letti dalla cache e 15 $ in uscita (ignora il costo di scrittura in cache). Spiega perché l'uscita costa più dell'ingresso e perché il prompt caching non è una cache delle risposte.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La cache KV (key-value) di un prefisso dipende solo dai token che vengono prima, quindi si può riusare, ma il prefisso deve coincidere token per token: un orario all'inizio cambia a ogni richiesta e invalida tutto. Le parti che cambiano vanno in fondo al prompt."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Costo senza cache: 10.000 × 3 $/M = 0,03 $ più 500 × 15 $/M = 0,0075 $, cioè 0,0375 $. Con cache: 2.000 × 3 $/M = 0,006 $, 8.000 × 0,30 $/M = 0,0024 $, più 0,0075 $ di uscita, cioè 0,0159 $ (risparmio di circa il 58%)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il prompt caching salta il prefill della parte in cache, quindi il TTFT (Time To First Token) scende, e i token letti costano una frazione del prezzo normale (per alcuni provider un decimo); l'uscita resta invariata, quindi il risparmio riguarda solo l'ingresso."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "L'uscita costa di più (rapporti tra 3 e 8 sono comuni) perché un token di prompt è una piccola frazione di una passata a pieno regime di calcolo, mentre un token di risposta occupa una passata intera, limitata dalla memoria, e tiene occupata la cache KV della conversazione per tutto il tempo."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Non è la cache delle risposte, che un'applicazione o un gateway usa per restituire una risposta già data senza chiamare il modello: con il prompt caching la risposta viene generata ogni volta."
+        }
+      ]
+    },
+    {
+      "id": "inf-08",
+      "title": "Quante conversazioni entrano in una GPU",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        3,
+        5
+      ],
+      "prompt": "Dovete servire Llama 3 8B (cache KV (key-value) di 128 KiB per token, pesi in bf16 (bfloat16) da 16 GB) su una GPU (Graphics Processing Unit) da 80 GB, cioè 80·10⁹ byte; 4 GB sono riservati alla libreria e il resto è per la cache. Le conversazioni reali durano in media 2.000 token, ma il sistema riserva a ciascuna uno spazio contiguo per il massimo di 8.192 token. Calcola quante conversazioni entrano così e quante con una cache a blocchi (ignora lo spreco residuo). Di che tecnica si tratta? Perché anche il batching statico spreca la GPU? Proponi due altre leve per far entrare più conversazioni e dì che cosa succede a throughput e velocità per utente.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Memoria libera 80 − 16 − 4 = 60 GB. Con la prenotazione a 8.192 token ogni conversazione occupa 8.192 × 128 KiB = 1 GiB (circa 1,07 GB): entrano circa 55 conversazioni."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Con i blocchi si occupa lo spazio realmente usato: 2.000 × 128 KiB ≈ 262 MB a conversazione, quindi circa 228 conversazioni, circa quattro volte di più. È coerente con il fatto che nei sistemi a prenotazione solo il 20–40% circa della cache contiene dati utili, mentre con le pagine lo spreco scende sotto il 4%."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "È PagedAttention (il cuore di vLLM), che applica l'idea della memoria virtuale: blocchi di dimensione fissa (16 token), assegnati man mano e non contigui, con una tabella dei blocchi; più richieste con lo stesso prefisso possono puntare agli stessi blocchi."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il batching statico porta avanti un gruppo fino alla fine: chi ha una risposta breve aspetta la più lunga e i posti liberati restano vuoti. Il batching continuo (Orca) ricompone il batch a ogni passata, e conviene perché il decode è limitato dalla memoria: una lettura dei pesi serve molte conversazioni."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Altre leve: quantizzare i pesi (int4 occupa circa 4–5 GB invece di 16, liberando una dozzina di GB) e quantizzare la cache KV a 8 bit (dimezza i byte per token). Il throughput totale cresce con il batch, mentre la velocità per utente cala."
+        }
+      ]
+    },
+    {
+      "id": "inf-09",
+      "title": "Il modello bozza",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        4,
+        5
+      ],
+      "prompt": "Un assistente di programmazione ha un solo utente per GPU (Graphics Processing Unit) e vuole accelerare la singola risposta, non servire più utenti. Un collega propone la decodifica speculativa con un modello bozza che propone γ = 4 token per volta. Spiega perché il trucco funziona, come viene verificata la bozza e perché la qualità non cala. Con tasso di accettazione α = 0,8 e costo della bozza pari a 0,05 volte quello del modello grande, calcola i token attesi per passata e l'accelerazione. Che cosa cambia per un testo creativo e per un server con batch molto grandi?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Funziona perché il decode è limitato dalla memoria: una passata del modello grande su 5 token costa quasi quanto una su un token solo. La bozza propone γ token in sequenza e il modello grande li controlla tutti in una sola passata, come un pezzetto di prefill."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Ogni token proposto x è accettato con probabilità min(1, p(x)/q(x)), con p la probabilità del modello grande e q quella della bozza; al primo rifiuto si ricampiona da una distribuzione corretta e il resto della bozza si butta, mentre se tutti sono accettati la passata regala un token in più."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "La qualità non cala perché il testo prodotto ha esattamente la stessa distribuzione che avrebbe dato il modello grande da solo: si guadagna velocità senza perdere qualità."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Token attesi per passata = (1 − 0,8⁵) / (1 − 0,8) ≈ 3,36; accelerazione = 3,36 / (4 × 0,05 + 1) = 3,36 / 1,2 ≈ 2,8 volte."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Il tasso di accettazione dipende dal testo: alto per codice e testo prevedibile, basso per testo creativo, quindi il guadagno cala. Con batch molto grandi il decode non è più limitato dalla memoria, verificare γ + 1 token non costa come una passata normale e il vantaggio diminuisce."
+        }
+      ]
+    },
+    {
+      "id": "inf-10",
+      "title": "Il JSON che non può sbagliare",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        2,
+        6
+      ],
+      "prompt": "Un sistema di assistenza vuole che il modello risponda con un oggetto JSON (JavaScript Object Notation) con i campi obbligatori «stato» (solo «aperto» o «chiuso») e «priorita» (intero da 1 a 5), senza altri campi. Finora lo chiedevate nelle istruzioni e ogni tanto il parser fallisce. Spiega come la decodifica vincolata risolve il problema nel punto in cui nasce. Alla posizione del valore di «stato» il modello assegna probabilità 0,6 a «Certo», 0,2 ad «aperto», 0,1 a «chiuso» e 0,1 a «in corso»: calcola la distribuzione dopo il vincolo. Che cosa garantisce il meccanismo e che cosa no? Se la priorità richiede un ragionamento, come strutturate lo schema?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "A ogni passata, prima del campionamento, il server calcola quali token sono compatibili con lo schema dato il testo prodotto e porta a meno infinito il logit degli altri, che dopo la softmax hanno probabilità zero; il modello sceglie liberamente ma solo tra le continuazioni valide. Lo schema è tradotto in un automa, con l'insieme dei token ammessi precalcolato per ogni stato."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Restano «aperto» (0,2) e «chiuso» (0,1); si rinormalizza dividendo per la somma 0,3: circa 0,67 e 0,33, mentre «Certo» e «in corso» scendono a zero. È la stessa rinormalizzazione dei filtri top-p e min-p."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Garantisce la forma (sintassi, campi richiesti, tipi, valori di un elenco), quindi il parser non fallisce; non garantisce il contenuto: «priorita»: 4 è valido anche quando la priorità giusta era 1. Lo schema vieta l'impossibile, non lo sbagliato."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il vincolo può peggiorare la risposta, perché spinge il modello lontano dalle continuazioni che preferiva. Se serve ragionamento si mette un campo di testo libero prima del campo con la conclusione, perché i token si generano nell'ordine dei campi."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Costo di preparazione: schemi molto grandi o ricorsivi richiedono tempo per costruire l'automa; i provider di solito lo mettono in cache dopo il primo uso e non supportano ogni parola chiave del JSON Schema."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,379 @@
+{
+  "slug": "ai-engineering",
+  "title": "Ingegneria dei sistemi LLM",
+  "area": "Ingegneria dei sistemi LLM",
+  "sections": {
+    "0": "s0",
+    "1": "s1",
+    "2": "s2",
+    "3": "s3",
+    "4": "s4",
+    "5": "s5",
+    "6": "s6"
+  },
+  "questions": [
+    {
+      "id": "ae-01",
+      "title": "Il tempo a Bologna in tre versioni",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1200,
+      "chapters": [
+        0
+      ],
+      "prompt": "Un servizio riceve «com'è il tempo a Bologna?»: deve prima trasformare il nome in coordinate (100 ms), poi chiamare sei servizi indipendenti da 200 ms ciascuno. Nel modello ideale, quanto dura la richiesta con chiamate sequenziali, con tutte le chiamate insieme e con un semaforo che ne ammette al massimo due in volo? Che cosa succede alle altre chiamate se una fallisce dentro un TaskGroup, e perché una time.sleep dentro una coroutine è un guaio?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Sequenziale: 100 + 6 · 200 = 1.300 ms. Tutte insieme: prima la dipendenza (100 ms), poi le sei chiamate in parallelo costano quanto la più lenta, quindi 100 + 200 = 300 ms (modello ideale, senza overhead)."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Con il semaforo a 2 le sei chiamate vanno in tre turni da 200 ms (600 ms), quindi 100 + 600 = 700 ms: il semaforo dice «al massimo n in volo» e le altre aspettano; il limite è una scelta dovuta a ciò che il provider o il database reggono."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Nel TaskGroup (concorrenza strutturata) un figlio non sopravvive allo scope; se uno fallisce i fratelli vengono cancellati e l'errore risale al padre, raggruppato in un ExceptionGroup da intercettare con except*."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "L'event loop alterna le coroutine su un solo thread: una funzione bloccante come time.sleep ferma tutto il servizio, non solo quella richiesta; si isola con asyncio.to_thread."
+        }
+      ]
+    },
+    {
+      "id": "ae-02",
+      "title": "730 millisecondi che non esistono",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1400,
+      "chapters": [
+        1
+      ],
+      "prompt": "Il cruscotto del gateway mostra una latenza media di 730 ms e il team la giudica ottima. In realtà, su undici richieste, dieci durano 200 ms e una 6 secondi. Spiega come si arriva a 730 ms, perché quel numero non descrive nessuna richiesta e quali misure useresti al suo posto. Per le risposte in streaming, quale tempo misuri a parte (TTFT, Time To First Token) e perché cresce con la lunghezza del prompt?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Calcolo: (10 · 200 ms + 6.000 ms) / 11 = 8.000 / 11 ≈ 730 ms; nessuna delle undici richieste dura davvero così."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Si usano i percentili: il p50 (mediana) racconta l'utente tipico, il p95 gli utenti sfortunati (tanti se c'è molto traffico), il p99 le code (retry, breaker che si apre, provider lento a partire)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il TTFT (Time To First Token) è il tempo fino al primo token, ciò che l'utente percepisce come «sta rispondendo»; si riporta separato dal tempo totale."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Prima del primo token il modello deve elaborare tutto il prompt in ingresso (fase di prefill), quindi il TTFT cresce con la lunghezza del contesto; il resto della risposta arriva un token alla volta (fase di decode)."
+        }
+      ]
+    },
+    {
+      "id": "ae-03",
+      "title": "Tre modi di non ripagare la stessa domanda",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1600,
+      "chapters": [
+        1
+      ],
+      "prompt": "Un assistente interno gira a temperatura 0,7 e molti dipendenti fanno la stessa domanda con parole diverse («come chiedo le ferie?», «come faccio a richiedere le ferie?»). Un collega propone la cache esatta, un altro una cache semantica con soglia di similarità bassa per ottenere più hit, un terzo il prompt caching del provider. Spiega che cosa riusa ciascuna, quali rischi corre la cache semantica e come li misuri, e come struttureresti il prompt per sfruttare il prompt caching.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La cache esatta riusa la risposta solo se la richiesta è identica dopo normalizzazione (la chiave è un hash): le due formulazioni diverse non darebbero hit; inoltre con temperatura maggiore di zero ogni chiamata campiona una risposta potenzialmente diversa, mentre la cache restituisce sempre la stessa."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La cache semantica calcola l'embedding dell'ultimo messaggio e cerca il più vicino per similarità coseno sopra una soglia: una soglia bassa aumenta gli hit ma riusa risposte non pertinenti (falsi positivi), una alta riduce entrambi; è un compromesso da documentare in un ADR (Architecture Decision Record)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "I falsi positivi non compaiono in nessuna metrica automatica: si contano a mano su un campione di hit, e chi non li misura non sa quanto la cache sbaglia."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il prompt caching del provider riusa il lavoro già fatto su un prefisso identico: il modello genera comunque una risposta nuova, ma il TTFT scende e i token in ingresso letti dalla cache sono fatturati a una frazione del prezzo (alcuni provider fanno pagare un sovrapprezzo alla prima scrittura)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il prefisso deve essere identico byte per byte: in testa va ciò che non cambia (system prompt, definizioni dei tool, documenti fissi), in coda ciò che cambia."
+        }
+      ]
+    },
+    {
+      "id": "ae-04",
+      "title": "Mille client e un provider che risponde 500",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1600,
+      "chapters": [
+        0,
+        1
+      ],
+      "prompt": "Il provider del modello inizia a rispondere con errori 500 e il tuo gateway, che riprova subito e senza limite, peggiora la situazione: mille client ripartono nello stesso istante. Riprogetta la reazione agli errori: come distanzi i tentativi, quali errori riprovi e quando non riprovi, quali timeout imposti per una risposta in streaming e che ruolo ha il circuit breaker. Perché conviene anche limitare quante chiamate sono in volo verso il provider?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Backoff esponenziale con jitter: attese crescenti e casuali tra i tentativi, così mille client non ripartono tutti insieme."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Si riprova solo su errori riprovabili, e mai a metà di uno stream già iniziato."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "I timeout sono due: uno breve per il primo token e uno lungo per la risposta intera, perché un provider che non parte va abbandonato prima di uno che sta scrivendo."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Il circuit breaker osserva gli errori in una finestra e, superata una soglia, si apre: le richieste vanno subito al fallback senza tentare; dopo un tempo di raffreddamento una richiesta di prova (half-open) decide se richiuderlo."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Un provider ha un limite di richieste al minuto: un semaforo (al massimo n chiamate in volo, le altre aspettano) evita di lanciare tutto insieme."
+        }
+      ]
+    },
+    {
+      "id": "ae-05",
+      "title": "Il codice che l'embedding non trova",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        2
+      ],
+      "prompt": "Un RAG (Retrieval-Augmented Generation) su manuali tecnici risponde bene alle domande in linguaggio naturale ma sbaglia quando l'utente cerca un codice o una sigla esatta; il corpus contiene anche PDF (Portable Document Format) sporchi. Spiega perché aggiungere un indice lessicale BM25 (Best Match 25) aiuta e come fondi le due classifiche con la RRF (Reciprocal Rank Fusion) con k = 60: il chunk X è primo nella classifica dense e assente in BM25, il chunk Y è secondo nella dense e primo in BM25. Quale vince, con che punteggi? Quale chunking scegli per quel corpus?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "BM25 (Best Match 25) è un punteggio lessicale sulle parole, forte sui termini esatti (codici, sigle) dove la ricerca dense per significato è debole; le due liste si fondono (hybrid)."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La RRF (Reciprocal Rank Fusion) usa solo le posizioni, non i punteggi: coseno (tra −1 e 1) e punteggio lessicale (arbitrario, dipendente dal corpus) non si possono sommare; ogni lista dà 1/(k + rank) e i contributi si sommano."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "X ottiene solo 1/61 ≈ 0,0164; Y ottiene 1/62 + 1/61 ≈ 0,0161 + 0,0164 ≈ 0,0325: vince Y, presente in entrambe le liste."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il chunking strutturale (per titoli e sezioni) perde sui PDF sporchi; la strategia ricorsiva (paragrafo, poi frase, poi token) è un buon default; in ogni caso il chunk porta con sé il contesto (titolo del documento e della sezione), e né troppo grande (diluisce il significato) né troppo piccolo (perde il filo)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Opzionale: un reranking con cross-encoder, che legge domanda e chunk insieme, applicato solo ai primi 20–50 perché costa un'inferenza per chunk."
+        }
+      ]
+    },
+    {
+      "id": "ae-06",
+      "title": "Il RAG che cita chunk inesistenti",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        2,
+        5
+      ],
+      "prompt": "Il tuo sistema RAG (Retrieval-Augmented Generation) risponde con sicurezza, ma in revisione emergono due problemi: alcune risposte citano chunk che non esistono nel contesto, e per le domande senza risposta nel corpus il sistema ne inventa una. Come si chiama il difetto e perché il modello lo produce? Come lo verifichi con controlli di codice e con un giudice LLM (Large Language Model), come fai dire «non ho trovato la risposta» e come misuri quanto spesso inventa? Una risposta fedele alle fonti può comunque essere sbagliata?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Si chiama allucinazione: risposta plausibile e sicura ma non supportata da alcuna fonte; il modello genera il testo più probabile dato il contesto, non uno verificato, e una frase inventata può essere probabile quanto una vera."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Citazioni verificate: il modello risponde in structured output con gli id dei chunk usati e un passo deterministico controlla che ogni id esista nel contesto passato e che il testo citato sia contenuto nel chunk; una citazione inventata è un errore misurabile."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Il «non trovato» combina due segnali: punteggio massimo di retrieval sotto una soglia calibrata e campo found: false nello structured output; il benchmark include domande senza risposta nel corpus per misurare quante volte il sistema inventa invece di ammettere."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il grounding (ancoraggio al contesto) si misura come fedeltà (faithfulness) anche con un giudice LLM (Large Language Model) che scompone la risposta in affermazioni e verifica se il contesto le sostiene; il giudice va calibrato contro etichette umane (kappa) prima di fidarsi del suo punteggio."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Fedeltà e correttezza non coincidono: una risposta può essere fedele a un chunk sbagliato o superato, e questo è un errore di retrieval, non di generazione."
+        }
+      ]
+    },
+    {
+      "id": "ae-07",
+      "title": "L'agente che muore al settimo passo",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        3
+      ],
+      "prompt": "Un agente di ricerca esegue al passo 7 un tool che invia una email; subito dopo il processo viene ucciso con kill -9. Come deve essere progettato il runtime perché la ripresa riparta dal passo 7 e non da zero, e senza rispedire l'email? Che cosa salvi e dove, come strutturi le transizioni perché il runtime sia testabile senza chiamare un modello, e che cosa succede quando un tool va in timeout o il budget finisce? Come inserisci l'approvazione umana prima di eseguire codice?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Lo stato è salvato a ogni passo (fase, piano, messaggi, budget, tool richiesti e risultati) su SQLite o Postgres; dopo il crash agent resume ricarica l'ultimo stato e riparte da lì."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Perché la ripresa dia lo stesso risultato servono tool idempotenti o la registrazione dei loro esiti prima di proseguire: un tool già eseguito prima del crash (l'email) non va rieseguito."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Ogni transizione è una funzione pura (stato, evento) → nuovo stato e i side effect (modello, tool, database) stanno in un layer separato: così il runtime si testa con tool finti e senza modello, con una suite di traiettorie in CI (Continuous Integration), ed è ripristinabile dopo un crash."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Gli errori dei tool sono dati (ToolResult con ok: false, kind «timeout», retryable: true) e il modello decide se riprovare, cambiare tool o proseguire; il budget è in tre valute (passi, token, tempo) e quando una si esaurisce la run finisce in failed con un motivo leggibile."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Un tool che richiede approvazione porta la run in waiting_approval: stato persistito e processo fermo; l'approvazione è un evento che la fa ripartire, anche giorni dopo, mentre un rifiuto porta a stop."
+        }
+      ]
+    },
+    {
+      "id": "ae-08",
+      "title": "Il ginocchio che il coach dimentica",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1600,
+      "chapters": [
+        4
+      ],
+      "prompt": "Un coach di allenamento sceglie i ricordi con punteggio = α · rilevanza + β · recency + γ · importanza, con α = 1, β = 1, γ = 0,1 ed emivita di 14 giorni. Alla domanda «cosa metto nella sessione gambe di domani?» restano due candidati e il budget di token ne ammette uno: l'infortunio al ginocchio, a cui il sistema ha avuto accesso l'ultima volta 21 giorni fa (rilevanza 0,8, importanza 9), e la preferenza ad allenarsi la mattina, usata ieri (rilevanza 0,6, importanza 2). Calcola i punteggi, dì quale entra e che cosa cambierebbe con γ = 0. Poi l'utente scrive «il ginocchio è a posto»: come si comporta il consolidamento e dove avviene?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Recency = 0,5^(giorni/emivita): 0,5^(21/14) ≈ 0,35 per l'infortunio e 0,5^(1/14) ≈ 0,95 per la preferenza; punteggi ≈ 0,8 + 0,35 + 0,9 ≈ 2,05 contro ≈ 0,6 + 0,95 + 0,2 ≈ 1,75: entra l'infortunio."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Con γ = 0 i punteggi diventano ≈ 1,15 contro ≈ 1,55: entra la preferenza e l'infortunio resta fuori; l'importanza (da 1 a 10, assegnata in estrazione) compensa il decadimento, e i pesi sono configurabili e parte delle eval."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "I ricordi entrano in ordine di punteggio finché il budget di token è pieno; la rilevanza è la similarità coseno con la query e la recency un decadimento esponenziale sul tempo dall'ultimo accesso."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Il consolidamento confronta il fatto nuovo con quelli esistenti: è un aggiornamento (nuova versione, la vecchia diventa superseded; se fosse una contraddizione, la si marca e si chiede conferma al turno dopo). Avviene in background, con un job accodato e serializzato per utente, così non rallenta la risposta e due sessioni concorrenti non producono profili divergenti."
+        }
+      ]
+    },
+    {
+      "id": "ae-09",
+      "title": "Il giudice che dice sempre «buona»",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        5
+      ],
+      "prompt": "Un giudice LLM (Large Language Model) valuta le risposte del sistema in CI (Continuous Integration). Il 90 % delle risposte è davvero buono e il giudice, che dice sempre «buona», concorda con gli umani nel 90 % dei casi. Calcola il kappa di Cohen e spiega che cosa rivela. Descrivi poi come calibreresti un giudice prima di metterlo nel cancello e come il cancello decide se una modifica al prompt peggiora il sistema.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Accordo osservato po = 0,9; accordo atteso per caso pe = 0,9 (il giudice dice sempre «buona» e gli umani lo dicono il 90 % delle volte); κ = (0,9 − 0,9)/(1 − 0,9) = 0: il giudice tira a indovinare."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "L'accordo percentuale inganna quando una classe domina: il kappa corregge per l'accordo atteso per caso."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Calibrazione: si etichettano a mano 150 risposte (50 due volte, per misurare l'accordo tra due umani), si confrontano con i verdetti del giudice e si itera sulla rubrica (criteri binari, esempi ancorati) finché il κ è accettabile (0,6–0,8 sostanziale, oltre 0,8 quasi perfetto); il valore si registra."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Cancello: una pull request che cambia il prompt (cambia l'hash) fa girare il dataset versionato di casi; la pass rate si confronta con la baseline del ramo principale con un intervallo di confidenza via bootstrap, e se scende sotto soglia il check è rosso e il commento mostra i casi peggiorati."
+        }
+      ]
+    },
+    {
+      "id": "ae-10",
+      "title": "Cinque utenti reali per due settimane",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        5,
+        6
+      ],
+      "prompt": "Stai per portare in produzione un coach conversazionale che ricorda l'utente, per due settimane con 5–10 utenti reali. Che cosa scrivi prima e che cosa dopo, e che cosa contiene ciascun documento? Quali requisiti specifici di un prodotto «relazionale» devono già funzionare prima del primo utente? Infine il guardrail di input: su mille richieste con un solo attacco ha un tasso di falsi positivi dell'1 %. Calcola la precisione e dì quale numero guarderesti per sapere quanti utenti normali disturba.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 2,
+          "text": "Prima si scrive DESIGN.md: trasforma la frase vaga in requisiti verificabili, con rischi e mitigazioni, milestone datate e target numerici dichiarati (p95, il 95° percentile della latenza; costo per utente; uptime)."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Dopo si scrive POSTMORTEM.md: i numeri veri accanto ai target (costo del mese, latenza, uptime, retention), il momento in cui la memoria ha ricordato qualcosa di sbagliato e se il cancello di eval lo avrebbe intercettato, l'incidente con il runbook, tre decisioni da rifare."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Requisiti da prodotto relazionale, prima del primo utente: trasparenza sull'essere un'AI (intelligenza artificiale), categorie di informazioni mai memorizzate, cancellazione mirata ed export completo funzionanti, prompt di policy per gli argomenti sensibili, pagina ethics.md su dipendenza e limiti, consenso informato nell'onboarding."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Calcolo: 999 richieste legittime, l'1 % ne blocca circa 10; richieste bloccate = 1 + 10 = 11; precisione = 1/11 ≈ 9 %, sotto il 10 % anche se l'attacco è fermato. Il numero da guardare è il tasso di falsi positivi, misurato sul solo traffico legittimo."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Le eval fanno da cancello di deploy: nessuna release se la pass rate di memoria o guardrail scende sotto soglia in CI (Continuous Integration)."
+        }
+      ]
+    }
+  ]
+}

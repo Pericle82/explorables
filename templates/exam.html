@@ -150,13 +150,13 @@ let area=D.exams[0].slug,cur=null,timer=null,att=null;
 const exam=()=>D.exams.find(e=>e.slug===area);
 const hist=()=>store.get("hist",{});
 function bestOf(id){const h=hist()[id]||[];const s=h.filter(x=>x.score!=null).map(x=>x.score);return s.length?Math.max(...s):null;}
-function drawAreas(){$("#areas").innerHTML=D.exams.map(e=>`<button aria-pressed="${e.slug===area}" data-v="${e.slug}">${esc(e.area)}</button>`).join("")+`<button disabled title="In arrivo">Altre guide · in arrivo</button>`;
+function drawAreas(){$("#areas").innerHTML=D.exams.map(e=>`<button aria-pressed="${e.slug===area}" data-v="${e.slug}">${esc(e.area)}</button>`).join("");
   $("#areas").querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>{area=b.dataset.v;list();});}
 function list(){stop();cur=null;drawAreas();const E=exam();$("#areaTitle").textContent=E.title;
   if(location.hash.length>1&&!location.hash.startsWith("#setup")&&!location.hash.startsWith("#domande"))history.replaceState(null,"",location.pathname);
   $("#view").innerHTML=`<p class="prose muted" style="margin:14px 0">${E.questions.length} domande sulla guida <a href="${esc(E.guideUrl)}">${esc(E.title)}</a>. Scegline una: il tempo parte solo quando premi «Inizia».</p><div class="qgrid">${E.questions.map(q=>{const b=bestOf(q.id);return `<button class="qcard" data-q="${q.id}"><span class="diff ${q.difficulty.replace(" ","-")}">difficoltà ${esc(q.difficulty)}</span><b>${esc(q.title)}</b><span class="meta"><span>${fmt(q.time)} min</span><span>${q.maxChars} caratteri</span><span>cap. ${q.chapters.join(", ")}</span>${b!=null?`<span class="best">migliore: ${b.toFixed(1)}/10</span>`:""}</span></button>`;}).join("")}</div>`;
   $("#view").querySelectorAll(".qcard").forEach(c=>c.onclick=()=>open(c.dataset.q));}
-function chapLinks(q){const E=exam();return q.chapters.map(n=>`<a href="${esc(E.guideUrl)}#cap-${n}" target="_blank" rel="noopener" title="${esc((E.chapterTitles||{})[n]||"")}">cap. ${n}</a>`).join("");}
+function chapLinks(q){const E=exam();return q.chapters.map(n=>`<a href="${esc(E.guideUrl)}#${(E.chapterIds||{})[n]||"cap-"+n}" target="_blank" rel="noopener" title="${esc((E.chapterTitles||{})[n]||"")}">cap. ${n}</a>`).join("");}
 
 function open(id){stop();const E=exam();const q=E.questions.find(x=>x.id===id);if(!q)return list();cur=q;att={start:null,elapsed:0,text:store.get("draft."+q.id,""),done:false,out:false};
   history.replaceState(null,"","#"+q.id);
@@ -203,7 +203,7 @@ const TOOL={name:"valuta_risposta",description:"Registra la valutazione della ri
   punti_forza:{type:"array",items:{type:"string"}},
   da_migliorare:{type:"array",items:{type:"string"}},
   risposta_modello:{type:"string",description:"Una risposta eccellente, entro il limite di caratteri della domanda."},
-  capitoli_da_ripassare:{type:"array",items:{type:"integer"}},
+  capitoli_da_ripassare:{type:"array",items:{type:"string"}},
   sintesi:{type:"string",description:"Giudizio complessivo in due o tre frasi, rivolto allo studente con il tu."}},
   required:["criteri","errori","punti_forza","da_migliorare","risposta_modello","capitoli_da_ripassare","sintesi"]}};
 const SYSTEM=`Sei l'esaminatore delle guide Explorables. Valuti la risposta aperta di uno studente a una domanda tecnica.
@@ -303,7 +303,7 @@ function renderResult(q,rec){const v=rec.result,S=scoreOf(q,v),E=exam(),L=label(
     <div class="stack"><span class="diag-title">Criteri</span><div class="crit">${q.criteria.map(c=>{const e=(v.criteri||[]).find(x=>x.id===c.id)||{esito:"assente",commento:""};return `<div><span class="st ${e.esito}">${e.esito}</span><p>${esc(c.text)} <span class="muted">(peso ${c.weight})</span><small>${esc(e.commento)}</small></p></div>`;}).join("")}</div></div>
     ${(v.errori||[]).length?`<div class="stack errs"><span class="diag-title">Errori</span>${v.errori.map(e=>`<div><b>${e.gravita==="grave"?"Errore":"Imprecisione"}: «${esc(e.affermazione)}»</b>${esc(e.correzione)}</div>`).join("")}</div>`:""}
     <div class="two"><div class="stack"><span class="diag-title">Punti di forza</span><ul>${(v.punti_forza||[]).map(x=>`<li>${esc(x)}</li>`).join("")||"<li>—</li>"}</ul></div><div class="stack"><span class="diag-title">Da migliorare</span><ul>${(v.da_migliorare||[]).map(x=>`<li>${esc(x)}</li>`).join("")||"<li>—</li>"}</ul></div></div>
-    ${(v.capitoli_da_ripassare||[]).length?`<div class="refs"><span>Da ripassare:</span>${v.capitoli_da_ripassare.map(n=>`<a href="${esc(E.guideUrl)}#cap-${n}" target="_blank" rel="noopener">cap. ${n}${(E.chapterTitles||{})[n]?" · "+esc(E.chapterTitles[n]):""}</a>`).join("")}</div>`:""}
+    ${(v.capitoli_da_ripassare||[]).length?`<div class="refs"><span>Da ripassare:</span>${v.capitoli_da_ripassare.map(n=>`<a href="${esc(E.guideUrl)}#${(E.chapterIds||{})[n]||"cap-"+n}" target="_blank" rel="noopener">cap. ${n}${(E.chapterTitles||{})[n]?" · "+esc(E.chapterTitles[n]):""}</a>`).join("")}</div>`:""}
     <details class="model"><summary>Risposta di riferimento</summary><p>${esc(v.risposta_modello).replace(/\n/g,"<br>")}</p></details>
     <details class="model"><summary>La tua risposta</summary><p>${esc(rec.answer).replace(/\n/g,"<br>")}</p></details>
     <p class="note">Valutato da ${esc(rec.model||"")}${tok}. Il voto viene dai criteri pesati (pieno = 1, parziale = ½), meno 1 punto per errore grave e ¼ per imprecisione.</p>

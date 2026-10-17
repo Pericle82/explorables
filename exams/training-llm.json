@@ -1,0 +1,492 @@
+{
+  "slug": "training-llm",
+  "title": "Anatomia del Training LLM",
+  "area": "Training degli LLM",
+  "sections": {
+    "1": "base",
+    "2": "learn",
+    "3": "live",
+    "4": "pre",
+    "5": "sft",
+    "6": "dpo",
+    "7": "grpo",
+    "8": "opd",
+    "9A": "deep#c-token..c-alg",
+    "9B": "deep#c-alg..c-emb",
+    "9C": "deep#c-emb..c-layer",
+    "9D": "deep#c-layer..c-loss",
+    "9E": "deep#c-loss..c-conti",
+    "9F": "deep#c-conti..c-backprop",
+    "9G": "deep#c-backprop"
+  },
+  "questions": [
+    {
+      "id": "tr-01",
+      "title": "La tabella che non finisce mai",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        1
+      ],
+      "prompt": "Un collega vuole prevedere il token successivo contando le sequenze: una tabella con una riga per ogni contesto di 3 token, con un vocabolario di 32.000 token. Un secondo collega propone invece una rete che riceve, messi in fila, i vettori degli ultimi 100 token (768 numeri ciascuno), con un primo strato di 512 neuroni. Mostra con i numeri perché nessuna delle due proposte regge, e spiega perché la rete ricorrente (RNN, Recurrent Neural Network) e poi l'attention rispondono meglio al problema.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Tabella dei conteggi: i contesti possibili sono V^n = 32.000³ ≈ 3 × 10¹³ righe, più di quante parole esistano nei testi scritti; quasi tutte non compaiono mai nel corpus, e «il gatto dorme sul» e «il cane dorme sul» sono righe separate, senza trasferimento."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Finestra fissa con vettori messi in fila: l'ingresso è 100 × 768 = 76.800 numeri e il solo primo strato da 512 neuroni ha circa 39 milioni di pesi; inoltre la finestra è fissa (un'altra lunghezza richiede un'altra rete) e le colonne che leggono la prima posizione sono diverse da quelle della seconda, quindi la rete impara due volte che cosa significa «gatto»."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Rete ricorrente (RNN, Recurrent Neural Network): legge un token alla volta e comprime il passato in un solo vettore di stato; difetti: ciò che è lontano svanisce, è sequenziale (le GPU, Graphics Processing Unit, restano ferme) ed è difficile da addestrare perché i gradienti risalgono una catena lunga e si spengono o esplodono."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Attention: tiene i vettori di tutti i token e ogni token costruisce il proprio come media pesata dei precedenti, con pesi calcolati dal contenuto (domanda · token, poi softmax); niente compressione, calcolo in parallelo, gradienti brevi. Il prezzo è che il lavoro cresce con il quadrato della lunghezza."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "I vettori dei token (embedding) risolvono la generalizzazione: se «gatto» e «cane» hanno vettori vicini, la funzione che li legge dà risultati vicini, e la rete ha pochi milioni di pesi invece di 10¹³ celle."
+        }
+      ]
+    },
+    {
+      "id": "tr-02",
+      "title": "Il 12% di Parigi",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        2,
+        3
+      ],
+      "prompt": "Dopo «La capitale della Francia è» il modello dà il 12% a «Parigi» e il 30% a «Lione». Calcola la loss (cross-entropy) di questa previsione e la perplexity, scrivi il gradiente sui logit di «Parigi», di «Lione» e di un token con probabilità 0,001, e spiega come i pesi vengono poi aggiornati. Infine, un piccolo modello a bigrammi con 15 token, che all'inizio tira a indovinare, parte da una loss di circa 2,71 e non scende mai a zero nemmeno dopo molte epoch: spiega entrambi i fatti.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Loss = −log p(token corretto) = −log 0,12 ≈ 2,12; perplexity = e^loss ≈ 8,3, cioè come tirare a indovinare tra otto candidati."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Gradiente sul logit j = p(j) − y(j), con y one-hot sul token corretto: «Parigi» 0,12 − 1 = −0,88 (va alzato, molto), «Lione» +0,30 (va abbassato), il token con p = 0,001 ha +0,001 e resta quasi fermo."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il gradiente sui logit viene propagato all'indietro con la regola della catena (backpropagation) fino a ogni peso, a un costo di circa due forward pass; poi ogni peso si sposta con w ← w − η · gradiente, nel verso opposto al gradiente e di un passo proporzionale al learning rate η."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "log 15 ≈ 2,71 è la loss di un modello che tira a indovinare tra 15 token (probabilità uniforme); non arriva a zero perché il dataset stesso è ambiguo (dopo «il» possono venire più parole), e lo stesso vale per il testo reale."
+        }
+      ]
+    },
+    {
+      "id": "tr-03",
+      "title": "Sette miliardi su una GPU da 24 GB",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        2,
+        4
+      ],
+      "prompt": "Un team vuole pre-addestrare da zero un modello da 7 miliardi di parametri su 2.000 miliardi di token. Un ingegnere nota che in inferenza i pesi (in 16 bit) occupano 14 GB e stanno su una GPU (Graphics Processing Unit, processore grafico) da 24 GB, e ne conclude che basta quella anche per il training; propone inoltre di usare fin dal primo step il learning rate di picco. Spiega perché si sbaglia sulla memoria con il conto dei byte, stima le operazioni totali del training e spiega che cosa succederebbe con il learning rate di picco subito e come si evita.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Memoria: circa 16 byte per parametro (peso in 16 bit 2 + gradiente 2 + due medie mobili di AdamW in 32 bit 8 + copia master dei pesi in 32 bit 4) ≈ 112 GB per un 7B, senza contare le attivazioni: ben oltre 24 GB."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Le attivazioni del forward pass vanno conservate per il backward e occupano memoria in proporzione a batch × lunghezza del contesto: è per questo che il training costa molta più memoria dell'inferenza e richiede molte GPU (Graphics Processing Unit, processori grafici)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Costo ≈ 6 × parametri × token (2 operazioni per peso nel forward + 4 nel backward) = 6 × 7 miliardi × 2.000 miliardi ≈ 8 × 10²² operazioni (circa 184.000 ore di A100 per Llama 2 7B)."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "All'inizio i pesi sono casuali, i gradienti enormi e le medie di AdamW non stabilizzate: un passo pieno fa «esplodere» la loss (anche fino a NaN, Not a Number, e a ripartire da un checkpoint). Per questo il learning rate parte da circa zero e sale linearmente in qualche centinaio o migliaio di step (warm-up); alla fine decade (per esempio con il coseno) per assestarsi nel minimo."
+        }
+      ]
+    },
+    {
+      "id": "tr-04",
+      "title": "Il base model che fa il quiz",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        4
+      ],
+      "prompt": "Un base model appena uscito dal pre-training riceve «Qual è la capitale della Francia?» e continua con «Qual è la capitale della Germania? Qual è la capitale della Spagna?…». Un collega dichiara fallito il pre-training perché «il modello non sa la risposta». Spiega perché sbaglia: che cosa ha ottimizzato il modello, come si può verificare che la risposta la conosce, con quali dati e quale loss ha imparato (e a quale scala), e che cosa manca ancora.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il modello ha fatto ciò per cui è ottimizzato, prevedere la continuazione più probabile: sul web una domanda simile compare dentro un quiz, seguita da altre domande, quindi la continuazione «da quiz» è la più probabile."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La conoscenza c'è, manca il comportamento: scrivendo «La capitale della Francia è» il modello completa con «Parigi». Non è mai stato addestrato su una richiesta, solo su testo che prosegue."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Pre-training: testo grezzo senza etichette (web, codice, libri; una riga JSONL per documento), migliaia di miliardi di token (Llama 2 circa 2.000 miliardi, Llama 3 15.000 miliardi), con cross-entropy su ogni token, il segnale più denso possibile; grammatica, fatti e primi embrioni di ragionamento emergono come scorciatoie per prevedere meglio."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Un base model si valuta con la loss su un testo di validazione (perplexity) e con domande a scelta multipla completate come testo, non conversando con lui."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Serve una fase successiva che mostri come si comporta un assistente, con esempi di richieste seguite da risposte scritte apposta (SFT, Supervised Fine-Tuning, fine-tuning supervisionato)."
+        }
+      ]
+    },
+    {
+      "id": "tr-05",
+      "title": "Venti epoch di cronaca recente",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1800,
+      "chapters": [
+        5
+      ],
+      "prompt": "Un team prende un base model e prepara 20.000 conversazioni formattate con un chat template per insegnargli a rispondere con l'SFT (Supervised Fine-Tuning, fine-tuning supervisionato). Alcune risposte contengono fatti di cronaca recentissimi che il modello non ha mai visto. Un tecnico propone di calcolare la loss su tutta la conversazione e di usare il learning rate del pre-training (10⁻⁴) per 20 epoch, «per imparare meglio». Valuta le tre scelte (loss, learning rate ed epoch, contenuto dei dati) e spiega che cosa questa fase non può dare anche se fatta bene.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La loss (cross-entropy) va calcolata solo sui token della risposta: i token della richiesta sono contesto ma vengono mascherati, perché non vogliamo che il modello impari a generare richieste. Il token di fine è incluso, perché il modello deve imparare a fermarsi."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Il learning rate dell'SFT è molto più basso (10⁻⁵ contro 10⁻⁴) e le epoch sono 1–3: si vuole spostare il comportamento (behavior shift) senza cancellare il sapere già nei pesi."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Fatti che il modello non ha nel pre-training insegnano che «rispondere con sicurezza anche quando non si sa» è il comportamento atteso, cioè ad allucinare: i dati devono insegnare la forma, non nuova conoscenza."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Bastano poche migliaia o centinaia di migliaia di esempi, scelti per qualità (Llama 2 circa 27.000; LIMA con 1.000); il modello imita esattamente ciò che vede, errori e stile compresi."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Limite: il modello vede una sola risposta per richiesta, non impara che cosa renda una risposta migliore di un'altra e non può superare la qualità di chi ha scritto i dati; serve un segnale di preferenza."
+        }
+      ]
+    },
+    {
+      "id": "tr-06",
+      "title": "Il margine di una coppia",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        6
+      ],
+      "prompt": "Per lo stesso prompt hai una risposta chosen e una rejected. Il modello in addestramento e il riferimento congelato (uscito dall'SFT) danno queste log-probabilità delle risposte intere: log π(chosen) = −20, log πref(chosen) = −22, log π(rejected) = −30, log πref(rejected) = −29. Con β = 0,1 calcola Δc, Δr, il margine, la loss della DPO (Direct Preference Optimization, ottimizzazione diretta delle preferenze) e il peso del gradiente, e dì che cosa cambierebbe con un β più alto. Poi spiega che cosa elimina la DPO rispetto a RLHF (Reinforcement Learning from Human Feedback) con PPO (Proximal Policy Optimization) e quali limiti conserva.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Δc = −20 − (−22) = +2 (chosen alzata rispetto al riferimento), Δr = −30 − (−29) = −1; margine = β · (Δc − Δr) = 0,1 · 3 = 0,3; loss = −log σ(0,3) ≈ 0,55."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Il gradiente è pesato da σ(−margine) ≈ 0,43: le coppie già ben separate contano poco, quelle sbagliate molto. Con β più alto basta un Δ più piccolo per lo stesso margine, quindi allontanarsi dal riferimento è più «costoso» e il modello si sposta meno."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "RLHF (Reinforcement Learning from Human Feedback) richiede un reward model e PPO (Proximal Policy Optimization; quattro modelli in memoria, generazione continua, messa a punto fragile); la DPO (Direct Preference Optimization) usa il fatto che β · log(π/πref) è già un reward implicito e addestra con una semplice loss di classificazione sulle coppie: niente reward model, niente generazione durante il training, niente apprendimento per rinforzo (RL, Reinforcement Learning)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Limiti: la DPO è offline (le coppie sono fisse, il modello non genera nulla in training e il segnale si allontana da ciò che produce), è soggettiva (utile per stile e sicurezza, non per risposte verificabili), soffre di length bias, e non insegna a cercare."
+        }
+      ]
+    },
+    {
+      "id": "tr-07",
+      "title": "Due risposte giuste su otto",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        7
+      ],
+      "prompt": "Per «Quanto fa 17 × 23?» il modello genera un gruppo di N = 8 risposte; il verificatore (risposta_finale == 391) dà reward 1 a 2 risposte e 0 alle altre 6. Calcola il vantaggio di GRPO (Group Relative Policy Optimization) per una risposta giusta e per una sbagliata e dì che cosa fa il gradiente ai loro token. Che cosa accade se le 8 risposte sono tutte sbagliate, e come lo si evita? Perché GRPO non ha bisogno del critic e che cosa cambia in memoria rispetto a PPO (Proximal Policy Optimization)?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Media del gruppo 0,25, deviazione standard ≈ 0,43 (≈ 0,46 se campionaria); vantaggio Ai = (ri − media) / dev. std.: ≈ +1,7 (o +1,6) per le giuste e ≈ −0,58 (o −0,54) per le sbagliate."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Il segnale per i token è log p(token) × Ai: vantaggio positivo alza la probabilità dei token di quel rollout (come un target di SFT, Supervised Fine-Tuning), negativo la abbassa; l'aggiornamento resta w ← w − η · gradiente."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Se tutte hanno lo stesso reward il vantaggio è 0 per tutte e il gruppo non insegna nulla; per questo si selezionano prompt di difficoltà intermedia (curriculum), e un prompt sempre risolto non insegna più."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "La media del gruppo sostituisce il critic come baseline (in PPO, Proximal Policy Optimization, il critic è un secondo modello grande quanto la policy) e il verificatore, un programma, sostituisce il reward model: in memoria restano policy, riferimento congelato e codice, all'incirca la metà di PPO."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "GRPO aggiunge una penalità KL (Kullback-Leibler, divergenza tra distribuzioni) verso il modello di riferimento e un clipping che limita quanto uno step può cambiare le probabilità."
+        }
+      ]
+    },
+    {
+      "id": "tr-08",
+      "title": "Dal 70B al 7B, tre strade",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        8
+      ],
+      "prompt": "Hai un teacher da 70 miliardi di parametri che ragiona bene e uno student da 7 miliardi. Tre colleghi propongono: (A) il teacher genera molte soluzioni e lo student le imita con un SFT (Supervised Fine-Tuning, fine-tuning supervisionato); (B) RL (Reinforcement Learning, apprendimento per rinforzo) con verificatore direttamente sullo student; (C) OPD (On-Policy Distillation, distillazione on-policy). Per ciascuna dì chi genera il testo, quanto feedback arriva per sequenza e il difetto principale; spiega la loss di OPD e se lo student potrà superare il teacher.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "(A) Distillazione classica off-policy: genera il teacher, feedback su ogni token (denso, economico), ma lo student vede solo ragionamenti perfetti: exposure bias. Quando in inferenza sbaglia un passo si trova in territorio mai visto e non sa recuperare, e l'errore si propaga."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "(B) RL (Reinforcement Learning, apprendimento per rinforzo) sullo student: genera lo student ed è on-policy, ma il feedback è un numero per sequenza (sparso): deve scoprire da solo, in molti tentativi, quale passo era sbagliato; un modello piccolo scopre meno soluzioni e impara più lentamente."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "(C) OPD (On-Policy Distillation, distillazione on-policy): lo student scrive, poi per ogni token il teacher dà la distribuzione che avrebbe avuto in quel punto sul testo dello student; la loss è la reverse KL (Kullback-Leibler) token per token. È on-policy e densa: un errore viene segnalato nel suo passo e i passi corretti successivi non vengono puniti."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Limite: la distillazione comprime, non scopre, quindi lo student non supererà il teacher; costa interrogare il teacher su ogni token (ma molto meno dei rollout dell'RL). In pratica: RL sul modello grande per scoprire, OPD per trasferire ai piccoli."
+        }
+      ]
+    },
+    {
+      "id": "tr-09",
+      "title": "Quattro obiettivi, quattro fasi",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "prompt": "Un laboratorio ha appena finito il pre-training di un modello da 70 miliardi di parametri e deve ottenere quattro cose: (1) che risponda alle richieste invece di continuare il testo; (2) uno stile più utile, cortese e della lunghezza giusta, su cui gli annotatori preferiscono una risposta a un'altra; (3) più accuratezza su problemi di matematica con soluzione verificabile, andando oltre le soluzioni scritte da persone; (4) una versione da 7 miliardi che conservi il ragionamento del 70B. Per ciascun obiettivo indica la fase adatta, da dove vengono gli esempi, come si calcola l'errore, e quale limite della fase precedente la rende necessaria.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "(1) SFT (Supervised Fine-Tuning, fine-tuning supervisionato): coppie richiesta → risposta scritte apposta e formattate con un chat template; cross-entropy solo sui token della risposta. Il base model sa ma non risponde: manca il comportamento, non il sapere."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "(2) Preferenze (RLHF, Reinforcement Learning from Human Feedback, oppure DPO, Direct Preference Optimization): coppie chosen/rejected giudicate da persone o da un modello, perché confrontare è più facile che scrivere. Limite dell'SFT: vede una sola risposta e non ha la nozione di «meglio»."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "(3) RLVR (Reinforcement Learning with Verifiable Rewards) con GRPO (Group Relative Policy Optimization): il dataset ha solo problema e verificatore, i rollout li genera il modello (on-policy, online) e il reward è un numero per sequenza trasformato in vantaggio. Supera il tetto dell'imitazione, ma funziona solo dove la correttezza è controllabile da un programma; SFT e DPO, offline, non contengono i tentativi giusti."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "(4) Distillazione: l'RL diretto sul modello piccolo funziona male; con OPD (On-Policy Distillation, distillazione on-policy) lo student genera e il teacher dà la distribuzione su ogni token (reverse KL, Kullback-Leibler), quindi segnale on-policy e denso. Il modello che ragiona è grande e caro; lo student non supera il teacher."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Distingue fasi offline e off-policy (SFT, DPO: esempi fissi o scritti da altri) da fasi online e on-policy (RL, OPD: il modello genera durante il training); il pre-training invece usa testo grezzo senza etichette."
+        }
+      ]
+    },
+    {
+      "id": "tr-10",
+      "title": "Cinquemila token in più",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        "9A",
+        "9C"
+      ],
+      "prompt": "Un team addestra un tokenizer BPE (Byte Pair Encoding, codifica per coppie di byte) su un corpus quasi solo inglese, poi esegue il pre-training. Dopo qualche mese vuole aggiungere 5.000 token per l'italiano, tenendo i pesi già addestrati. Descrivi come nasce il vocabolario BPE, spiega perché cambiarlo a modello addestrato non è possibile senza riaddestrare (che cosa dipende da ogni token) e come andava impostato fin dall'inizio. Spiega poi come nasce la matrice di embedding e perché la riga di «banca» è la stessa in «la banca del fiume» e «il conto in banca», mentre i vettori finali no.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "BPE (Byte Pair Encoding): si parte dai simboli più piccoli (byte), si conta la coppia adiacente più frequente nel corpus, la si fonde in un nuovo simbolo salvando la regola di merge, e si ripete fino alla dimensione desiderata; per tokenizzare un testo nuovo si applicano le stesse regole nello stesso ordine. Si allena una volta sola, prima del modello."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Il vocabolario si congela: ogni token ha una riga nella matrice di embedding e un'uscita nell'ultimo strato, quindi un vocabolario diverso renderebbe inutili quei pesi. Andava allenato fin dall'inizio su una miscela bilanciata di lingue (i vocabolari multilingua sono più grandi, 128.000–256.000 token)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "La matrice E ha V righe × d colonne, la riga i appartiene al token con ID i, ed è riempita di numeri casuali piccoli (per esempio normale con media 0 e deviazione standard 0,02): all'inizio non significano nulla; il training li aggiorna insieme agli altri pesi e il significato emerge. Il lookup equivale a one-hot × E."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "L'embedding all'ingresso è statico (la stessa riga di E ogni volta), poi gli strati successivi mescolano il token con i vicini, finché i due «banca» diventano vettori diversi, uno vicino a «fiume» e uno a «conto»; la posizione si aggiunge a parte (RoPE, Rotary Position Embedding)."
+        }
+      ]
+    },
+    {
+      "id": "tr-11",
+      "title": "Dove stanno i pesi di Llama 2",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        "9D",
+        "9E",
+        "9F"
+      ],
+      "prompt": "Un collega sostiene che i 7 miliardi di pesi di Llama 2 7B stiano soprattutto nella matrice di embedding, che il tempo per ogni token dipenda dalla quantità di calcoli e che, per avere risposte più varie, si debba riaddestrare il modello. Correggi le tre affermazioni con i numeri (d = 4.096, 32 blocchi, vocabolario di 32.000 token, MLP, Multi-Layer Perceptron, con dimensione interna 11.008): da dove vengono i pesi, che cosa limita davvero il tempo di un token e che cosa fa la temperatura.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Pesi: embedding 32.000 × 4.096 ≈ 131 milioni; per blocco l'attention ha 4 matrici 4.096 × 4.096 (≈ 67 milioni) e la MLP (Multi-Layer Perceptron, percettrone multistrato) 3 matrici 4.096 × 11.008 (≈ 135 milioni), cioè ≈ 202 milioni; 32 blocchi ≈ 6,48 miliardi; più la testa di output (≈ 131 milioni, non condivisa): ≈ 6,74 miliardi. Oltre il 95% sta negli strati, non nell'embedding."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "L'MLP contiene circa due terzi dei pesi; è lì che si ritiene avvenga gran parte del «ricordare» (i fatti sono distribuiti su molti pesi degli MLP dei blocchi centrali), mentre l'attention è l'unico punto in cui i token si scambiano informazioni."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Per generare un token servono circa 2 operazioni per peso (~14 miliardi), che una GPU (Graphics Processing Unit, processore grafico) moderna fa in pochi millisecondi: il tempo di risposta è dominato dal leggere i 14 GB di pesi dalla memoria, non dal calcolo."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "La temperatura divide i logit prima della softmax: T < 1 rende l'output più deterministico, T > 1 più vario; si usa solo in generazione (training e loss restano a T = 1), quindi per risposte più varie non serve riaddestrare nulla."
+        }
+      ]
+    },
+    {
+      "id": "tr-12",
+      "title": "Otto milioni di pesi per un fine-tuning",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1200,
+      "chapters": [
+        "9B"
+      ],
+      "prompt": "Un team vuole adattare un modello da 7 miliardi di parametri (d = 4.096, 32 blocchi) senza aggiornare tutti i pesi, usando LoRA (Low-Rank Adaptation, adattamento a basso rango) sulle matrici WQ e WV di ogni blocco. Quanti pesi ha una matrice d × d? Quanti ne allena una correzione B·A con r = 8 e con r = 16, e quale frazione sono? Quanti in totale con r = 16? Spiega perché una correzione così piccola può bastare e perché B parte da zero.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Matrice piena 4.096² = 16.777.216 pesi; B·A allena 2 · d · r numeri: r = 8 → 65.536 (0,39%), r = 16 → 131.072 (0,78%)."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Con r = 16 su WQ e WV in 32 blocchi: 2 × 32 × 131.072 ≈ 8,4 milioni di parametri, circa lo 0,12% del totale."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "W' = W + B·A: W resta congelata e si allenano solo B [d × r] e A [r × d]; con B inizializzata a zero il modello all'inizio è identico all'originale."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il rango è il numero di direzioni indipendenti in cui possono cadere le uscite; B·A ha rango al massimo r. Funziona perché la modifica che serve al fine-tuning ha di fatto basso rango: anche valori molto piccoli di r danno risultati vicini al fine-tuning completo."
+        }
+      ]
+    },
+    {
+      "id": "tr-13",
+      "title": "Una rete con la tanh, a mano",
+      "difficulty": "molto alta",
+      "time": 660,
+      "maxChars": 1800,
+      "chapters": [
+        "9G"
+      ],
+      "prompt": "Una rete a due strati ha ingresso x = 1, primo peso w₁ = 0,5, non linearità tanh, secondo peso w₂ = 1, uscita ŷ = w₂ · h, obiettivo y = 1 e loss L = ½ (ŷ − y)². Esegui a mano forward e backward: z, h, ŷ, L e poi i gradienti di w₂ e di w₁ con la regola della catena. Dì che cosa fa uno step di discesa e perché il backward ha bisogno di valori del forward. Che cosa accade ai gradienti in una rete con decine di strati e come lo si previene?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Forward: z = w₁·x = 0,5; h = tanh(0,5) ≈ 0,462; ŷ = w₂·h ≈ 0,462; L = ½ (0,462 − 1)² ≈ 0,145."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Backward: ∂L/∂ŷ = ŷ − y ≈ −0,538; ∂L/∂w₂ = ∂L/∂ŷ · h ≈ −0,249; ∂L/∂h = ∂L/∂ŷ · w₂ ≈ −0,538; ∂L/∂z = ∂L/∂h · (1 − h²) ≈ −0,538 × 0,786 ≈ −0,423; ∂L/∂w₁ = ∂L/∂z · x ≈ −0,423."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Entrambi i gradienti sono negativi, quindi w ← w − η · ∂L/∂w alza w₁ e w₂ e avvicina ŷ a y; il backward riusa il gradiente già pronto dello strato sopra, per questo costa circa due forward pass qualunque sia il numero di pesi."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il backward usa valori del forward (h, 1 − h², x): in training si tengono in memoria le attivazioni di tutti gli strati, mentre in inferenza si possono buttare; il gradient checkpointing ne salva solo alcune e ricalcola le altre, scambiando calcolo con memoria."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Con decine di strati il gradiente è un prodotto di molti fattori: se sono sotto 1 (per esempio una tanh saturata, 1 − h² ≈ 0) svanisce, se sopra 1 esplode. Rimedi: la connessione residua (uscita = ingresso + contributo), che dà una strada diretta, e la normalizzazione."
+        }
+      ]
+    }
+  ]
+}

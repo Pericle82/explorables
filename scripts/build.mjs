@@ -139,6 +139,8 @@ function htmlToText(h) {
   // le mappe concettuali ripetono concetti già nel testo: fuori dal materiale dell'esaminatore
   return h.replace(/<figure class="vx vx-cmap"[\s\S]*?<\/figure>/gi, "")
     .replace(/<(script|style|svg|button|nav)\b[\s\S]*?<\/\1>/gi, "")
+    // a capo anche all'apertura dei blocchi: etichette come «.rd-k» o «.eyebrow» non si incollano al testo che segue
+    .replace(/<(p|div|h[1-6]|li|dt|dd|tr|table|ul|ol|figure|aside|header)\b[^>]*>/gi, "\n")
     .replace(/<(br|\/p|\/li|\/tr|\/h[1-6]|\/pre|\/div|\/dt|\/dd|\/table|\/ul|\/ol)[^>]*>/gi, "\n")
     .replace(/<\/t[dh]>/gi, " | ").replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&")
@@ -151,15 +153,33 @@ if (exams.length) {
   for (const ex of exams) {
     const d = docs.find((x) => x.slug === ex.slug);
     const src = readFileSync(join(ROOT, "docs", `${ex.slug}.html`), "utf8");
-    const chapters = {};
-    for (const m of src.matchAll(/<section\b[^>]*\bid="cap-(\d+)"[^>]*>([\s\S]*?)<\/section>/g)) {
-      // titolo del capitolo: l'etichetta «N · Titolo» sopra l'h2 se c'è (template .sec-head), altrimenti l'h2
-      const h2 = (m[2].match(/<span class="eyebrow">([\s\S]*?)<\/span>/) || m[2].match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [, ""])[1];
-      chapters[m[1]] = { title: htmlToText(h2).replace(/^\d+\s*·\s*/, ""), text: htmlToText(m[2]) };
+    // capitoli: per default le sezioni id="cap-N"; altrimenti la mappa «sections» dell'esame,
+    // { "N": "id-sezione" } oppure { "N": "id-sezione#h3-da..h3-a" } per un tratto della sezione (h3-a escluso; senza h3-a fino alla fine)
+    const secs = {};
+    for (const m of src.matchAll(/<section\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)) secs[m[1]] = m[2];
+    const map = ex.sections || Object.fromEntries(Object.keys(secs).filter((id) => /^cap-\d+$/.test(id)).map((id) => [id.slice(4), id]));
+    const chapters = {}, chapterIds = {};
+    for (const [n, ref] of Object.entries(map)) {
+      const [id, range] = ref.split("#");
+      let body = secs[id];
+      if (body == null) { errors.push(`exams/${ex.slug}.json: sezione «${id}» non trovata nella guida`); continue; }
+      // titolo del capitolo: l'etichetta «N · Titolo» sopra l'h2 se c'è (template .sec-head), altrimenti l'h2 («chapterTitle": "h2" per usare sempre l'h2)
+      const h2 = ((ex.chapterTitle !== "h2" && body.match(/<span class="eyebrow">([\s\S]*?)<\/span>/)) || body.match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [, ""])[1];
+      let title = htmlToText(h2).replace(/^(?:capitolo\s+|fase\s+)?#?\d+\s*·\s*/i, "");
+      if (range) {
+        const [from, to] = range.split("..");
+        const at = (h) => body.search(new RegExp(`<h3\\b[^>]*\\bid="${h}"`));
+        const i = at(from), j = to ? at(to) : body.length;
+        if (i < 0 || j <= i) { errors.push(`exams/${ex.slug}.json: tratto «${ref}» non trovato nella guida`); continue; }
+        body = body.slice(i, j);
+        title = htmlToText((body.match(/<h3[^>]*>([\s\S]*?)<\/h3>/) || [, ""])[1]);
+      }
+      chapters[n] = { title, text: htmlToText(body) };
+      chapterIds[n] = range ? range.split("..")[0] : id;
     }
-    for (const q of ex.questions) for (const n of q.chapters) if (!chapters[n]) errors.push(`exams/${ex.slug}.json · ${q.id}: capitolo ${n} non trovato (serve <section id="cap-${n}"> nella guida)`);
+    for (const q of ex.questions) for (const n of q.chapters) if (!chapters[n]) errors.push(`exams/${ex.slug}.json · ${q.id}: capitolo ${n} non trovato (serve <section id="cap-${n}"> nella guida o la voce in «sections»)`);
     writeFileSync(join(EX, "context", `${ex.slug}.json`), JSON.stringify({ slug: ex.slug, title: d.title, version: d.version, chapters }));
-    examData.exams.push({ slug: ex.slug, title: d.title, area: ex.area || d.title, guideUrl: `../${ex.slug}/`, chapterTitles: Object.fromEntries(Object.entries(chapters).map(([k, v]) => [k, v.title])), questions: ex.questions });
+    examData.exams.push({ slug: ex.slug, title: d.title, area: ex.area || d.title, guideUrl: `../${ex.slug}/`, chapterTitles: Object.fromEntries(Object.entries(chapters).map(([k, v]) => [k, v.title])), chapterIds, questions: ex.questions });
   }
   if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
   const guideTpl = readFileSync(join(ROOT, "templates", "guide.html"), "utf8");

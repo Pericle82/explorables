@@ -1,0 +1,501 @@
+{
+  "slug": "machine-learning",
+  "title": "Machine learning: dalla retta che impara all'agente che decide",
+  "area": "Machine learning",
+  "sections": {
+    "1": "s1",
+    "2": "s2",
+    "3": "s3",
+    "4": "s4",
+    "5": "s5",
+    "6": "s6",
+    "7": "s7",
+    "8": "s8",
+    "9": "s9",
+    "10": "s10",
+    "11": "s11",
+    "12": "s12",
+    "13": "s13",
+    "14": "s14"
+  },
+  "questions": [
+    {
+      "id": "ml-01",
+      "title": "J non è zero: la retta è sbagliata?",
+      "difficulty": "media",
+      "time": 420,
+      "maxChars": 1300,
+      "chapters": [
+        1,
+        2
+      ],
+      "prompt": "Un collega allena una retta sui sei dati di case (superficie in m², prezzo in k€) e ottiene w ≈ 2,50, b ≈ 21,2 e un costo J ≈ 19,4. Protesta: «J non è zero, quindi il modello è sbagliato: cerchiamo un'altra retta che passi per tutti i punti». Spiega da quali tre ingredienti è fatto un programma che impara e quale ruolo ha J, perché qui J non può essere zero, e perché l'errore nel costo si eleva al quadrato.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Un programma che impara ha una forma di regola con parametri liberi (qui f(x) = w·x + b), una misura dell'errore sugli esempi (il costo J) e un procedimento che muove i parametri per far scendere J: i numeri giusti li trovano i dati."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "J vale 0 solo se la retta passa per tutti i punti; i sei punti non sono allineati, quindi nessuna retta può arrivarci. Il minimo trovato (J ≈ 19,4) è già il meglio possibile: l'obiettivo è il minimo di J, non lo zero."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il quadrato evita che errori positivi e negativi si cancellino e fa pesare di più un errore grande (sbagliare di 40 costa quattro volte sbagliare di 20); si divide per m per avere una media e per 2 per semplificare la derivata."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "È un problema di apprendimento supervisionato, in particolare di regressione: ogni esempio ha un input x e una risposta y che è un numero (nella classificazione y sarebbe una categoria)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Per la regressione lineare con l'errore quadratico il costo ha la forma di una ciotola convessa con un solo punto più basso, senza avvallamenti secondari in cui restare bloccati."
+        }
+      ]
+    },
+    {
+      "id": "ml-02",
+      "title": "La valle stretta tra metri quadri e stanze",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        3,
+        4
+      ],
+      "prompt": "Una regressione lineare multipla prevede il prezzo di una casa da quattro feature, tra cui la superficie (50–130 m²) e il numero di stanze (1–5). Con learning rate α = 0,01 il costo J, disegnato per iterazione, sale; riducendo molto α scende, ma dopo migliaia di iterazioni è ancora lontano dal minimo. Spiega perché i due sintomi hanno la stessa causa, quale rimedio applichi, come lo usi su una casa nuova da 150 m² (media delle superfici 88,3 m², ampiezza max − min = 80 m²) e quale grafico guardi per controllare che la discesa funzioni.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Con scale diverse il peso di una feature grande deve essere piccolo e viceversa: la ciotola del costo diventa una valle stretta e lunga, ripidissima lungo il peso della superficie e piattissima lungo quello delle stanze."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La discesa del gradiente segue la pendenza locale e rimbalza da una parete all'altra: serve un α piccolo per non divergere lungo l'asse ripido, ma con quell'α lungo l'asse piatto ci vuole un'eternità. Con α troppo grande il passo scavalca il fondo e il costo oscilla e sale."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Il rimedio è il feature scaling: portare le feature su scale simili (per il massimo, per media o z-score); la valle diventa una ciotola rotonda e la discesa converge in pochi passi."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "La casa da 150 m² diventa x′ = (150 − 88,3)/80 ≈ 0,771, usando media e ampiezza calcolate sul training set (non ricalcolate con la casa nuova), anche se il valore supera il massimo del training set."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il grafico è J in funzione delle iterazioni (curva di apprendimento): deve scendere a ogni passo e poi appiattirsi; se sale, α è troppo grande (o c'è un errore nel codice). Per scegliere α si provano valori distanziati di circa tre volte."
+        }
+      ]
+    },
+    {
+      "id": "ml-03",
+      "title": "Il tumore grande che sposta la soglia",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        5
+      ],
+      "prompt": "Si vuole classificare un tumore come maligno (1) o benigno (0) dalla sua dimensione. Una prima versione usa la retta del modello lineare con soglia 0,5; dopo aver aggiunto un solo tumore molto grande, chiaramente maligno, alcuni tumori medi prima classificati bene diventano «benigni». Spiega perché succede, come la regressione logistica risolve il problema e che costo usa al posto dell'errore quadratico. Che cosa significa f(x) = 0,3 per un esempio, e quanto vale la perdita se il modello dice 0,01 ma il tumore è maligno?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La retta si inclina per inseguire l'esempio estremo e sposta la soglia a destra; inoltre produce valori sotto 0 e sopra 1, che non significano nulla come probabilità."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "La regressione logistica passa z = w·x + b nella sigmoide g(z) = 1/(1 + e^−z), che dà sempre un numero tra 0 e 1; f si legge come probabilità che y sia 1, quindi f = 0,3 vuol dire 30% di probabilità di essere maligno e, con soglia 0,5, il tumore è classificato benigno. La soglia 0,5 equivale a w·x + b ≥ 0 e definisce il confine di decisione."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Con la sigmoide dentro, l'errore quadratico dà un terreno pieno di avvallamenti locali in cui la discesa si ferma; la perdita logistica (−log f se y = 1, −log(1 − f) se y = 0, mediata sugli esempi) torna convessa, con un solo minimo."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Se il modello dice 0,01 e la verità è 1, la perdita è circa 4,6 (contro circa 0,01 se dicesse 0,99): più il modello è sicuro della cosa sbagliata, più la perdita cresce, senza limite."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il gradiente ha la stessa forma della regressione lineare (errore medio pesato per x): cambia solo f, quindi vettorizzazione, scaling e scelta di α si trasferiscono."
+        }
+      ]
+    },
+    {
+      "id": "ml-04",
+      "title": "Il polinomio che passa per tutti i punti",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        6,
+        9
+      ],
+      "prompt": "Un polinomio di grado 5 passa esattamente per i sei punti del training set (costo zero) ma sbaglia di 60 k€ sulle case nuove. Un collega propone di scegliere grado e λ guardando l'errore sul training e di dichiarare poi la stima finale usando il test set per confrontare le varianti. Spiega perché il polinomio non è il modello migliore, come divideresti i dati e a che cosa serve ciascun insieme, come distingui alto bias e alta varianza con Jtrain e Jcv e quali rimedi usi in ciascun caso. Infine: Jtrain = 15%, Jcv = 16%, errore umano 14,5%: che cosa concludi?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il polinomio ha overfit (alta varianza): la curva si contorce per toccare ogni punto, ha imparato il rumore dei sei esempi e non la relazione; l'errore sul training set da solo non dice nulla, perché misura solo dati già visti."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Si divide in training set (circa 60%, per i parametri), cross-validation set (circa 20%, per scegliere grado, λ e architettura) e test set (circa 20%, toccato una volta sola alla fine): se il test set serve a scegliere, la sua stima diventa ottimista."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Jtrain alto rispetto a una baseline (prestazioni umane, un modello concorrente, il rumore) indica alto bias; Jtrain basso con Jcv molto più alto indica alta varianza. «Alto» si giudica sempre rispetto alla baseline."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Alta varianza: più dati (rimedio preferito), meno feature, λ più grande. Alto bias: più feature o polinomiali, λ più piccolo, modello più grande; più dati non cura l'alto bias."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Con Jtrain 15%, Jcv 16% e baseline 14,5% il modello è vicino al limite: non c'è un bias alto rispetto alla baseline né un divario di varianza, quindi c'è poco da guadagnare."
+        }
+      ]
+    },
+    {
+      "id": "ml-05",
+      "title": "Cinque strati lineari per dieci cifre",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        7,
+        8
+      ],
+      "prompt": "Un collega costruisce una rete per riconoscere le cifre scritte a mano (10 classi): cinque strati nascosti senza alcuna funzione di attivazione, un solo neurone di uscita con sigmoide e l'errore quadratico come costo. Dice: «più strati, più potenza». Individua i problemi, descrivi la rete che costruiresti (attivazioni, uscita, costo) e spiega perché gli strati nascosti, quando funzionano, sono il motivo del successo delle reti. Che cosa cambierebbe se una foto potesse contenere più cifre insieme?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Senza attivazione (lineare) la rete intera calcola una funzione lineare di x: una combinazione lineare di combinazioni lineari è ancora lineare, quindi equivale a una regressione e gli strati sono inutili. Servono non linearità come la ReLU (Rectified Linear Unit) negli strati nascosti, che permette confini curvi, a pezzi di retta."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Un neurone è una regressione logistica (z = w·x + b, poi l'attivazione); gli strati nascosti calcolano feature intermedie che nessuno ha definito (bordi, poi occhi e nasi, poi forme intere), e questo è il motivo del successo; un solo neurone logistico traccia solo un confine lineare."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Con dieci classi l'uscita ha un neurone per classe e la softmax, che trasforma le z in probabilità che sommano a 1, con perdita cross-entropy −log a_y (la probabilità data alla classe vera: 0,9 costa circa 0,1, 0,1 costa circa 2,3); non una sola sigmoide con errore quadratico."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Le tre mosse (come in TensorFlow): definire il modello, scegliere il costo, minimizzare con la discesa del gradiente per un numero di epoche, con le derivate calcolate dalla backpropagation. Per la stabilità numerica la rete può far uscire le z grezze (attivazione lineare) e la loss applica la softmax (from_logits=True)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Se la foto può contenere più cifre insieme il problema è multi-label: si usano tante sigmoidi indipendenti (sì/no per ogni classe), non una softmax."
+        }
+      ]
+    },
+    {
+      "id": "ml-06",
+      "title": "Il modello che dice sempre «sano»",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        9
+      ],
+      "prompt": "Una malattia colpisce lo 0,5% dei pazienti. Un «modello» che risponde sempre «sano» ha il 99,5% di accuratezza. Spiega come smascheri il problema con altre misure e come le definisci. Poi: un modello vero dà una probabilità di malattia a ciascun paziente; che cosa succede a queste misure se alzi la soglia da 0,5 a 0,9, e per quale tipo di malattia sceglieresti ciascuna direzione? Infine confronta due modelli, uno con precisione 0,02 e recall 1 e uno con valori intermedi, e dì come li riassumi in un numero.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "L'accuratezza nasconde il problema; la precisione è TP/(TP + FP) (tra quelli detti malati, quanti lo erano) e il recall è TP/(TP + FN) (tra i malati veri, quanti ne trovo). Il modello «sempre sano» ha recall zero."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Alzare la soglia sopra 0,5 (dire «malato» solo se molto sicuri) aumenta la precisione e abbassa il recall; abbassarla fa il contrario."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "La scelta dipende dai costi: una malattia curabile con un trattamento pesante chiede alta precisione; una malattia grave da non lasciar passare chiede alto recall."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Si usa l'F1, la media armonica 2PR/(P + R), che punisce i valori sbilanciati: con P = 0,02 e R = 1 vale circa 0,04, non 0,51 come la media semplice."
+        }
+      ]
+    },
+    {
+      "id": "ml-07",
+      "title": "La domanda da fare per prima",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        10
+      ],
+      "prompt": "Dieci animali, cinque gatti. Una domanda sull'orecchio li divide in un gruppo di 4 animali senza nessun gatto e in un gruppo di 6 animali con 5 gatti. Calcola l'entropia della radice e dei due gruppi e il guadagno di informazione, spiegando perché la media dei rami è pesata. Poi spiega come l'algoritmo continua e quando si ferma (e perché), perché un albero singolo è fragile e che cosa cambia tra una random forest e il boosting. Su una tabella di clienti con colonne eterogenee, alberi o reti?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "L'entropia è H(p) = −p log₂ p − (1 − p) log₂(1 − p): la radice (5 gatti su 10) vale 1, il gruppo da 4 senza gatti vale 0, il gruppo da 6 con 5 gatti vale circa 0,65."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Il guadagno è H(radice) − [w_sx·H(sx) + w_dx·H(dx)] = 1 − (0,4·0 + 0,6·0,65) ≈ 0,61; la media è pesata perché un sottogruppo purissimo ma con pochi esempi conta poco."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "L'algoritmo sceglie la feature con il guadagno più alto e ripete ricorsivamente su ogni ramo; si ferma quando il nodo è puro, a una profondità massima, con guadagno sotto soglia o pochi esempi: sono il controllo dell'overfitting, perché un albero con foglie di un esempio ha imparato a memoria."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Un albero singolo è fragile (cambiando un esempio può cambiare la radice e tutto l'albero); si usa un ensemble con campionamento con reinserimento. La random forest aggiunge un sottoinsieme casuale di circa √n feature per nodo; il boosting estrae con più probabilità gli esempi che l'ensemble sbaglia ancora."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Sui dati tabellari vincono gli alberi (in particolare XGBoost, eXtreme Gradient Boosting): veloci, poco sensibili alla scala, un albero piccolo si legge; le reti vincono su immagini, audio e testo."
+        }
+      ]
+    },
+    {
+      "id": "ml-08",
+      "title": "Tre taglie di maglietta, o cinque?",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        11
+      ],
+      "prompt": "Hai le misure di mille clienti (spesa e frequenza) e vuoi dividerli in gruppi per alcune campagne, senza etichette. Descrivi come funziona k-means e che cosa minimizza. Due esecuzioni dello stesso algoritmo danno risultati diversi, una chiaramente peggiore: perché, e che cosa fai? Un collega propone di scegliere il numero di gruppi K prendendo quello con la distorsione più bassa: è una buona idea? Come scegli K?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "K-means sceglie K centroidi e ripete due mosse: assegna ogni esempio al centroide più vicino, sposta ogni centroide nella media dei suoi esempi, finché i centroidi non si muovono più."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Minimizza la distorsione J (media delle distanze al quadrato dal centroide assegnato): ogni mossa la abbassa tenendo fermo l'altro elemento, quindi non può salire da un'iterazione all'altra (se sale c'è un errore nel codice)."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Il risultato dipende dall'inizializzazione, che porta a minimi locali diversi; si scelgono i centroidi iniziali tra gli esempi, si esegue k-means 50–1.000 volte e si tiene la soluzione con J più bassa."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Minimizzare J su K non ha senso: J scende sempre aumentando K (con K = m vale 0). Il metodo del gomito aiuta ma spesso il gomito non c'è; il criterio migliore è lo scopo a valle (quanto costa e quanto rende avere più gruppi)."
+        }
+      ]
+    },
+    {
+      "id": "ml-09",
+      "title": "Mille motori e nessun difetto noto",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        9,
+        12
+      ],
+      "prompt": "Mille motori d'aereo appena prodotti: quasi tutti buoni, cinque difettosi, tutti con difetti diversi, e i prossimi difetti saranno ancora diversi. Un collega propone di addestrare un classificatore supervisionato. Spiega perché preferisci un'altra strada, come modelli il motore normale con più feature, come scegli la soglia e con quale misura, e che cosa fai per un guasto che sfugge perché ogni misura presa da sola sembra normale (per esempio un server con CPU normale e traffico normale ma CPU/traffico altissimo).",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Un classificatore richiederebbe molti esempi di ogni tipo di difetto, e i difetti futuri saranno diversi; il rilevamento di anomalie impara com'è fatto il normale con p(x) e segnala p(x) < ε. Regola: pochissimi positivi (0–20) e difetti sempre nuovi → anomalie; molti positivi ricorrenti → classificatore."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Si stima una gaussiana per feature (μ media, σ² media dei quadrati degli scarti) e si moltiplicano le probabilità: è un'ipotesi di indipendenza quasi mai vera ma che funziona, e valori un po' alti su più feature danno comunque una p piccola."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "ε si sceglie sul cross-validation set, che contiene pochi esempi anomali etichettati insieme a molti normali, provando una gamma di valori e tenendo quello con la F1 migliore; con anomalie rare si usano precisione e recall, non l'accuratezza."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Si costruisce una feature che cattura l'anomalia (il rapporto CPU/traffico); per feature con code lunghe si prova una trasformazione (log, radice) verso la campana. È lo stesso lavoro di feature engineering visto per la regressione."
+        }
+      ]
+    },
+    {
+      "id": "ml-10",
+      "title": "Il film che nessuno ha visto",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        13
+      ],
+      "prompt": "Una piattaforma ha una tabella di 4 utenti per 5 film con voti da 0 a 5 e molti buchi, e nessuna descrizione dei film. Spiega come prevedi i voti mancanti e perché il costo somma solo sulle celle con un voto. Che cosa prevede il modello per un utente nuovo senza voti e come lo correggi? Quale approccio può raccomandare un film appena uscito, senza voti, e come funziona su milioni di film? Quale rischio c'è nello scegliere che cosa il sistema deve massimizzare?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Filtro collaborativo: si imparano insieme i gusti w(j) di ogni utente (e b(j)) e le feature x(i) di ogni film con un unico costo e la discesa del gradiente; il voto previsto è w(j)·x(i) + b(j). Funziona perché i voti di molti descrivono un film e i voti di uno ne descrivono molti; le feature non hanno nome, ma film con x vicini piacciono alle stesse persone."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Il costo somma solo sulle celle con un voto (r = 1), con la regolarizzazione su w e x: sulle celle vuote non c'è nulla con cui confrontare la previsione."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Un utente nuovo finirebbe con w = 0 e previsioni a zero stelle; sottraendo la media dei voti di ogni film prima del training e risommandola dopo, la previsione diventa «la media degli altri»."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "Un film appena uscito senza voti può essere raccomandato dal filtro basato sul contenuto: due reti trasformano le feature dell'utente e del film in vettori della stessa lunghezza e il voto è il loro prodotto scalare. Su larga scala si fa retrieval (poche centinaia di candidati con vettori precalcolati) e poi ranking con il modello completo."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Il sistema ottimizza ciò che gli si chiede: massimizzare il tempo di permanenza può proporre contenuti che arrabbiano o danno dipendenza, massimizzare il profitto proporrà i prodotti con più margine; la funzione obiettivo va decisa e dichiarata."
+        }
+      ]
+    },
+    {
+      "id": "ml-11",
+      "title": "Il rover e il fattore di sconto",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1700,
+      "chapters": [
+        14
+      ],
+      "prompt": "Un rover (apprendimento per rinforzo, RL: Reinforcement Learning) cammina su sei caselle: nella casella 1 c'è una roccia da 100, nella 6 una da 40; parte dalla 4 e può andare a sinistra o a destra, e raggiunto un estremo la missione finisce. Spiega che cosa sono ricompensa, ritorno e fattore di sconto γ e come γ cambia la scelta del rover. Definisci la funzione Q(s, a) e come ne ricavi la policy, e scrivi a parole l'equazione di Bellman. Come cambia se il rover scivola a volte nella direzione sbagliata?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il ritorno è la somma delle ricompense future con quelle più lontane scontate, G = R₁ + γR₂ + γ²R₃ + …, con γ appena sotto 1; con γ più piccolo l'agente è più impaziente e vince la roccia vicina (con γ = 0,5 dalla casella 4 la roccia da 100, a tre passi, vale 0,125 · 100 = 12,5 e quella da 40, a due passi, 0,25 · 40 = 10: conviene quella grande)."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Q(s, a) è il ritorno che si ottiene partendo da s, facendo una volta a e poi comportandosi nel modo migliore; la policy ottima sceglie in ogni stato l'azione con Q più alta, π(s) = argmax_a Q(s, a)."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Bellman: Q(s, a) = R(s) + γ·max_a′ Q(s′, a′), cioè la ricompensa immediata più il meglio che si può fare dallo stato d'arrivo, scontato di un passo; negli stati terminali Q = R(s); applicandola ripetutamente a partire da Q = 0 i valori convergono."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Se l'ambiente è stocastico (per esempio scivola con probabilità 0,1) la ricompensa accumulata è casuale: l'obiettivo diventa il ritorno atteso (media su tanti tentativi) e in Bellman il termine del futuro diventa una media sui possibili s′."
+        }
+      ]
+    },
+    {
+      "id": "ml-12",
+      "title": "Atterrare senza tabella",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        8,
+        14
+      ],
+      "prompt": "Un modulo lunare ha come stato posizione, velocità, angolo e velocità angolare (numeri reali) e quattro azioni; nessuno sa scrivere il comando giusto per ogni stato, si sa solo se l'atterraggio è andato bene. Spiega come si usa una rete neurale al posto della tabella Q (DQN, Deep Q-Network), come costruisci gli esempi di training, perché il problema non è una normale regressione, e a che cosa servono ε-greedy, replay buffer con mini-batch e aggiornamenti morbidi.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Si dà una ricompensa invece delle risposte giuste (apprendimento per rinforzo); la rete riceve lo stato e produce quattro uscite, una per azione, cioè Q(s, a); l'azione scelta è quella con Q più alta."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Si fa agire il lander e si registrano le quadruple (s, a, R, s′); per ciascuna si costruisce un esempio con input s e target y = R + γ·max_a′ Q(s′, a′), con Q calcolata dalla rete attuale; si addestra con l'errore quadratico. Non è una regressione normale perché i target cambiano man mano che la rete migliora."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "ε-greedy: con probabilità 1 − ε si fa l'azione che la rete ritiene migliore, con probabilità ε (per esempio 0,05, o alta all'inizio e decrescente) un'azione a caso: senza esplorazione la rete non scopre che un'azione stimata male è in realtà buona."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Replay buffer con mini-batch: si tengono le ultime 10.000 quadruple e a ogni passo si addestra su un campione di 1.000, non su tutto, per velocità."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Aggiornamento morbido: Q ← 0,01·Q_nuova + 0,99·Q, invece di sostituire la rete di colpo, così i target non saltano a ogni passo."
+        }
+      ]
+    },
+    {
+      "id": "ml-13",
+      "title": "Banca: tre problemi, tre famiglie",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        1,
+        10,
+        11,
+        12
+      ],
+      "prompt": "Una banca ha tre problemi. (a) Una tabella di 3.000 clienti con molte colonne eterogenee e l'esito noto del prestito (restituito o no): prevedere l'esito per i nuovi. (b) Mille clienti senza alcuna etichetta, da dividere in gruppi per diverse campagne. (c) Milioni di transazioni con solo dodici frodi note, e le prossime saranno diverse: segnalare le sospette. Per ciascuno indica il tipo di apprendimento, l'algoritmo che sceglieresti, come lo controlli o ne scegli il parametro principale e perché le alternative più ovvie sono peggiori.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "(a) Apprendimento supervisionato, classificazione (y è una categoria): su dati tabellari conviene un albero o un ensemble, in particolare XGBoost (eXtreme Gradient Boosting): veloce, poco sensibile alla scala, e un albero piccolo si legge; per ridurre l'overfitting si usano i criteri di arresto o ensemble come la random forest."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "(b) Apprendimento non supervisionato (solo x): k-means; l'inizializzazione si ripete molte volte tenendo la J minima; K non si sceglie minimizzando J (scende sempre) ma in base allo scopo a valle (o al gomito, se c'è)."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "(c) Rilevamento di anomalie: si modella il normale con p(x) e si segnala p(x) < ε; con pochissimi positivi e difetti sempre nuovi un classificatore non è adatto; ε si sceglie sul cross-validation set con le poche frodi etichettate, massimizzando la F1 (non l'accuratezza)."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Distingue i tipi: nel supervisionato ogni esempio ha x e la risposta y (regressione se y è un numero, classificazione se è una categoria), nel non supervisionato ci sono solo gli x e si cerca una struttura; in tutti i casi cambiano forma del modello, misura dell'errore e dati, ma il ciclo (modello con parametri, costo, procedimento che li muove) è lo stesso."
+        }
+      ]
+    }
+  ]
+}

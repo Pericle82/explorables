@@ -3,6 +3,7 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-17
+- **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.4: Capitolo 14: corretto il conto del ritorno del rover (12,5 a sinistra e 10 a destra, non 25 e 20), con una riga che spiega i termini; esame a risposta aperta con 13 domande
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.9: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.3: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
 - **Dentro l'inferenza** (`inferenza-llm`) v1.2: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo

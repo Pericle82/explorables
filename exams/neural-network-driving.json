@@ -1,0 +1,303 @@
+{
+  "slug": "neural-network-driving",
+  "title": "Neural Network Driving",
+  "area": "Reti neurali e neuroevoluzione",
+  "sections": {
+    "1": "s1",
+    "2": "s2",
+    "3": "s3",
+    "4": "s4",
+    "5": "s5"
+  },
+  "questions": [
+    {
+      "id": "nnd-01",
+      "title": "Più raggi, più parametri",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1700,
+      "chapters": [
+        2,
+        3,
+        5
+      ],
+      "prompt": "Vuoi dare alla rete 9 raggi invece di 7, mantenendo come ultimo input la velocità in avanti, con 8 neuroni nascosti e 4 uscite. Quanti numeri deve trovare l'evoluzione, e in che forma li vede? Poi descrivi come mostreresti il forward pass nella UI (User Interface, interfaccia utente) e perché sceglieresti un canvas e non un SVG (Scalable Vector Graphics).",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Gli input sono 10 (9 letture dei raggi più la velocità in avanti normalizzata); i parametri si contano come pesi più bias per strato: (10 × 8 + 8) = 88 e (8 × 4 + 4) = 36, totale 124."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Tutti i pesi e i bias vengono appiattiti in un unico vettore, il genoma: l'evoluzione lavora su quel vettore senza sapere che dentro c'è una rete, che lo rilegge in forma di matrici quando deve calcolare."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Nel grafo della UI (User Interface, interfaccia utente) i nodi stanno in colonne, uno strato per colonna, con archi tra strati adiacenti: colore = segno del peso (verde positivo, rosso negativo), spessore = modulo, riempimento del nodo = attivazione corrente."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Un canvas dedicato è preferibile a un SVG (Scalable Vector Graphics) con tanti elementi perché gli archi vengono ridisegnati 60 volte al secondo."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "Perché tenere la rete piccola: i neuroni restano leggibili nel grafo e pochi parametri si trovano in minuti, mentre molti strati richiederebbero migliaia di parametri e ore."
+        }
+      ]
+    },
+    {
+      "id": "nnd-02",
+      "title": "Dal raggio al numero",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1400,
+      "chapters": [
+        2
+      ],
+      "prompt": "Un'auto ha sensori con portata massima di 160 px. Un raggio incontra il bordo a 40 px, un altro non trova nessun bordo entro la portata. Spiega come si ottiene la distanza di un raggio, quali valori entrano nella rete per i due casi e perché si normalizza. Spiega anche a che cosa servono i raggi laterali, quello centrale e l'ottavo input.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La distanza si trova con l'intersezione segmento-segmento: il raggio è un segmento dal muso alla portata massima, confrontato con ogni segmento del bordo tenendo l'intersezione più vicina."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Normalizzazione s = min(d / dmax, 1): con d = 40 e dmax = 160 la lettura è 0,25; senza bordo entro la portata è 1 (0 significherebbe muro addosso)."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Normalizzare evita che input con scale diverse (per esempio 300 e 0,4) costringano i pesi a compensarle: l'evoluzione farebbe molta più fatica a trovarli."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "I raggi a ±65° dicono quanto spazio c'è ai lati, quello a 0° quanto è lontana la curva, gli intermedi da che parte gira; l'ottavo input è la velocità in avanti divisa per la massima, senza la quale la rete non saprebbe se frenare."
+        }
+      ]
+    },
+    {
+      "id": "nnd-03",
+      "title": "Due computer, due traiettorie",
+      "difficulty": "media",
+      "time": 480,
+      "maxChars": 1500,
+      "chapters": [
+        1
+      ],
+      "prompt": "Due studenti fanno guidare la stessa auto con gli stessi comandi, uno su un computer veloce (60 fotogrammi al secondo) e uno su un computer lento. Il loro codice usa come passo di integrazione il tempo trascorso tra due frame, e le traiettorie risultano diverse. Spiega perché, come lo correggi e che vantaggio ne ricavi in addestramento. Poi, con il modello a bicicletta: che cosa fa un'auto ferma con lo sterzo girato, e che cosa cambia in curva se la velocità raddoppia a parità di sterzo?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il passo di fisica deve essere fisso (update(dt) con dt fisso, ripetuto quante volte serve, con render() separato): se dipendesse dal frame rate, stessi comandi darebbero traiettorie diverse e confrontare due auto sarebbe impossibile."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "In addestramento si possono fare cento passi di fisica per ogni frame disegnato, o non disegnare affatto, e la simulazione va cento volte più veloce del tempo reale."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Da ferma (v = 0) la rotazione dell'heading (v / L) · tan δ · dt è nulla: l'auto non ruota affatto, qualunque sia lo sterzo."
+        },
+        {
+          "id": "c4",
+          "weight": 3,
+          "text": "A parità di sterzo il raggio di curva (L / tan δ) resta lo stesso, ma raddoppiando la velocità raddoppia la rotazione per passo: si ruota più in fretta lungo la stessa curva."
+        }
+      ]
+    },
+    {
+      "id": "nnd-04",
+      "title": "La macchina che va avanti e indietro",
+      "difficulty": "media",
+      "time": 540,
+      "maxChars": 1500,
+      "chapters": [
+        1,
+        4
+      ],
+      "prompt": "Per la neuroevoluzione un collega definisce la fitness come la distanza totale percorsa da ogni auto. Dopo alcune generazioni il campione fa avanti e indietro nel primo rettilineo. Spiega che cosa sta succedendo, proponi una fitness migliore e descrivi come questa interagisce con le collisioni e con un timeout di mancato progresso.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "È reward hacking: la popolazione ottimizza la metrica alla lettera, non ciò che volevi; con la distanza percorsa, avanti e indietro nel rettilineo accumula punteggio senza progredire."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Fitness = checkpoint ordinati superati più la frazione di strada verso il successivo: misura il progresso lungo la pista, non lo spazio percorso."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Toccare il bordo è la «morte»: l'auto si ferma e non consuma più calcolo; un'auto che sbatte presto ha percorso poca pista, quindi la sua fitness è bassa e l'evoluzione impara a evitarlo."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Il timeout di mancato progresso serve perché altrimenti un'auto ferma o che gira in tondo resterebbe in gara fino alla scadenza, sprecando calcolo."
+        }
+      ]
+    },
+    {
+      "id": "nnd-05",
+      "title": "Il campione che scompare",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        4
+      ],
+      "prompt": "Hai due esecuzioni dell'evoluzione sugli stessi 82 geni. In A la probabilità e l'ampiezza della mutazione sono grandi e costanti e non c'è elitismo: la fitness migliore sale, poi crolla da una generazione all'altra. In B l'ampiezza della mutazione è minuscola: dopo poche generazioni la fitness migliore si ferma. Diagnostica i due casi, proponi le correzioni e spiega i ruoli di mutazione, crossover e selezione, compreso il modo di scegliere i genitori.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "In A manca l'elitismo: copiare intatti i migliori (per esempio i primi 2 o 3) garantisce che il campione non si perda mai, anche se la mutazione è forte."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "In B la mutazione è la sorgente di novità e qui ne arriva troppo poca: il crossover ricombina soltanto ciò che già funziona, quindi servono rumore gaussiano di ampiezza σ adeguata o probabilità p maggiore."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "Ridurre σ col passare delle generazioni fa esplorare all'inizio e rifinire alla fine, correggendo in modo graduale sia il caso A sia il caso B."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Ruoli: la mutazione porta novità (a ogni gene, con probabilità p, si somma rumore gaussiano), il crossover ricombina (uniforme o a un punto), la selezione decide che cosa sopravvive."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "I genitori si scelgono con un torneo (pesca k a caso, tieni il migliore) o con la roulette (probabilità proporzionale alla fitness)."
+        }
+      ]
+    },
+    {
+      "id": "nnd-06",
+      "title": "Perché non la discesa del gradiente",
+      "difficulty": "alta",
+      "time": 600,
+      "maxChars": 1800,
+      "chapters": [
+        3,
+        4
+      ],
+      "prompt": "Un collega propone di addestrare la rete 8 → 6 → 4 dell'auto con apprendimento supervisionato e discesa del gradiente, come in un classificatore di immagini. Spiega perché qui non funziona, che cosa si fa invece e perché la natura della rete rende l'alternativa praticabile. Cita anche l'altra strada più diffusa.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Mancano gli esempi «input → output giusto»: nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Manca un errore derivabile rispetto ai pesi: l'unico segnale, quanto sei arrivato lontano, arriva a fine corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni, quindi non c'è un gradiente da seguire."
+        },
+        {
+          "id": "c3",
+          "weight": 2,
+          "text": "La neuroevoluzione rinuncia al gradiente del tutto: una popolazione di genomi valutati con la fitness, selezione e mutazione; per 82 parametri è più semplice e spesso altrettanto efficace."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "L'altra strada è l'apprendimento per rinforzo (RL, Reinforcement Learning), con tecniche come PPO (Proximal Policy Optimization)."
+        },
+        {
+          "id": "c5",
+          "weight": 1,
+          "text": "La rete è una funzione pura feed-forward, senza memoria e che non impara mentre guida: il suo sapere sta tutto negli 82 pesi, perciò l'addestramento sta fuori dal ciclo di gioco e deve solo trovare 82 numeri."
+        }
+      ]
+    },
+    {
+      "id": "nnd-07",
+      "title": "Un pilota o un memorizzatore",
+      "difficulty": "alta",
+      "time": 540,
+      "maxChars": 1600,
+      "chapters": [
+        4
+      ],
+      "prompt": "Il tuo campione completa il giro sulla pista di addestramento, ma su un tracciato mai visto sbatte alla prima curva. Spiega che cosa è successo, come cambieresti l'addestramento e come verificheresti il risultato anche se non c'è un dataset. Indica infine che cosa salvi del campione e come lo riproponi.",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "La rete ha imparato la pista e non la guida: una sequenza di riflessi che funziona perché le curve arrivano sempre nello stesso ordine."
+        },
+        {
+          "id": "c2",
+          "weight": 3,
+          "text": "Si allena su più piste, o con partenze variate (posizione e orientamento iniziali casuali), per ottenere un pilota e non un memorizzatore."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "Si testa su una pista tenuta fuori dall'addestramento: è la stessa distinzione tra training set e test set del machine learning classico, anche senza dataset."
+        },
+        {
+          "id": "c4",
+          "weight": 1,
+          "text": "Il campione si salva come genoma e topologia in JSON (JavaScript Object Notation) e si ricarica per la modalità replay, con una sola auto a velocità normale."
+        }
+      ]
+    },
+    {
+      "id": "nnd-08",
+      "title": "Una fisica, sette tappe",
+      "difficulty": "molto alta",
+      "time": 720,
+      "maxChars": 2000,
+      "chapters": [
+        1,
+        5
+      ],
+      "prompt": "Un team vuole addestrare in un notebook Python e mostrare auto e grafo nel browser, e pubblicare il repo come corso per chi impara. (1) Confronta le tre opzioni per dove far vivere la fisica e scegline una. (2) Che cosa fissi tra simulazione e browser, e quando? (3) Dopo aver pubblicato i tag delle tappe trovi un bug nella tappa 1: perché i tag da soli non bastano e come struttureresti il repo? (4) Che cosa rende affidabili i test come definizione di «tappa completata»?",
+      "criteria": [
+        {
+          "id": "c1",
+          "weight": 3,
+          "text": "Il rischio è avere la simulazione due volte, con un'auto allenata in Python che guida diversamente nel browser. A (consigliata): tutto in Python con server FastAPI via WebSocket, il browser disegna e basta; B: tutto TypeScript con kernel Deno ma senza NumPy; C (sconsigliata): fisica riscritta in TypeScript, con due fisiche da allineare con test di equivalenza."
+        },
+        {
+          "id": "c2",
+          "weight": 2,
+          "text": "Il contratto WebSocket va fissato prima del codice, perché è il confine oltre cui Python e UI evolvono separati: stato a ogni frame dal server al browser (auto, raggi, pesi, attivazioni, generazione, fitness) e comandi (tasti, pausa, velocità) nell'altra direzione."
+        },
+        {
+          "id": "c3",
+          "weight": 3,
+          "text": "I tag non si modificano e il bug andrebbe corretto a mano in tutte le tappe successive; si usa un solo branch solution con blocchi BEGIN SOLUTION / END SOLUTION e uno script (tools/make_steps.py) che sostituisce i blocchi con stub e rigenera tutti i tag."
+        },
+        {
+          "id": "c4",
+          "weight": 2,
+          "text": "Ogni tappa ha una coppia di tag: step-NN-start (boilerplate, TODO, test rossi e la soluzione della tappa precedente) e step-NN-solution; si scrive prima la soluzione completa, una tappa per commit, e gli starter si ricavano per sottrazione."
+        },
+        {
+          "id": "c5",
+          "weight": 2,
+          "text": "Tutto deve essere deterministico: seed fisso per ogni generatore casuale e passo di fisica fisso (stessi comandi, stessa traiettoria su qualunque computer), altrimenti i test non sono una definizione stabile di tappa completata."
+        }
+      ]
+    }
+  ]
+}

@@ -22,3 +22,4 @@ Sorgenti in questa cartella. `python3 build.py` genera `manuale-ai.html` e lo co
 - v1.7: cap. 1, Deep Blue spiegato (albero delle mosse + formula di valutazione scritta da persone = procedura classica) e confrontato con il gatto (nessuno sa scrivere la formula dai pixel); schema dei tre metodi; storia in ordine cronologico.
 - v1.8: cap. 7, differenza tra peso e parametro (parametro = ogni numero regolato; peso = moltiplica un ingresso; bias = sposta la soglia), con tabella.
 - 17/10/2026 (v1.9): richiesta di Joe «i documenti sono difficili da leggere»: formattazione per la lettura secondo AUTHORING.md §12 (`<mark>` sulle frasi chiave, `<dfn>`, riquadri `.rd`, calcoli in `.vx-math`, mappe `.vx-cmap`). Il testo non cambia.
+- 17/10/2026: richiesta di Joe «come per la teoria sul db, esami a risposta aperta per gli altri documenti»: `exams/manuale-ai.json` con 13 domande. Capitoli 1–38 = sezioni g1…g38, titolo dall'h2 (`chapterTitle`).

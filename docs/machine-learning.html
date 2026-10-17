@@ -1399,8 +1399,10 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </div>
   <div class="vx vx-math"><p class="vx-math-h">Calcolo · il rover dalla casella 4, con sconto 0,5</p>
     <div class="vx-eqs">
-      <div class="vx-eq res"><span class="l">andare a sinistra</span><span class="o">=</span><span class="r">0 + 0,5 · 0 + 0,25 · 100 = 25</span></div>
-      <div class="vx-eq res"><span class="l">andare a destra</span><span class="o">=</span><span class="r">0 + 0,5 · 40 = 20</span></div>
+      <div class="vx-eq res"><span class="l">andare a sinistra</span><span class="o">=</span><span class="r">0 + 0,5 · 0 + 0,25 · 0 + 0,125 · 100 = 12,5</span></div>
+      <small>caselle 4, 3, 2, 1: un termine per casella, e la roccia, al terzo passo, pesa γ³ = 0,125</small>
+      <div class="vx-eq res"><span class="l">andare a destra</span><span class="o">=</span><span class="r">0 + 0,5 · 0 + 0,25 · 40 = 10</span></div>
+      <small>caselle 4, 5, 6: la roccia, al secondo passo, pesa γ² = 0,25</small>
     </div>
   </div>
   <div class="prose stack">
@@ -1409,7 +1411,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="s14-q" class="anchor">La funzione Q e l'equazione di Bellman</h3>
   <div class="prose stack">
-    <p>Lo strumento centrale è la <dfn>funzione stato-azione</dfn> <span class="k">Q(s, a)</span>: <mark>il ritorno che si ottiene partendo dallo stato s, facendo <i>una volta</i> l'azione a, e poi comportandosi nel modo migliore possibile</mark>. Se conosci Q, la policy ottima è immediata: in ogni stato scegli l'azione con Q più alta, <span class="k">π(s) = argmax<sub>a</sub> Q(s, a)</span>. Nel rover, Q(4, sinistra) = 25 e Q(4, destra) = 20 → sinistra.</p>
+    <p>Lo strumento centrale è la <dfn>funzione stato-azione</dfn> <span class="k">Q(s, a)</span>: <mark>il ritorno che si ottiene partendo dallo stato s, facendo <i>una volta</i> l'azione a, e poi comportandosi nel modo migliore possibile</mark>. Se conosci Q, la policy ottima è immediata: in ogni stato scegli l'azione con Q più alta, <span class="k">π(s) = argmax<sub>a</sub> Q(s, a)</span>. Nel rover, Q(4, sinistra) = 12,5 e Q(4, destra) = 10 → sinistra.</p>
     <p>Come si calcola Q senza enumerare tutti i futuri? Con l'<dfn>equazione di Bellman</dfn>, che è una definizione ricorsiva:</p>
   </div>
   <div class="vx vx-math"><p class="vx-math-h">Formula · l'equazione di Bellman</p>
