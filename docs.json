@@ -16,9 +16,14 @@
         "training"
       ],
       "artifact": "https://claude.ai/artifact/J4hqFxo2B4xR9TepfkMoK6",
-      "version": "2.6",
+      "version": "2.7",
       "updated": "2026-10-17",
       "history": [
+        {
+          "version": "2.7",
+          "date": "2026-10-17",
+          "notes": "Correzioni: l'MLP di un 7B ha tre matrici 4.096 × 11.008 per strato, non due; l'allargamento della MLP è 4d nel transformer originale e 11.008 ≈ 2,7d in Llama 2 7B; divisione per √dk nell'attention; «Vettore» al posto di «Scheda» nella tabella re/regina"
+        },
         {
           "version": "2.6",
           "date": "2026-10-17",
@@ -136,9 +141,14 @@
         "tool use"
       ],
       "artifact": "https://claude.ai/artifact/U3NTHXxpB4cdh2UymoZEhq",
-      "version": "1.6",
+      "version": "1.7",
       "updated": "2026-10-17",
       "history": [
+        {
+          "version": "1.7",
+          "date": "2026-10-17",
+          "notes": "Correzione: nel capitolo 1 i limiti sono tre più un vincolo pratico, la lunghezza massima del contesto"
+        },
         {
           "version": "1.6",
           "date": "2026-10-17",
@@ -363,6 +373,11 @@
       ],
       "history": [
         {
+          "version": "1.4",
+          "date": "2026-10-17",
+          "notes": "Correzioni: la rete ha 82 parametri (72 pesi e 10 bias), non 82 pesi; nel grafo gli archi sono 72, non centinaia; le copie della pista sono una per auto"
+        },
+        {
           "version": "1.3",
           "date": "2026-10-17",
           "notes": "Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo"
@@ -383,7 +398,7 @@
           "notes": "Prima versione: mondo simulato (modello a bicicletta), sensori a raycasting, rete 8-6-4 con grafo interattivo, neuroevoluzione con simulazione in pista, dal video al repo a tappe."
         }
       ],
-      "version": "1.3",
+      "version": "1.4",
       "updated": "2026-10-17"
     },
     {
@@ -471,6 +486,11 @@
       ],
       "history": [
         {
+          "version": "1.10",
+          "date": "2026-10-17",
+          "notes": "Correzioni: capitolo 38, 14.336 × 32 = 458.752 filtri per token; capitolo 37, i due terzi dei parametri valgono per i transformer di allora (in Llama 3 sono quattro quinti); capitolo 24, il modello da 27 miliardi entra in 32 GB perché i pesi sono compressi a 4 bit"
+        },
+        {
           "version": "1.9",
           "date": "2026-10-17",
           "notes": "Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo"
@@ -521,7 +541,7 @@
           "notes": "Prima versione: i concetti dall'intelligenza artificiale alla funzione di attivazione, in ordine di prerequisito, con cenni storici, mappa dei prerequisiti, linea del tempo 1637–2024 e una figura per capitolo (laboratori con calcolo reale su BPE, similarità coseno, temperatura, Q·K·V, RoPE, maschera causale, funzioni di attivazione)"
         }
       ],
-      "version": "1.9",
+      "version": "1.10",
       "updated": "2026-10-17"
     }
   ]

@@ -168,7 +168,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <p>Conviene costruire i blocchi in quest'ordine, perché ognuno produce qualcosa di visibile prima del successivo, e il primo è il mondo.</p>
   </div>
 
-  <div class="vx"><div class="vx-flow"><div class="vx-node">mondo <small>pista, auto, sensori → 8 numeri in [0, 1]</small></div><div class="vx-down">↓ ogni frame</div><div class="vx-node acc">rete <small>82 pesi: 8 → 6 → 4</small></div><div class="vx-down">↓</div><div class="vx-node">comandi <small>sterzo, gas, freno, freno a mano → nuova posizione</small></div><div class="vx-down">↺ torna al mondo · fuori dal ciclo: l'evoluzione sceglie i pesi</div></div></div>
+  <div class="vx"><div class="vx-flow"><div class="vx-node">mondo <small>pista, auto, sensori → 8 numeri in [0, 1]</small></div><div class="vx-down">↓ ogni frame</div><div class="vx-node acc">rete <small>82 parametri (72 pesi e 10 bias): 8 → 6 → 4</small></div><div class="vx-down">↓</div><div class="vx-node">comandi <small>sterzo, gas, freno, freno a mano → nuova posizione</small></div><div class="vx-down">↺ torna al mondo · fuori dal ciclo: l'evoluzione sceglie i pesi</div></div></div>
 
   <h3 id="s1-loop" class="anchor">Il game loop: separare il tempo della fisica da quello del disegno</h3>
   <div class="prose stack">
@@ -222,7 +222,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
   <div class="prose stack">
     <p>L'auto è un rettangolo (o, per semplicità, un cerchio) e a ogni passo si controlla se interseca uno dei segmenti del bordo. Se sì, l'auto è <mark><b>eliminata</b></mark>: si ferma dov'è, non consuma più calcolo e la sua corsa è finita. Nella sezione 4 questa è la «morte» che l'evoluzione impara a evitare: un'auto che sbatte presto ha percorso poca pista, e la sua fitness è bassa.</p>
   </div>
-  <div class="rd key"><span class="rd-k">Da ricordare</span><p>Un dettaglio che semplifica tutto: le auto della popolazione <em>non</em> collidono tra loro. Sono cento copie della stessa pista sovrapposte, non cento auto nella stessa gara.</p></div>
+  <div class="rd key"><span class="rd-k">Da ricordare</span><p>Un dettaglio che semplifica tutto: le auto della popolazione <em>non</em> collidono tra loro. Sono copie della stessa pista sovrapposte, una per auto, non tante auto nella stessa gara.</p></div>
 
   <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1: il mondo">
     <figcaption class="vx-cap">Mappa concettuale · il mondo: pista, auto, collisioni</figcaption>
@@ -317,7 +317,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 <section class="st" id="s3">
   <div class="sec-head">
     <span class="eyebrow">3 · La rete neurale</span>
-    <h2>Una funzione pura: otto numeri entrano, quattro comandi escono, e tutto il sapere sta in 82 pesi</h2>
+    <h2>Una funzione pura: otto numeri entrano, quattro comandi escono, e tutto il sapere sta in 82 numeri</h2>
   </div>
   <div class="prose stack">
     <p>Spogliata della mistica, la rete di questo progetto è una funzione: prende il vettore degli otto input della sezione 2 e restituisce quattro numeri, da interpretare come comandi. Non ha memoria (è <dfn>feed-forward</dfn>: i segnali vanno solo in avanti) e non impara mentre guida. <mark>Tutto ciò che «sa» è scritto nei suoi <b>pesi</b></mark>, e cambiare i pesi cambia il modo di guidare. È per questo che l'addestramento può stare fuori dal ciclo di gioco: il suo unico compito è trovare 82 numeri buoni.</p>
@@ -533,7 +533,7 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
   </div>
   <div class="prose stack">
     <p>Ciò che rende il video memorabile non è l'auto che gira: è il grafo sotto, che si accende a ogni curva. La UI (User Interface, interfaccia utente) ha quel compito: <mark>rendere visibile il forward pass</mark>. Nodi in colonne, uno strato per colonna; archi tra tutti i nodi di strati adiacenti, con il <b>colore</b> che dice il segno del peso (verde positivo, rosso negativo) e lo <b>spessore</b> il suo modulo; il <b>riempimento</b> di ogni nodo che segue l'attivazione corrente, frame dopo frame; le etichette con nome e valore degli input a sinistra (−65° 0.77, VelF 0.53) e dei comandi a destra (Steering −0.98).</p>
-    <p>Sono centinaia di archi ridisegnati 60 volte al secondo: meglio un canvas dedicato che un SVG (Scalable Vector Graphics) con centinaia di elementi.</p>
+    <p>Sono 72 archi e 18 nodi da ridisegnare 60 volte al secondo, e con più raggi o più neuroni diventano centinaia: meglio un canvas dedicato che un SVG (Scalable Vector Graphics) con un elemento per ciascuno.</p>
     <p>Accanto, il pannello di addestramento: generazione, auto vive, fitness migliore, il grafico migliore/media, la velocità di simulazione (x1, x10, massima senza disegno), e i controlli per cambiare popolazione e mutazione al volo.</p>
   </div>
 

@@ -3,6 +3,10 @@
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
 ## 2026-10-17
+- **Da Assistente ad Agente** (`assistente-agente`) v1.7: Correzione: nel capitolo 1 i limiti sono tre più un vincolo pratico, la lunghezza massima del contesto
+- **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.10: Correzioni: capitolo 38, 14.336 × 32 = 458.752 filtri per token; capitolo 37, i due terzi dei parametri valgono per i transformer di allora (in Llama 3 sono quattro quinti); capitolo 24, il modello da 27 miliardi entra in 32 GB perché i pesi sono compressi a 4 bit
+- **Neural Network Driving** (`neural-network-driving`) v1.4: Correzioni: la rete ha 82 parametri (72 pesi e 10 bias), non 82 pesi; nel grafo gli archi sono 72, non centinaia; le copie della pista sono una per auto
+- **Anatomia del Training LLM** (`training-llm`) v2.7: Correzioni: l'MLP di un 7B ha tre matrici 4.096 × 11.008 per strato, non due; l'allargamento della MLP è 4d nel transformer originale e 11.008 ≈ 2,7d in Llama 2 7B; divisione per √dk nell'attention; «Vettore» al posto di «Scheda» nella tabella re/regina
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.4: Capitolo 14: corretto il conto del ritorno del rover (12,5 a sinistra e 10 a destra, non 25 e 20), con una riga che spiega i termini; esame a risposta aperta con 13 domande
 - **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.9: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.3: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo

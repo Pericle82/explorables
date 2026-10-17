@@ -371,7 +371,7 @@ table.mt tr.dim td{color:var(--muted)}
 <section class="st" id="llm">
   <div class="sec-head"><span class="eyebrow">1 · Il punto di partenza</span><h2>Un LLM da solo è una funzione: testo in, testo out</h2></div>
   <div class="prose stack">
-    <p>Dal documento sul training sai che un LLM prevede il token successivo. <mark>Visto da fuori è quindi una <b>funzione</b></mark>: riceve una sequenza di token (il <dfn>contesto</dfn>) e produce una sequenza di token. Ne derivano tre limiti precisi:</p>
+    <p>Dal documento sul training sai che un LLM prevede il token successivo. <mark>Visto da fuori è quindi una <b>funzione</b></mark>: riceve una sequenza di token (il <dfn>contesto</dfn>) e produce una sequenza di token. Ne derivano tre limiti precisi, più un vincolo pratico, la lunghezza massima del contesto:</p>
   </div>
   <dl class="gloss">
     <div><dt>Non ha memoria tra le chiamate</dt><dd>Il modello è <dfn>stateless</dfn> (senza stato). Una chat "ricorda" <mark>solo perché l'applicazione rimanda ogni volta l'intera conversazione nel contesto</mark>.</dd><span class="ex">ogni turno = tutta la cronologia di nuovo</span></div>
