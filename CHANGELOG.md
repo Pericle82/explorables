@@ -2,6 +2,17 @@
 
 Le versioni sono per singola guida. Ogni rilascio ha un tag git `<slug>-v<versione>`.
 
+## 2026-10-17
+- **Manuale AI: i concetti dell’intelligenza artificiale, uno sopra l’altro** (`manuale-ai`) v1.9: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.3: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Dentro l'inferenza** (`inferenza-llm`) v1.2: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Neural Network Driving** (`neural-network-driving`) v1.3: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Ingegneria dei sistemi LLM** (`ai-engineering`) v1.4: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Encoder, decoder, esperti** (`architetture-llm`) v1.3: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Quando il COMMIT non basta più** (`transazioni`) v2.15: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Da Assistente ad Agente** (`assistente-agente`) v1.6: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+- **Anatomia del Training LLM** (`training-llm`) v2.6: Formattazione per la lettura: frasi chiave evidenziate, termini definiti, riquadri (sintesi, attenzione, esempio), calcoli in riquadri per formule, una mappa concettuale per capitolo
+
 ## 2026-10-16
 - **Anatomia del Training LLM** (`training-llm`) v2.5: Capitolo 2: frasi di lunghezza diversa nella stessa rete, con un esempio a matrici (X n × 2, attention n × n calcolata, W 2 × 2) e uno step di training reale su una frase corta e una lunga; packing, padding e perché esiste una lunghezza massima del contesto
 - **Machine learning: dalla retta che impara all'agente che decide** (`machine-learning`) v1.2: Capitolo 4: esempio svolto di normalizzazione per media (mean normalization) sulle superfici delle case del capitolo 1, con il confronto tra media vera e punto medio e l'uso degli stessi valori in previsione

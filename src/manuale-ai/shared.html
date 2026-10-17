@@ -190,6 +190,60 @@
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
 .xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+/* 12 · lettura: grassetto, evidenziazione, termini e riquadri nel testo (AUTHORING.md §12) */
+.prose{line-height:1.68}
+.prose b,.prose strong,.rd b,.rd strong,.callout b,.callout strong{font-weight:600;color:var(--ink)}
+.prose mark,.callout mark,.rd mark,.vx-steps mark,.note mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+dfn{font-style:normal;font-weight:600;color:var(--accent)}
+.callout>b:first-child,.callout>strong:first-child{color:var(--accent)}
+.rd{margin:18px 0;max-width:68ch;padding:12px 16px 12px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.6}
+.rd>*+*{margin-top:8px}
+.rd ul,.rd ol{margin:8px 0 0;padding-left:1.2em}
+.rd li+li{margin-top:4px}
+.rd-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.rd.sum{background:var(--accent-soft)}
+.rd.warn{border-left-color:var(--bad);background:var(--bad-soft)}
+.rd.warn .rd-k{color:var(--bad)}
+.rd.key{border-left-color:var(--good);background:var(--good-soft)}
+.rd.key .rd-k{color:var(--good)}
+.rd.ex{border-left-color:var(--line);background:var(--surface)}
+.rd.ex .rd-k{color:var(--muted)}
+/* 13 · calcoli: formule e passaggi in un riquadro (AUTHORING.md §12) */
+.vx-math{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px 14px;max-width:100%;overflow-x:auto}
+.vx-math-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.vx-eqs{display:grid;grid-template-columns:auto auto 1fr;column-gap:.6em;row-gap:8px;align-items:center;font-family:var(--serif);font-size:1.08rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.vx-eq{display:contents}
+.vx-eq>.l{text-align:right;white-space:nowrap}
+.vx-eq>.o{color:var(--accent);font-weight:600;text-align:center}
+.vx-eq>.r{white-space:nowrap}
+.vx-eq>small,.vx-eqs>small{grid-column:3;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin-top:-4px}
+.vx-eq.res>.r{font-weight:650;background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px;padding:1px 6px;justify-self:start}
+.vx-math var,.vx-formula var{font-style:italic;font-family:var(--serif)}
+.vx-math sub,.vx-math sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .2em .1em}
+.fr>span:last-child{padding:.1em .2em 0}
+.vx-math-f{font-size:.88rem;color:var(--muted);margin:10px 0 0;font-family:var(--sans)}
+.vx-math-f b{color:var(--ink)}
+/* 14 · mappa concettuale: albero di concetti con le relazioni scritte sui rami */
+.vx-cmap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px}
+.vx-cmap ul{list-style:none;margin:0;padding:0}
+.vx-cmap .c{display:inline-block;font-weight:600;font-size:.92rem;line-height:1.3;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.vx-cmap .c.hot{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cmap .c small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.vx-cmap .r{display:block;font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--accent);margin:0 0 3px;letter-spacing:.02em}
+.vx-cmap>ul>li{text-align:center}
+.vx-cmap>ul>li>.c{background:var(--accent);color:var(--bg);border-color:var(--accent);font-family:var(--serif);font-size:1.05rem;padding:7px 14px}
+.vx-cmap>ul>li>ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:22px;position:relative;text-align:left}
+.vx-cmap>ul>li>ul::before{content:"";position:absolute;left:8%;right:8%;top:-12px;border-top:1px solid var(--accent)}
+.vx-cmap>ul>li>ul>li{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.vx-cmap>ul>li>ul>li::before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:1px solid var(--accent)}
+.vx-cmap li li ul{margin:8px 0 0 6px;padding-left:12px;border-left:1px solid var(--line)}
+.vx-cmap li li li{position:relative;margin-top:8px}
+.vx-cmap li li li::before{content:"";position:absolute;left:-12px;top:.9em;width:10px;border-top:1px solid var(--line)}
+.vx-cmap-x{margin:14px 0 0;font-size:.84rem;color:var(--muted)}
+.vx-cmap-x b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.vx-cmap>ul>li>ul::before,.vx-cmap>ul>li>ul>li::before{display:none}.vx-cmap>ul>li>ul{margin-top:12px}}
 </style>
 <script>
 /* schede codice: pulsante Copia (copia le righe senza numeri) */

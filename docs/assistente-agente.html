@@ -353,9 +353,9 @@ table.mt tr.dim td{color:var(--muted)}
 <section class="st" id="frase">
   <div class="sec-head"><span class="eyebrow">Cosa significa «da assistente ad agente»</span><h2>È uno spostamento di chi decide il prossimo passo</h2></div>
   <div class="prose stack">
-    <p>La frase descrive l'evoluzione dei sistemi basati su LLM (Large Language Model, modello linguistico di grandi dimensioni) negli ultimi anni. Non indica un salto improvviso, ma uno <b>spettro di autonomia</b>. Lungo lo spettro cambiano tre cose: <b>chi decide</b> cosa fare dopo, <b>quanti passi</b> vengono fatti senza intervento umano, e <b>cosa produce</b> il sistema, cioè testo da leggere oppure cambiamenti nel mondo (un file corretto, un ticket aperto, un'email inviata).</p>
-    <p>Un'analogia: un assistente è un consulente molto preparato che risponde alle tue domande, e sei tu a fare le cose. Un agente è un collaboratore a cui affidi un incarico ("sistema questo bug", "prepara il report mensile"): organizza il lavoro, usa gli strumenti, verifica il risultato e torna da te solo quando ha finito o quando serve una tua decisione.</p>
+    <p>La frase descrive l'evoluzione dei sistemi basati su LLM (Large Language Model, modello linguistico di grandi dimensioni) negli ultimi anni. <mark>Non indica un salto improvviso, ma uno <b>spettro di autonomia</b></mark>. Lungo lo spettro cambiano tre cose: <b>chi decide</b> cosa fare dopo, <b>quanti passi</b> vengono fatti senza intervento umano, e <b>cosa produce</b> il sistema, cioè testo da leggere oppure cambiamenti nel mondo (un file corretto, un ticket aperto, un'email inviata).</p>
   </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>Un assistente è un consulente molto preparato che risponde alle tue domande, e sei tu a fare le cose. Un agente è un collaboratore a cui affidi un incarico ("sistema questo bug", "prepara il report mensile"): organizza il lavoro, usa gli strumenti, verifica il risultato e torna da te <mark>solo quando ha finito o quando serve una tua decisione</mark>.</p></div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: lo spettro dell'autonomia</h3></div>
     <div class="ctl"><label for="spec">Livello <output id="speco"></output></label><input id="spec" type="range" min="0" max="5" value="0"></div>
@@ -371,12 +371,12 @@ table.mt tr.dim td{color:var(--muted)}
 <section class="st" id="llm">
   <div class="sec-head"><span class="eyebrow">1 · Il punto di partenza</span><h2>Un LLM da solo è una funzione: testo in, testo out</h2></div>
   <div class="prose stack">
-    <p>Dal documento sul training sai che un LLM prevede il token successivo. Visto da fuori è quindi una <b>funzione</b>: riceve una sequenza di token (il <i>contesto</i>) e produce una sequenza di token. Ne derivano tre limiti precisi:</p>
+    <p>Dal documento sul training sai che un LLM prevede il token successivo. <mark>Visto da fuori è quindi una <b>funzione</b></mark>: riceve una sequenza di token (il <dfn>contesto</dfn>) e produce una sequenza di token. Ne derivano tre limiti precisi:</p>
   </div>
   <dl class="gloss">
-    <div><dt>Non ha memoria tra le chiamate</dt><dd>Il modello è <i>stateless</i> (senza stato). Una chat "ricorda" solo perché l'applicazione rimanda ogni volta l'intera conversazione nel contesto.</dd><span class="ex">ogni turno = tutta la cronologia di nuovo</span></div>
+    <div><dt>Non ha memoria tra le chiamate</dt><dd>Il modello è <dfn>stateless</dfn> (senza stato). Una chat "ricorda" <mark>solo perché l'applicazione rimanda ogni volta l'intera conversazione nel contesto</mark>.</dd><span class="ex">ogni turno = tutta la cronologia di nuovo</span></div>
     <div><dt>Non vede il mondo</dt><dd>Conosce solo ciò che era nei dati di training (fino a una certa data) e ciò che gli metti nel contesto. Non sa che ore sono, né cosa c'è nel tuo database.</dd><span class="ex">conoscenza congelata al cutoff</span></div>
-    <div><dt>Non può agire</dt><dd>Produce solo testo. Anche se scrive «ho inviato l'email», non ha inviato niente: ha solo generato quei token.</dd><span class="ex">output = token, sempre</span></div>
+    <div><dt>Non può agire</dt><dd>Produce solo testo. Anche se scrive «ho inviato l'email», <mark>non ha inviato niente</mark>: ha solo generato quei token.</dd><span class="ex">output = token, sempre</span></div>
     <div><dt>Finestra di contesto</dt><dd>Il contesto ha una lunghezza massima (oggi da decine di migliaia a oltre un milione di token). Tutto ciò che il modello "sa" in quel momento deve starci dentro.</dd><span class="ex">il suo unico "banco di lavoro"</span></div>
   </dl>
   <div class="lab">
@@ -393,15 +393,18 @@ table.mt tr.dim td{color:var(--muted)}
 
   <h3 id="prompt" class="anchor">Il prompt è l'unico ingresso: come si scrive</h3>
   <div class="prose stack">
-    <p>Se il modello è una funzione testo in → testo out, il prompt è l'unico modo per dirgli che cosa vuoi. Non ci sono parametri nascosti né canali laterali: tutto ciò che il modello sa del compito (chi è, per chi lavora, che cosa deve produrre, su quali dati) deve stare scritto nel contesto. Scrivere un buon prompt somiglia più a scrivere istruzioni per un collega bravo ma appena arrivato, che non conosce il tuo progetto, che a cercare formule magiche.</p>
-    <p><b>System prompt e messaggio utente.</b> Nel system prompt va ciò che vale per tutta la conversazione: ruolo, regole, tono, formato, tool disponibili. Lo scrive lo sviluppatore e di solito l'utente non lo vede. Il messaggio utente porta la richiesta del momento e i dati su cui lavorare. I modelli sono addestrati a dare la precedenza al system prompt quando i due sono in conflitto, ma è una preferenza appresa, non un permesso fatto rispettare dal codice.</p>
-    <p><b>Istruzioni chiare e contesto esplicito.</b> Il modello non può chiederti che cosa intendevi, quindi indovina. «Riassumi questo ticket» lascia aperto tutto: per chi, quanto lungo, che cosa conta. «Riassumi il ticket in tre punti per il tecnico di turno: problema, cosa è già stato provato, prossimo passo» no. Spiegare anche il <i>perché</i> di una regola («rispondi in breve: il testo finisce in una notifica sul telefono») aiuta il modello a comportarsi bene nei casi che la regola non prevede.</p>
-    <p><b>Esempi (few-shot, «a pochi esempi»).</b> Due o tre coppie input → output mostrano formato, tono e livello di dettaglio meglio di un paragrafo di descrizione. Il modello tende però a imitarli da vicino: esempi tutti simili producono risposte tutte simili, quindi vanno scelti vari e rappresentativi.</p>
-    <p><b>Separare i dati dalle istruzioni.</b> Quando il prompt contiene testo da elaborare (un'email, un documento, il risultato di un tool), conviene racchiuderlo in sezioni marcate, per esempio con tag in stile XML (eXtensible Markup Language) come <code>&lt;email&gt;…&lt;/email&gt;</code>, e dire esplicitamente che ciò che sta dentro è materiale da analizzare, non istruzioni da seguire. Aiuta il modello a non confondere i due piani ed è la prima difesa contro la prompt injection descritta nella sezione 6. Solo la prima, però: un delimitatore riduce il rischio, non lo elimina.</p>
-    <p><b>Chiedere un formato.</b> Se la risposta la legge un programma, va detto quale forma deve avere: un JSON (JavaScript Object Notation) con certi campi, una sola parola tra tre ammesse, un elenco puntato. Un'istruzione nel prompt rende il formato probabile, non certo; come lo si rende garantito è spiegato nella sezione 2.</p>
-    <p><b>Far ragionare prima della risposta.</b> Il modello scrive un token alla volta e ogni token può appoggiarsi solo su quelli già scritti. Chiedergli di esporre i passaggi prima della conclusione (<i>chain-of-thought</i>, catena di ragionamento) gli dà letteralmente più testo su cui basare la risposta, e migliora i compiti di calcolo e di logica. I modelli di ragionamento lo fanno da soli, perché sono addestrati a produrre una fase di ragionamento prima di rispondere: con loro conta più descrivere bene il problema che dettare i passaggi.</p>
-    <p><b>Che cosa il prompt non può fare.</b> Il prompt orienta ciò che il modello sa già, ma non gli aggiunge conoscenza: nessuna istruzione gli fa conoscere il listino di oggi o il contenuto del tuo database. Per quello il dato deve entrare nel contesto, recuperato da un sistema di ricerca (RAG, Retrieval-Augmented Generation, generazione aumentata dal recupero) o chiesto a un tool.</p>
+    <p>Se il modello è una funzione testo in → testo out, il prompt è l'unico modo per dirgli che cosa vuoi. Non ci sono parametri nascosti né canali laterali: <mark>tutto ciò che il modello sa del compito (chi è, per chi lavora, che cosa deve produrre, su quali dati) deve stare scritto nel contesto</mark>.</p>
+    <p>Scrivere un buon prompt somiglia più a scrivere istruzioni per un collega bravo ma appena arrivato, che non conosce il tuo progetto, che a cercare formule magiche.</p>
+    <p><b>System prompt e messaggio utente.</b> Nel system prompt va ciò che vale per tutta la conversazione: ruolo, regole, tono, formato, tool disponibili. Lo scrive lo sviluppatore e di solito l'utente non lo vede. Il messaggio utente porta la richiesta del momento e i dati su cui lavorare. I modelli sono addestrati a dare la precedenza al system prompt quando i due sono in conflitto, ma <mark>è una preferenza appresa, non un permesso fatto rispettare dal codice</mark>.</p>
+    <p><b>Istruzioni chiare e contesto esplicito.</b> <mark>Il modello non può chiederti che cosa intendevi, quindi indovina.</mark> «Riassumi questo ticket» lascia aperto tutto: per chi, quanto lungo, che cosa conta. «Riassumi il ticket in tre punti per il tecnico di turno: problema, cosa è già stato provato, prossimo passo» no. Spiegare anche il <i>perché</i> di una regola («rispondi in breve: il testo finisce in una notifica sul telefono») aiuta il modello a comportarsi bene nei casi che la regola non prevede.</p>
+    <p><b>Esempi (few-shot, «a pochi esempi»).</b> Due o tre coppie input → output mostrano formato, tono e livello di dettaglio meglio di un paragrafo di descrizione. Il modello tende però a imitarli da vicino: <mark>esempi tutti simili producono risposte tutte simili</mark>, quindi vanno scelti vari e rappresentativi.</p>
+    <p><b>Separare i dati dalle istruzioni.</b> Quando il prompt contiene testo da elaborare (un'email, un documento, il risultato di un tool), conviene racchiuderlo in sezioni marcate, per esempio con tag in stile XML (eXtensible Markup Language) come <code>&lt;email&gt;…&lt;/email&gt;</code>, e dire esplicitamente che ciò che sta dentro è materiale da analizzare, non istruzioni da seguire. Aiuta il modello a non confondere i due piani ed è la prima difesa contro la prompt injection descritta nella sezione 6.</p>
+    <p>Solo la prima, però: <mark>un delimitatore riduce il rischio, non lo elimina</mark>.</p>
+    <p><b>Chiedere un formato.</b> Se la risposta la legge un programma, va detto quale forma deve avere: un JSON (JavaScript Object Notation) con certi campi, una sola parola tra tre ammesse, un elenco puntato. <mark>Un'istruzione nel prompt rende il formato probabile, non certo</mark>; come lo si rende garantito è spiegato nella sezione 2.</p>
+    <p><b>Far ragionare prima della risposta.</b> Il modello scrive un token alla volta e ogni token può appoggiarsi solo su quelli già scritti. Chiedergli di esporre i passaggi prima della conclusione (<dfn>chain-of-thought</dfn>, catena di ragionamento) <mark>gli dà letteralmente più testo su cui basare la risposta</mark>, e migliora i compiti di calcolo e di logica.</p>
+    <p>I modelli di ragionamento lo fanno da soli, perché sono addestrati a produrre una fase di ragionamento prima di rispondere: con loro conta più descrivere bene il problema che dettare i passaggi.</p>
   </div>
+  <div class="rd warn"><span class="rd-k">Che cosa il prompt non può fare</span><p>Il prompt <mark>orienta ciò che il modello sa già, ma non gli aggiunge conoscenza</mark>: nessuna istruzione gli fa conoscere il listino di oggi o il contenuto del tuo database. Per quello il dato deve entrare nel contesto, recuperato da un sistema di ricerca (RAG, Retrieval-Augmented Generation, generazione aumentata dal recupero) o chiesto a un tool.</p></div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: lo stesso compito, un prompt alla volta</h3><span class="tag">valori illustrativi</span></div>
     <p>Accendi e spegni i quattro elementi del prompt e osserva come cambiano il prompt inviato e una risposta tipica del modello.</p>
@@ -413,15 +416,42 @@ table.mt tr.dim td{color:var(--muted)}
     <p class="callout" id="ppMsg"></p>
     <p class="note">Le risposte sono scritte a mano per mostrare tendenze tipiche, non sono output di un modello reale: lo stesso prompt può dare risposte diverse da un modello all'altro e da una chiamata all'altra. Le parti evidenziate sono quelle aggiunte dagli interruttori.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1: il punto di partenza">
+    <figcaption class="vx-cap">Mappa concettuale · il punto di partenza</figcaption>
+    <ul><li><span class="c">LLM da solo</span>
+      <ul>
+        <li><em class="r">visto da fuori è</em> <span class="c hot">Una funzione</span>
+          <ul><li><em class="r">riceve</em> <span class="c">il contesto</span></li>
+              <li><em class="r">produce</em> <span class="c">una sequenza di token</span></li></ul></li>
+        <li><em class="r">ha tre limiti</em> <span class="c">Stateless, cieco, passivo</span>
+          <ul><li><em class="r">non ha</em> <span class="c">memoria tra le chiamate</span></li>
+              <li><em class="r">non vede</em> <span class="c">il mondo</span></li>
+              <li><em class="r">non può</em> <span class="c">agire: produce solo testo</span></li></ul></li>
+        <li><em class="r">è il suo banco di lavoro</em> <span class="c">Finestra di contesto</span>
+          <ul><li><em class="r">contiene</em> <span class="c">system prompt e messaggi</span></li>
+              <li><em class="r">ha</em> <span class="c">una lunghezza massima</span></li></ul></li>
+        <li><em class="r">l'unico ingresso è</em> <span class="c hot">Il prompt</span>
+          <ul><li><em class="r">dice</em> <span class="c">che cosa vuoi, con esempi e formato</span></li>
+              <li><em class="r">tiene separati</em> <span class="c">dati e istruzioni</span></li>
+              <li><em class="r">non può</em> <span class="c">aggiungere conoscenza <small>serve RAG o un tool: sezione 2</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 2. TOOLS ============ -->
 <section class="st" id="tools">
   <div class="sec-head"><span class="eyebrow">2 · Tools (function calling, chiamata di funzioni)</span><h2>Il modello non esegue nulla: chiede, e l'applicazione esegue</h2></div>
   <div class="prose stack">
-    <p>Un <b>tool</b> è una funzione del tuo codice che il modello può chiedere di usare: cercare un ordine, interrogare un database, leggere un file, inviare un'email. Il punto che crea più confusione è questo: <b>il modello non esegue mai il tool</b>. Genera, come testo strutturato, una <i>richiesta</i> di chiamata con nome e argomenti. È la tua applicazione a riconoscerla, eseguire la funzione vera e rimettere il risultato nel contesto. Poi il modello continua a generare, ora con quell'informazione a disposizione.</p>
-    <p>Per sapere quali tool esistono, il modello riceve nel contesto una <b>definizione</b> per ciascuno: un nome, una descrizione in linguaggio naturale e uno schema dei parametri in JSON Schema (JSON, JavaScript Object Notation, è il formato di dati testuale usato per richieste e risultati). La descrizione è importantissima: insieme al nome, è la principale informazione su cui il modello si basa per decidere <i>se</i> e <i>quando</i> usare il tool.</p>
-    <p id="json-valido">Chi garantisce, però, che quel JSON sia valido? Il modello genera un token alla volta, e niente di per sé gli impedisce di dimenticare una virgola, inventare un campo o scrivere «quattromila» dove lo schema vuole un numero. Le strade sono due. La prima è chiedere il formato nel prompt e poi <b>validare</b>: l'applicazione controlla la risposta contro lo schema e, se non va, la rimanda al modello con l'errore chiedendo di correggerla (<i>retry</i>). Funziona quasi sempre, ma costa una chiamata in più quando sbaglia, e il caso in cui sbaglia di nuovo va gestito comunque. La seconda sono gli <b>structured outputs</b> (output strutturati), basati sulla <b>decodifica vincolata</b>: a ogni passo il motore di inferenza confronta i token candidati con lo schema e maschera, cioè rende impossibili, quelli che lo violerebbero. Il modello può scegliere solo tra continuazioni valide, e il JSON rispetta lo schema per costruzione. Il vincolo garantisce la forma, non il contenuto: un <span class="k">id_ordine</span> ben formato può essere comunque quello sbagliato. Come avviene la generazione token per token, e in quale punto si inserisce il vincolo, lo spiega la guida sull'inferenza.</p>
+    <p>Un <dfn>tool</dfn> è una funzione del tuo codice che il modello può chiedere di usare: cercare un ordine, interrogare un database, leggere un file, inviare un'email. Il punto che crea più confusione è questo: <mark><b>il modello non esegue mai il tool</b></mark>. Genera, come testo strutturato, una <i>richiesta</i> di chiamata con nome e argomenti.</p>
+    <p>È la tua applicazione a riconoscerla, eseguire la funzione vera e rimettere il risultato nel contesto. Poi il modello continua a generare, ora con quell'informazione a disposizione.</p>
+    <p>Per sapere quali tool esistono, il modello riceve nel contesto una <dfn>definizione</dfn> per ciascuno: un nome, una descrizione in linguaggio naturale e uno schema dei parametri in JSON Schema (JSON, JavaScript Object Notation, è il formato di dati testuale usato per richieste e risultati). <mark>La descrizione è importantissima</mark>: insieme al nome, è la principale informazione su cui il modello si basa per decidere <i>se</i> e <i>quando</i> usare il tool.</p>
+    <p id="json-valido">Chi garantisce, però, che quel JSON sia valido? Il modello genera un token alla volta, e niente di per sé gli impedisce di dimenticare una virgola, inventare un campo o scrivere «quattromila» dove lo schema vuole un numero.</p>
+    <p>Le strade sono due. La prima è chiedere il formato nel prompt e poi <b>validare</b>: l'applicazione controlla la risposta contro lo schema e, se non va, la rimanda al modello con l'errore chiedendo di correggerla (<i>retry</i>). Funziona quasi sempre, ma costa una chiamata in più quando sbaglia, e il caso in cui sbaglia di nuovo va gestito comunque.</p>
+    <p>La seconda sono gli <dfn>structured outputs</dfn> (output strutturati), basati sulla <dfn>decodifica vincolata</dfn>: a ogni passo il motore di inferenza confronta i token candidati con lo schema e maschera, cioè rende impossibili, quelli che lo violerebbero. Il modello può scegliere solo tra continuazioni valide, e <mark>il JSON rispetta lo schema per costruzione</mark>.</p>
+  </div>
+  <div class="rd key"><span class="rd-k">Da ricordare</span><p><mark>Il vincolo garantisce la forma, non il contenuto</mark>: un <span class="k">id_ordine</span> ben formato può essere comunque quello sbagliato.</p></div>
+  <div class="prose stack">
+    <p>Come avviene la generazione token per token, e in quale punto si inserisce il vincolo, lo spiega la guida sull'inferenza.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: anatomia di una chiamata a tool</h3><span class="tag">formato reale, semplificato</span></div>
@@ -440,22 +470,61 @@ table.mt tr.dim td{color:var(--muted)}
     <div class="box"><b>Azione</b><span>Cambiano il mondo: inviano email, creano ticket, modificano file, fanno pagamenti, pubblicano. Spesso sono irreversibili.</span><em class="lvl ko">rischio alto</em></div>
     <div class="box"><b>MCP</b><span>MCP (Model Context Protocol, protocollo di contesto per modelli) è uno standard aperto per esporre tool e dati: scrivi un <i>server</i> MCP una volta e qualsiasi applicazione compatibile (il <i>client</i>) può usarne i tool.</span><em class="lvl">lo "USB" dei tool</em></div>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 2: i tool">
+    <figcaption class="vx-cap">Mappa concettuale · i tool</figcaption>
+    <ul><li><span class="c">Tool</span>
+      <ul>
+        <li><em class="r">è</em> <span class="c hot">Una funzione del tuo codice</span>
+          <ul><li><em class="r">il modello</em> <span class="c">genera una richiesta di chiamata</span></li>
+              <li><em class="r">l'applicazione</em> <span class="c">esegue e rimette il risultato nel contesto</span></li></ul></li>
+        <li><em class="r">si descrive con</em> <span class="c">Una definizione</span>
+          <ul><li><em class="r">è fatta di</em> <span class="c">nome, descrizione e schema dei parametri</span></li>
+              <li><em class="r">decide</em> <span class="c">se e quando usarlo</span></li></ul></li>
+        <li><em class="r">per avere JSON valido</em> <span class="c">Due strade</span>
+          <ul><li><em class="r">validare</em> <span class="c">controllare e riprovare (retry)</span></li>
+              <li><em class="r">structured outputs</em> <span class="c hot">decodifica vincolata <small>garantisce la forma, non il contenuto</small></span></li></ul></li>
+        <li><em class="r">si distinguono per</em> <span class="c">Cosa possono rompere</span>
+          <ul><li><em class="r">lettura</em> <span class="c">rischio basso</span></li>
+              <li><em class="r">calcolo</em> <span class="c">rischio medio</span></li>
+              <li><em class="r">azione</em> <span class="c">rischio alto</span></li></ul></li>
+        <li><em class="r">si espongono con</em> <span class="c">MCP</span>
+          <ul><li><em class="r">è</em> <span class="c">uno standard aperto per tool e dati</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 3. ASSISTENTE ============ -->
 <section class="st" id="assistente">
   <div class="sec-head"><span class="eyebrow">3 · Assistente</span><h2>Reattivo: a ogni turno risponde, e poi aspetta te</h2></div>
   <div class="prose stack">
-    <p>Un <b>assistente</b> è un LLM con un system prompt, la cronologia della conversazione e, spesso, qualche tool. La sua caratteristica è che è <b>reattivo</b>: ogni turno parte da un tuo messaggio e finisce con una risposta a te. Anche quando usa un tool, di solito lo fa una o due volte per rispondere alla domanda, e poi si ferma. Se il lavoro richiede più passi, sei tu a guidarlo: leggi la risposta, decidi cosa fare, scrivi il messaggio successivo.</p>
-    <p>È un modello di interazione sicuro e prevedibile, perché ogni azione passa sotto i tuoi occhi. Il limite è che <b>il collo di bottiglia sei tu</b>: per un compito da venti passi servono venti tuoi interventi.</p>
+    <p>Un <dfn>assistente</dfn> è un LLM con un system prompt, la cronologia della conversazione e, spesso, qualche tool. La sua caratteristica è che è <mark><b>reattivo</b></mark>: ogni turno parte da un tuo messaggio e finisce con una risposta a te. Anche quando usa un tool, di solito lo fa una o due volte per rispondere alla domanda, e poi si ferma. Se il lavoro richiede più passi, <mark>sei tu a guidarlo</mark>: leggi la risposta, decidi cosa fare, scrivi il messaggio successivo.</p>
+    <p>È un modello di interazione sicuro e prevedibile, perché ogni azione passa sotto i tuoi occhi. Il limite è che <mark><b>il collo di bottiglia sei tu</b></mark>: per un compito da venti passi servono venti tuoi interventi.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 3: l'assistente">
+    <figcaption class="vx-cap">Mappa concettuale · l'assistente</figcaption>
+    <ul><li><span class="c">Assistente</span>
+      <ul>
+        <li><em class="r">è fatto di</em> <span class="c">LLM con system prompt</span>
+          <ul><li><em class="r">più</em> <span class="c">cronologia della conversazione</span></li>
+              <li><em class="r">e spesso</em> <span class="c">qualche tool</span></li></ul></li>
+        <li><em class="r">è</em> <span class="c hot">Reattivo</span>
+          <ul><li><em class="r">ogni turno parte da</em> <span class="c">un tuo messaggio</span></li>
+              <li><em class="r">e finisce con</em> <span class="c">una risposta a te</span></li></ul></li>
+        <li><em class="r">ha il vantaggio di essere</em> <span class="c">Sicuro e prevedibile</span>
+          <ul><li><em class="r">perché</em> <span class="c">ogni azione passa sotto i tuoi occhi</span></li></ul></li>
+        <li><em class="r">ha il limite</em> <span class="c hot">Il collo di bottiglia sei tu</span>
+          <ul><li><em class="r">perciò</em> <span class="c">venti passi richiedono venti interventi</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 4. AGENTE ============ -->
 <section class="st" id="agente">
   <div class="sec-head"><span class="eyebrow">4 · Agente</span><h2>Un ciclo: pensa, agisci, osserva, ripeti</h2></div>
   <div class="prose stack">
-    <p>Un <b>agente</b> è un LLM che usa i tool dentro un <b>ciclo</b> (<i>agent loop</i>) e decide da solo, a ogni giro, qual è il passo successivo, finché l'obiettivo non è raggiunto. Tecnicamente la differenza con l'assistente è piccola: invece di restituirti la risposta dopo il risultato di un tool, l'applicazione rimette il risultato nel contesto e <b>richiama il modello</b>. Il modello vede cosa è successo e sceglie la prossima azione. Il ciclo si ferma quando il modello risponde senza chiedere altri tool, oppure quando scatta un limite (numero massimo di passi, budget di token, un'azione che richiede approvazione).</p>
+    <p>Un <dfn>agente</dfn> è un LLM che usa i tool dentro un <b>ciclo</b> (<i>agent loop</i>) e <mark>decide da solo, a ogni giro, qual è il passo successivo</mark>, finché l'obiettivo non è raggiunto.</p>
+    <p>Tecnicamente la differenza con l'assistente è piccola: invece di restituirti la risposta dopo il risultato di un tool, l'applicazione rimette il risultato nel contesto e <mark><b>richiama il modello</b></mark>. Il modello vede cosa è successo e sceglie la prossima azione.</p>
+    <p>Il ciclo si ferma quando il modello risponde senza chiedere altri tool, oppure quando scatta un limite (numero massimo di passi, budget di token, un'azione che richiede approvazione).</p>
   </div>
   <div class="loopdiag" aria-label="Ciclo dell'agente">
     <div class="ln goal">Obiettivo<small>dall'utente</small></div>
@@ -486,22 +555,68 @@ table.mt tr.dim td{color:var(--muted)}
     <div><dt>Memoria</dt><dd>A breve termine: il contesto, che cresce a ogni passo. A lungo termine: file, database o note che l'agente scrive e rilegge tra una sessione e l'altra.</dd></div>
     <div><dt>Condizioni di arresto e controlli</dt><dd>Numero massimo di passi, budget, approvazioni umane, permessi limitati. Decidono quanto è sicuro lasciarlo lavorare.</dd></div>
   </dl>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 4: l'agente">
+    <figcaption class="vx-cap">Mappa concettuale · l'agente</figcaption>
+    <ul><li><span class="c">Agente</span>
+      <ul>
+        <li><em class="r">è</em> <span class="c hot">Un LLM dentro un ciclo</span>
+          <ul><li><em class="r">a ogni giro</em> <span class="c">pensa, agisce, osserva</span></li>
+              <li><em class="r">decide</em> <span class="c">il passo successivo, da solo</span></li></ul></li>
+        <li><em class="r">differisce dall'assistente perché</em> <span class="c hot">richiama il modello</span>
+          <ul><li><em class="r">dopo</em> <span class="c">il risultato di un tool</span></li>
+              <li><em class="r">invece di</em> <span class="c">tornare da te</span></li></ul></li>
+        <li><em class="r">si ferma quando</em> <span class="c">Il ciclo finisce</span>
+          <ul><li><em class="r">il modello</em> <span class="c">risponde senza chiedere altri tool</span></li>
+              <li><em class="r">oppure scatta</em> <span class="c">un limite: passi, budget, approvazione</span></li></ul></li>
+        <li><em class="r">è fatto di cinque componenti</em> <span class="c">Componenti</span>
+          <ul><li><em class="r">decide e agisce</em> <span class="c">modello e tool</span></li>
+              <li><em class="r">fa girare</em> <span class="c">il ciclo (runtime)</span></li>
+              <li><em class="r">ricorda con</em> <span class="c">la memoria</span></li>
+              <li><em class="r">resta sicuro con</em> <span class="c">arresto e controlli</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 5. PATTERN ============ -->
 <section class="st" id="pattern">
   <div class="sec-head"><span class="eyebrow">5 · Workflow e pattern</span><h2>Non serve sempre un agente: prima si prova con un workflow</h2></div>
   <div class="prose stack">
-    <p>Una distinzione utile, proposta da Anthropic nella guida «Building effective agents» (dicembre 2024): nei <b>workflow</b> i passi sono decisi dal <i>tuo codice</i>, e l'LLM esegue ciascun passo; negli <b>agenti</b> è l'<i>LLM</i> a decidere i passi. I workflow sono più prevedibili, economici e facili da testare. Gli agenti servono quando il numero e l'ordine dei passi non si possono sapere in anticipo. La regola pratica: partire dalla soluzione più semplice e aggiungere autonomia solo se migliora davvero il risultato.</p>
+    <p>Una distinzione utile, proposta da Anthropic nella guida «Building effective agents» (dicembre 2024): nei <dfn>workflow</dfn> i passi sono decisi dal <i>tuo codice</i>, e l'LLM esegue ciascun passo; negli <b>agenti</b> è l'<i>LLM</i> a decidere i passi. I workflow sono <mark>più prevedibili, economici e facili da testare</mark>. Gli agenti servono quando il numero e l'ordine dei passi non si possono sapere in anticipo.</p>
   </div>
+  <div class="rd key"><span class="rd-k">La regola pratica</span><p><mark>Partire dalla soluzione più semplice</mark> e aggiungere autonomia solo se migliora davvero il risultato.</p></div>
   <div class="patterns" id="patterns"></div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 5: workflow e pattern">
+    <figcaption class="vx-cap">Mappa concettuale · workflow e agenti</figcaption>
+    <ul><li><span class="c">Workflow e agenti</span>
+      <ul>
+        <li><em class="r">nel workflow</em> <span class="c">Decide il tuo codice</span>
+          <ul><li><em class="r">l'LLM</em> <span class="c">esegue ciascun passo</span></li>
+              <li><em class="r">è</em> <span class="c">più prevedibile, economico, testabile</span></li></ul></li>
+        <li><em class="r">nell'agente</em> <span class="c">Decide l'LLM</span>
+          <ul><li><em class="r">serve quando</em> <span class="c">numero e ordine dei passi non si sanno in anticipo</span></li></ul></li>
+        <li><em class="r">la regola pratica è</em> <span class="c hot">Partire dal più semplice</span>
+          <ul><li><em class="r">poi</em> <span class="c">aggiungere autonomia solo se migliora il risultato</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 6. RISCHI ============ -->
 <section class="st" id="rischi">
   <div class="sec-head"><span class="eyebrow">6 · Rischi e controllo</span><h2>Più autonomia, più passi, più modi di sbagliare</h2></div>
   <div class="prose stack">
-    <p>Il primo rischio è matematico. Se ogni passo riesce con probabilità p, e i passi sono n e indipendenti, la probabilità che riescano tutti è pⁿ. Anche un modello molto affidabile, su compiti lunghi, sbaglia spesso.</p>
+    <p>Il primo rischio è matematico. Se ogni passo riesce con probabilità <var>p</var>, e i passi sono <var>n</var> e indipendenti, la probabilità che riescano tutti è:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · successo di un compito a più passi</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">un passo</span><span class="o">=</span><span class="r"><var>p</var></span></div>
+      <small>probabilità che un singolo passo riesca</small>
+      <div class="vx-eq"><span class="l"><var>n</var> passi</span><span class="o">=</span><span class="r"><var>p</var> · <var>p</var> · … · <var>p</var></span></div>
+      <small><var>n</var> volte: per passi indipendenti le probabilità si moltiplicano</small>
+      <div class="vx-eq res"><span class="l">tutti riescono</span><span class="o">=</span><span class="r"><var>p</var><sup><var>n</var></sup></span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><mark>Anche un modello molto affidabile, su compiti lunghi, sbaglia spesso.</mark></p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: l'accumulo degli errori</h3><span class="tag">matematica reale</span></div>
@@ -534,20 +649,52 @@ table.mt tr.dim td{color:var(--muted)}
     </div>
     <p class="note">L'istruzione arriva dentro un <i>dato</i> (il testo di un'email), non dall'utente. Un agente ben progettato la riconosce come tale; un sistema ben progettato, in più, non gli dà comunque il permesso di inoltrare email senza approvazione.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 6: rischi e controllo">
+    <figcaption class="vx-cap">Mappa concettuale · rischi e controllo</figcaption>
+    <ul><li><span class="c">Rischi dell'autonomia</span>
+      <ul>
+        <li><em class="r">il primo è matematico</em> <span class="c hot">Errori che si accumulano</span>
+          <ul><li><em class="r">si misura con</em> <span class="c"><var>p</var><sup><var>n</var></sup></span></li>
+              <li><em class="r">si attenua con</em> <span class="c">feedback verificabile</span></li></ul></li>
+        <li><em class="r">cambiano il mondo</em> <span class="c">Azioni irreversibili</span>
+          <ul><li><em class="r">si risolvono con</em> <span class="c">approvazione umana e permessi minimi</span></li></ul></li>
+        <li><em class="r">istruzioni nei dati</em> <span class="c hot">Prompt injection</span>
+          <ul><li><em class="r">si risolve con</em> <span class="c">risultati dei tool trattati come dato</span></li></ul></li>
+        <li><em class="r">consumano token e tempo</em> <span class="c">Loop e costi</span>
+          <ul><li><em class="r">si risolvono con</em> <span class="c">massimo di passi e budget</span></li></ul></li>
+        <li><em class="r">nei compiti lunghi</em> <span class="c">Contesto che si riempie</span>
+          <ul><li><em class="r">si risolve con</em> <span class="c">riassunti, note su file, sotto-agenti</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 </section>
 
 <!-- ============ 7. TRAINING ============ -->
 <section class="st" id="training">
   <div class="sec-head"><span class="eyebrow">7 · Come si allena un modello agentico</span><h2>Il collegamento con il documento sul training</h2></div>
   <div class="prose stack">
-    <p>Usare bene i tool non viene gratis dal pre-training: si insegna nel post-training, con le stesse tecniche viste nell'altro documento.</p>
+    <p><mark>Usare bene i tool non viene gratis dal pre-training: si insegna nel post-training</mark>, con le stesse tecniche viste nell'altro documento.</p>
   </div>
   <div class="grid3 three">
     <div class="box"><b>SFT su tracce di tool</b><span>Con l'SFT (Supervised Fine-Tuning, fine-tuning supervisionato) il modello vede migliaia di conversazioni in cui compaiono definizioni di tool, richieste corrette in formato JSON, risultati e risposte finali. Impara il <i>formato</i>: quando emettere una richiesta, come riempire gli argomenti, come usare il risultato.</span><em>impara la sintassi</em></div>
     <div class="box"><b>RL su compiti a più passi</b><span>Con l'RL (Reinforcement Learning, apprendimento per rinforzo), e in particolare con RLVR (Reinforcement Learning with Verifiable Rewards, con ricompense verificabili), il modello svolge compiti interi in un ambiente con tool veri, e riceve il reward (la ricompensa) solo alla fine: i test passano? Il file è corretto? Così impara la <i>strategia</i>: in che ordine procedere, come riprendersi da un errore, quando fermarsi.</span><em>impara a portare a termine</em></div>
     <div class="box"><b>Preferenze e sicurezza</b><span>Con DPO (Direct Preference Optimization) e tecniche simili impara a chiedere conferma prima di azioni rischiose, a ignorare le istruzioni nascoste nei dati, a dire quando non riesce.</span><em>impara i limiti</em></div>
   </div>
-  <p class="prose callout"><b>Il filo rosso tra i due documenti:</b> «da assistente ad agente» è un cambiamento sia del <i>sistema</i> (tool, ciclo, controlli) sia del <i>modello</i>. I modelli recenti sono allenati con RL proprio su lunghe sequenze di azioni, ed è anche per questo che oggi riescono a lavorare in autonomia per decine o centinaia di passi.</p>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 7: come si allena un modello agentico">
+    <figcaption class="vx-cap">Mappa concettuale · allenare un modello agentico</figcaption>
+    <ul><li><span class="c">Modello agentico</span>
+      <ul>
+        <li><em class="r">si allena nel</em> <span class="c">Post-training <small>dopo il pre-training</small></span>
+          <ul><li><em class="r">con le stesse tecniche</em> <span class="c">dell'altro documento</span></li></ul></li>
+        <li><em class="r">con SFT su tracce di tool</em> <span class="c hot">Impara la sintassi</span>
+          <ul><li><em class="r">il formato</em> <span class="c">quando emettere una richiesta e come riempirla</span></li></ul></li>
+        <li><em class="r">con RL su compiti a più passi</em> <span class="c hot">Impara a portare a termine</span>
+          <ul><li><em class="r">il reward arriva</em> <span class="c">solo alla fine</span></li>
+              <li><em class="r">impara</em> <span class="c">la strategia</span></li></ul></li>
+        <li><em class="r">con preferenze (DPO)</em> <span class="c">Impara i limiti</span>
+          <ul><li><em class="r">chiedere conferma</em> <span class="c">prima di azioni rischiose</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+  <div class="rd sum"><span class="rd-k">Il filo rosso tra i due documenti</span><p>«da assistente ad agente» è <mark>un cambiamento sia del <i>sistema</i> (tool, ciclo, controlli) sia del <i>modello</i></mark>. I modelli recenti sono allenati con RL proprio su lunghe sequenze di azioni, ed è anche per questo che oggi riescono a lavorare in autonomia per decine o centinaia di passi.</p></div>
 </section>
 
 <!-- ============ SUMMARY ============ -->
@@ -960,6 +1107,60 @@ window.XREF_CONFIG=(function(){const U="https://pericle82.github.io/explorables/
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
 .xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+/* 12 · lettura: grassetto, evidenziazione, termini e riquadri nel testo (AUTHORING.md §12) */
+.prose{line-height:1.68}
+.prose b,.prose strong,.rd b,.rd strong,.callout b,.callout strong{font-weight:600;color:var(--ink)}
+mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+dfn{font-style:normal;font-weight:600;color:var(--accent)}
+.callout>b:first-child,.callout>strong:first-child{color:var(--accent)}
+.rd{margin:18px 0;max-width:68ch;padding:12px 16px 12px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.6}
+.rd>*+*{margin-top:8px}
+.rd ul,.rd ol{margin:8px 0 0;padding-left:1.2em}
+.rd li+li{margin-top:4px}
+.rd-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.rd.sum{background:var(--accent-soft)}
+.rd.warn{border-left-color:var(--bad);background:var(--bad-soft)}
+.rd.warn .rd-k{color:var(--bad)}
+.rd.key{border-left-color:var(--good);background:var(--good-soft)}
+.rd.key .rd-k{color:var(--good)}
+.rd.ex{border-left-color:var(--line);background:var(--surface)}
+.rd.ex .rd-k{color:var(--muted)}
+/* 13 · calcoli: formule e passaggi in un riquadro (AUTHORING.md §12) */
+.vx-math{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px 14px;max-width:100%;overflow-x:auto}
+.vx-math-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.vx-eqs{display:grid;grid-template-columns:auto auto 1fr;column-gap:.6em;row-gap:8px;align-items:center;font-family:var(--serif);font-size:1.08rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.vx-eq{display:contents}
+.vx-eq>.l{text-align:right;white-space:nowrap}
+.vx-eq>.o{color:var(--accent);font-weight:600;text-align:center}
+.vx-eq>.r{white-space:nowrap}
+.vx-eq>small,.vx-eqs>small{grid-column:3;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin-top:-4px}
+.vx-eq.res>.r{font-weight:650;background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px;padding:1px 6px;justify-self:start}
+.vx-math var,.vx-formula var{font-style:italic;font-family:var(--serif)}
+.vx-math sub,.vx-math sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .2em .1em}
+.fr>span:last-child{padding:.1em .2em 0}
+.vx-math-f{font-size:.88rem;color:var(--muted);margin:10px 0 0;font-family:var(--sans)}
+.vx-math-f b{color:var(--ink)}
+/* 14 · mappa concettuale: albero di concetti con le relazioni scritte sui rami */
+.vx-cmap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px}
+.vx-cmap ul{list-style:none;margin:0;padding:0}
+.vx-cmap .c{display:inline-block;font-weight:600;font-size:.92rem;line-height:1.3;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.vx-cmap .c.hot{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cmap .c small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.vx-cmap .r{display:block;font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--accent);margin:0 0 3px;letter-spacing:.02em}
+.vx-cmap>ul>li{text-align:center}
+.vx-cmap>ul>li>.c{background:var(--accent);color:var(--bg);border-color:var(--accent);font-family:var(--serif);font-size:1.05rem;padding:7px 14px}
+.vx-cmap>ul>li>ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:22px;position:relative;text-align:left}
+.vx-cmap>ul>li>ul::before{content:"";position:absolute;left:8%;right:8%;top:-12px;border-top:1px solid var(--accent)}
+.vx-cmap>ul>li>ul>li{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.vx-cmap>ul>li>ul>li::before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:1px solid var(--accent)}
+.vx-cmap li li ul{margin:8px 0 0 6px;padding-left:12px;border-left:1px solid var(--line)}
+.vx-cmap li li li{position:relative;margin-top:8px}
+.vx-cmap li li li::before{content:"";position:absolute;left:-12px;top:.9em;width:10px;border-top:1px solid var(--line)}
+.vx-cmap-x{margin:14px 0 0;font-size:.84rem;color:var(--muted)}
+.vx-cmap-x b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.vx-cmap>ul>li>ul::before,.vx-cmap>ul>li>ul>li::before{display:none}.vx-cmap>ul>li>ul{margin-top:12px}}
 </style>
 <script>
 /* schede codice: pulsante Copia (copia le righe senza numeri) */

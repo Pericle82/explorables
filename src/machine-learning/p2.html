@@ -9,8 +9,13 @@
   <div class="sec-head"><span class="eyebrow">7 · Reti neurali</span><h2>Molte regressioni logistiche in fila, che inventano da sole le feature intermedie</h2></div>
   <div class="prose stack">
     <p class="q">Nel capitolo 4 le feature utili (l'area del lotto, x²) le abbiamo costruite noi. Per riconoscere un volto in una foto di un milione di pixel, quali feature costruiresti a mano? <b>E se fosse il modello a inventarle?</b></p>
-    <p>Prendi il problema di prevedere se una maglietta sarà un <i>best seller</i> a partire da prezzo, costo di spedizione, spesa in marketing e qualità del tessuto. Un esperto ragionerebbe per passi intermedi: prezzo e spedizione determinano quanto è <i>conveniente</i>; il marketing quanto è <i>conosciuta</i>; prezzo e tessuto la <i>qualità percepita</i>; e da queste tre si decide. Una <b>rete neurale</b> fa esattamente questo, con una differenza: le tre grandezze intermedie non le definisce nessuno. Il modello ha tre «unità» che ricevono tutte e quattro le feature e imparano, durante il training, quali combinazioni calcolare perché la previsione finale funzioni. Noi, dopo, possiamo guardarle e dar loro un nome; la rete non ne ha bisogno.</p>
-    <p>Ogni unità, o <b>neurone</b>, è una regressione logistica del capitolo 5: prende i suoi input, calcola z = w·x + b, applica una funzione di attivazione g (per ora la sigmoide) e produce un numero a, l'<b>attivazione</b>. Un gruppo di neuroni che ricevono gli stessi input è uno <b>strato</b> (layer); l'uscita di uno strato è l'input del successivo. Lo strato finale produce la previsione; quelli in mezzo si chiamano <b>nascosti</b> (hidden), perché il training set non dice che cosa debbano calcolare: contiene solo gli x e le y, e i valori intermedi li decide la rete. In una rete per il riconoscimento dei volti, i neuroni dei primi strati finiscono per reagire a bordi e linee corte, quelli successivi a occhi e nasi, gli ultimi a forme di volto intere: una gerarchia di feature che nessuno ha programmato.</p>
+  </div>
+  <div class="rd ex"><span class="rd-k">Un esempio: la maglietta best seller</span><p>Prendi il problema di prevedere se una maglietta sarà un <i>best seller</i> a partire da prezzo, costo di spedizione, spesa in marketing e qualità del tessuto. Un esperto ragionerebbe per passi intermedi: prezzo e spedizione determinano quanto è <i>conveniente</i>; il marketing quanto è <i>conosciuta</i>; prezzo e tessuto la <i>qualità percepita</i>; e da queste tre si decide.</p></div>
+  <div class="prose stack">
+    <p>Una <dfn>rete neurale</dfn> fa esattamente questo, con una differenza: <mark>le tre grandezze intermedie non le definisce nessuno</mark>. Il modello ha tre «unità» che ricevono tutte e quattro le feature e imparano, durante il training, quali combinazioni calcolare perché la previsione finale funzioni. Noi, dopo, possiamo guardarle e dar loro un nome; la rete non ne ha bisogno.</p>
+    <p><mark>Ogni unità, o <dfn>neurone</dfn>, è una regressione logistica del capitolo 5</mark>: prende i suoi input, calcola z = w·x + b, applica una funzione di attivazione g (per ora la sigmoide) e produce un numero a, l'<dfn>attivazione</dfn>.</p>
+    <p>Un gruppo di neuroni che ricevono gli stessi input è uno <dfn>strato</dfn> (layer); l'uscita di uno strato è l'input del successivo. Lo strato finale produce la previsione; quelli in mezzo si chiamano <dfn>nascosti</dfn> (hidden), <mark>perché il training set non dice che cosa debbano calcolare</mark>: contiene solo gli x e le y, e i valori intermedi li decide la rete.</p>
+    <p>In una rete per il riconoscimento dei volti, i neuroni dei primi strati finiscono per reagire a bordi e linee corte, quelli successivi a occhi e nasi, gli ultimi a forme di volto intere: <mark>una gerarchia di feature che nessuno ha programmato</mark>.</p>
   </div>
   <div class="diag">
     <span class="box">x<br><small class="muted">prezzo, spedizione, marketing, tessuto</small></span><span class="arr">→</span>
@@ -21,8 +26,28 @@
 
   <h3 id="s7-forward" class="anchor">Forward propagation: il calcolo da sinistra a destra</h3>
   <div class="prose stack">
-    <p>La notazione mette tra parentesi quadre l'indice dello strato: a<sup>[1]</sup> è il vettore delle attivazioni dello strato 1, a<sub>2</sub><sup>[1]</sup> quella del suo secondo neurone, W<sup>[1]</sup> e b<sup>[1]</sup> i suoi parametri; l'input x si può chiamare a<sup>[0]</sup>. Lo strato l calcola, per ciascun neurone j, <span class="k">a<sub>j</sub><sup>[l]</sup> = g( w<sub>j</sub><sup>[l]</sup> · a<sup>[l−1]</sup> + b<sub>j</sub><sup>[l]</sup> )</span>. Fare questo calcolo strato dopo strato, dall'input all'uscita, si chiama <b>forward propagation</b> (propagazione in avanti) ed è ciò che la rete fa in <i>inferenza</i>, quando è già addestrata e deve rispondere. Tutti i neuroni di uno strato si calcolano insieme con un prodotto tra matrici: Z = A<sup>[l−1]</sup> W + b, A = g(Z); è la vettorizzazione del capitolo 4, ed è il motivo per cui le reti girano bene su GPU.</p>
-    <p><b>Perché gli strati nascosti servono davvero.</b> Un solo neurone logistico traccia un confine di decisione lineare. Due strati possono tracciare confini curvi, chiusi, a pezzi: ogni neurone nascosto divide il piano con la sua retta, e il neurone di uscita combina le regioni. Il laboratorio allena davvero una rete piccola su dati che nessuna retta può separare; guarda nascere il confine e le rette dei singoli neuroni nascosti.</p>
+    <p>La notazione mette tra parentesi quadre l'indice dello strato: a<sup>[1]</sup> è il vettore delle attivazioni dello strato 1, a<sub>2</sub><sup>[1]</sup> quella del suo secondo neurone, W<sup>[1]</sup> e b<sup>[1]</sup> i suoi parametri; l'input x si può chiamare a<sup>[0]</sup>. Lo strato l calcola, per ciascun neurone j:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · un neurone di uno strato</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>a</var><sub><var>j</var></sub><sup>[<var>l</var>]</sup></span><span class="o">=</span><span class="r"><var>g</var>( <var>w</var><sub><var>j</var></sub><sup>[<var>l</var>]</sup> · <var>a</var><sup>[<var>l</var>−1]</sup> + <var>b</var><sub><var>j</var></sub><sup>[<var>l</var>]</sup> )</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Fare questo calcolo strato dopo strato, dall'input all'uscita, si chiama <dfn>forward propagation</dfn> (propagazione in avanti) ed è ciò che la rete fa in <i>inferenza</i>, quando è già addestrata e deve rispondere. Tutti i neuroni di uno strato si calcolano insieme con un prodotto tra matrici:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · un intero strato, in un colpo solo</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>Z</var></span><span class="o">=</span><span class="r"><var>A</var><sup>[<var>l</var>−1]</sup> <var>W</var> + <var>b</var></span></div>
+      <div class="vx-eq"><span class="l"><var>A</var></span><span class="o">=</span><span class="r"><var>g</var>(<var>Z</var>)</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>È la vettorizzazione del capitolo 4, ed è il motivo per cui le reti girano bene su GPU.</p>
+  </div>
+  <div class="rd key"><span class="rd-k">Perché gli strati nascosti servono davvero</span><p>Un solo neurone logistico traccia un confine di decisione lineare. Due strati possono tracciare confini curvi, chiusi, a pezzi: <mark>ogni neurone nascosto divide il piano con la sua retta, e il neurone di uscita combina le regioni</mark>.</p></div>
+  <div class="prose stack">
+    <p>Il laboratorio allena davvero una rete piccola su dati che nessuna retta può separare; guarda nascere il confine e le rette dei singoli neuroni nascosti.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: una rete che impara un confine curvo</h3><span class="tag">matematica reale · training nel browser</span></div>
@@ -38,6 +63,26 @@
     </div>
     <p class="note">Con 1 neurone nascosto la rete può al massimo tracciare una retta; con 2 chiude una striscia; con 4 o più circonda i positivi. Ogni «Nuovi pesi casuali» parte da un'inizializzazione diversa: a volte la discesa si ferma in una soluzione peggiore, perché con gli strati nascosti il costo non è più una ciotola convessa. Il training vero usa le stesse formule, con milioni di parametri e la libreria (TensorFlow, PyTorch) che calcola le derivate al posto nostro.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 7">
+    <figcaption class="vx-cap">Mappa concettuale · reti neurali</figcaption>
+    <ul><li><span class="c">Rete neurale</span>
+      <ul>
+        <li><em class="r">è fatta di</em> <span class="c hot">neuroni</span>
+          <ul><li><em class="r">ciascuno è</em> <span class="c">una regressione logistica</span></li>
+              <li><em class="r">produce</em> <span class="c">un'attivazione a</span></li></ul></li>
+        <li><em class="r">organizzati in</em> <span class="c">strati</span>
+          <ul><li><em class="r">quelli in mezzo sono</em> <span class="c">gli strati nascosti</span></li>
+              <li><em class="r">calcolano</em> <span class="c hot">feature intermedie</span></li></ul></li>
+        <li><em class="r">si calcola con</em> <span class="c">forward propagation</span>
+          <ul><li><em class="r">va</em> <span class="c">da x all'uscita</span></li>
+              <li><em class="r">si vettorizza con</em> <span class="c">prodotti tra matrici</span></li></ul></li>
+        <li><em class="r">permette</em> <span class="c">confini curvi</span>
+          <ul><li><em class="r">ogni neurone nascosto</em> <span class="c">traccia una retta</span></li>
+              <li><em class="r">l'uscita</em> <span class="c">combina le regioni</span></li></ul></li>
+        <li><em class="r">si addestra con</em> <span class="c">backpropagation <small>capitolo 8</small></span>
+</li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 7</p>
     <ul>
@@ -56,7 +101,9 @@
   <div class="sec-head"><span class="eyebrow">8 · Addestrare una rete</span><h2>Le stesse tre mosse di sempre: modello, costo, discesa</h2></div>
   <div class="prose stack">
     <p class="q">In TensorFlow addestrare una rete sono tre righe: <span class="k">model = Sequential([...])</span>, <span class="k">model.compile(loss=...)</span>, <span class="k">model.fit(X, Y, epochs=100)</span>. <b>Che cosa fanno davvero quelle tre righe?</b></p>
-    <p>Sono le tre mosse della regressione logistica. La prima <b>definisce il modello</b>: quanti strati, quanti neuroni, quali attivazioni, cioè la funzione f(x) con i suoi parametri. La seconda <b>sceglie il costo</b>: per una classificazione binaria la <i>binary cross-entropy</i>, che è esattamente la perdita logistica del capitolo 5 (−y log f − (1−y) log(1−f)) mediata sugli esempi; per una regressione l'errore quadratico. La terza <b>minimizza il costo</b> con la discesa del gradiente per il numero di epoche indicato (un'epoca = un passaggio su tutto il training set). La libreria calcola le derivate rispetto a tutti i parametri con la <b>backpropagation</b>, la regola della catena applicata all'indietro strato per strato; è la stessa cosa che il laboratorio del capitolo 7 fa a mano per una rete piccola, e la guida sul training degli LLM la spiega passo per passo. Quando il gradiente non c'è, perché l'unico segnale è un punteggio che arriva alla fine di una prova e non è derivabile rispetto ai pesi, si può farne a meno: la guida Neural Network Driving allena una rete piccola come quella del capitolo 7 per evoluzione, facendo competere molte copie e ricombinando i pesi delle migliori.</p>
+    <p><mark>Sono le tre mosse della regressione logistica.</mark> La prima <b>definisce il modello</b>: quanti strati, quanti neuroni, quali attivazioni, cioè la funzione f(x) con i suoi parametri. La seconda <b>sceglie il costo</b>: per una classificazione binaria la <i>binary cross-entropy</i>, che è esattamente la perdita logistica del capitolo 5 (−y log f − (1−y) log(1−f)) mediata sugli esempi; per una regressione l'errore quadratico. La terza <b>minimizza il costo</b> con la discesa del gradiente per il numero di epoche indicato (un'<dfn>epoca</dfn> = un passaggio su tutto il training set).</p>
+    <p>La libreria calcola le derivate rispetto a tutti i parametri con la <dfn>backpropagation</dfn>, <mark>la regola della catena applicata all'indietro strato per strato</mark>; è la stessa cosa che il laboratorio del capitolo 7 fa a mano per una rete piccola, e la guida sul training degli LLM la spiega passo per passo.</p>
+    <p>Quando il gradiente non c'è, perché l'unico segnale è un punteggio che arriva alla fine di una prova e non è derivabile rispetto ai pesi, si può farne a meno: la guida Neural Network Driving allena una rete piccola come quella del capitolo 7 per evoluzione, facendo competere molte copie e ricombinando i pesi delle migliori.</p>
   </div>
   <div class="vx vx-code"><div class="vx-code-h"><span>Python · TensorFlow, le tre mosse</span><button class="vx-copy" type="button">Copia</button></div><pre><code><span class="ln"><span class="tk-cm"># 1 · il modello: la forma di f(x) e i suoi parametri</span>
 </span><span class="ln">model = Sequential([Dense(units=25, activation=<span class="tk-str">'relu'</span>),
@@ -70,17 +117,37 @@
 
   <h3 id="s8-act" class="anchor">Le funzioni di attivazione: perché non la sigmoide ovunque</h3>
   <div class="prose stack">
-    <p>Tre attivazioni coprono quasi tutto. La <b>sigmoide</b>, tra 0 e 1, va bene quando l'uscita è una probabilità: il neurone finale di una classificazione binaria. La <b>lineare</b> (g(z) = z, cioè nessuna attivazione) serve quando l'uscita è un numero qualsiasi, positivo o negativo: una regressione. La <b>ReLU</b> (Rectified Linear Unit, g(z) = max(0, z)) è la scelta di default per gli strati nascosti, per due ragioni: è più veloce da calcolare, e soprattutto non si «appiattisce» a destra come la sigmoide, che per z grande ha derivata quasi zero e rende la discesa del gradiente lentissima. Per uscite che devono essere non negative (un prezzo) va bene la ReLU anche in uscita.</p>
-    <p><b>Perché serve una non linearità.</b> Se tutti i neuroni avessero attivazione lineare, la rete intera, per quanti strati abbia, calcolerebbe una funzione lineare di x: una combinazione lineare di combinazioni lineari è ancora una combinazione lineare, e si torna alla regressione del capitolo 4. Gli strati nascosti valgono qualcosa solo con una g che piega: è la ReLU a permettere al laboratorio del capitolo 7 di tracciare confini curvi, a pezzi di retta.</p>
+    <p><mark>Tre attivazioni coprono quasi tutto.</mark> La <b>sigmoide</b>, tra 0 e 1, va bene quando l'uscita è una probabilità: il neurone finale di una classificazione binaria. La <b>lineare</b> (g(z) = z, cioè nessuna attivazione) serve quando l'uscita è un numero qualsiasi, positivo o negativo: una regressione.</p>
+    <p>La <dfn>ReLU</dfn> (Rectified Linear Unit, g(z) = max(0, z)) è <mark>la scelta di default per gli strati nascosti</mark>, per due ragioni: è più veloce da calcolare, e soprattutto non si «appiattisce» a destra come la sigmoide, che per z grande ha derivata quasi zero e rende la discesa del gradiente lentissima. Per uscite che devono essere non negative (un prezzo) va bene la ReLU anche in uscita.</p>
   </div>
-
+  <div class="rd key"><span class="rd-k">Perché serve una non linearità</span><p>Se tutti i neuroni avessero attivazione lineare, la rete intera, per quanti strati abbia, calcolerebbe una funzione lineare di x: una combinazione lineare di combinazioni lineari è ancora una combinazione lineare, e si torna alla regressione del capitolo 4. <mark>Gli strati nascosti valgono qualcosa solo con una g che piega</mark>: è la ReLU a permettere al laboratorio del capitolo 7 di tracciare confini curvi, a pezzi di retta.</p></div>
+  
   <h3 id="s8-softmax" class="anchor">Più di due classi: softmax</h3>
   <div class="prose stack">
     <p class="q">Riconoscere le cifre scritte a mano ha dieci risposte possibili, non due. Come si generalizza la sigmoide?</p>
-    <p>Con la <b>softmax</b>. Lo strato di uscita ha un neurone per classe, ciascuno con la sua z<sub>j</sub> = w<sub>j</sub>·a + b<sub>j</sub>; la softmax trasforma le N z in probabilità che sommano a 1: <span class="k">a<sub>j</sub> = e<sup>z<sub>j</sub></sup> / Σ<sub>k</sub> e<sup>z<sub>k</sub></sup></span>. Con N = 2 coincide con la sigmoide. La perdita è la <b>cross-entropy</b>: −log a<sub>y</sub>, il logaritmo negativo della probabilità data alla classe vera; se la classe vera era la 3 e il modello le dà 0,9 la perdita è 0,1, se le dà 0,1 è 2,3. A differenza delle altre attivazioni, qui ogni uscita dipende da <i>tutte</i> le z: alzare una abbassa le altre.</p>
-    <p>Un dettaglio pratico che conta: calcolare e<sup>z</sup> per z grandi e poi il logaritmo produce errori di arrotondamento. Le librerie permettono di far uscire dalla rete le z grezze (attivazione lineare) e di dire alla loss di applicare la softmax internamente (<span class="k">from_logits=True</span>), riorganizzando i conti in modo più stabile. Il risultato è lo stesso, i numeri sono più precisi. Da non confondere con la classificazione <b>multi-label</b>: se una foto può contenere insieme un'auto, un pedone e un autobus, le risposte sono tre sì/no indipendenti, e si usano tre sigmoidi, non una softmax.</p>
+    <p>Con la <dfn>softmax</dfn>. Lo strato di uscita ha un neurone per classe, ciascuno con la sua z<sub>j</sub> = w<sub>j</sub>·a + b<sub>j</sub>; la softmax trasforma le N z in probabilità che sommano a 1:</p>
   </div>
-  <div class="lab">
+  <div class="vx vx-math"><p class="vx-math-h">Formula · softmax</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>a</var><sub><var>j</var></sub></span><span class="o">=</span><span class="r"><span class="fr"><span><var>e</var><sup><var>z</var><sub><var>j</var></sub></sup></span> <span>Σ<sub><var>k</var></sub> <var>e</var><sup><var>z</var><sub><var>k</var></sub></sup></span></span></span></div>
+      <small>con N = 2 coincide con la sigmoide</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>La perdita è la <dfn>cross-entropy</dfn>: −log a<sub>y</sub>, il logaritmo negativo della probabilità data alla classe vera; se la classe vera era la 3 e il modello le dà:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · la cross-entropy se la classe vera era la 3</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">il modello le dà 0,9</span><span class="o">=</span><span class="r">−log 0,9 ≈ 0,1</span></div>
+      <div class="vx-eq res"><span class="l">il modello le dà 0,1</span><span class="o">=</span><span class="r">−log 0,1 ≈ 2,3</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>A differenza delle altre attivazioni, <mark>qui ogni uscita dipende da <i>tutte</i> le z: alzare una abbassa le altre</mark>.</p>
+    <p>Un dettaglio pratico che conta: calcolare e<sup>z</sup> per z grandi e poi il logaritmo produce errori di arrotondamento. Le librerie permettono di far uscire dalla rete le z grezze (attivazione lineare) e di dire alla loss di applicare la softmax internamente (<span class="k">from_logits=True</span>), riorganizzando i conti in modo più stabile. Il risultato è lo stesso, i numeri sono più precisi.</p>
+  </div>
+  <div class="rd warn"><span class="rd-k">Multi-class non è multi-label</span><p>Da non confondere con la classificazione <b>multi-label</b>: se una foto può contenere insieme un'auto, un pedone e un autobus, le risposte sono tre sì/no indipendenti, e <mark>si usano tre sigmoidi, non una softmax</mark>.</p></div>
+    <div class="lab">
     <div class="lab-head"><h3>Laboratorio: softmax e cross-entropy su quattro classi</h3><span class="tag">matematica reale</span></div>
     <p>Quattro cifre possibili, quattro z in uscita dalla rete. Muovi le z e scegli quale cifra era quella vera: le barre sono la softmax, il numero in basso la perdita.</p>
     <div class="controls">
@@ -97,8 +164,29 @@
 
   <h3 id="s8-adam" class="anchor">Adam e gli strati convoluzionali</h3>
   <div class="prose stack">
-    <p><b>Adam</b> (Adaptive Moment Estimation) è la discesa del gradiente con un learning rate <i>per parametro</i>, che si adatta da solo: se un parametro continua a muoversi nella stessa direzione passo dopo passo, il suo α cresce (si può andare più in fretta); se oscilla avanti e indietro, il suo α si riduce. In pratica è più robusto della discesa semplice alla scelta di α iniziale ed è l'ottimizzatore di default per quasi tutto; si parte di solito da 10⁻³. Negli <b>strati convoluzionali</b>, infine, ogni neurone guarda solo una <i>finestra</i> dell'input (un pezzo di immagine, un tratto di segnale) invece che tutto: meno parametri, meno overfitting, e la capacità di riconoscere un motivo ovunque compaia. Sono il mattone delle reti per immagini (CNN, Convolutional Neural Network); qui basta sapere che esistono e perché.</p>
+    <p><dfn>Adam</dfn> (Adaptive Moment Estimation) è la discesa del gradiente con <mark>un learning rate <i>per parametro</i>, che si adatta da solo</mark>: se un parametro continua a muoversi nella stessa direzione passo dopo passo, il suo α cresce (si può andare più in fretta); se oscilla avanti e indietro, il suo α si riduce. In pratica è più robusto della discesa semplice alla scelta di α iniziale ed è l'ottimizzatore di default per quasi tutto; si parte di solito da 10⁻³.</p>
+    <p>Negli <dfn>strati convoluzionali</dfn>, infine, ogni neurone guarda solo una <i>finestra</i> dell'input (un pezzo di immagine, un tratto di segnale) invece che tutto: <mark>meno parametri, meno overfitting, e la capacità di riconoscere un motivo ovunque compaia</mark>. Sono il mattone delle reti per immagini (CNN, Convolutional Neural Network); qui basta sapere che esistono e perché.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 8">
+    <figcaption class="vx-cap">Mappa concettuale · addestrare una rete</figcaption>
+    <ul><li><span class="c">Addestrare una rete</span>
+      <ul>
+        <li><em class="r">si fa in tre mosse</em> <span class="c hot">modello, costo, discesa</span>
+          <ul><li><em class="r">il costo è</em> <span class="c">la binary cross-entropy</span></li>
+              <li><em class="r">le derivate le calcola</em> <span class="c">la backpropagation</span></li></ul></li>
+        <li><em class="r">le attivazioni sono</em> <span class="c">sigmoide, lineare, ReLU</span>
+          <ul><li><em class="r">la ReLU va negli</em> <span class="c">strati nascosti</span></li>
+              <li><em class="r">senza non linearità</em> <span class="c">la rete è un modello lineare</span></li></ul></li>
+        <li><em class="r">per più classi serve la</em> <span class="c hot">softmax</span>
+          <ul><li><em class="r">produce</em> <span class="c">probabilità che sommano a 1</span></li>
+              <li><em class="r">si misura con</em> <span class="c">la cross-entropy −log a<sub>y</sub></span></li>
+              <li><em class="r">più etichette insieme:</em> <span class="c">tante sigmoidi</span></li></ul></li>
+        <li><em class="r">l'ottimizzatore è</em> <span class="c">Adam</span>
+          <ul><li><em class="r">adatta</em> <span class="c">il learning rate per parametro</span></li></ul></li>
+        <li><em class="r">per le immagini</em> <span class="c">strati convoluzionali</span>
+          <ul><li><em class="r">guardano</em> <span class="c">una finestra dell'input</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 8</p>
     <ul>
@@ -117,21 +205,28 @@
   <div class="sec-head"><span class="eyebrow">9 · Far funzionare un modello</span><h2>Quando il modello sbaglia, la diagnosi vale più di qualsiasi tentativo a caso</h2></div>
   <div class="prose stack">
     <p class="q">Il modello della casa sbaglia di 60 k€ su case nuove. Potresti raccogliere più dati, aggiungere feature, toglierne, cambiare λ, cambiare rete. <b>Ciascuna scelta costa settimane: quale fare?</b></p>
-    <p>La risposta sbagliata è «proviamole tutte». Quella giusta è misurare due numeri che dicono <i>di che male soffre</i> il modello, perché i rimedi per i due mali sono opposti. Per misurarli servono dati che il modello non ha usato per imparare: si divide il dataset in <b>training set</b> (per esempio il 60%), con cui si trovano i parametri, <b>cross-validation set</b> (20%, detto anche <i>validation</i> o <i>dev set</i>), con cui si scelgono grado del polinomio, λ, architettura della rete, e <b>test set</b> (20%), toccato una volta sola alla fine per stimare quanto il modello finale sbaglierà nel mondo. Il test set non si usa per nessuna scelta: nel momento in cui lo si usa per scegliere, la sua stima diventa ottimista, perché si è scelto <i>per</i> fare bene su di lui.</p>
+    <p>La risposta sbagliata è «proviamole tutte». <mark>Quella giusta è misurare due numeri che dicono <i>di che male soffre</i> il modello</mark>, perché i rimedi per i due mali sono opposti. Per misurarli servono dati che il modello non ha usato per imparare: si divide il dataset in <dfn>training set</dfn> (per esempio il 60%), con cui si trovano i parametri, <dfn>cross-validation set</dfn> (20%, detto anche <i>validation</i> o <i>dev set</i>), con cui si scelgono grado del polinomio, λ, architettura della rete, e <dfn>test set</dfn> (20%), toccato una volta sola alla fine per stimare quanto il modello finale sbaglierà nel mondo.</p>
   </div>
-
+  <div class="rd warn"><span class="rd-k">Il test set non si usa per scegliere</span><p>Il test set non si usa per nessuna scelta: nel momento in cui lo si usa per scegliere, la sua stima diventa ottimista, perché si è scelto <i>per</i> fare bene su di lui.</p></div>
+  
   <h3 id="s9-bv" class="anchor">Bias e varianza, letti da J<sub>train</sub> e J<sub>cv</sub></h3>
   <div class="prose stack">
-    <p>Il capitolo 6 ha dato i nomi: <b>alto bias</b> (underfitting) e <b>alta varianza</b> (overfitting). Due numeri li distinguono. J<sub>train</sub> alto significa che il modello non riesce nemmeno a imparare gli esempi che vede: alto bias. J<sub>train</sub> basso ma J<sub>cv</sub> molto più alto significa che li ha imparati ma non generalizza: alta varianza. Possono anche coesistere, in parti diverse dello spazio: J<sub>train</sub> alto e J<sub>cv</sub> ancora più alto. «Alto» rispetto a che cosa? Rispetto a una <b>baseline</b>: le prestazioni umane sullo stesso compito, un modello concorrente, o una stima di quanto il rumore dei dati renda impossibile scendere. Se un umano trascrive l'audio con il 10,6% di errore, un J<sub>train</sub> del 10,8% non è alto bias: è vicino al limite.</p>
-    <p>Da qui la <b>tabella delle decisioni</b>, che è il cuore pratico di tutto il corso. Alta varianza: più dati di training, meno feature, λ più grande. Alto bias: più feature o feature polinomiali, λ più piccolo, un modello più grande. Notare che <i>più dati</i> non cura l'alto bias: se la retta non riesce a seguire i dati che ha, dargliene altri non la fa piegare.</p>
+    <p>Il capitolo 6 ha dato i nomi: <b>alto bias</b> (underfitting) e <b>alta varianza</b> (overfitting). Due numeri li distinguono. <mark>J<sub>train</sub> alto significa che il modello non riesce nemmeno a imparare gli esempi che vede: alto bias.</mark> <mark>J<sub>train</sub> basso ma J<sub>cv</sub> molto più alto significa che li ha imparati ma non generalizza: alta varianza.</mark> Possono anche coesistere, in parti diverse dello spazio: J<sub>train</sub> alto e J<sub>cv</sub> ancora più alto.</p>
+    <p>«Alto» rispetto a che cosa? Rispetto a una <dfn>baseline</dfn>: le prestazioni umane sullo stesso compito, un modello concorrente, o una stima di quanto il rumore dei dati renda impossibile scendere.</p>
   </div>
-  <div class="scroll-x"><table class="vx-table"><thead><tr><th>Sintomo</th><th>Diagnosi</th><th>Rimedi che aiutano</th><th>Rimedi inutili</th></tr></thead><tbody>
+  <div class="rd ex"><span class="rd-k">Un esempio con la baseline</span><p>Se un umano trascrive l'audio con il 10,6% di errore, un J<sub>train</sub> del 10,8% non è alto bias: è vicino al limite.</p></div>
+  <div class="prose stack">
+    <p>Da qui la <b>tabella delle decisioni</b>, <mark>che è il cuore pratico di tutto il corso</mark>. Alta varianza: più dati di training, meno feature, λ più grande. Alto bias: più feature o feature polinomiali, λ più piccolo, un modello più grande.</p>
+  </div>
+  <div class="rd warn"><span class="rd-k">Più dati non cura l'alto bias</span><p>Notare che <i>più dati</i> non cura l'alto bias: se la retta non riesce a seguire i dati che ha, dargliene altri non la fa piegare.</p></div>
+    <div class="scroll-x"><table class="vx-table"><thead><tr><th>Sintomo</th><th>Diagnosi</th><th>Rimedi che aiutano</th><th>Rimedi inutili</th></tr></thead><tbody>
     <tr><td>J<sub>train</sub> alto (rispetto alla baseline), J<sub>cv</sub> ≈ J<sub>train</sub></td><td><b>Alto bias</b></td><td>feature in più o polinomiali · λ più piccolo · rete più grande</td><td>più dati</td></tr>
     <tr><td>J<sub>train</sub> basso, J<sub>cv</sub> ≫ J<sub>train</sub></td><td><b>Alta varianza</b></td><td>più dati · meno feature · λ più grande</td><td>un modello ancora più grande (senza regolarizzazione)</td></tr>
     <tr><td>J<sub>train</sub> alto e J<sub>cv</sub> ancora più alto</td><td>entrambi</td><td>prima il bias (modello più capace), poi la varianza (dati, λ)</td><td>—</td></tr>
   </tbody></table></div>
   <div class="prose stack">
-    <p><b>Le curve di apprendimento</b> rendono la diagnosi visiva: J<sub>train</sub> e J<sub>cv</sub> in funzione del numero di esempi m. Con pochi esempi J<sub>train</sub> è quasi zero (facile adattarsi a due punti) e J<sub>cv</sub> altissimo; crescendo m, J<sub>train</sub> sale e J<sub>cv</sub> scende. Con alto bias le due curve si avvicinano presto e si appiattiscono <i>alte</i>: aggiungere dati non serve. Con alta varianza resta un divario largo tra le due che si chiude lentamente: qui i dati servono eccome. Il laboratorio le calcola davvero, adattando un polinomio a dataset sempre più grandi.</p>
+    <p><b>Le curve di apprendimento</b> rendono la diagnosi visiva: J<sub>train</sub> e J<sub>cv</sub> in funzione del numero di esempi m. Con pochi esempi J<sub>train</sub> è quasi zero (facile adattarsi a due punti) e J<sub>cv</sub> altissimo; crescendo m, J<sub>train</sub> sale e J<sub>cv</sub> scende.</p>
+    <p><mark>Con alto bias le due curve si avvicinano presto e si appiattiscono <i>alte</i></mark>: aggiungere dati non serve. Con alta varianza resta un divario largo tra le due che si chiude lentamente: qui i dati servono eccome. Il laboratorio le calcola davvero, adattando un polinomio a dataset sempre più grandi.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: curve di apprendimento</h3><span class="tag">matematica reale</span></div>
@@ -146,22 +241,40 @@
 
   <h3 id="s9-nn" class="anchor">Reti neurali, bias e varianza: una ricetta</h3>
   <div class="prose stack">
-    <p>Con le reti neurali il compromesso tra bias e varianza si allenta. Una rete grande, con una regolarizzazione scelta bene, fa <i>almeno</i> bene quanto una piccola: il costo è solo computazionale. Da qui una ricetta: se J<sub>train</sub> è alto rispetto alla baseline, rete più grande (più strati o più neuroni), finché J<sub>train</sub> non scende; poi, se J<sub>cv</sub> è alto, più dati, e si ricomincia. La regolarizzazione in una rete è la stessa tassa λ·Σw² del capitolo 6, applicata ai pesi di ogni strato (<span class="k">kernel_regularizer=L2(0.01)</span> in TensorFlow).</p>
+    <p>Con le reti neurali il compromesso tra bias e varianza si allenta. <mark>Una rete grande, con una regolarizzazione scelta bene, fa <i>almeno</i> bene quanto una piccola</mark>: il costo è solo computazionale.</p>
+    <p>Da qui una ricetta: se J<sub>train</sub> è alto rispetto alla baseline, <mark>rete più grande (più strati o più neuroni), finché J<sub>train</sub> non scende; poi, se J<sub>cv</sub> è alto, più dati</mark>, e si ricomincia. La regolarizzazione in una rete è la stessa tassa λ·Σw² del capitolo 6, applicata ai pesi di ogni strato (<span class="k">kernel_regularizer=L2(0.01)</span> in TensorFlow).</p>
   </div>
 
   <h3 id="s9-loop" class="anchor">Il ciclo di sviluppo e l'analisi degli errori</h3>
   <div class="prose stack">
-    <p>Un progetto reale gira in un ciclo: si sceglie l'architettura (modello, dati, iperparametri), si addestra, si fanno le <b>diagnosi</b> (bias/varianza e analisi degli errori), si decide che cosa cambiare, e si ricomincia. L'<b>analisi degli errori</b> è il complemento umano della diagnosi numerica: si prendono 100 esempi del cross-validation set sbagliati dal modello, si leggono uno per uno e si contano per categoria. Se su 100 spam non riconosciuti 21 sono farmaci, 18 sono email con errori di ortografia voluti, 7 phishing e 3 hanno il testo dentro un'immagine, è chiaro dove investire (farmaci, ortografia) e dove no (immagini: anche risolvendolo del tutto si guadagna il 3%). Se gli errori sono migliaia se ne campiona un centinaio: l'analisi manuale è lenta ma è lo strumento che evita mesi di lavoro su problemi irrilevanti.</p>
-    <p><b>Aggiungere dati con criterio.</b> Non «più dati di tutto», ma più dati del tipo che l'analisi degli errori indica. Due strumenti: la <b>data augmentation</b>, cioè creare esempi nuovi trasformando quelli esistenti in modo realistico (ruotare, ingrandire, distorcere una lettera scritta a mano; aggiungere rumore di fondo a un audio: distorsioni che il modello incontrerà davvero, non rumore casuale sui pixel), e la <b>sintesi</b>, cioè generare dati artificiali da zero (testo reso con font diversi su sfondi fotografati, per il riconoscimento di scritte). Negli ultimi anni l'attenzione si è spostata dal modello ai dati (<i>data-centric AI</i>): spesso il miglioramento più grande viene da dati migliori, non da un algoritmo diverso.</p>
-    <p><b>Transfer learning.</b> Se di dati ne hai pochi, puoi partire da una rete addestrata da altri su un compito vicino con milioni di esempi (riconoscere oggetti generici) e riaddestrare solo l'ultimo strato sui tuoi dati, o tutta la rete con un learning rate piccolo (<i>fine-tuning</i>). Funziona perché i primi strati hanno imparato feature generali (bordi, forme) che servono anche a te; richiede che l'input sia dello stesso tipo (immagini con immagini, audio con audio). È il modo in cui, su scala enorme, si addestrano gli assistenti linguistici a partire da un modello pre-addestrato.</p>
+    <p>Un progetto reale gira in un ciclo: si sceglie l'architettura (modello, dati, iperparametri), si addestra, si fanno le <b>diagnosi</b> (bias/varianza e analisi degli errori), si decide che cosa cambiare, e si ricomincia. <mark>L'<dfn>analisi degli errori</dfn> è il complemento umano della diagnosi numerica</mark>: si prendono 100 esempi del cross-validation set sbagliati dal modello, si leggono uno per uno e si contano per categoria.</p>
+  </div>
+  <div class="rd ex"><span class="rd-k">Un esempio di analisi degli errori</span><p>Se su 100 spam non riconosciuti 21 sono farmaci, 18 sono email con errori di ortografia voluti, 7 phishing e 3 hanno il testo dentro un'immagine, è chiaro dove investire (farmaci, ortografia) e dove no (immagini: anche risolvendolo del tutto si guadagna il 3%).</p></div>
+  <div class="prose stack">
+    <p>Se gli errori sono migliaia se ne campiona un centinaio: l'analisi manuale è lenta ma <mark>è lo strumento che evita mesi di lavoro su problemi irrilevanti</mark>.</p>
+    <p><b>Aggiungere dati con criterio.</b> Non «più dati di tutto», ma <mark>più dati del tipo che l'analisi degli errori indica</mark>.</p>
+    <p>Due strumenti: la <dfn>data augmentation</dfn>, cioè creare esempi nuovi trasformando quelli esistenti in modo realistico (ruotare, ingrandire, distorcere una lettera scritta a mano; aggiungere rumore di fondo a un audio: distorsioni che il modello incontrerà davvero, non rumore casuale sui pixel), e la <dfn>sintesi</dfn>, cioè generare dati artificiali da zero (testo reso con font diversi su sfondi fotografati, per il riconoscimento di scritte).</p>
+    <p>Negli ultimi anni l'attenzione si è spostata dal modello ai dati (<i>data-centric AI</i>): <mark>spesso il miglioramento più grande viene da dati migliori, non da un algoritmo diverso</mark>.</p>
+    <p><b>Transfer learning.</b> Se di dati ne hai pochi, puoi <mark>partire da una rete addestrata da altri su un compito vicino</mark> con milioni di esempi (riconoscere oggetti generici) e riaddestrare solo l'ultimo strato sui tuoi dati, o tutta la rete con un learning rate piccolo (<i>fine-tuning</i>).</p>
+    <p>Funziona perché i primi strati hanno imparato feature generali (bordi, forme) che servono anche a te; richiede che l'input sia dello stesso tipo (immagini con immagini, audio con audio). È il modo in cui, su scala enorme, si addestrano gli assistenti linguistici a partire da un modello pre-addestrato.</p>
   </div>
 
   <h3 id="s9-skew" class="anchor">Dati sbilanciati: precisione, recall e la soglia</h3>
   <div class="prose stack">
     <p class="q">Una malattia rara colpisce lo 0,5% dei pazienti. Un «modello» che dice sempre «sano» ha il 99,5% di accuratezza. <b>Come si smaschera?</b></p>
-    <p>Con due misure che l'accuratezza nasconde. Dividendo le previsioni in veri positivi (TP), falsi positivi (FP), falsi negativi (FN) e veri negativi (TN), la <b>precisione</b> è TP/(TP+FP): di quelli che ho detto malati, quanti lo erano; il <b>recall</b> è TP/(TP+FN): dei malati veri, quanti ne ho trovati. Il modello «sempre sano» ha recall zero, e il trucco è scoperto. Le due misure tirano in direzioni opposte, e la leva è la <b>soglia</b> sulla probabilità: alzarla sopra 0,5 (dire «malato» solo se molto sicuri) aumenta la precisione e abbassa il recall; abbassarla fa il contrario. La scelta dipende dai costi: una malattia curabile con un trattamento pesante chiede alta precisione; una malattia grave da non lasciar passare chiede alto recall. Per confrontare modelli con un solo numero si usa l'<b>F1</b>, la media armonica di precisione e recall: <span class="k">F1 = 2PR/(P+R)</span>, che punisce i valori sbilanciati (P = 0,02 e R = 1 dà F1 = 0,04, non 0,51 come la media semplice).</p>
+    <p>Con due misure che l'accuratezza nasconde. Dividendo le previsioni in veri positivi (TP), falsi positivi (FP), falsi negativi (FN) e veri negativi (TN), la <dfn>precisione</dfn> è TP/(TP+FP): di quelli che ho detto malati, quanti lo erano; il <dfn>recall</dfn> è TP/(TP+FN): dei malati veri, quanti ne ho trovati. <mark>Il modello «sempre sano» ha recall zero</mark>, e il trucco è scoperto.</p>
+    <p>Le due misure tirano in direzioni opposte, e <mark>la leva è la <b>soglia</b> sulla probabilità</mark>: alzarla sopra 0,5 (dire «malato» solo se molto sicuri) aumenta la precisione e abbassa il recall; abbassarla fa il contrario. La scelta dipende dai costi: una malattia curabile con un trattamento pesante chiede alta precisione; una malattia grave da non lasciar passare chiede alto recall.</p>
+    <p>Per confrontare modelli con un solo numero si usa l'<dfn>F1</dfn>, la media armonica di precisione e recall, che punisce i valori sbilanciati:</p>
   </div>
-  <div class="lab">
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · F1 con precisione 0,02 e recall 1</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">F1</span><span class="o">=</span><span class="r"><span class="fr"><span>2<var>PR</var></span> <span><var>P</var> + <var>R</var></span></span></span></div>
+      <div class="vx-eq res"><span class="l">F1 con <var>P</var> = 0,02 e <var>R</var> = 1</span><span class="o">=</span><span class="r"><span class="fr"><span>2 · 0,02 · 1</span> <span>0,02 + 1</span></span> ≈ 0,04</span></div>
+      <small>non 0,51 come la media semplice</small>
+      <div class="vx-eq"><span class="l">media semplice</span><span class="o">=</span><span class="r"><span class="fr"><span>0,02 + 1</span> <span>2</span></span> ≈ 0,51</span></div>
+    </div>
+  </div>
+    <div class="lab">
     <div class="lab-head"><h3>Laboratorio: la soglia tra precisione e recall</h3><span class="tag">matematica reale</span></div>
     <p>Duecento pazienti, dieci malati; per ciascuno il modello ha dato una probabilità. Muovi la soglia e guarda la matrice di confusione, precisione, recall e F1 ricalcolati sui dati.</p>
     <div class="controls"><div class="ctl"><label for="prT">soglia <output id="prTo"></output></label><input id="prT" type="range" min="0.05" max="0.95" step="0.01" value="0.5"></div></div>
@@ -171,6 +284,27 @@
     </div>
     <p class="note">Le probabilità dei pazienti sono fisse (generate con un seme): i malati tendono ad avere punteggi alti ma non tutti, e qualche sano ha punteggi alti. È la situazione reale: nessuna soglia è perfetta, e l'accuratezza da sola (riportata per confronto) resta alta anche con scelte pessime.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 9">
+    <figcaption class="vx-cap">Mappa concettuale · far funzionare un modello</figcaption>
+    <ul><li><span class="c">Far funzionare un modello</span>
+      <ul>
+        <li><em class="r">si misura su</em> <span class="c">tre insiemi</span>
+          <ul><li><em class="r">training set per</em> <span class="c">i parametri</span></li>
+              <li><em class="r">cross-validation set per</em> <span class="c">le scelte</span></li>
+              <li><em class="r">test set</em> <span class="c">una volta sola, alla fine</span></li></ul></li>
+        <li><em class="r">si diagnostica con</em> <span class="c hot">bias e varianza</span>
+          <ul><li><em class="r">J<sub>train</sub> alto:</em> <span class="c">alto bias</span></li>
+              <li><em class="r">J<sub>cv</sub> ≫ J<sub>train</sub>:</em> <span class="c">alta varianza</span></li>
+              <li><em class="r">si confronta con</em> <span class="c">una baseline</span></li>
+              <li><em class="r">si legge nelle</em> <span class="c">curve di apprendimento</span></li></ul></li>
+        <li><em class="r">si migliora con</em> <span class="c hot">l'analisi degli errori</span>
+          <ul><li><em class="r">poi</em> <span class="c">data augmentation e sintesi</span></li>
+              <li><em class="r">oppure</em> <span class="c">transfer learning</span></li></ul></li>
+        <li><em class="r">con dati sbilanciati servono</em> <span class="c">precisione e recall</span>
+          <ul><li><em class="r">la soglia</em> <span class="c">li scambia</span></li>
+              <li><em class="r">li riassume</em> <span class="c">F1</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 9</p>
     <ul>
@@ -191,13 +325,43 @@
   <div class="sec-head"><span class="eyebrow">10 · Alberi di decisione</span><h2>Una sequenza di domande sì/no, scelte in modo da fare ordine il più in fretta possibile</h2></div>
   <div class="prose stack">
     <p class="q">Devi riconoscere se un animale è un gatto da tre indizi: forma delle orecchie, forma del muso, presenza dei baffi. <b>Quale domanda fai per prima?</b></p>
-    <p>Un <b>albero di decisione</b> è esattamente questo: un nodo radice con una domanda su una feature, rami per le risposte, altri nodi con altre domande, e in fondo le <b>foglie</b> con la previsione. Per classificare un esempio nuovo si parte dalla radice e si seguono le risposte. Il problema dell'apprendimento è <i>costruire</i> l'albero dai dati: quale feature mettere in ogni nodo, e quando fermarsi. Il criterio è la <b>purezza</b>: la domanda migliore è quella che divide gli esempi in gruppi il più possibile omogenei (tutti gatti da una parte, nessun gatto dall'altra). Per misurarla serve un numero.</p>
+    <p>Un <dfn>albero di decisione</dfn> è esattamente questo: un nodo radice con una domanda su una feature, rami per le risposte, altri nodi con altre domande, e in fondo le <dfn>foglie</dfn> con la previsione. Per classificare un esempio nuovo si parte dalla radice e si seguono le risposte.</p>
+    <p>Il problema dell'apprendimento è <i>costruire</i> l'albero dai dati: quale feature mettere in ogni nodo, e quando fermarsi. Il criterio è la <dfn>purezza</dfn>: <mark>la domanda migliore è quella che divide gli esempi in gruppi il più possibile omogenei</mark> (tutti gatti da una parte, nessun gatto dall'altra). Per misurarla serve un numero.</p>
   </div>
 
   <h3 id="s10-entropia" class="anchor">Entropia e guadagno di informazione</h3>
   <div class="prose stack">
-    <p>L'<b>entropia</b> misura il disordine di un gruppo. Se p₁ è la frazione di gatti nel gruppo, <span class="k">H(p₁) = −p₁ log₂ p₁ − (1−p₁) log₂ (1−p₁)</span>: vale 0 se il gruppo è tutto gatti o tutto non-gatti (ordine perfetto), vale 1 (il massimo) se è metà e metà. Con 6 esempi di cui 3 gatti, H = 1; con 5 gatti su 6, H ≈ 0,65; con 6 su 6, H = 0 (per convenzione 0·log 0 = 0). Il logaritmo in base 2 fa sì che l'entropia si misuri in bit, ma la base non cambia quale split è migliore.</p>
-    <p>Una domanda divide il gruppo in due sottogruppi, sinistro e destro, ciascuno con la sua entropia. Il <b>guadagno di informazione</b> (information gain) è di quanto l'entropia scende grazie alla domanda: <span class="k">guadagno = H(radice) − [ w<sup>sx</sup>·H(sx) + w<sup>dx</sup>·H(dx) ]</span>, dove w<sup>sx</sup> e w<sup>dx</sup> sono le frazioni di esempi finite a sinistra e a destra. La media è pesata perché un sottogruppo purissimo ma con un solo esempio conta poco. L'algoritmo calcola il guadagno per ogni feature disponibile, sceglie la più alta, e <b>ripete</b> ricorsivamente su ciascun ramo con gli esempi che vi sono finiti, finché un criterio di arresto non lo ferma: il nodo è puro, l'albero ha raggiunto la profondità massima, il guadagno è sotto una soglia, o gli esempi nel nodo sono troppo pochi. Questi criteri sono il controllo dell'overfitting: un albero lasciato crescere fino a foglie con un esempio ciascuna ha imparato il training set a memoria.</p>
+    <p>L'<dfn>entropia</dfn> misura il disordine di un gruppo. Se p₁ è la frazione di gatti nel gruppo:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · entropia di un gruppo</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>H</var>(<var>p</var><sub>1</sub>)</span><span class="o">=</span><span class="r">−<var>p</var><sub>1</sub> log<sub>2</sub> <var>p</var><sub>1</sub> − (1 − <var>p</var><sub>1</sub>) log<sub>2</sub> (1 − <var>p</var><sub>1</sub>)</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><mark>Vale 0 se il gruppo è tutto gatti o tutto non-gatti (ordine perfetto), vale 1 (il massimo) se è metà e metà.</mark></p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · entropia di un gruppo di 6 esempi</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>H</var>(3 gatti su 6)</span><span class="o">=</span><span class="r">1</span></div>
+      <div class="vx-eq"><span class="l"><var>H</var>(5 gatti su 6)</span><span class="o">≈</span><span class="r">0,65</span></div>
+      <div class="vx-eq"><span class="l"><var>H</var>(6 gatti su 6)</span><span class="o">=</span><span class="r">0</span></div>
+      <small>per convenzione 0·log 0 = 0</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Il logaritmo in base 2 fa sì che l'entropia si misuri in bit, ma la base non cambia quale split è migliore.</p>
+    <p>Una domanda divide il gruppo in due sottogruppi, sinistro e destro, ciascuno con la sua entropia. Il <dfn>guadagno di informazione</dfn> (information gain) è di quanto l'entropia scende grazie alla domanda:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · guadagno di informazione</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">guadagno</span><span class="o">=</span><span class="r"><var>H</var>(radice) − [ <var>w</var><sup>sx</sup> · <var>H</var>(sx) + <var>w</var><sup>dx</sup> · <var>H</var>(dx) ]</span></div>
+      <small>dove w<sup>sx</sup> e w<sup>dx</sup> sono le frazioni di esempi finite a sinistra e a destra</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><mark>La media è pesata perché un sottogruppo purissimo ma con un solo esempio conta poco.</mark> L'algoritmo calcola il guadagno per ogni feature disponibile, sceglie la più alta, e <b>ripete</b> ricorsivamente su ciascun ramo con gli esempi che vi sono finiti, finché un criterio di arresto non lo ferma: il nodo è puro, l'albero ha raggiunto la profondità massima, il guadagno è sotto una soglia, o gli esempi nel nodo sono troppo pochi.</p>
+    <p>Questi criteri sono il controllo dell'overfitting: <mark>un albero lasciato crescere fino a foglie con un esempio ciascuna ha imparato il training set a memoria</mark>.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: quale domanda fare per prima</h3><span class="tag">matematica reale</span></div>
@@ -212,16 +376,40 @@
 
   <h3 id="s10-feature" class="anchor">Feature con più valori, numeri, e alberi per la regressione</h3>
   <div class="prose stack">
-    <p>Se una feature ha tre valori (orecchie a punta, flosce, ovali) si può aprire un nodo a tre rami, oppure, più comodo per gli algoritmi che vogliono domande sì/no, trasformarla in tre feature binarie con il <b>one-hot encoding</b>: «a punta?», «flosce?», «ovali?», di cui una sola vale 1. Lo stesso trucco serve alle reti neurali, che vogliono numeri in ingresso. Una feature <b>continua</b> (il peso dell'animale) diventa una domanda con soglia, «peso ≤ 9 kg?»: l'algoritmo prova come soglia tutti i punti a metà tra due valori consecutivi presenti nei dati e tiene quella con il guadagno più alto. Infine un <b>albero di regressione</b> prevede un numero: le foglie contengono la media dei y degli esempi finiti lì, e al posto dell'entropia si usa la <b>varianza</b> dei y, scegliendo lo split che la riduce di più, con la stessa media pesata.</p>
+    <p>Se una feature ha tre valori (orecchie a punta, flosce, ovali) si può aprire un nodo a tre rami, oppure, più comodo per gli algoritmi che vogliono domande sì/no, <mark>trasformarla in tre feature binarie con il <dfn>one-hot encoding</dfn></mark>: «a punta?», «flosce?», «ovali?», di cui una sola vale 1. Lo stesso trucco serve alle reti neurali, che vogliono numeri in ingresso.</p>
+    <p>Una feature <dfn>continua</dfn> (il peso dell'animale) diventa una domanda con soglia, «peso ≤ 9 kg?»: l'algoritmo prova come soglia tutti i punti a metà tra due valori consecutivi presenti nei dati e tiene quella con il guadagno più alto.</p>
+    <p>Infine un <dfn>albero di regressione</dfn> prevede un numero: le foglie contengono la media dei y degli esempi finiti lì, e <mark>al posto dell'entropia si usa la <b>varianza</b> dei y</mark>, scegliendo lo split che la riduce di più, con la stessa media pesata.</p>
   </div>
 
   <h3 id="s10-ensemble" class="anchor">Dalle foreste al boosting: tanti alberi sono meglio di uno</h3>
   <div class="prose stack">
     <p class="q">Un albero singolo è fragile: basta cambiare un esempio del training set perché la domanda alla radice cambi e con lei l'intero albero. <b>Come lo si rende stabile?</b></p>
-    <p>Allenandone tanti, diversi, e facendoli votare: un <b>ensemble</b>. La diversità si ottiene con il <b>campionamento con reinserimento</b>: da m esempi se ne estraggono m a caso, rimettendo ogni volta l'estratto nell'urna, così alcuni compaiono due o tre volte e altri mai; ogni albero è allenato su un campione diverso. Con B alberi (64, 100, 128: oltre il guadagno si appiattisce) si ha il <i>bagged decision tree</i>. La <b>random forest</b> aggiunge un secondo elemento di diversità: a ogni nodo l'albero può scegliere solo tra un sottoinsieme casuale di k feature, tipicamente k ≈ √n, così gli alberi non finiscono tutti per usare la stessa feature forte alla radice. Il voto di molti alberi un po' diversi riduce la varianza senza aumentare il bias.</p>
-    <p>Il <b>boosting</b> cambia il modo di scegliere i campioni: invece che a caso, dopo ogni albero si guardano gli esempi che l'ensemble sbaglia ancora e si rende <i>più probabile</i> estrarli per l'albero successivo, che quindi si concentra sui casi difficili, come uno studente che ripassa solo gli esercizi sbagliati. <b>XGBoost</b> (eXtreme Gradient Boosting) è l'implementazione che domina le competizioni su dati tabellari: veloce, con regolarizzazione e criteri di arresto buoni per default, e un'interfaccia di due righe (<span class="k">XGBClassifier().fit(X, y)</span>).</p>
-    <p><b>Alberi o reti neurali?</b> Gli alberi (e XGBoost in particolare) vincono sui <b>dati tabellari</b>, quelli che stanno in una tabella con colonne eterogenee: sono veloci da addestrare, poco sensibili alla scala delle feature, e un albero piccolo si può leggere. Le reti vincono sui <b>dati non strutturati</b> (immagini, audio, testo), dove le feature vanno inventate dal modello, si combinano bene tra loro e con il transfer learning, ma sono lente da addestrare e difficili da interpretare. Nel dubbio su una tabella, prima XGBoost.</p>
+    <p><mark>Allenandone tanti, diversi, e facendoli votare</mark>: un <dfn>ensemble</dfn>. La diversità si ottiene con il <dfn>campionamento con reinserimento</dfn>: da m esempi se ne estraggono m a caso, rimettendo ogni volta l'estratto nell'urna, così alcuni compaiono due o tre volte e altri mai; ogni albero è allenato su un campione diverso. Con B alberi (64, 100, 128: oltre il guadagno si appiattisce) si ha il <i>bagged decision tree</i>.</p>
+    <p>La <dfn>random forest</dfn> aggiunge un secondo elemento di diversità: a ogni nodo l'albero può scegliere solo tra un sottoinsieme casuale di k feature, tipicamente k ≈ √n, così gli alberi non finiscono tutti per usare la stessa feature forte alla radice. <mark>Il voto di molti alberi un po' diversi riduce la varianza senza aumentare il bias.</mark></p>
+    <p>Il <dfn>boosting</dfn> cambia il modo di scegliere i campioni: invece che a caso, dopo ogni albero si guardano gli esempi che l'ensemble sbaglia ancora e <mark>si rende <i>più probabile</i> estrarli per l'albero successivo</mark>, che quindi si concentra sui casi difficili, come uno studente che ripassa solo gli esercizi sbagliati.</p>
+    <p><b>XGBoost</b> (eXtreme Gradient Boosting) è l'implementazione che domina le competizioni su dati tabellari: veloce, con regolarizzazione e criteri di arresto buoni per default, e un'interfaccia di due righe (<span class="k">XGBClassifier().fit(X, y)</span>).</p>
   </div>
+  <div class="rd key"><span class="rd-k">Alberi o reti neurali?</span><p>Gli alberi (e XGBoost in particolare) vincono sui <b>dati tabellari</b>, quelli che stanno in una tabella con colonne eterogenee: sono veloci da addestrare, poco sensibili alla scala delle feature, e un albero piccolo si può leggere. Le reti vincono sui <b>dati non strutturati</b> (immagini, audio, testo), dove le feature vanno inventate dal modello, si combinano bene tra loro e con il transfer learning, ma sono lente da addestrare e difficili da interpretare. <mark>Nel dubbio su una tabella, prima XGBoost.</mark></p></div>
+    <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 10">
+    <figcaption class="vx-cap">Mappa concettuale · alberi di decisione</figcaption>
+    <ul><li><span class="c">Albero di decisione</span>
+      <ul>
+        <li><em class="r">è fatto di</em> <span class="c">nodi con domande e foglie</span>
+          <ul><li><em class="r">si segue</em> <span class="c">dalla radice alle foglie</span></li></ul></li>
+        <li><em class="r">si costruisce col</em> <span class="c hot">guadagno di informazione</span>
+          <ul><li><em class="r">si misura con</em> <span class="c hot">l'entropia</span></li>
+              <li><em class="r">è</em> <span class="c">H(radice) − media pesata dei rami</span></li>
+              <li><em class="r">si ferma con</em> <span class="c">i criteri di arresto</span></li></ul></li>
+        <li><em class="r">gestisce le feature con</em> <span class="c">one-hot e soglie</span>
+          <ul><li><em class="r">per i numeri</em> <span class="c">una domanda con soglia</span></li>
+              <li><em class="r">per la regressione</em> <span class="c">la varianza</span></li></ul></li>
+        <li><em class="r">da solo è fragile, si cura con</em> <span class="c hot">l'ensemble</span>
+          <ul><li><em class="r">campioni con reinserimento:</em> <span class="c">random forest</span></li>
+              <li><em class="r">esempi difficili:</em> <span class="c">boosting (XGBoost)</span></li></ul></li>
+        <li><em class="r">è la scelta per</em> <span class="c">i dati tabellari</span>
+          <ul><li><em class="r">le reti per</em> <span class="c">immagini, audio, testo</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 10</p>
     <ul>

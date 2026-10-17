@@ -164,24 +164,40 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>Prima della rete serve un mondo in cui guidare, e deve dare lo stesso risultato ogni volta che lo fai ripartire</h2>
   </div>
   <div class="prose stack">
-    <p>Il progetto ha tre blocchi e un ciclo che gira a ogni frame: il <b>mondo</b> produce le letture dei sensori, la <b>rete</b> le trasforma in comandi, i comandi muovono l'auto nel mondo. L'<b>addestramento</b> sta fuori da questo ciclo: non guida mai, sceglie soltanto quali pesi mettere nella rete. Conviene costruire i blocchi in quest'ordine, perché ognuno produce qualcosa di visibile prima del successivo, e il primo è il mondo.</p>
+    <p>Il progetto ha tre blocchi e un ciclo che gira a ogni frame: il <b>mondo</b> produce le letture dei sensori, la <b>rete</b> le trasforma in comandi, i comandi muovono l'auto nel mondo. L'<b>addestramento</b> sta fuori da questo ciclo: <mark>non guida mai, sceglie soltanto quali pesi mettere nella rete</mark>.</p>
+    <p>Conviene costruire i blocchi in quest'ordine, perché ognuno produce qualcosa di visibile prima del successivo, e il primo è il mondo.</p>
   </div>
 
   <div class="vx"><div class="vx-flow"><div class="vx-node">mondo <small>pista, auto, sensori → 8 numeri in [0, 1]</small></div><div class="vx-down">↓ ogni frame</div><div class="vx-node acc">rete <small>82 pesi: 8 → 6 → 4</small></div><div class="vx-down">↓</div><div class="vx-node">comandi <small>sterzo, gas, freno, freno a mano → nuova posizione</small></div><div class="vx-down">↺ torna al mondo · fuori dal ciclo: l'evoluzione sceglie i pesi</div></div></div>
 
   <h3 id="s1-loop" class="anchor">Il game loop: separare il tempo della fisica da quello del disegno</h3>
   <div class="prose stack">
-    <p>Un gioco ha due ritmi. Il <b>disegno</b> va alla frequenza dello schermo, 60 volte al secondo se va bene, meno se il computer è lento. La <b>fisica</b> non può dipendere da questo: se il passo di integrazione cambiasse con il frame rate, la stessa auto con gli stessi comandi farebbe traiettorie diverse su due computer, e confrontare due auto diventerebbe impossibile. Perciò <code>update(dt)</code> gira con un <code>dt</code> <em>fisso</em> (per esempio 1/60 s) tante volte quante servono, e <code>render()</code> disegna lo stato quando può. Il vantaggio non è solo la riproducibilità: in addestramento si possono fare cento passi di fisica per ogni frame disegnato, o non disegnare affatto, e la simulazione va cento volte più veloce del tempo reale.</p>
+    <p>Un gioco ha due ritmi. Il <b>disegno</b> va alla frequenza dello schermo, 60 volte al secondo se va bene, meno se il computer è lento. La <b>fisica</b> non può dipendere da questo: <mark>se il passo di integrazione cambiasse con il frame rate, la stessa auto con gli stessi comandi farebbe traiettorie diverse su due computer</mark>, e confrontare due auto diventerebbe impossibile. Perciò <code>update(dt)</code> gira con un <code>dt</code> <em>fisso</em> (per esempio 1/60 s) tante volte quante servono, e <code>render()</code> disegna lo stato quando può.</p>
+    <p>Il vantaggio non è solo la riproducibilità: in addestramento si possono fare cento passi di fisica per ogni frame disegnato, o non disegnare affatto, e <mark>la simulazione va cento volte più veloce del tempo reale</mark>.</p>
   </div>
 
   <h3 id="s1-pista" class="anchor">La pista come geometria</h3>
   <div class="prose stack">
-    <p>La pista è una <b>linea centrale</b> (una polilinea o una spline chiusa) più una <b>larghezza</b>: spostando ogni punto della centrale verso l'interno e verso l'esterno di metà larghezza si ottengono i due bordi, come sequenze di segmenti. Tutto ciò che il mondo deve sapere sulla pista sta in questi segmenti: contro di essi si calcolano le collisioni e le distanze dei sensori. Lungo la centrale si mettono dei <b>checkpoint</b> ordinati: sono il metro con cui, nella sezione 4, si misurerà quanto un'auto è arrivata lontano. I cordoli bianco-rossi nelle curve sono solo decorazione.</p>
+    <p>La pista è una <dfn>linea centrale</dfn> (una polilinea o una spline chiusa) più una <b>larghezza</b>: spostando ogni punto della centrale verso l'interno e verso l'esterno di metà larghezza si ottengono i due bordi, come sequenze di segmenti. <mark>Tutto ciò che il mondo deve sapere sulla pista sta in questi segmenti</mark>: contro di essi si calcolano le collisioni e le distanze dei sensori.</p>
+    <p>Lungo la centrale si mettono dei <dfn>checkpoint</dfn> ordinati: sono il metro con cui, nella sezione 4, si misurerà quanto un'auto è arrivata lontano. I cordoli bianco-rossi nelle curve sono solo decorazione.</p>
   </div>
 
   <h3 id="s1-bici" class="anchor">La fisica dell'auto: il modello a bicicletta</h3>
   <div class="prose stack">
-    <p>Non serve una simulazione realistica delle quattro ruote. Il <b>modello cinematico a bicicletta</b> riduce l'auto a due ruote in linea, distanti <code>L</code> (il passo): la posteriore spinge, l'anteriore sterza di un angolo <code>δ</code>. Lo stato è posizione, orientamento (<em>heading</em>) e velocità. A ogni passo l'auto avanza di <code>v·dt</code> nella direzione dell'heading, e l'heading ruota di <code>(v / L)·tan(δ)·dt</code>: <b>a parità di sterzo il raggio della curva resta lo stesso, ma più vai veloce più in fretta ruoti</b>, e da ferma l'auto non ruota affatto. Gas e freno cambiano <code>v</code>; un attrito la riduce ogni passo. Il freno a mano riduce l'aderenza posteriore: l'heading continua a ruotare mentre la velocità si conserva più a lungo nella direzione vecchia, e l'auto derapa lasciando le scie.</p>
+    <p>Non serve una simulazione realistica delle quattro ruote. Il <dfn>modello cinematico a bicicletta</dfn> riduce l'auto a due ruote in linea, distanti <code>L</code> (il passo): la posteriore spinge, l'anteriore sterza di un angolo <code>δ</code>. Lo stato è posizione, orientamento (<em>heading</em>) e velocità.</p>
+    <p>A ogni passo l'auto avanza di <code>v·dt</code> nella direzione dell'heading, e l'heading ruota di <code>(v / L)·tan(δ)·dt</code>: <mark><b>a parità di sterzo il raggio della curva resta lo stesso, ma più vai veloce più in fretta ruoti</b></mark>, e da ferma l'auto non ruota affatto.</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · un passo del modello a bicicletta</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">avanzamento</span><span class="o">=</span><span class="r"><var>v</var> · <var>dt</var></span></div>
+      <small>nella direzione dell'heading</small>
+      <div class="vx-eq res"><span class="l">rotazione dell'heading</span><span class="o">=</span><span class="r"><span class="fr"><span><var>v</var></span> <span><var>L</var></span></span> · tan <var>δ</var> · <var>dt</var></span></div>
+      <small><var>L</var> è il passo; da ferma (<var>v</var> = 0) la rotazione è nulla</small>
+    </div>
+    <p class="vx-math-f">A parità di sterzo <var>δ</var> il raggio resta lo stesso, ma la rotazione per passo cresce con <var>v</var>.</p>
+  </div>
+  <div class="prose stack">
+    <p>Gas e freno cambiano <code>v</code>; un attrito la riduce ogni passo. Il freno a mano riduce l'aderenza posteriore: l'heading continua a ruotare mentre la velocità si conserva più a lungo nella direzione vecchia, e l'auto derapa lasciando le scie.</p>
   </div>
 
   <div class="lab">
@@ -204,8 +220,28 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 
   <h3 id="s1-coll" class="anchor">Collisioni: toccare il bordo è la morte</h3>
   <div class="prose stack">
-    <p>L'auto è un rettangolo (o, per semplicità, un cerchio) e a ogni passo si controlla se interseca uno dei segmenti del bordo. Se sì, l'auto è <b>eliminata</b>: si ferma dov'è, non consuma più calcolo e la sua corsa è finita. Nella sezione 4 questa è la «morte» che l'evoluzione impara a evitare: un'auto che sbatte presto ha percorso poca pista, e la sua fitness è bassa. Un dettaglio che semplifica tutto: le auto della popolazione <em>non</em> collidono tra loro. Sono cento copie della stessa pista sovrapposte, non cento auto nella stessa gara.</p>
+    <p>L'auto è un rettangolo (o, per semplicità, un cerchio) e a ogni passo si controlla se interseca uno dei segmenti del bordo. Se sì, l'auto è <mark><b>eliminata</b></mark>: si ferma dov'è, non consuma più calcolo e la sua corsa è finita. Nella sezione 4 questa è la «morte» che l'evoluzione impara a evitare: un'auto che sbatte presto ha percorso poca pista, e la sua fitness è bassa.</p>
   </div>
+  <div class="rd key"><span class="rd-k">Da ricordare</span><p>Un dettaglio che semplifica tutto: le auto della popolazione <em>non</em> collidono tra loro. Sono cento copie della stessa pista sovrapposte, non cento auto nella stessa gara.</p></div>
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1: il mondo">
+    <figcaption class="vx-cap">Mappa concettuale · il mondo: pista, auto, collisioni</figcaption>
+    <ul><li><span class="c">Il mondo della simulazione</span>
+      <ul>
+        <li><em class="r">gira con</em> <span class="c hot">Game loop a passo fisso</span>
+          <ul><li><em class="r">garantisce</em> <span class="c">stessa traiettoria su ogni computer</span></li>
+              <li><em class="r">permette</em> <span class="c">cento passi di fisica per frame disegnato</span></li></ul></li>
+        <li><em class="r">descrive la pista con</em> <span class="c">Linea centrale + larghezza</span>
+          <ul><li><em class="r">produce</em> <span class="c">due bordi, come segmenti</span></li>
+              <li><em class="r">porta dei</em> <span class="c">checkpoint ordinati <small>misurano la fitness, sezione 4</small></span></li></ul></li>
+        <li><em class="r">muove l'auto con</em> <span class="c hot">Modello a bicicletta</span>
+          <ul><li><em class="r">ha per stato</em> <span class="c">posizione, heading, velocità</span></li>
+              <li><em class="r">fa ruotare di più</em> <span class="c">chi va più veloce</span></li></ul></li>
+        <li><em class="r">controlla le</em> <span class="c">Collisioni</span>
+          <ul><li><em class="r">se tocca il bordo</em> <span class="c">auto eliminata</span></li>
+              <li><em class="r">tra auto</em> <span class="c">nessuna collisione</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Passo fisso</dt><dd>La fisica avanza sempre dello stesso <code>dt</code>, indipendentemente dal frame rate: stessi comandi, stessa traiettoria, su qualunque computer.</dd><span class="ex">update(1/60) × n, poi render()</span></div>
@@ -222,8 +258,19 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>La rete non vede la pista: vede sette numeri tra zero e uno</h2>
   </div>
   <div class="prose stack">
-    <p>Una rete neurale non può ricevere «la pista»: riceve un vettore di numeri. Il modo più semplice di darle degli occhi è il <b>raycasting</b>: dal muso dell'auto partono sette raggi, a −65°, −20°, −10°, 0°, +10°, +20° e +65° rispetto alla direzione di marcia, e per ciascuno si misura la distanza al primo bordo incontrato. Sette raggi sono pochi ma bastano: i due a ±65° dicono quanto spazio c'è ai lati, quello a 0° quanto è lontana la curva, quelli intermedi da che parte gira.</p>
-    <p>La distanza si trova con un'<b>intersezione segmento-segmento</b>: il raggio è un segmento dal muso alla portata massima <code>d<sub>max</sub></code>, e lo si confronta con ogni segmento del bordo tenendo l'intersezione più vicina. Poi si <b>normalizza</b>: la lettura è <code>s<sub>i</sub> = min(d<sub>i</sub> / d<sub>max</sub>, 1)</code>, un numero tra 0 (muro addosso) e 1 (nessun bordo entro la portata). L'ottavo input è la velocità in avanti, anch'essa divisa per la velocità massima. Normalizzare non è un vezzo: se un input valesse 300 e un altro 0,4, i pesi della rete dovrebbero compensare scale diverse, e l'evoluzione farebbe molta più fatica a trovarli.</p>
+    <p>Una rete neurale non può ricevere «la pista»: riceve un vettore di numeri. Il modo più semplice di darle degli occhi è il <dfn>raycasting</dfn>: dal muso dell'auto partono sette raggi, a −65°, −20°, −10°, 0°, +10°, +20° e +65° rispetto alla direzione di marcia, e per ciascuno <mark>si misura la distanza al primo bordo incontrato</mark>.</p>
+    <p>Sette raggi sono pochi ma bastano: i due a ±65° dicono quanto spazio c'è ai lati, quello a 0° quanto è lontana la curva, quelli intermedi da che parte gira.</p>
+    <p>La distanza si trova con un'<dfn>intersezione segmento-segmento</dfn>: il raggio è un segmento dal muso alla portata massima <code>d<sub>max</sub></code>, e lo si confronta con ogni segmento del bordo tenendo l'intersezione più vicina.</p>
+    <p>Poi si <dfn>normalizza</dfn>: la lettura è:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · la lettura normalizzata di un raggio</p>
+    <div class="vx-eqs">
+      <div class="vx-eq res"><span class="l"><var>s</var><sub><var>i</var></sub></span><span class="o">=</span><span class="r">min(<span class="fr"><span><var>d</var><sub><var>i</var></sub></span> <span><var>d</var><sub>max</sub></span></span>, 1)</span></div>
+      <small>un numero tra 0 (muro addosso) e 1 (nessun bordo entro la portata)</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>L'ottavo input è la <b>velocità in avanti</b>, anch'essa divisa per la velocità massima. Normalizzare non è un vezzo: se un input valesse 300 e un altro 0,4, <mark>i pesi della rete dovrebbero compensare scale diverse</mark>, e l'evoluzione farebbe molta più fatica a trovarli.</p>
   </div>
 
   <div class="lab">
@@ -241,6 +288,23 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <p class="note">Portata massima 160 px. L'intersezione è quella reale tra il raggio e i segmenti dei due bordi; la pista è un tratto curvo costruito con lo stesso metodo della sezione 1 (centrale + larghezza).</p>
   </div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 2: i sensori">
+    <figcaption class="vx-cap">Mappa concettuale · i sensori</figcaption>
+    <ul><li><span class="c">Gli otto input della rete</span>
+      <ul>
+        <li><em class="r">sette arrivano dal</em> <span class="c hot">Raycasting</span>
+          <ul><li><em class="r">lancia</em> <span class="c">7 raggi da −65° a +65°</span></li>
+              <li><em class="r">misura</em> <span class="c">distanza al primo bordo</span></li>
+              <li><em class="r">si trova con</em> <span class="c">intersezione segmento-segmento</span></li></ul></li>
+        <li><em class="r">poi li porta in [0, 1] con la</em> <span class="c hot">Normalizzazione</span>
+          <ul><li><em class="r">si calcola come</em> <span class="c">min(d / d_max, 1)</span></li>
+              <li><em class="r">evita</em> <span class="c">pesi che compensano scale diverse</span></li></ul></li>
+        <li><em class="r">l'ottavo è la</em> <span class="c">Velocità in avanti</span>
+          <ul><li><em class="r">si divide per</em> <span class="c">la velocità massima</span></li></ul></li>
+        <li><em class="r">vanno in ingresso alla</em> <span class="c">Rete neurale <small>sezione 3</small></span></li>
+      </ul></li></ul>
+  </figure>
+
   <dl class="gloss">
     <div><dt>Raycasting</dt><dd>Lanciare un raggio da un punto in una direzione e misurare la distanza al primo ostacolo.</dd><span class="ex">7 raggi da −65° a +65°</span></div>
     <div><dt>Intersezione segmento-segmento</dt><dd>Formula chiusa che dice se e dove due segmenti si incrociano; per ogni raggio si tiene il bordo più vicino.</dd><span class="ex">parametri t, u in [0, 1]</span></div>
@@ -256,28 +320,54 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>Una funzione pura: otto numeri entrano, quattro comandi escono, e tutto il sapere sta in 82 pesi</h2>
   </div>
   <div class="prose stack">
-    <p>Spogliata della mistica, la rete di questo progetto è una funzione: prende il vettore degli otto input della sezione 2 e restituisce quattro numeri, da interpretare come comandi. Non ha memoria (è <em>feed-forward</em>: i segnali vanno solo in avanti) e non impara mentre guida. Tutto ciò che «sa» è scritto nei suoi <b>pesi</b>, e cambiare i pesi cambia il modo di guidare. È per questo che l'addestramento può stare fuori dal ciclo di gioco: il suo unico compito è trovare 82 numeri buoni.</p>
+    <p>Spogliata della mistica, la rete di questo progetto è una funzione: prende il vettore degli otto input della sezione 2 e restituisce quattro numeri, da interpretare come comandi. Non ha memoria (è <dfn>feed-forward</dfn>: i segnali vanno solo in avanti) e non impara mentre guida. <mark>Tutto ciò che «sa» è scritto nei suoi <b>pesi</b></mark>, e cambiare i pesi cambia il modo di guidare. È per questo che l'addestramento può stare fuori dal ciclo di gioco: il suo unico compito è trovare 82 numeri buoni.</p>
   </div>
 
   <h3 id="s3-neurone" class="anchor">Il singolo neurone è un rilevatore</h3>
   <div class="prose stack">
-    <p>Un neurone fa una somma pesata dei suoi input, aggiunge un <b>bias</b> e passa il risultato in una <b>funzione di attivazione</b>. L'intuizione che aiuta: un neurone è un piccolo rilevatore. Se i pesi verso i raggi di sinistra sono negativi e grandi, il neurone si accende quando quei raggi leggono valori bassi, cioè quando il muro è vicino a sinistra. Sei neuroni nascosti sono sei rilevatori del genere, e i quattro neuroni di uscita combinano i rilevatori in comandi: «muro vicino a sinistra» e «curva lontana davanti» diventano «sterza un po' a destra, tieni il gas».</p>
+    <p>Un neurone fa una somma pesata dei suoi input, aggiunge un <dfn>bias</dfn> e passa il risultato in una <dfn>funzione di attivazione</dfn>.</p>
   </div>
+  <div class="rd ex"><span class="rd-k">L'intuizione</span><p>L'intuizione che aiuta: un neurone è un piccolo rilevatore. Se i pesi verso i raggi di sinistra sono negativi e grandi, il neurone si accende quando quei raggi leggono valori bassi, cioè quando il muro è vicino a sinistra. Sei neuroni nascosti sono sei rilevatori del genere, e i quattro neuroni di uscita combinano i rilevatori in comandi: «muro vicino a sinistra» e «curva lontana davanti» diventano «sterza un po' a destra, tieni il gas».</p></div>
 
   <h3 id="s3-forward" class="anchor">Il forward pass e le attivazioni</h3>
   <div class="prose stack">
-    <p>Il calcolo procede strato per strato: si moltiplica la matrice dei pesi <code>W</code> per il vettore degli input, si somma il vettore dei bias <code>b</code>, si applica l'attivazione <code>σ</code> elemento per elemento, e il risultato è l'input dello strato successivo. Per lo strato nascosto e per l'uscita si usa la <b>tanh</b> (tangente iperbolica), che schiaccia qualunque numero in [−1, 1]: è l'intervallo naturale per uno sterzo, dove −0,98 significa «quasi tutto a sinistra» e 0 «dritto». Negli strati nascosti va bene anche la ReLU (Rectified Linear Unit, <code>max(0, x)</code>). Implementarlo a mano con due cicli e un <code>Float32Array</code>, senza librerie, è la parte più didattica del progetto: la formula sotto diventa una decina di righe. Lo stesso calcolo, con la sigmoide e la ReLU al posto della tanh e una rete che impara con il gradiente invece che per evoluzione, è nel capitolo 7 della guida sul machine learning.</p>
+    <p>Il calcolo procede strato per strato: si moltiplica la matrice dei pesi <code>W</code> per il vettore degli input, si somma il vettore dei bias <code>b</code>, si applica l'attivazione <code>σ</code> elemento per elemento, e il risultato è l'input dello strato successivo.</p>
+    <p>Per lo strato nascosto e per l'uscita si usa la <b>tanh</b> (tangente iperbolica), che <mark>schiaccia qualunque numero in [−1, 1]</mark>: è l'intervallo naturale per uno sterzo, dove −0,98 significa «quasi tutto a sinistra» e 0 «dritto». Negli strati nascosti va bene anche la ReLU (Rectified Linear Unit, <code>max(0, x)</code>).</p>
+    <p><mark>Implementarlo a mano con due cicli e un <code>Float32Array</code>, senza librerie, è la parte più didattica del progetto</mark>: la formula sotto diventa una decina di righe. Lo stesso calcolo, con la sigmoide e la ReLU al posto della tanh e una rete che impara con il gradiente invece che per evoluzione, è nel capitolo 7 della guida sul machine learning.</p>
   </div>
-  <div class="formula">h = tanh(W₁ · x + b₁)      y = tanh(W₂ · h + b₂)      x ∈ ℝ⁸ · h ∈ ℝ⁶ · y ∈ ℝ⁴</div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · il forward pass della rete 8 → 6 → 4</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>h</var></span><span class="o">=</span><span class="r">tanh(<var>W</var><sub>1</sub> · <var>x</var> + <var>b</var><sub>1</sub>)</span></div>
+      <small>strato nascosto: sei neuroni</small>
+      <div class="vx-eq res"><span class="l"><var>y</var></span><span class="o">=</span><span class="r">tanh(<var>W</var><sub>2</sub> · <var>h</var> + <var>b</var><sub>2</sub>)</span></div>
+      <small>uscita: quattro comandi</small>
+    </div>
+    <p class="vx-math-f"><var>x</var> ∈ ℝ<sup>8</sup> · <var>h</var> ∈ ℝ<sup>6</sup> · <var>y</var> ∈ ℝ<sup>4</sup></p>
+  </div>
 
   <h3 id="s3-topologia" class="anchor">La topologia: 8 → 6 → 4, e perché si contano i parametri</h3>
   <div class="prose stack">
-    <p>Il video mostra una rete con circa cinque strati nascosti, per effetto scenico. Per girare in pista ne basta uno con sei neuroni, e la scelta ha due vantaggi: ognuno dei sei neuroni resta leggibile nel grafo della UI (User Interface, interfaccia utente), e il numero di parametri resta piccolo. Contarli è un'abitudine da prendere subito: <code>(8×6 + 6) + (6×4 + 4) = 82</code>, cioè pesi più bias di ogni strato. Ottantadue numeri da trovare sono un problema che l'evoluzione risolve in minuti; con cinque strati da trenta neuroni sarebbero migliaia, e servirebbero ore.</p>
+    <p>Il video mostra una rete con circa cinque strati nascosti, per effetto scenico. <mark>Per girare in pista ne basta uno con sei neuroni</mark>, e la scelta ha due vantaggi: ognuno dei sei neuroni resta leggibile nel grafo della UI (User Interface, interfaccia utente), e il numero di parametri resta piccolo. Contarli è un'abitudine da prendere subito:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · i parametri della rete</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">primo strato</span><span class="o">=</span><span class="r">8 × 6 + 6 = 54</span></div>
+      <small>48 pesi più 6 bias</small>
+      <div class="vx-eq"><span class="l">secondo strato</span><span class="o">=</span><span class="r">6 × 4 + 4 = 28</span></div>
+      <small>24 pesi più 4 bias</small>
+      <div class="vx-eq res"><span class="l">totale</span><span class="o">=</span><span class="r">54 + 28 = 82</span></div>
+      <small>cioè (8 × 6 + 6) + (6 × 4 + 4)</small>
+    </div>
+    <p class="vx-math-f">Cioè pesi più bias di ogni strato.</p>
+  </div>
+  <div class="prose stack">
+    <p><mark>Ottantadue numeri da trovare sono un problema che l'evoluzione risolve in minuti</mark>; con cinque strati da trenta neuroni sarebbero migliaia, e servirebbero ore.</p>
   </div>
 
   <h3 id="s3-comandi" class="anchor">Dagli output ai comandi, e i pesi come genoma</h3>
   <div class="prose stack">
-    <p>I quattro output vanno interpretati. Lo <b>sterzo</b> è continuo: il valore in [−1, 1] moltiplicato per l'angolo massimo. <b>Gas</b>, <b>freno</b> e <b>freno a mano</b> sono attivi se il rispettivo output supera una soglia, per esempio 0. È una convenzione arbitraria, e va scritta una volta sola nel codice che traduce output in comandi, così che rete ed evoluzione non la conoscano. L'ultimo passo prepara la sezione 4: tutti i pesi e i bias vengono <b>appiattiti in un unico vettore</b> di 82 numeri, il <b>genoma</b>. L'evoluzione lavorerà su quel vettore, senza sapere che dentro c'è una rete; la rete lo rilegge nella sua forma a matrici quando deve calcolare.</p>
+    <p>I quattro output vanno interpretati. Lo <b>sterzo</b> è continuo: il valore in [−1, 1] moltiplicato per l'angolo massimo. <b>Gas</b>, <b>freno</b> e <b>freno a mano</b> sono attivi se il rispettivo output supera una soglia, per esempio 0. È una convenzione arbitraria, e <mark>va scritta una volta sola nel codice che traduce output in comandi</mark>, così che rete ed evoluzione non la conoscano.</p>
+    <p>L'ultimo passo prepara la sezione 4: <mark>tutti i pesi e i bias vengono <b>appiattiti in un unico vettore</b> di 82 numeri, il <dfn>genoma</dfn></mark>. L'evoluzione lavorerà su quel vettore, senza sapere che dentro c'è una rete; la rete lo rilegge nella sua forma a matrici quando deve calcolare.</p>
   </div>
 
   <div class="lab">
@@ -297,6 +387,29 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <p class="note">Forward pass reale su una rete 8 → 6 → 4 con tanh, pesi iniziali uniformi in [−1, 1]. Con pesi casuali i comandi sono arbitrari: è esattamente lo stato di un'auto della generazione 0.</p>
   </div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 3: la rete neurale">
+    <figcaption class="vx-cap">Mappa concettuale · la rete neurale</figcaption>
+    <ul><li><span class="c">La rete 8 → 6 → 4</span>
+      <ul>
+        <li><em class="r">è fatta di</em> <span class="c">Neuroni</span>
+          <ul><li><em class="r">fanno</em> <span class="c">somma pesata + bias</span></li>
+              <li><em class="r">poi applicano</em> <span class="c">una funzione di attivazione</span></li>
+              <li><em class="r">sono come</em> <span class="c">rilevatori</span></li></ul></li>
+        <li><em class="r">calcola con il</em> <span class="c hot">Forward pass</span>
+          <ul><li><em class="r">strato per strato</em> <span class="c">W · x + b, poi attivazione</span></li>
+              <li><em class="r">usa</em> <span class="c">tanh, numeri in [−1, 1]</span></li></ul></li>
+        <li><em class="r">si misura con</em> <span class="c">82 parametri</span>
+          <ul><li><em class="r">sono</em> <span class="c">pesi più bias di ogni strato</span></li>
+              <li><em class="r">pochi, quindi</em> <span class="c">neuroni leggibili, ricerca in minuti</span></li></ul></li>
+        <li><em class="r">produce i</em> <span class="c">Comandi</span>
+          <ul><li><em class="r">sterzo</em> <span class="c">continuo, in [−1, 1]</span></li>
+              <li><em class="r">gas e freni</em> <span class="c">attivi oltre una soglia</span></li></ul></li>
+        <li><em class="r">appiattita diventa il</em> <span class="c hot">Genoma</span>
+          <ul><li><em class="r">è</em> <span class="c">un vettore di 82 numeri</span></li>
+              <li><em class="r">lo evolve</em> <span class="c">l'addestramento <small>sezione 4</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+
   <dl class="gloss">
     <div><dt>Feed-forward</dt><dd>Rete in cui i segnali vanno solo dall'input all'output, senza cicli né memoria: a input uguali, output uguali.</dd><span class="ex">funzione pura di 8 numeri</span></div>
     <div><dt>Bias</dt><dd>Termine costante sommato alla somma pesata; sposta la soglia a cui il neurone si accende.</dd><span class="ex">W·x + b</span></div>
@@ -313,18 +426,22 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>Non esiste un dataset di guida corretta: molte auto provano, le migliori si riproducono con errori di copia</h2>
   </div>
   <div class="prose stack">
-    <p>Il modo standard di addestrare una rete, l'apprendimento supervisionato con la discesa del gradiente, ha bisogno di due cose che qui mancano. Servirebbero esempi di «input → output giusto», e nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto. E servirebbe un errore <em>derivabile</em> rispetto ai pesi; invece l'unico segnale disponibile è «quanto sei arrivato lontano», arriva alla fine della corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni: non c'è un gradiente da seguire. L'apprendimento per rinforzo (RL, Reinforcement Learning) risolve questo con tecniche come PPO (Proximal Policy Optimization); la <b>neuroevoluzione</b> lo risolve rinunciando al gradiente del tutto, e per un problema con 82 parametri è più semplice e spesso altrettanto efficace. Come funziona la discesa a cui qui si rinuncia, passo per passo su una retta, lo mostra il capitolo 3 della guida sul machine learning.</p>
+    <p>Il modo standard di addestrare una rete, l'apprendimento supervisionato con la discesa del gradiente, ha bisogno di due cose che qui mancano. Servirebbero esempi di «input → output giusto», e nessuno ha un archivio di letture dei sensori con lo sterzo corretto accanto. E servirebbe un errore <em>derivabile</em> rispetto ai pesi; invece l'unico segnale disponibile è «quanto sei arrivato lontano», arriva alla fine della corsa e dipende dai pesi attraverso centinaia di passi di fisica e collisioni: <mark>non c'è un gradiente da seguire</mark>.</p>
+    <p>L'apprendimento per rinforzo (RL, Reinforcement Learning) risolve questo con tecniche come PPO (Proximal Policy Optimization); la <dfn>neuroevoluzione</dfn> lo risolve <mark>rinunciando al gradiente del tutto</mark>, e per un problema con 82 parametri è più semplice e spesso altrettanto efficace.</p>
+    <p>Come funziona la discesa a cui qui si rinuncia, passo per passo su una retta, lo mostra il capitolo 3 della guida sul machine learning.</p>
   </div>
 
   <h3 id="s4-fitness" class="anchor">La fitness: un numero per auto, e il modo in cui viene imbrogliato</h3>
   <div class="prose stack">
-    <p>Una <b>popolazione</b> di N auto (da 50 a 200) parte con genomi casuali, la generazione 0. Ogni auto guida finché non sbatte o non scade il tempo, e alla fine riceve una <b>fitness</b>: i checkpoint superati più la frazione di strada verso il successivo. È il numero che dice «questa guida meglio di quella». Serve un <b>timeout</b> di mancato progresso, altrimenti un'auto ferma o che gira in tondo resta in gara fino alla scadenza, sprecando calcolo senza fare progressi. E serve diffidare della propria metrica: se la fitness premiasse la distanza percorsa invece dei checkpoint, un'auto che fa avanti e indietro nel primo rettilineo vincerebbe. È il <b>reward hacking</b>: la popolazione ottimizza esattamente ciò che misuri, non ciò che volevi.</p>
+    <p>Una <dfn>popolazione</dfn> di N auto (da 50 a 200) parte con genomi casuali, la generazione 0. Ogni auto guida finché non sbatte o non scade il tempo, e alla fine riceve una <dfn>fitness</dfn>: <mark>i checkpoint superati più la frazione di strada verso il successivo</mark>. È il numero che dice «questa guida meglio di quella». Serve un <dfn>timeout</dfn> di mancato progresso, altrimenti un'auto ferma o che gira in tondo resta in gara fino alla scadenza, sprecando calcolo senza fare progressi.</p>
   </div>
+  <div class="rd warn"><span class="rd-k">Diffida della tua metrica</span><p>E serve diffidare della propria metrica: se la fitness premiasse la distanza percorsa invece dei checkpoint, un'auto che fa avanti e indietro nel primo rettilineo vincerebbe. È il <dfn>reward hacking</dfn>: <mark>la popolazione ottimizza esattamente ciò che misuri, non ciò che volevi</mark>.</p></div>
 
   <h3 id="s4-operatori" class="anchor">Selezione, crossover, mutazione</h3>
   <div class="prose stack">
-    <p>Finita la valutazione, si ordina per fitness e si costruisce la generazione successiva. L'<b>elitismo</b> copia intatti i migliori (per esempio i primi 2 o 3), così il campione non si perde mai. Gli altri posti si riempiono con figli: due genitori scelti con un <b>torneo</b> (pesca k a caso, tieni il migliore) o con la <b>roulette</b> (probabilità proporzionale alla fitness), combinati per <b>crossover</b> uniforme (ogni gene preso a caso da uno dei due) o a un punto (prima parte da A, resto da B), e infine <b>mutati</b>: a ogni gene, con probabilità <code>p</code>, si somma rumore gaussiano di ampiezza (deviazione standard) <code>σ</code>. La mutazione è la sorgente di novità, il crossover ricombina ciò che già funziona, la selezione decide che cosa sopravvive. Ridurre <code>σ</code> col passare delle generazioni fa esplorare all'inizio e rifinire alla fine.</p>
+    <p>Finita la valutazione, si ordina per fitness e si costruisce la generazione successiva. L'<dfn>elitismo</dfn> copia intatti i migliori (per esempio i primi 2 o 3), così il campione non si perde mai. Gli altri posti si riempiono con figli: due genitori scelti con un <dfn>torneo</dfn> (pesca k a caso, tieni il migliore) o con la <dfn>roulette</dfn> (probabilità proporzionale alla fitness), combinati per <dfn>crossover</dfn> uniforme (ogni gene preso a caso da uno dei due) o a un punto (prima parte da A, resto da B), e infine <dfn>mutati</dfn>: a ogni gene, con probabilità <code>p</code>, si somma rumore gaussiano di ampiezza (deviazione standard) <code>σ</code>.</p>
   </div>
+  <div class="rd key"><span class="rd-k">Tre ruoli</span><p><mark>La mutazione è la sorgente di novità, il crossover ricombina ciò che già funziona, la selezione decide che cosa sopravvive.</mark> Ridurre <code>σ</code> col passare delle generazioni fa esplorare all'inizio e rifinire alla fine.</p></div>
 
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: crossover e mutazione su due genomi</h3><span class="tag">matematica reale</span></div>
@@ -343,7 +460,8 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 
   <h3 id="s4-ciclo" class="anchor">Il ciclo delle generazioni, dal vivo</h3>
   <div class="prose stack">
-    <p>Valuta, ordina, seleziona, incrocia, muta, ripeti. Si ferma quando un'auto completa il giro, quando la fitness migliore non cresce più da molte generazioni, o a un massimo prefissato. Il laboratorio qui sotto è il progetto intero in miniatura: una pista chiusa costruita come nella sezione 1, auto con il modello a bicicletta, cinque raggi, una rete 6 → 5 → 2 (sterzo e gas) e il ciclo evolutivo completo. Le prime generazioni sbattono quasi subito; guarda la fitness migliore e quella media salire, e la traiettoria del campione allungarsi.</p>
+    <p><mark>Valuta, ordina, seleziona, incrocia, muta, ripeti.</mark> Si ferma quando un'auto completa il giro, quando la fitness migliore non cresce più da molte generazioni, o a un massimo prefissato.</p>
+    <p>Il laboratorio qui sotto è il progetto intero in miniatura: una pista chiusa costruita come nella sezione 1, auto con il modello a bicicletta, cinque raggi, una rete 6 → 5 → 2 (sterzo e gas) e il ciclo evolutivo completo. Le prime generazioni sbattono quasi subito; guarda la fitness migliore e quella media salire, e la traiettoria del campione allungarsi.</p>
   </div>
 
   <div class="lab">
@@ -370,8 +488,30 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 
   <h3 id="s4-general" class="anchor">Generalizzazione: memorizzare una pista non è saper guidare</h3>
   <div class="prose stack">
-    <p>Una rete allenata su una sola pista può aver imparato quella pista, non la guida: una sequenza di riflessi che funziona perché le curve arrivano sempre nello stesso ordine. La prova è metterla su un tracciato mai visto. Per ottenere un pilota e non un memorizzatore si allena su più piste, o con partenze variate (posizione e orientamento iniziali casuali), e si <em>testa</em> su una pista tenuta fuori. È la stessa distinzione tra training set e test set del machine learning classico, e vale anche qui dove non c'è un dataset. Il campione, infine, si salva: genoma e topologia in JSON (JavaScript Object Notation), da ricaricare per la modalità replay, quella del video, con una sola auto a velocità normale.</p>
+    <p><mark>Una rete allenata su una sola pista può aver imparato quella pista, non la guida</mark>: una sequenza di riflessi che funziona perché le curve arrivano sempre nello stesso ordine. La prova è metterla su un tracciato mai visto.</p>
+    <p>Per ottenere un pilota e non un memorizzatore si allena su più piste, o con partenze variate (posizione e orientamento iniziali casuali), e si <em>testa</em> su <mark>una pista tenuta fuori</mark>. È la stessa distinzione tra training set e test set del machine learning classico, e vale anche qui dove non c'è un dataset. Il campione, infine, si salva: genoma e topologia in JSON (JavaScript Object Notation), da ricaricare per la modalità replay, quella del video, con una sola auto a velocità normale.</p>
   </div>
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 4: l'addestramento">
+    <figcaption class="vx-cap">Mappa concettuale · l'addestramento: neuroevoluzione</figcaption>
+    <ul><li><span class="c">Neuroevoluzione</span>
+      <ul>
+        <li><em class="r">nasce perché</em> <span class="c">non c'è né dataset né gradiente</span>
+          <ul><li><em class="r">mancano</em> <span class="c">esempi «input → output giusto»</span></li>
+              <li><em class="r">manca</em> <span class="c">un errore derivabile</span></li></ul></li>
+        <li><em class="r">valuta ogni auto con la</em> <span class="c hot">Fitness</span>
+          <ul><li><em class="r">è fatta di</em> <span class="c">checkpoint superati + frazione</span></li>
+              <li><em class="r">si protegge con</em> <span class="c">il timeout di progresso</span></li>
+              <li><em class="r">rischia il</em> <span class="c">reward hacking</span></li></ul></li>
+        <li><em class="r">costruisce la generazione con</em> <span class="c hot">Selezione, crossover, mutazione</span>
+          <ul><li><em class="r">l'elitismo</em> <span class="c">copia intatti i migliori</span></li>
+              <li><em class="r">torneo o roulette</em> <span class="c">scelgono i genitori</span></li>
+              <li><em class="r">la mutazione è</em> <span class="c">la sorgente di novità</span></li></ul></li>
+        <li><em class="r">si verifica con la</em> <span class="c">Generalizzazione</span>
+          <ul><li><em class="r">si allena su</em> <span class="c">più piste o partenze variate</span></li>
+              <li><em class="r">si testa su</em> <span class="c">una pista tenuta fuori</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Neuroevoluzione</dt><dd>Addestrare una rete con un algoritmo evolutivo sui suoi pesi invece che con il gradiente: valuta, seleziona, ricombina, muta.</dd><span class="ex">nessun dataset, nessuna derivata</span></div>
@@ -392,21 +532,29 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
     <h2>La UI deve far vedere il ragionamento della rete, e il repo deve poter essere ripercorso da chi impara</h2>
   </div>
   <div class="prose stack">
-    <p>Ciò che rende il video memorabile non è l'auto che gira: è il grafo sotto, che si accende a ogni curva. La UI (User Interface, interfaccia utente) ha quel compito: rendere visibile il forward pass. Nodi in colonne, uno strato per colonna; archi tra tutti i nodi di strati adiacenti, con il <b>colore</b> che dice il segno del peso (verde positivo, rosso negativo) e lo <b>spessore</b> il suo modulo; il <b>riempimento</b> di ogni nodo che segue l'attivazione corrente, frame dopo frame; le etichette con nome e valore degli input a sinistra (−65° 0.77, VelF 0.53) e dei comandi a destra (Steering −0.98). Sono centinaia di archi ridisegnati 60 volte al secondo: meglio un canvas dedicato che un SVG (Scalable Vector Graphics) con centinaia di elementi. Accanto, il pannello di addestramento: generazione, auto vive, fitness migliore, il grafico migliore/media, la velocità di simulazione (x1, x10, massima senza disegno), e i controlli per cambiare popolazione e mutazione al volo.</p>
+    <p>Ciò che rende il video memorabile non è l'auto che gira: è il grafo sotto, che si accende a ogni curva. La UI (User Interface, interfaccia utente) ha quel compito: <mark>rendere visibile il forward pass</mark>. Nodi in colonne, uno strato per colonna; archi tra tutti i nodi di strati adiacenti, con il <b>colore</b> che dice il segno del peso (verde positivo, rosso negativo) e lo <b>spessore</b> il suo modulo; il <b>riempimento</b> di ogni nodo che segue l'attivazione corrente, frame dopo frame; le etichette con nome e valore degli input a sinistra (−65° 0.77, VelF 0.53) e dei comandi a destra (Steering −0.98).</p>
+    <p>Sono centinaia di archi ridisegnati 60 volte al secondo: meglio un canvas dedicato che un SVG (Scalable Vector Graphics) con centinaia di elementi.</p>
+    <p>Accanto, il pannello di addestramento: generazione, auto vive, fitness migliore, il grafico migliore/media, la velocità di simulazione (x1, x10, massima senza disegno), e i controlli per cambiare popolazione e mutazione al volo.</p>
   </div>
 
   <h3 id="s5-fisica" class="anchor">Una sola fisica: il nodo tra notebook Python e UI nel browser</h3>
   <div class="prose stack">
-    <p>Se l'addestramento vive in un notebook Python (NumPy rende la formula della sezione 3 una riga) e la UI in TypeScript con Canvas, la simulazione rischia di esistere due volte, e un'auto allenata in Python guiderebbe diversamente nel browser. Le opzioni sono tre. <b>A</b>, la consigliata: mondo, rete ed evoluzione in Python; un piccolo server FastAPI manda lo stato via WebSocket a ogni frame (auto, punti d'impatto dei raggi, pesi e attivazioni, generazione, fitness) e riceve i comandi (tasti, pausa, velocità); il browser disegna e basta. <b>B</b>: tutto in TypeScript, con il kernel Jupyter di Deno che importa gli stessi moduli della UI; un solo linguaggio, ma senza NumPy. <b>C</b>: fisica riscritta in TypeScript e genoma esportato in JSON (JavaScript Object Notation); UI pubblicabile come pagina statica, ma due fisiche da tenere allineate con test di equivalenza: sconsigliata. In tutti i casi il <b>contratto WebSocket</b> va fissato prima del codice, perché è il confine oltre il quale Python e UI evolvono separati.</p>
+    <p>Se l'addestramento vive in un notebook Python (NumPy rende la formula della sezione 3 una riga) e la UI in TypeScript con Canvas, <mark>la simulazione rischia di esistere due volte</mark>, e un'auto allenata in Python guiderebbe diversamente nel browser.</p>
+    <p>Le opzioni sono tre. <b>A</b>, la consigliata: mondo, rete ed evoluzione in Python; un piccolo server FastAPI manda lo stato via WebSocket a ogni frame (auto, punti d'impatto dei raggi, pesi e attivazioni, generazione, fitness) e riceve i comandi (tasti, pausa, velocità); il browser disegna e basta.</p>
+    <p><b>B</b>: tutto in TypeScript, con il kernel Jupyter di Deno che importa gli stessi moduli della UI; un solo linguaggio, ma senza NumPy. <b>C</b>: fisica riscritta in TypeScript e genoma esportato in JSON (JavaScript Object Notation); UI pubblicabile come pagina statica, ma due fisiche da tenere allineate con test di equivalenza: sconsigliata.</p>
+    <p>In tutti i casi <mark>il <b>contratto WebSocket</b> va fissato prima del codice</mark>, perché è il confine oltre il quale Python e UI evolvono separati.</p>
   </div>
 
   <div class="vx"><div class="vx-cards"><div class="vx-card"><h5><small>opzione A · consigliata</small> Python + UI che disegna</h5><div class="vx-line">NumPy · FastAPI · WebSocket · React + Canvas</div><div class="vx-out go">una sola fisica; notebook classico; esercita Python</div><div class="vx-out wait">due ambienti da avviare, un protocollo da definire</div></div><div class="vx-card"><h5><small>opzione B</small> Tutto TypeScript</h5><div class="vx-line">kernel Jupyter di Deno importa i moduli .ts della UI</div><div class="vx-out go">un solo linguaggio, una sola installazione</div><div class="vx-out wait">niente NumPy né ecosistema Python di machine learning</div></div><div class="vx-card"><h5><small>opzione C · sconsigliata</small> Fisica riscritta in TypeScript</h5><div class="vx-line">genoma esportato in JSON e caricato dal browser</div><div class="vx-out go">UI statica, pubblicabile ovunque</div><div class="vx-out bad">due fisiche da tenere allineate con test di equivalenza</div></div></div></div>
 
   <h3 id="s5-tag" class="anchor">Un corso fatto di tag git</h3>
   <div class="prose stack">
-    <p>Il repo è pensato per essere ripercorso: la storia git diventa il corso. Sette tappe (pista e auto manuale; sensori; rete casuale; grafo della rete; neuroevoluzione; campione e replay; estensioni) diventano sette coppie di tag: <code>step-NN-start</code> contiene boilerplate, commenti <code>TODO(step-NN)</code> che rimandano alla teoria, test rossi, e la soluzione della tappa precedente, così chi si blocca non resta indietro; <code>step-NN-solution</code> è la tappa risolta, da confrontare con la propria. Il test è la definizione di «tappa completata», e per questo tutto deve essere deterministico: seed fisso per ogni generatore casuale, passo di fisica fisso.</p>
-    <p>I tag però non si modificano, e un bug nella tappa 1 andrebbe corretto a mano in tutte le successive. La soluzione è un solo branch <code>solution</code> con la logica nei moduli e blocchi <code># BEGIN SOLUTION</code> / <code># END SOLUTION</code>; uno script (<code>tools/make_steps.py</code>) sostituisce i blocchi con stub e rigenera tutti i tag; i marcatori riprendono la convenzione che nbgrader usa per i notebook. I notebook stessi non contengono logica: importano da <code>sim/</code> e sperimentano, sono abbinati a file <code>.py</code> con Jupytext (diff leggibili) e ripuliti dagli output con nbstripout; la CI (Continuous Integration) li esegue da zero e verifica che sugli starter i test della tappa corrente falliscano e quelli precedenti passino. Si parte scrivendo la soluzione completa, una tappa per commit; gli starter si ricavano dopo, per sottrazione.</p>
+    <p>Il repo è pensato per essere ripercorso: <mark>la storia git diventa il corso</mark>. Sette tappe (pista e auto manuale; sensori; rete casuale; grafo della rete; neuroevoluzione; campione e replay; estensioni) diventano sette coppie di tag: <code>step-NN-start</code> contiene boilerplate, commenti <code>TODO(step-NN)</code> che rimandano alla teoria, test rossi, e la soluzione della tappa precedente, così chi si blocca non resta indietro; <code>step-NN-solution</code> è la tappa risolta, da confrontare con la propria.</p>
+    <p>Il test è la definizione di «tappa completata», e per questo <mark>tutto deve essere deterministico</mark>: seed fisso per ogni generatore casuale, passo di fisica fisso.</p>
+    <p><mark>I tag però non si modificano</mark>, e un bug nella tappa 1 andrebbe corretto a mano in tutte le successive. La soluzione è un solo branch <code>solution</code> con la logica nei moduli e blocchi <code># BEGIN SOLUTION</code> / <code># END SOLUTION</code>; uno script (<code>tools/make_steps.py</code>) sostituisce i blocchi con stub e rigenera tutti i tag; i marcatori riprendono la convenzione che nbgrader usa per i notebook.</p>
+    <p>I notebook stessi non contengono logica: importano da <code>sim/</code> e sperimentano, sono abbinati a file <code>.py</code> con Jupytext (diff leggibili) e ripuliti dagli output con nbstripout; la CI (Continuous Integration) li esegue da zero e verifica che sugli starter i test della tappa corrente falliscano e quelli precedenti passino.</p>
   </div>
+  <div class="rd key"><span class="rd-k">Da ricordare</span><p>Si parte scrivendo la soluzione completa, una tappa per commit; gli starter si ricavano dopo, per sottrazione.</p></div>
 
   <div class="vx vx-code"><div class="vx-code-h"><span>Python · un TODO ben scritto</span><button class="vx-copy" type="button">Copia</button></div>
 <pre><code><span class="ln"><span class="tk-kw">def</span> forward(self, x: np.ndarray) -&gt; np.ndarray:
@@ -415,6 +563,25 @@ canvas.sim{width:100%;height:auto;display:block;background:var(--surface-2);bord
 </span><span class="ln">    <span class="tk-cm"># Verifica: pytest tests/test_step03.py</span>
 </span><span class="ln">    <span class="tk-kw">raise</span> NotImplementedError
 </span></code></pre></div>
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 5: dal video al repo">
+    <figcaption class="vx-cap">Mappa concettuale · dal video al repo</figcaption>
+    <ul><li><span class="c">Dal video al repo</span>
+      <ul>
+        <li><em class="r">mostra il ragionamento con la</em> <span class="c hot">UI: il grafo della rete</span>
+          <ul><li><em class="r">colore</em> <span class="c">segno del peso</span></li>
+              <li><em class="r">spessore</em> <span class="c">modulo del peso</span></li>
+              <li><em class="r">riempimento</em> <span class="c">attivazione del nodo</span></li></ul></li>
+        <li><em class="r">tiene una sola</em> <span class="c">Fisica</span>
+          <ul><li><em class="r">opzione consigliata</em> <span class="c">Python + browser che disegna</span></li>
+              <li><em class="r">si fissa prima del codice</em> <span class="c hot">il contratto WebSocket</span></li></ul></li>
+        <li><em class="r">trasforma la storia git in un</em> <span class="c">Corso a tag</span>
+          <ul><li><em class="r">ogni tappa ha</em> <span class="c">step-NN-start e step-NN-solution</span></li>
+              <li><em class="r">si generano da</em> <span class="c">un solo branch solution</span></li></ul></li>
+        <li><em class="r">richiede</em> <span class="c">Determinismo</span>
+          <ul><li><em class="r">seed fisso e</em> <span class="c">passo di fisica fisso</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Grafo della rete</dt><dd>Visualizzazione del forward pass: colore dell'arco = segno del peso, spessore = modulo, riempimento del nodo = attivazione.</dd><span class="ex">canvas dedicato, 60 fps</span></div>
@@ -837,6 +1004,60 @@ window.XREF_CONFIG={
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
 .xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+/* 12 · lettura: grassetto, evidenziazione, termini e riquadri nel testo (AUTHORING.md §12) */
+.prose{line-height:1.68}
+.prose b,.prose strong,.rd b,.rd strong,.callout b,.callout strong{font-weight:600;color:var(--ink)}
+mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+dfn{font-style:normal;font-weight:600;color:var(--accent)}
+.callout>b:first-child,.callout>strong:first-child{color:var(--accent)}
+.rd{margin:18px 0;max-width:68ch;padding:12px 16px 12px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.6}
+.rd>*+*{margin-top:8px}
+.rd ul,.rd ol{margin:8px 0 0;padding-left:1.2em}
+.rd li+li{margin-top:4px}
+.rd-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.rd.sum{background:var(--accent-soft)}
+.rd.warn{border-left-color:var(--bad);background:var(--bad-soft)}
+.rd.warn .rd-k{color:var(--bad)}
+.rd.key{border-left-color:var(--good);background:var(--good-soft)}
+.rd.key .rd-k{color:var(--good)}
+.rd.ex{border-left-color:var(--line);background:var(--surface)}
+.rd.ex .rd-k{color:var(--muted)}
+/* 13 · calcoli: formule e passaggi in un riquadro (AUTHORING.md §12) */
+.vx-math{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px 14px;max-width:100%;overflow-x:auto}
+.vx-math-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.vx-eqs{display:grid;grid-template-columns:auto auto 1fr;column-gap:.6em;row-gap:8px;align-items:center;font-family:var(--serif);font-size:1.08rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.vx-eq{display:contents}
+.vx-eq>.l{text-align:right;white-space:nowrap}
+.vx-eq>.o{color:var(--accent);font-weight:600;text-align:center}
+.vx-eq>.r{white-space:nowrap}
+.vx-eq>small,.vx-eqs>small{grid-column:3;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin-top:-4px}
+.vx-eq.res>.r{font-weight:650;background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px;padding:1px 6px;justify-self:start}
+.vx-math var,.vx-formula var{font-style:italic;font-family:var(--serif)}
+.vx-math sub,.vx-math sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .2em .1em}
+.fr>span:last-child{padding:.1em .2em 0}
+.vx-math-f{font-size:.88rem;color:var(--muted);margin:10px 0 0;font-family:var(--sans)}
+.vx-math-f b{color:var(--ink)}
+/* 14 · mappa concettuale: albero di concetti con le relazioni scritte sui rami */
+.vx-cmap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px}
+.vx-cmap ul{list-style:none;margin:0;padding:0}
+.vx-cmap .c{display:inline-block;font-weight:600;font-size:.92rem;line-height:1.3;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.vx-cmap .c.hot{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cmap .c small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.vx-cmap .r{display:block;font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--accent);margin:0 0 3px;letter-spacing:.02em}
+.vx-cmap>ul>li{text-align:center}
+.vx-cmap>ul>li>.c{background:var(--accent);color:var(--bg);border-color:var(--accent);font-family:var(--serif);font-size:1.05rem;padding:7px 14px}
+.vx-cmap>ul>li>ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:22px;position:relative;text-align:left}
+.vx-cmap>ul>li>ul::before{content:"";position:absolute;left:8%;right:8%;top:-12px;border-top:1px solid var(--accent)}
+.vx-cmap>ul>li>ul>li{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.vx-cmap>ul>li>ul>li::before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:1px solid var(--accent)}
+.vx-cmap li li ul{margin:8px 0 0 6px;padding-left:12px;border-left:1px solid var(--line)}
+.vx-cmap li li li{position:relative;margin-top:8px}
+.vx-cmap li li li::before{content:"";position:absolute;left:-12px;top:.9em;width:10px;border-top:1px solid var(--line)}
+.vx-cmap-x{margin:14px 0 0;font-size:.84rem;color:var(--muted)}
+.vx-cmap-x b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.vx-cmap>ul>li>ul::before,.vx-cmap>ul>li>ul>li::before{display:none}.vx-cmap>ul>li>ul{margin-top:12px}}
 </style>
 <script>
 /* schede codice: pulsante Copia (copia le righe senza numeri) */

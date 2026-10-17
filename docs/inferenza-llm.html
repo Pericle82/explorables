@@ -245,9 +245,11 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <span class="eyebrow">1 · Il ciclo di generazione</span>
     <h2>Il modello non scrive una risposta: prevede un token, lo aggiunge e ricomincia</h2>
   </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>Pensate al completamento automatico della tastiera del telefono, usato premendo sempre il primo suggerimento: ogni parola scelta diventa parte del testo su cui si calcola il suggerimento successivo.</p></div>
   <div class="prose stack">
-    <p>Pensate al completamento automatico della tastiera del telefono, usato premendo sempre il primo suggerimento: ogni parola scelta diventa parte del testo su cui si calcola il suggerimento successivo. Un modello linguistico decoder fa esattamente questo, con una rete molto più grande e un vocabolario di decine o centinaia di migliaia di token. Non c'è un piano della frase da qualche parte: c'è solo la domanda «dato tutto il testo fin qui, quale token viene dopo?», ripetuta.</p>
-    <p>Ogni giro del ciclo ha quattro passi. Una <b>passata in avanti</b> (forward pass) attraversa tutti gli strati e produce un <b>logit</b>, un punteggio grezzo, per ciascun token del vocabolario. La softmax trasforma i logit in una distribuzione di probabilità. Una regola di scelta, il campionamento del capitolo 2, estrae un token da quella distribuzione. Il token scelto si accoda al testo e il giro riparte. Che cosa siano logit e softmax, e come si arriva a quei punteggi, è spiegato nella guida sul training, e la softmax si può provare a mano nel laboratorio sulle quattro classi della guida sul machine learning: qui interessa che cosa se ne fa quando il modello genera.</p>
+    <p>Un modello linguistico decoder fa esattamente questo, con una rete molto più grande e un vocabolario di decine o centinaia di migliaia di token. <mark>Non c'è un piano della frase da qualche parte</mark>: c'è solo la domanda «dato tutto il testo fin qui, quale token viene dopo?», ripetuta.</p>
+    <p>Ogni giro del ciclo ha <b>quattro passi</b>. Una <dfn>passata in avanti</dfn> (forward pass) attraversa tutti gli strati e produce un <dfn>logit</dfn>, un punteggio grezzo, per ciascun token del vocabolario. La softmax trasforma i logit in una distribuzione di probabilità. Una regola di scelta, il campionamento del capitolo 2, estrae un token da quella distribuzione. Il token scelto si accoda al testo e il giro riparte.</p>
+    <p>Che cosa siano logit e softmax, e come si arriva a quei punteggi, è spiegato nella guida sul training, e la softmax si può provare a mano nel laboratorio sulle quattro classi della guida sul machine learning: qui interessa che cosa se ne fa quando il modello genera.</p>
   </div>
 
   <div class="loop">
@@ -259,13 +261,13 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="c1-fine" class="anchor">Quando si ferma</h3>
   <div class="prose stack">
-    <p>Il ciclo non ha una lunghezza prefissata. Si ferma in tre casi: il modello sceglie un <b>token di fine</b> (un token speciale che durante l'addestramento chiudeva ogni risposta, spesso chiamato EOS, End Of Sequence), il testo prodotto contiene una <b>sequenza di stop</b> indicata da chi chiama, oppure si raggiunge il <b>limite massimo di token</b> in uscita. Nel terzo caso la risposta è semplicemente tagliata: le API (Application Programming Interface, interfacce di programmazione) lo segnalano con un motivo di arresto diverso, ed è buona pratica controllarlo.</p>
+    <p>Il ciclo non ha una lunghezza prefissata. <mark>Si ferma in tre casi</mark>: il modello sceglie un <dfn>token di fine</dfn> (un token speciale che durante l'addestramento chiudeva ogni risposta, spesso chiamato EOS, End Of Sequence), il testo prodotto contiene una <b>sequenza di stop</b> indicata da chi chiama, oppure si raggiunge il <b>limite massimo di token</b> in uscita. Nel terzo caso <mark>la risposta è semplicemente tagliata</mark>: le API (Application Programming Interface, interfacce di programmazione) lo segnalano con un motivo di arresto diverso, ed è buona pratica controllarlo.</p>
   </div>
 
   <h3 id="c1-parallelo" class="anchor">Il prompt in parallelo, la risposta in fila</h3>
   <div class="prose stack">
-    <p>Il prompt è già tutto noto prima di cominciare. Grazie alla maschera causale, che impedisce a ogni token di guardare quelli successivi, il modello può elaborare tutti i token del prompt <b>nella stessa passata</b>: ogni posizione calcola il proprio vettore guardando solo quelle precedenti, e i calcoli di posizioni diverse non dipendono l'uno dall'altro. È la fase di <b>prefill</b>, e la sua ultima posizione produce già i logit del primo token di risposta.</p>
-    <p>La risposta invece non si può parallelizzare: il token 5 non esiste finché il token 4 non è stato scelto. È la fase di <b>decode</b>: una passata per ogni token in uscita. Mille token di risposta sono mille passate in sequenza, mentre mille token di prompt sono una passata sola. Il capitolo 4 mostra perché questa differenza pesa su tempi e prezzi.</p>
+    <p>Il prompt è già tutto noto prima di cominciare. Grazie alla maschera causale, che impedisce a ogni token di guardare quelli successivi, il modello può elaborare <mark>tutti i token del prompt <b>nella stessa passata</b></mark>: ogni posizione calcola il proprio vettore guardando solo quelle precedenti, e i calcoli di posizioni diverse non dipendono l'uno dall'altro. È la fase di <dfn>prefill</dfn>, e la sua ultima posizione produce già i logit del primo token di risposta.</p>
+    <p>La risposta invece <mark>non si può parallelizzare</mark>: il token 5 non esiste finché il token 4 non è stato scelto. È la fase di <dfn>decode</dfn>: una passata per ogni token in uscita. <mark>Mille token di risposta sono mille passate in sequenza, mentre mille token di prompt sono una passata sola.</mark> Il capitolo 4 mostra perché questa differenza pesa su tempi e prezzi.</p>
   </div>
 
   <div class="vx vx-svg">
@@ -323,6 +325,21 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <p class="note">Le probabilità sono inventate e si mostrano solo i quattro candidati migliori su un vocabolario che ne ha decine di migliaia; la scelta è sempre quella più probabile (greedy). I conteggi di token elaborati sono quelli reali di un decoder: con la cache ogni passata di decode elabora il solo token nuovo; senza, rielabora ogni volta tutto il testo.</p>
   </div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1">
+    <figcaption class="vx-cap">Mappa concettuale · il ciclo di generazione</figcaption>
+    <ul><li><span class="c">Ciclo di generazione</span>
+      <ul>
+        <li><em class="r">ogni giro è fatto di</em> <span class="c hot">Passata in avanti</span>
+          <ul><li><em class="r">produce</em> <span class="c">logit</span></li>
+              <li><em class="r">poi la softmax li trasforma in</em> <span class="c">probabilità <small>scelta: capitolo 2</small></span></li></ul></li>
+        <li><em class="r">si ripete finché</em> <span class="c">non c'è un arresto</span>
+          <ul><li><em class="r">può essere</em> <span class="c">token di fine, sequenza di stop o limite</span></li></ul></li>
+        <li><em class="r">ha due fasi</em> <span class="c hot">Prefill e decode</span>
+          <ul><li><em class="r">il prefill elabora</em> <span class="c">il prompt in una passata</span></li>
+              <li><em class="r">il decode produce</em> <span class="c">un token per passata <small>capitolo 4</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+
   <dl class="gloss">
     <div><dt>Passata in avanti</dt><dd>Un attraversamento completo della rete, dagli embedding ai logit. Nel decode ne serve una per ogni token generato.</dd><span class="ex">32 strati in un modello da 8 miliardi di parametri</span></div>
     <div><dt>Prefill</dt><dd>La prima fase della generazione: tutti i token del prompt elaborati insieme, in una passata.</dd><span class="ex">2.000 token di prompt → 1 passata</span></div>
@@ -338,13 +355,16 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>La distribuzione la decide il modello, la scelta la decidono poche regole fuori dal modello</h2>
   </div>
   <div class="prose stack">
-    <p>Il modello restituisce una distribuzione; quale token prendere è una decisione separata, fatta da poche righe di codice nel server, e cambia molto il carattere del testo. È come una giuria che dà un voto a ogni candidato: si può proclamare sempre il primo, oppure estrarre a sorte pesando i voti, magari dopo aver escluso chi ha preso troppo poco.</p>
-    <p><b>Greedy</b> (avido) significa prendere sempre il token più probabile. È deterministico e va bene per risposte brevi e fattuali, ma su testi lunghi tende a ripetersi e a scegliere la strada più banale. <b>Campionare</b> significa estrarre a caso secondo le probabilità: il testo diventa più vario, al prezzo di qualche scelta improbabile. La <b>temperatura</b>, già vista nella guida sul training, divide i logit prima della softmax: sotto 1 accentua le differenze e avvicina il greedy, sopra 1 le appiattisce. A temperatura 0 la maggior parte delle librerie passa direttamente al greedy.</p>
+    <p>Il modello restituisce una distribuzione; <mark>quale token prendere è una decisione separata</mark>, fatta da poche righe di codice nel server, e cambia molto il carattere del testo.</p>
+  </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>È come una giuria che dà un voto a ogni candidato: si può proclamare sempre il primo, oppure estrarre a sorte pesando i voti, magari dopo aver escluso chi ha preso troppo poco.</p></div>
+  <div class="prose stack">
+    <p><dfn>Greedy</dfn> (avido) significa prendere sempre il <b>token più probabile</b>. È deterministico e va bene per risposte brevi e fattuali, ma su testi lunghi tende a ripetersi e a scegliere la strada più banale. <dfn>Campionare</dfn> significa estrarre a caso secondo le probabilità: il testo diventa più vario, al prezzo di qualche scelta improbabile. La <dfn>temperatura</dfn>, già vista nella guida sul training, <mark>divide i logit prima della softmax</mark>: sotto 1 accentua le differenze e avvicina il greedy, sopra 1 le appiattisce. A temperatura 0 la maggior parte delle librerie passa direttamente al greedy.</p>
   </div>
 
   <h3 id="c2-filtri" class="anchor">Tagliare la coda: top-k, top-p, min-p</h3>
   <div class="prose stack">
-    <p>Il problema del campionamento puro è la <b>coda</b>: decine di migliaia di token con probabilità minuscole che, sommate, pesano. Estrarre spesso significa prima o poi pescare dalla coda, e un solo token assurdo può far deragliare il resto della frase. I filtri tolgono la coda e <b>rinormalizzano</b> ciò che resta, cioè dividono per la somma rimasta in modo che le probabilità tornino a sommare 1.</p>
+    <p>Il problema del campionamento puro è la <dfn>coda</dfn>: decine di migliaia di token con probabilità minuscole che, sommate, pesano. Estrarre spesso significa prima o poi pescare dalla coda, e <mark>un solo token assurdo può far deragliare il resto della frase</mark>. I filtri tolgono la coda e <dfn>rinormalizzano</dfn> ciò che resta, cioè dividono per la somma rimasta in modo che le probabilità tornino a sommare 1.</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Regola</th><th>Che cosa tiene</th><th>Pregio</th><th>Limite</th></tr></thead>
@@ -385,13 +405,14 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="c2-penalita" class="anchor">Penalità di ripetizione, di frequenza e di presenza</h3>
   <div class="prose stack">
-    <p>Un altro modo di correggere i logit è guardare il testo già scritto. La <b>penalità di presenza</b> sottrae un valore fisso al logit di ogni token che è già comparso almeno una volta; la <b>penalità di frequenza</b> sottrae un valore proporzionale a quante volte è comparso. È la forma usata, per esempio, dalle API (interfacce di programmazione) di OpenAI. La <b>penalità di ripetizione</b> introdotta con il modello CTRL (Keskar e colleghi, 2019) invece divide i logit positivi dei token già visti per un fattore (1,2 nel lavoro originale) e moltiplica quelli negativi.</p>
-    <p>Sono strumenti grossolani: il modello non distingue una ripetizione noiosa da una necessaria, come il nome di una variabile in un codice o un termine tecnico in una spiegazione. Con i modelli moderni addestrati a seguire istruzioni si usano poco, e valori alti peggiorano la qualità.</p>
+    <p>Un altro modo di correggere i logit è guardare il testo già scritto. La <dfn>penalità di presenza</dfn> sottrae un valore fisso al logit di ogni token che è già comparso almeno una volta; la <dfn>penalità di frequenza</dfn> sottrae un valore proporzionale a quante volte è comparso. È la forma usata, per esempio, dalle API (interfacce di programmazione) di OpenAI. La <dfn>penalità di ripetizione</dfn> introdotta con il modello CTRL (Keskar e colleghi, 2019) invece divide i logit positivi dei token già visti per un fattore (1,2 nel lavoro originale) e moltiplica quelli negativi.</p>
   </div>
+  <div class="rd warn"><span class="rd-k">Attenzione</span><p>Sono strumenti grossolani: il modello non distingue una ripetizione noiosa da una necessaria, come il nome di una variabile in un codice o un termine tecnico in una spiegazione. Con i modelli moderni addestrati a seguire istruzioni si usano poco, e <mark>valori alti peggiorano la qualità</mark>.</p></div>
+
 
   <h3 id="c2-determinismo" class="anchor">Seed e non determinismo, anche a temperatura 0</h3>
   <div class="prose stack">
-    <p>Il campionamento usa un generatore di numeri pseudocasuali: fissando il <b>seed</b> (il seme da cui il generatore parte) si ottengono le stesse estrazioni, come mostra il laboratorio. Ci si aspetterebbe allora che a temperatura 0, o con lo stesso seed, la stessa domanda dia sempre la stessa risposta. Nei servizi reali spesso non succede, per ragioni numeriche più che casuali.</p>
+    <p>Il campionamento usa un generatore di numeri pseudocasuali: fissando il <dfn>seed</dfn> (il seme da cui il generatore parte) si ottengono le stesse estrazioni, come mostra il laboratorio. Ci si aspetterebbe allora che a temperatura 0, o con lo stesso seed, la stessa domanda dia sempre la stessa risposta. <mark>Nei servizi reali spesso non succede</mark>, per ragioni numeriche più che casuali.</p>
   </div>
   <div class="vx"><ol class="vx-steps">
     <li><span><b>La virgola mobile non è associativa.</b> In aritmetica a precisione finita (a + b) + c può differire di poco da a + (b + c). Una somma di migliaia di termini dà risultati leggermente diversi se cambia l'ordine.</span></li>
@@ -399,8 +420,26 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <li class="hot"><span><b>Basta un pareggio quasi perfetto.</b> Se due token hanno logit vicinissimi, una differenza nell'ultima cifra cambia il vincitore. Da lì la risposta prosegue su un'altra strada, e le differenze si accumulano.</span></li>
   </ol></div>
   <div class="prose stack">
-    <p>Per questo alcuni provider offrono il seed come garanzia «per quanto possibile», non assoluta. Ottenere un'inferenza davvero riproducibile richiede calcoli che diano lo stesso risultato qualunque sia la dimensione del batch, e costa un po' di velocità.</p>
   </div>
+  <div class="rd key"><span class="rd-k">Da ricordare</span><p>Per questo alcuni provider offrono il seed come garanzia «per quanto possibile», non assoluta. <mark>Ottenere un'inferenza davvero riproducibile richiede calcoli che diano lo stesso risultato qualunque sia la dimensione del batch</mark>, e costa un po' di velocità.</p></div>
+
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 2">
+    <figcaption class="vx-cap">Mappa concettuale · scegliere il token</figcaption>
+    <ul><li><span class="c">Scelta del token</span>
+      <ul>
+        <li><em class="r">può essere</em> <span class="c hot">Greedy o campionamento</span>
+          <ul><li><em class="r">il greedy prende</em> <span class="c">il token più probabile</span></li>
+              <li><em class="r">la temperatura cambia</em> <span class="c">quanto le probabilità sono appiattite</span></li></ul></li>
+        <li><em class="r">si migliora con</em> <span class="c hot">Filtri sulla coda</span>
+          <ul><li><em class="r">sono</em> <span class="c">top-k, top-p, min-p</span></li>
+              <li><em class="r">poi si</em> <span class="c">rinormalizza</span></li></ul></li>
+        <li><em class="r">si corregge con</em> <span class="c">Penalità sui token già usati</span>
+          <ul><li><em class="r">sono di</em> <span class="c">presenza, frequenza, ripetizione</span></li></ul></li>
+        <li><em class="r">non è sempre riproducibile per</em> <span class="c">Virgola mobile e batch</span>
+          <ul><li><em class="r">si fissa con</em> <span class="c">il seed, per quanto possibile</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Greedy</dt><dd>Scelta che prende sempre il token con la probabilità più alta. Equivale a temperatura 0.</dd><span class="ex">«divano» al 41% → «divano», sempre</span></div>
@@ -418,29 +457,49 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Il passato non cambia, quindi si calcola una volta sola e si tiene in memoria</h2>
   </div>
   <div class="prose stack">
-    <p>Nell'attenzione ogni token produce tre vettori: una query, una key e un value. Il token corrente confronta la propria query con le key di tutti i token precedenti e mescola i loro value secondo quei punteggi (il meccanismo è descritto nel capitolo sugli strati della guida sul training). Per generare il token 501 servono quindi le key e i value dei 500 token precedenti, in ogni strato.</p>
-    <p>Il punto chiave è la maschera causale. Siccome un token non guarda mai quelli che vengono dopo, il suo vettore in ogni strato non cambia quando la risposta si allunga: le key e i value del token 37 sono gli stessi alla passata 40 e alla passata 400. Ricalcolarli ogni volta sarebbe puro spreco. La <b>cache KV</b> (key-value, chiavi e valori) li conserva: a ogni passata di decode si calcolano query, key e value del solo token nuovo, si aggiungono key e value alla cache e si legge la cache per l'attenzione. Il decoder con maschera causale, e il perché un encoder come BERT non può farlo, è il tema della guida sulle architetture.</p>
+    <p>Nell'attenzione ogni token produce <b>tre vettori</b>: una query, una key e un value. Il token corrente confronta la propria query con le key di tutti i token precedenti e mescola i loro value secondo quei punteggi (il meccanismo è descritto nel capitolo sugli strati della guida sul training). <mark>Per generare il token 501 servono quindi le key e i value dei 500 token precedenti</mark>, in ogni strato.</p>
+    <p>Il punto chiave è <mark>la maschera causale</mark>. Siccome un token non guarda mai quelli che vengono dopo, il suo vettore in ogni strato non cambia quando la risposta si allunga: le key e i value del token 37 sono gli stessi alla passata 40 e alla passata 400. <mark>Ricalcolarli ogni volta sarebbe puro spreco.</mark></p>
+    <p>La <dfn>cache KV</dfn> (key-value, chiavi e valori) li conserva: a ogni passata di decode si calcolano query, key e value del solo token nuovo, si aggiungono key e value alla cache e si legge la cache per l'attenzione. Il decoder con maschera causale, e il perché un encoder come BERT non può farlo, è il tema della guida sulle architetture.</p>
   </div>
 
   <h3 id="c3-perche" class="anchor">Quanto lavoro si risparmia</h3>
   <div class="prose stack">
-    <p>Prendiamo un prompt di 1.000 token e una risposta di 500. Con la cache il modello elabora 1.000 token nel prefill e poi uno per passata: circa 1.500 elaborazioni di token in tutto. Senza cache, ogni passata rielabora l'intero testo: 1.000 la prima volta, 1.001 la seconda, fino a 1.499.</p>
+    <p>Prendiamo un prompt di 1.000 token e una risposta di 500. Con la cache il modello elabora 1.000 token nel prefill e poi uno per passata: <b>circa 1.500</b> elaborazioni di token in tutto. Senza cache, ogni passata rielabora l'intero testo: 1.000 la prima volta, 1.001 la seconda, fino a 1.499.</p>
   </div>
-  <div class="vx"><div class="vx-formula">senza cache: 500 × 1.000 <span class="op">+</span> (0 + 1 + … + 499) = 500.000 + 124.750 = 624.750<small>circa 400 volte il lavoro fatto con la cache (1.500 token), e il rapporto cresce con la lunghezza</small></div></div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · lavoro senza cache</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">senza cache</span><span class="o">=</span><span class="r">500 × 1.000 + (0 + 1 + … + 499)</span></div>
+      <div class="vx-eq"><span class="l"></span><span class="o">=</span><span class="r">500.000 + 124.750</span></div>
+      <div class="vx-eq res"><span class="l"></span><span class="o">=</span><span class="r">624.750</span></div>
+      <small>circa 400 volte il lavoro fatto con la cache (1.500 token), e il rapporto cresce con la lunghezza</small>
+    </div>
+  </div>
   <div class="prose stack">
-    <p>Il prezzo si paga in memoria. La query del token corrente serve una volta e si butta; key e value invece restano per tutta la conversazione, per ogni strato e per ogni testa che ne ha di proprie.</p>
+    <p><mark>Il prezzo si paga in memoria.</mark> La query del token corrente serve una volta e si butta; key e value invece restano per tutta la conversazione, per ogni strato e per ogni testa che ne ha di proprie.</p>
   </div>
 
   <h3 id="c3-formula" class="anchor">Quanta memoria occupa</h3>
   <div class="vx"><div class="vx-formula">byte per token <span class="op">=</span> 2 × strati × teste KV × d<sub>testa</sub> × byte per numero<small>il 2 conta key e value; bf16 (bfloat16, virgola mobile a 16 bit) usa 2 byte per numero</small></div></div>
   <div class="prose stack">
-    <p>Per Llama 3 8B: 32 strati, 8 teste KV, ogni testa di dimensione 128, numeri in bf16. Il conto dà 2 × 32 × 8 × 128 × 2 = 131.072 byte, cioè <b>128 KiB per token</b>. Un contesto di 8.192 token occupa 1 GiB per conversazione; uno di 128.000 token, il massimo di Llama 3.1, circa 16 GiB, quanto i pesi del modello stesso. La memoria della cache cresce in modo <b>lineare</b> con i token e con il numero di conversazioni servite insieme.</p>
+    <p>Per Llama 3 8B: 32 strati, 8 teste KV, ogni testa di dimensione 128, numeri in bf16. Il conto dà:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · cache KV di Llama 3 8B</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">byte per token</span><span class="o">=</span><span class="r">2 × 32 × 8 × 128 × 2</span></div>
+      <small>key e value, strati, teste KV, dimensione di una testa, byte per numero in bf16</small>
+      <div class="vx-eq"><span class="l"></span><span class="o">=</span><span class="r">131.072 byte</span></div>
+      <div class="vx-eq res"><span class="l">cioè</span><span class="o">=</span><span class="r">128 KiB per token</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Un contesto di 8.192 token occupa <b>1 GiB</b> per conversazione; uno di 128.000 token, il massimo di Llama 3.1, circa <b>16 GiB</b>, quanto i pesi del modello stesso. <mark>La memoria della cache cresce in modo <b>lineare</b> con i token e con il numero di conversazioni servite insieme.</mark></p>
   </div>
 
   <h3 id="c3-gqa" class="anchor">Condividere key e value tra le teste: MQA e GQA</h3>
   <div class="prose stack">
-    <p>Nell'attenzione originale a più teste (MHA, Multi-Head Attention) ogni testa ha query, key e value propri: Llama 2 7B, con 32 teste, mette in cache 32 coppie di key e value per strato, cioè 512 KiB per token. La <b>MQA</b> (Multi-Query Attention, Shazeer 2019) fa condividere a tutte le teste di query una sola coppia di key e value; la <b>GQA</b> (Grouped-Query Attention, Ainslie e colleghi 2023) sta in mezzo: le teste di query sono divise in gruppi e ogni gruppo condivide una coppia. Llama 3 8B ha 32 teste di query e 8 teste KV, quindi gruppi da quattro, e una cache quattro volte più piccola di quella di un'attenzione completa delle stesse dimensioni.</p>
-    <p>Le query restano tutte: ogni testa continua a cercare cose diverse, ma lo fa negli stessi archivi. La perdita di qualità della GQA è piccola rispetto alla MQA, che ne ha una più evidente; per questo la GQA è diventata la scelta più comune. Altre strade riducono ancora la cache: comprimerla in un vettore latente più piccolo (MLA, Multi-head Latent Attention, in DeepSeek-V2 e V3), limitare alcuni strati a una finestra degli ultimi token, oppure quantizzarla a 8 bit.</p>
+    <p>Nell'attenzione originale a più teste (MHA, Multi-Head Attention) ogni testa ha query, key e value propri: Llama 2 7B, con 32 teste, mette in cache 32 coppie di key e value per strato, cioè 512 KiB per token.</p>
+    <p>La <dfn>MQA</dfn> (Multi-Query Attention, Shazeer 2019) fa condividere a tutte le teste di query una sola coppia di key e value; la <dfn>GQA</dfn> (Grouped-Query Attention, Ainslie e colleghi 2023) sta in mezzo: le teste di query sono divise in gruppi e ogni gruppo condivide una coppia. Llama 3 8B ha 32 teste di query e 8 teste KV, quindi gruppi da quattro, e <mark>una cache quattro volte più piccola</mark> di quella di un'attenzione completa delle stesse dimensioni.</p>
+    <p>Le query restano tutte: ogni testa continua a cercare cose diverse, ma lo fa negli stessi archivi. La perdita di qualità della GQA è piccola rispetto alla MQA, che ne ha una più evidente; <mark>per questo la GQA è diventata la scelta più comune</mark>. Altre strade riducono ancora la cache: comprimerla in un vettore latente più piccolo (MLA, Multi-head Latent Attention, in DeepSeek-V2 e V3), limitare alcuni strati a una finestra degli ultimi token, oppure quantizzarla a 8 bit.</p>
   </div>
 
   <div class="lab">
@@ -470,6 +529,22 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <p class="note">La formula è esatta per l'attenzione standard, MHA, GQA e MQA; non vale per varianti come MLA o le finestre scorrevoli. I numeri reali di un server sono un po' più alti: frammentazione (capitolo 5), attivazioni temporanee e memoria riservata dalla libreria. 1 GiB = 2³⁰ byte; GPU da 80 GB = 80·10⁹ byte, come si dichiarano le schede.</p>
   </div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 3">
+    <figcaption class="vx-cap">Mappa concettuale · la cache KV</figcaption>
+    <ul><li><span class="c">Cache KV</span>
+      <ul>
+        <li><em class="r">è possibile grazie a</em> <span class="c">Maschera causale</span>
+          <ul><li><em class="r">perché il passato</em> <span class="c">non cambia mai</span></li></ul></li>
+        <li><em class="r">fa risparmiare</em> <span class="c hot">Calcolo</span>
+          <ul><li><em class="r">evita di</em> <span class="c">rielaborare tutto il testo a ogni passata</span></li></ul></li>
+        <li><em class="r">costa</em> <span class="c hot">Memoria</span>
+          <ul><li><em class="r">si calcola con</em> <span class="c">2 × strati × teste KV × d<sub>testa</sub> × byte</span></li>
+              <li><em class="r">cresce in modo</em> <span class="c">lineare con i token</span></li></ul></li>
+        <li><em class="r">si riduce con</em> <span class="c">GQA e MQA</span>
+          <ul><li><em class="r">condividono</em> <span class="c">key e value tra le teste di query</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+
   <dl class="gloss">
     <div><dt>Cache KV</dt><dd>Key e value dell'attenzione dei token già elaborati, conservati per ogni strato e testa KV per non ricalcolarli a ogni nuovo token.</dd><span class="ex">128 KiB per token in Llama 3 8B</span></div>
     <div><dt>GQA (Grouped-Query Attention)</dt><dd>Attenzione in cui gruppi di teste di query condividono la stessa coppia di key e value: cache più piccola, qualità quasi invariata.</dd><span class="ex">32 teste di query, 8 teste KV</span></div>
@@ -484,13 +559,16 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Il prompt consuma calcolo, la risposta consuma memoria e tempo</h2>
   </div>
   <div class="prose stack">
-    <p>Una GPU (Graphics Processing Unit) può fare due cose lentamente: calcolare e spostare dati dalla propria memoria ai circuiti di calcolo. Quale delle due fa da collo di bottiglia dipende da quante operazioni si fanno per ogni byte letto, la cosiddetta <b>intensità aritmetica</b>. Pensate a un cuoco con un dispensa lontana: se per ogni ingrediente preso fa cento piatti, conta la sua velocità ai fornelli; se per ogni ingrediente fa un piatto solo, conta quanto in fretta va e torna dalla dispensa.</p>
+    <p>Una GPU (Graphics Processing Unit) può fare due cose lentamente: calcolare e spostare dati dalla propria memoria ai circuiti di calcolo. Quale delle due fa da collo di bottiglia dipende da quante operazioni si fanno per ogni byte letto, la cosiddetta <dfn>intensità aritmetica</dfn>.</p>
   </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>Pensate a un cuoco con un dispensa lontana: se per ogni ingrediente preso fa cento piatti, conta la sua velocità ai fornelli; se per ogni ingrediente fa un piatto solo, conta quanto in fretta va e torna dalla dispensa.</p></div>
+
 
   <h3 id="c4-roofline" class="anchor">Prefill limitato dal calcolo, decode limitato dalla memoria</h3>
   <div class="prose stack">
-    <p>Ogni passata deve leggere tutti i pesi dalla memoria: 16 GB per un modello da 8 miliardi di parametri in bf16 (bfloat16, 2 byte per numero). Nel <b>prefill</b>, quella lettura serve a elaborare migliaia di token insieme: ogni peso letto viene usato migliaia di volte, e il limite è la potenza di calcolo. Si dice che il prefill è <b>compute-bound</b>.</p>
-    <p>Nel <b>decode</b> con una sola conversazione, invece, la stessa lettura di 16 GB serve per <em>un</em> token: circa due operazioni per ogni peso, cioè per ogni due byte. I circuiti di calcolo aspettano quasi sempre la memoria: il decode è <b>memory-bound</b>. In più ogni passata rilegge l'intera cache KV (key-value) della conversazione, che cresce token dopo token. Con una banda di memoria di qualche TB/s (terabyte al secondo), leggere 16 GB richiede alcuni millisecondi: è il tempo minimo per token, qualunque sia la potenza di calcolo della scheda.</p>
+    <p>Ogni passata deve leggere tutti i pesi dalla memoria: 16 GB per un modello da 8 miliardi di parametri in bf16 (bfloat16, 2 byte per numero). Nel <b>prefill</b>, quella lettura serve a elaborare migliaia di token insieme: ogni peso letto viene usato migliaia di volte, e <mark>il limite è la potenza di calcolo</mark>. Si dice che il prefill è <dfn>compute-bound</dfn>.</p>
+    <p>Nel <b>decode</b> con una sola conversazione, invece, la stessa lettura di 16 GB serve per <em>un</em> token: circa due operazioni per ogni peso, cioè per ogni due byte. I circuiti di calcolo aspettano quasi sempre la memoria: <mark>il decode è <dfn>memory-bound</dfn></mark>.</p>
+    <p>In più ogni passata rilegge l'intera cache KV (key-value) della conversazione, che cresce token dopo token. Con una banda di memoria di qualche TB/s (terabyte al secondo), leggere 16 GB richiede alcuni millisecondi: <mark>è il tempo minimo per token, qualunque sia la potenza di calcolo della scheda</mark>.</p>
   </div>
   <div class="vx vx-cards">
     <div class="vx-card"><h5><small>prefill</small>Tanti token, una passata</h5>
@@ -507,18 +585,29 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="c4-metriche" class="anchor">Le metriche: TTFT, TPOT, ITL</h3>
   <div class="prose stack">
-    <p>Il <b>TTFT</b> (Time To First Token, tempo al primo token) è quanto si aspetta prima di vedere comparire qualcosa: rete, coda sul server e prefill. Cresce con la lunghezza del prompt. Il <b>TPOT</b> (Time Per Output Token, tempo per token in uscita) è il tempo medio tra un token e il successivo dopo il primo; l'<b>ITL</b> (Inter-Token Latency, latenza tra token) è la stessa grandezza misurata token per token, utile per vedere gli scatti. La latenza totale è circa TTFT + (token in uscita − 1) × TPOT. In una chat con streaming conta molto il TTFT; in un'elaborazione in batch di documenti conta il numero totale di token al secondo.</p>
-    <p>Un caso che sorprende: i modelli che «ragionano» prima di rispondere generano token di ragionamento, visibili o no. Sono token in uscita a tutti gli effetti: allungano l'attesa e si pagano come output.</p>
+    <p>Il <dfn>TTFT</dfn> (Time To First Token, tempo al primo token) è quanto si aspetta prima di vedere comparire qualcosa: rete, coda sul server e prefill. Cresce con la lunghezza del prompt. Il <dfn>TPOT</dfn> (Time Per Output Token, tempo per token in uscita) è il tempo medio tra un token e il successivo dopo il primo; l'<dfn>ITL</dfn> (Inter-Token Latency, latenza tra token) è la stessa grandezza misurata token per token, utile per vedere gli scatti. La latenza totale è circa:</p>
   </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · latenza totale</p>
+    <div class="vx-eqs">
+      <div class="vx-eq res"><span class="l">latenza totale</span><span class="o">≈</span><span class="r">TTFT + (<var>n</var><sub>uscita</sub> − 1) × TPOT</span></div>
+      <small><var>n</var><sub>uscita</sub> sono i token in uscita: il primo arriva con il TTFT, ognuno degli altri costa un TPOT</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>In una chat con streaming <mark>conta molto il TTFT</mark>; in un'elaborazione in batch di documenti conta il numero totale di token al secondo.</p>
+  </div>
+  <div class="rd warn"><span class="rd-k">Un caso che sorprende</span><p>I modelli che «ragionano» prima di rispondere generano token di ragionamento, visibili o no. <mark>Sono token in uscita a tutti gli effetti</mark>: allungano l'attesa e si pagano come output.</p></div>
+
 
   <h3 id="c4-prezzi" class="anchor">Perché nei listini l'uscita costa di più</h3>
   <div class="prose stack">
-    <p>I provider fanno pagare a milione di token, e il token in uscita costa di solito alcune volte quello in ingresso (rapporti tra 3 e 8 sono comuni). Non è arbitrario: un token di prompt è una piccola frazione di una passata eseguita a pieno regime di calcolo, mentre un token di risposta occupa una passata intera, limitata dalla memoria, e tiene occupata per tutto il tempo la cache KV della conversazione. Per lo stesso motivo alcuni listini alzano il prezzo oltre una certa lunghezza del contesto.</p>
+    <p>I provider fanno pagare a milione di token, e <mark>il token in uscita costa di solito alcune volte quello in ingresso</mark> (rapporti tra 3 e 8 sono comuni). Non è arbitrario: un token di prompt è una piccola frazione di una passata eseguita a pieno regime di calcolo, mentre un token di risposta occupa una passata intera, limitata dalla memoria, e tiene occupata per tutto il tempo la cache KV della conversazione. Per lo stesso motivo alcuni listini alzano il prezzo oltre una certa lunghezza del contesto.</p>
   </div>
 
   <h3 id="c4-prompt-cache" class="anchor">Prompt caching: riusare il prefill di un prefisso</h3>
   <div class="prose stack">
-    <p>Molte richieste cominciano allo stesso modo: lo stesso prompt di sistema, le stesse definizioni dei tool, lo stesso documento lungo su cui si fanno più domande. La cache KV di quel prefisso è identica ogni volta, perché dipende solo dai token che vengono prima. Il <b>prompt caching</b> dei provider la conserva per qualche minuto dall'ultimo uso: la richiesta successiva che inizia con <em>esattamente</em> lo stesso prefisso salta quella parte del prefill. Il TTFT scende e i token letti dalla cache costano una frazione del prezzo normale (per alcuni provider un decimo); scriverli in cache può costare un po' di più.</p>
+    <p>Molte richieste cominciano allo stesso modo: lo stesso prompt di sistema, le stesse definizioni dei tool, lo stesso documento lungo su cui si fanno più domande. La cache KV di quel prefisso è identica ogni volta, perché dipende solo dai token che vengono prima. Il <dfn>prompt caching</dfn> dei provider la conserva per qualche minuto dall'ultimo uso: la richiesta successiva che inizia con <em>esattamente</em> lo stesso prefisso <mark>salta quella parte del prefill</mark>.</p>
+    <p>Il TTFT scende e i token letti dalla cache costano una frazione del prezzo normale (per alcuni provider un decimo); scriverli in cache può costare un po' di più.</p>
     <p>Due conseguenze pratiche. Il prefisso deve coincidere token per token: basta un orario o un identificativo all'inizio del prompt di sistema per invalidare tutto, quindi le parti che cambiano vanno in fondo. E non va confuso con la <b>cache delle risposte</b>, che un'applicazione o un gateway tiene per restituire una risposta già data a una domanda uguale o simile, senza chiamare il modello: quella è descritta nella guida sull'ingegneria dei sistemi basati su LLM (Large Language Model). Il prompt caching risparmia il prefill, ma la risposta viene generata ogni volta.</p>
   </div>
 
@@ -549,6 +638,23 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <p class="note">Modello a «tetto» semplificato. GPU ipotetica con 3,35 TB/s di banda e 989 TFLOPS (mille miliardi di operazioni al secondo) in bf16, gli ordini di grandezza di una scheda da datacenter recente, usata all'80% della banda e al 50% del calcolo; con 4 GPU tutto moltiplicato per 4, come se la divisione fosse perfetta. Una sola richiesta, senza coda né rete. La quantizzazione accorcia il decode (meno byte da leggere) ma qui non il prefill. Prezzi inventati: 3 $ per milione di token in ingresso, 0,30 $ letti dalla cache, 15 $ in uscita.</p>
   </div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 4">
+    <figcaption class="vx-cap">Mappa concettuale · prefill e decode</figcaption>
+    <ul><li><span class="c">Costo di una richiesta</span>
+      <ul>
+        <li><em class="r">prima fase</em> <span class="c hot">Prefill</span>
+          <ul><li><em class="r">è limitato dal</em> <span class="c">calcolo (compute-bound)</span></li>
+              <li><em class="r">si misura con</em> <span class="c">TTFT</span></li></ul></li>
+        <li><em class="r">seconda fase</em> <span class="c hot">Decode</span>
+          <ul><li><em class="r">è limitato dalla</em> <span class="c">memoria (memory-bound)</span></li>
+              <li><em class="r">si misura con</em> <span class="c">TPOT e ITL</span></li></ul></li>
+        <li><em class="r">spiega</em> <span class="c">Prezzi di ingresso e uscita</span>
+          <ul><li><em class="r">l'uscita costa</em> <span class="c">più dell'ingresso</span></li></ul></li>
+        <li><em class="r">si abbassa con</em> <span class="c">Prompt caching</span>
+          <ul><li><em class="r">riusa il prefill di</em> <span class="c">un prefisso identico</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+
   <dl class="gloss">
     <div><dt>TTFT (Time To First Token)</dt><dd>Tempo tra l'invio della richiesta e l'arrivo del primo token: coda, rete e prefill.</dd><span class="ex">cresce con la lunghezza del prompt</span></div>
     <div><dt>TPOT (Time Per Output Token)</dt><dd>Tempo medio tra due token in uscita consecutivi, dopo il primo. Il suo inverso è la velocità di scrittura vista dall'utente.</dd><span class="ex">10 ms → 100 token al secondo</span></div>
@@ -564,18 +670,22 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Il decode spreca la GPU, quindi si servono tante conversazioni nella stessa passata</h2>
   </div>
   <div class="prose stack">
-    <p>Se nel decode la GPU (Graphics Processing Unit) passa il tempo a leggere i pesi, la mossa ovvia è usare ogni lettura per più conversazioni. Leggere 16 GB di pesi e usarli per 64 token di 64 utenti diversi costa quasi quanto usarli per uno solo. È come un autobus: il viaggio costa più o meno lo stesso con un passeggero o con cinquanta. Il <b>batching</b> fa salire più passeggeri; tutto il resto di questo capitolo serve a farne salire di più, o a far andare l'autobus più veloce.</p>
+    <p>Se nel decode la GPU (Graphics Processing Unit) passa il tempo a leggere i pesi, la mossa ovvia è <mark>usare ogni lettura per più conversazioni</mark>. Leggere 16 GB di pesi e usarli per 64 token di 64 utenti diversi costa quasi quanto usarli per uno solo.</p>
   </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>È come un autobus: il viaggio costa più o meno lo stesso con un passeggero o con cinquanta. Il <b>batching</b> fa salire più passeggeri; tutto il resto di questo capitolo serve a farne salire di più, o a far andare l'autobus più veloce.</p></div>
+
 
   <h3 id="c5-batching" class="anchor">Batching continuo</h3>
   <div class="prose stack">
-    <p>Il batching statico raccoglie un gruppo di richieste e le porta avanti insieme fino alla fine: chi ha chiesto una risposta di 20 token aspetta chi ne ha chiesta una di 2.000, e i posti liberati restano vuoti. Il <b>batching continuo</b>, introdotto dal sistema Orca (Yu e colleghi, 2022), decide la composizione del batch <em>a ogni passata</em>: una conversazione che finisce esce subito, una richiesta nuova entra al suo posto. Oggi è il comportamento normale dei motori di inferenza come vLLM, SGLang e TensorRT-LLM. Una variante, il <b>prefill a blocchi</b> (chunked prefill), spezza i prompt lunghi in pezzi da mescolare alle passate di decode, così l'arrivo di un documento enorme non blocca la scrittura degli altri utenti.</p>
+    <p>Il batching statico raccoglie un gruppo di richieste e le porta avanti insieme fino alla fine: chi ha chiesto una risposta di 20 token aspetta chi ne ha chiesta una di 2.000, e i posti liberati restano vuoti. Il <dfn>batching continuo</dfn>, introdotto dal sistema Orca (Yu e colleghi, 2022), <mark>decide la composizione del batch <em>a ogni passata</em></mark>: una conversazione che finisce esce subito, una richiesta nuova entra al suo posto.</p>
+    <p>Oggi è il comportamento normale dei motori di inferenza come vLLM, SGLang e TensorRT-LLM. Una variante, il <dfn>prefill a blocchi</dfn> (chunked prefill), spezza i prompt lunghi in pezzi da mescolare alle passate di decode, così l'arrivo di un documento enorme non blocca la scrittura degli altri utenti.</p>
   </div>
 
   <h3 id="c5-paged" class="anchor">PagedAttention: la cache a pagine</h3>
   <div class="prose stack">
-    <p>Il limite al numero di conversazioni insieme è la memoria della cache KV (key-value, capitolo 3). I primi sistemi riservavano a ogni richiesta uno spazio contiguo per la lunghezza massima possibile, perché non si sa in anticipo quanto sarà lunga la risposta. Kwon e colleghi (2023) hanno misurato che in quei sistemi solo il 20–40% circa della memoria della cache conteneva davvero dati utili: il resto era prenotato e mai usato, o frammentato.</p>
-    <p><b>PagedAttention</b>, il cuore di vLLM, applica l'idea della memoria virtuale dei sistemi operativi: la cache è divisa in blocchi di dimensione fissa (16 token per impostazione predefinita) assegnati man mano che servono, anche non contigui, con una tabella che dice dove sta ogni blocco. Lo spreco scende sotto il 4%, nel batch entrano molte più conversazioni e il throughput, il numero di token prodotti al secondo dal server, nel lavoro originale cresce di 2–4 volte a parità di latenza. I blocchi si possono anche <b>condividere</b>: più richieste con lo stesso prefisso puntano agli stessi blocchi, che è un modo di realizzare il prompt caching del capitolo 4.</p>
+    <p>Il limite al numero di conversazioni insieme è la memoria della cache KV (key-value, capitolo 3). I primi sistemi riservavano a ogni richiesta uno spazio contiguo per la lunghezza massima possibile, perché non si sa in anticipo quanto sarà lunga la risposta. Kwon e colleghi (2023) hanno misurato che in quei sistemi <mark>solo il 20–40% circa della memoria della cache conteneva davvero dati utili</mark>: il resto era prenotato e mai usato, o frammentato.</p>
+    <p><dfn>PagedAttention</dfn>, il cuore di vLLM, applica l'idea della memoria virtuale dei sistemi operativi: <mark>la cache è divisa in blocchi di dimensione fissa</mark> (16 token per impostazione predefinita) assegnati man mano che servono, anche non contigui, con una tabella che dice dove sta ogni blocco.</p>
+    <p>Lo spreco scende <b>sotto il 4%</b>, nel batch entrano molte più conversazioni e il throughput, il numero di token prodotti al secondo dal server, nel lavoro originale cresce di 2–4 volte a parità di latenza. I blocchi si possono anche <b>condividere</b>: più richieste con lo stesso prefisso puntano agli stessi blocchi, che è un modo di realizzare il prompt caching del capitolo 4.</p>
   </div>
 
   <div class="lab">
@@ -601,8 +711,18 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="c5-spec" class="anchor">Decodifica speculativa: un modello piccolo propone, quello grande verifica</h3>
   <div class="prose stack">
-    <p>Il batching aumenta i token al secondo del server, non quelli della singola conversazione. Per accelerare la singola risposta si sfrutta la stessa asimmetria in un altro modo: siccome il decode è limitato dalla memoria, una passata del modello grande su 5 token costa quasi quanto una su un token solo. La <b>decodifica speculativa</b> (Leviathan e colleghi, 2023; in parallelo Chen e colleghi, DeepMind) usa un <b>modello bozza</b> piccolo e veloce che propone γ token in sequenza; il modello grande li controlla tutti in una passata sola, come fosse un pezzetto di prefill.</p>
-    <p>La verifica accetta ogni token proposto <i>x</i> con probabilità min(1, p(<i>x</i>) / q(<i>x</i>)), dove p è la probabilità del modello grande e q quella della bozza. Al primo rifiuto si ricampiona da una distribuzione corretta e il resto della bozza si butta; se tutti vengono accettati, la stessa passata regala un token in più. Il risultato notevole è che il testo prodotto ha <b>esattamente la stessa distribuzione</b> che avrebbe dato il modello grande da solo: si guadagna velocità senza perdere qualità. Il guadagno dipende da quanto spesso la bozza indovina, cioè dal tasso di accettazione α, e varia con il tipo di testo: alto per codice e testo prevedibile, basso per testo creativo. Esistono varianti senza modello separato, che aggiungono al modello grande piccole teste che indovinano più token in avanti (per esempio Medusa).</p>
+    <p>Il batching aumenta i token al secondo del server, non quelli della singola conversazione. Per accelerare la singola risposta si sfrutta la stessa asimmetria in un altro modo: siccome il decode è limitato dalla memoria, una passata del modello grande su 5 token costa quasi quanto una su un token solo. La <dfn>decodifica speculativa</dfn> (Leviathan e colleghi, 2023; in parallelo Chen e colleghi, DeepMind) usa un <dfn>modello bozza</dfn> piccolo e veloce che propone γ token in sequenza; <mark>il modello grande li controlla tutti in una passata sola</mark>, come fosse un pezzetto di prefill.</p>
+    <p>La verifica accetta ogni token proposto <i>x</i> con probabilità:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · accettazione di un token</p>
+    <div class="vx-eqs">
+      <div class="vx-eq res"><span class="l">probabilità di accettare <var>x</var></span><span class="o">=</span><span class="r">min(1, <span class="fr"><span><var>p</var>(<var>x</var>)</span> <span><var>q</var>(<var>x</var>)</span></span>)</span></div>
+    </div>
+    <p class="vx-math-f">dove <var>p</var> è la probabilità del modello grande e <var>q</var> quella della bozza.</p>
+  </div>
+  <div class="prose stack">
+    <p>Al primo rifiuto si ricampiona da una distribuzione corretta e il resto della bozza si butta; se tutti vengono accettati, la stessa passata regala un token in più. Il risultato notevole è che <mark>il testo prodotto ha <b>esattamente la stessa distribuzione</b> che avrebbe dato il modello grande da solo</mark>: si guadagna velocità senza perdere qualità.</p>
+    <p>Il guadagno dipende da quanto spesso la bozza indovina, cioè dal tasso di accettazione α, e varia con il tipo di testo: alto per codice e testo prevedibile, basso per testo creativo. Esistono varianti senza modello separato, che aggiungono al modello grande piccole teste che indovinano più token in avanti (per esempio Medusa).</p>
   </div>
 
   <div class="lab">
@@ -626,7 +746,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="c5-quant" class="anchor">Quantizzazione dei pesi: meno byte da leggere</h3>
   <div class="prose stack">
-    <p>Se il decode è limitato dai byte letti, dimezzare i byte dei pesi accelera quasi della metà il decode e libera memoria per la cache. La <b>quantizzazione</b> rappresenta i pesi con meno bit: da 16 (bf16, bfloat16) a 8 (int8 o FP8, virgola mobile a 8 bit) o a 4, con un fattore di scala per ogni gruppo di pesi per non perdere l'ordine di grandezza. Metodi come GPTQ (quantizzazione post-addestramento per modelli GPT) e AWQ (Activation-aware Weight Quantization, quantizzazione che tiene conto delle attivazioni) scelgono come arrotondare guardando dati di esempio, per sbagliare meno proprio sui pesi che contano di più.</p>
+    <p>Se il decode è limitato dai byte letti, <mark>dimezzare i byte dei pesi accelera quasi della metà il decode</mark> e libera memoria per la cache. La <dfn>quantizzazione</dfn> rappresenta i pesi con meno bit: da 16 (bf16, bfloat16) a 8 (int8 o FP8, virgola mobile a 8 bit) o a 4, con un fattore di scala per ogni gruppo di pesi per non perdere l'ordine di grandezza. Metodi come GPTQ (quantizzazione post-addestramento per modelli GPT) e AWQ (Activation-aware Weight Quantization, quantizzazione che tiene conto delle attivazioni) scelgono come arrotondare guardando dati di esempio, per sbagliare meno proprio sui pesi che contano di più.</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Precisione</th><th>Byte per peso</th><th>Pesi di un 8B</th><th>Pesi di un 70B</th><th>Qualità, di solito</th></tr></thead>
@@ -637,6 +757,22 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     </tbody></table></div>
     <p class="vx-foot">Si quantizza anche la cache KV, di solito a 8 bit, con la stessa logica: più conversazioni nella stessa memoria. Prima di adottare una versione quantizzata conviene misurarla sui propri compiti.</p>
   </div>
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 5">
+    <figcaption class="vx-cap">Mappa concettuale · servire molti utenti</figcaption>
+    <ul><li><span class="c">Servire molti utenti</span>
+      <ul>
+        <li><em class="r">si fa con</em> <span class="c hot">Batching continuo</span>
+          <ul><li><em class="r">cambia il batch</em> <span class="c">a ogni passata</span></li>
+              <li><em class="r">è limitato dalla</em> <span class="c">memoria della cache KV <small>capitolo 3</small></span></li></ul></li>
+        <li><em class="r">libera memoria con</em> <span class="c hot">PagedAttention</span>
+          <ul><li><em class="r">divide la cache in</em> <span class="c">blocchi di dimensione fissa</span></li></ul></li>
+        <li><em class="r">accelera la singola risposta con</em> <span class="c">Decodifica speculativa</span>
+          <ul><li><em class="r">una bozza propone, il grande</em> <span class="c">verifica</span></li></ul></li>
+        <li><em class="r">riduce i byte con</em> <span class="c">Quantizzazione</span>
+          <ul><li><em class="r">rappresenta i pesi con</em> <span class="c">meno bit</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Batching continuo</dt><dd>Composizione del batch ricalcolata a ogni passata: chi finisce esce, chi arriva entra, senza aspettare il gruppo.</dd><span class="ex">iteration-level scheduling in Orca</span></div>
@@ -654,13 +790,14 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Per avere JSON valido non si chiede al modello di essere bravo: si vietano i token sbagliati</h2>
   </div>
   <div class="prose stack">
-    <p>Un'applicazione spesso non vuole prosa ma dati: un oggetto JSON (JavaScript Object Notation) con certi campi, la chiamata a un tool con argomenti validi. Chiederlo nelle istruzioni funziona quasi sempre, e «quasi» è il problema: basta un «Certo! Ecco il JSON:» davanti, una virgola in più o un valore fuori elenco per far fallire il parser. La <b>decodifica vincolata</b> risolve il problema nel punto in cui nasce, la scelta del token.</p>
-    <p>A ogni passata, prima del campionamento, il server calcola quali token sono compatibili con lo schema dato il testo prodotto fin lì, e porta a meno infinito il logit di tutti gli altri. Dopo la softmax quei token hanno probabilità zero; i token ammessi si dividono la probabilità rimasta, rinormalizzata come nei filtri del capitolo 2. Il modello sceglie liberamente, ma solo tra le continuazioni valide.</p>
+    <p>Un'applicazione spesso non vuole prosa ma dati: un oggetto JSON (JavaScript Object Notation) con certi campi, la chiamata a un tool con argomenti validi. Chiederlo nelle istruzioni funziona quasi sempre, e «quasi» è il problema: basta un «Certo! Ecco il JSON:» davanti, una virgola in più o un valore fuori elenco per far fallire il parser. La <dfn>decodifica vincolata</dfn> <mark>risolve il problema nel punto in cui nasce</mark>, la scelta del token.</p>
+    <p>A ogni passata, prima del campionamento, <mark>il server calcola quali token sono compatibili con lo schema</mark> dato il testo prodotto fin lì, e porta a meno infinito il logit di tutti gli altri. Dopo la softmax quei token hanno probabilità zero; i token ammessi si dividono la probabilità rimasta, rinormalizzata come nei filtri del capitolo 2. <mark>Il modello sceglie liberamente, ma solo tra le continuazioni valide.</mark></p>
   </div>
 
   <h3 id="c6-maschera" class="anchor">Dalla grammatica alla maschera</h3>
   <div class="prose stack">
-    <p>Lo schema, per esempio un JSON Schema o una grammatica, viene tradotto in un automa: una macchina a stati che sa, in ogni punto, quali caratteri possono venire dopo. Il lavoro difficile è passare dai caratteri ai token, perché un token può contenere più caratteri e attraversare più stati dell'automa. Librerie come Outlines (Willard e Louf, 2023), XGrammar e le grammatiche di llama.cpp precalcolano per ogni stato l'insieme dei token ammessi, così la maschera costa poco a ogni passata. Le modalità di output strutturato «stretto» delle API (interfacce di programmazione) dei provider e il function calling vincolato si basano su questo meccanismo: è il motivo per cui una chiamata a tool ha argomenti sintatticamente validi, come si vede nella guida da assistente ad agente.</p>
+    <p>Lo schema, per esempio un JSON Schema o una grammatica, viene tradotto in un <dfn>automa</dfn>: una macchina a stati che sa, in ogni punto, quali caratteri possono venire dopo. Il lavoro difficile è passare dai caratteri ai token, perché un token può contenere più caratteri e attraversare più stati dell'automa. Librerie come Outlines (Willard e Louf, 2023), XGrammar e le grammatiche di llama.cpp precalcolano per ogni stato l'insieme dei token ammessi, così la maschera costa poco a ogni passata.</p>
+    <p>Le modalità di output strutturato «stretto» delle API (interfacce di programmazione) dei provider e il function calling vincolato si basano su questo meccanismo: è il motivo per cui una chiamata a tool ha argomenti sintatticamente validi, come si vede nella guida da assistente ad agente.</p>
   </div>
   <div class="vx vx-code"><div class="vx-code-h"><span>JSON Schema · il ticket del laboratorio</span><button class="vx-copy" type="button">Copia</button></div>
 <pre><code><span class="ln">{
@@ -702,6 +839,20 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <li><span><b>Può peggiorare la risposta.</b> Il vincolo spinge il modello lontano dalle continuazioni che preferiva. Se una risposta richiede ragionamento, conviene lasciargli un campo di testo libero prima del campo con la conclusione: i token si generano nell'ordine dei campi.</span></li>
     <li><span><b>Ha un costo di preparazione.</b> Schemi molto grandi o ricorsivi richiedono tempo per costruire l'automa; i provider di solito lo mettono in cache dopo il primo uso e non supportano ogni parola chiave del JSON Schema.</span></li>
   </ol></div>
+
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 6">
+    <figcaption class="vx-cap">Mappa concettuale · output strutturato</figcaption>
+    <ul><li><span class="c">Decodifica vincolata</span>
+      <ul>
+        <li><em class="r">parte da</em> <span class="c">Schema o grammatica</span>
+          <ul><li><em class="r">si traduce in</em> <span class="c">un automa</span></li></ul></li>
+        <li><em class="r">a ogni passata costruisce</em> <span class="c hot">Maschera sui logit</span>
+          <ul><li><em class="r">porta a −∞ i token</em> <span class="c">non ammessi</span></li>
+              <li><em class="r">poi si</em> <span class="c">rinormalizza <small>come nel capitolo 2</small></span></li></ul></li>
+        <li><em class="r">garantisce</em> <span class="c hot">La forma</span>
+          <ul><li><em class="r">ma non</em> <span class="c">il contenuto</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
 
   <dl class="gloss">
     <div><dt>Decodifica vincolata</dt><dd>Generazione in cui, a ogni passata, i logit dei token incompatibili con una grammatica o uno schema vengono azzerati in probabilità prima della scelta.</dd><span class="ex">logit → −∞ per «Certo» quando serve «{»</span></div>
@@ -1277,6 +1428,60 @@ window.XREF_CONFIG={
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
 .xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+/* 12 · lettura: grassetto, evidenziazione, termini e riquadri nel testo (AUTHORING.md §12) */
+.prose{line-height:1.68}
+.prose b,.prose strong,.rd b,.rd strong,.callout b,.callout strong{font-weight:600;color:var(--ink)}
+mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+dfn{font-style:normal;font-weight:600;color:var(--accent)}
+.callout>b:first-child,.callout>strong:first-child{color:var(--accent)}
+.rd{margin:18px 0;max-width:68ch;padding:12px 16px 12px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.6}
+.rd>*+*{margin-top:8px}
+.rd ul,.rd ol{margin:8px 0 0;padding-left:1.2em}
+.rd li+li{margin-top:4px}
+.rd-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.rd.sum{background:var(--accent-soft)}
+.rd.warn{border-left-color:var(--bad);background:var(--bad-soft)}
+.rd.warn .rd-k{color:var(--bad)}
+.rd.key{border-left-color:var(--good);background:var(--good-soft)}
+.rd.key .rd-k{color:var(--good)}
+.rd.ex{border-left-color:var(--line);background:var(--surface)}
+.rd.ex .rd-k{color:var(--muted)}
+/* 13 · calcoli: formule e passaggi in un riquadro (AUTHORING.md §12) */
+.vx-math{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px 14px;max-width:100%;overflow-x:auto}
+.vx-math-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.vx-eqs{display:grid;grid-template-columns:auto auto 1fr;column-gap:.6em;row-gap:8px;align-items:center;font-family:var(--serif);font-size:1.08rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.vx-eq{display:contents}
+.vx-eq>.l{text-align:right;white-space:nowrap}
+.vx-eq>.o{color:var(--accent);font-weight:600;text-align:center}
+.vx-eq>.r{white-space:nowrap}
+.vx-eq>small,.vx-eqs>small{grid-column:3;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin-top:-4px}
+.vx-eq.res>.r{font-weight:650;background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px;padding:1px 6px;justify-self:start}
+.vx-math var,.vx-formula var{font-style:italic;font-family:var(--serif)}
+.vx-math sub,.vx-math sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .2em .1em}
+.fr>span:last-child{padding:.1em .2em 0}
+.vx-math-f{font-size:.88rem;color:var(--muted);margin:10px 0 0;font-family:var(--sans)}
+.vx-math-f b{color:var(--ink)}
+/* 14 · mappa concettuale: albero di concetti con le relazioni scritte sui rami */
+.vx-cmap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px}
+.vx-cmap ul{list-style:none;margin:0;padding:0}
+.vx-cmap .c{display:inline-block;font-weight:600;font-size:.92rem;line-height:1.3;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.vx-cmap .c.hot{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cmap .c small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.vx-cmap .r{display:block;font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--accent);margin:0 0 3px;letter-spacing:.02em}
+.vx-cmap>ul>li{text-align:center}
+.vx-cmap>ul>li>.c{background:var(--accent);color:var(--bg);border-color:var(--accent);font-family:var(--serif);font-size:1.05rem;padding:7px 14px}
+.vx-cmap>ul>li>ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:22px;position:relative;text-align:left}
+.vx-cmap>ul>li>ul::before{content:"";position:absolute;left:8%;right:8%;top:-12px;border-top:1px solid var(--accent)}
+.vx-cmap>ul>li>ul>li{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.vx-cmap>ul>li>ul>li::before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:1px solid var(--accent)}
+.vx-cmap li li ul{margin:8px 0 0 6px;padding-left:12px;border-left:1px solid var(--line)}
+.vx-cmap li li li{position:relative;margin-top:8px}
+.vx-cmap li li li::before{content:"";position:absolute;left:-12px;top:.9em;width:10px;border-top:1px solid var(--line)}
+.vx-cmap-x{margin:14px 0 0;font-size:.84rem;color:var(--muted)}
+.vx-cmap-x b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.vx-cmap>ul>li>ul::before,.vx-cmap>ul>li>ul>li::before{display:none}.vx-cmap>ul>li>ul{margin-top:12px}}
 </style>
 <script>
 /* schede codice: pulsante Copia (copia le righe senza numeri) */

@@ -143,3 +143,18 @@ Regole:
 - Il testo resta testo: niente immagini di schemi. L'esame estrae il testo della guida e scarta gli `<svg>`, quindi ogni SVG ha la sua `p.vx-sr` in parole.
 - Tra pezzi affiancati lascia uno spazio nel markup (`</b> <span>`, `testo <small>`): non si vede, ma tiene separate le parole nel testo estratto.
 - I riferimenti incrociati non entrano nei componenti (`.vx` è escluso). Una scheda che deve essere un bersaglio («il caso 2») prende un attributo e la guida la registra: in transazioni `data-xcase="2"` e `data-xscen="B"` diventano `#casi-2` e `#scenari-b`, e l'anteprima mostra la scheda.
+
+## 12. Lettura: evidenziazione, riquadri, calcoli, mappe concettuali
+
+Il blocco condiviso `vx` porta anche gli stili che rendono il testo facile da scorrere e da studiare. Si usano in tutte le guide; servono a leggere meglio, non a dire cose nuove.
+
+| Serve per | Markup | Regola |
+|---|---|---|
+| Frase chiave | `<mark>…</mark>` dentro `.prose`, `.callout`, `.rd`, `.note`, `ol.vx-steps` | Una o due per paragrafo lungo al massimo, una frase o un pezzo di frase: ciò che resta se si legge solo l'evidenziato. Mai paragrafi interi. In manuale-ai (`data.json`) si scrive `==testo==`. |
+| Parola importante | `<b>` | Nomi di concetti, numeri da ricordare, la parola che regge la frase («**non** funziona così»). |
+| Termine definito | `<dfn>termine</dfn>` | Solo nel punto in cui il termine viene spiegato per la prima volta. |
+| Riquadro con etichetta | `<div class="rd sum">` (in sintesi), `.rd.warn` (errore comune, attenzione), `.rd.key` (da ricordare), `.rd.ex` (esempio, analogia), con `<span class="rd-k">Etichetta</span>` e poi `<p>` | Per un riassunto, un'idea sbagliata, un'analogia o una regola già presenti nel testo: si spostano nel riquadro, non si inventano. |
+| Calcolo o formula | `.vx.vx-math` > `p.vx-math-h` + `.vx-eqs` > `.vx-eq` (`span.l` + `span.o` + `span.r`), `small` sotto una riga per spiegarla, `.vx-eq.res` sul risultato, `p.vx-math-f` per il commento | **Ogni esempio di calcolo con numeri o formule va in un riquadro**, una riga per passaggio, allineata sul segno `=`. Variabili in `<var>`, esponenti in `<sup>`, pedici in `<sub>`, frazioni `<span class="fr"><span>num</span> <span>den</span></span>`. Nel testo resta la frase che introduce il conto e quella che ne trae la conclusione. Un numero isolato o un ordine di grandezza («circa 70 miliardi») resta nel testo. |
+| Mappa concettuale | `figure.vx.vx-cmap` > `figcaption.vx-cap` + `ul > li > span.c` (radice) `> ul > li` (rami) con `em.r` (la relazione, «serve a», «è un tipo di») e `span.c` (il concetto, `.c.hot` per i concetti centrali, `small` per un rimando); rami annidati con un altro `ul`; `p.vx-cmap-x` per i collegamenti tra rami | Una per capitolo, alla fine del capitolo (prima del glossario `dl.gloss` e del riquadro di sintesi): collega i concetti appena spiegati con relazioni scritte. Da 3 a 5 rami, al massimo 3 livelli, concetti di poche parole. Solo concetti presenti nel capitolo. Le mappe restano fuori dal materiale dell'esame (`build.mjs` le toglie). |
+
+Tra pezzi affiancati lascia sempre uno spazio nel markup (`</em> <span class="c">`), perché il testo estratto per l'esame resti leggibile.

@@ -250,8 +250,11 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Tutti i modelli di questa guida impilano lo stesso blocco</h2>
   </div>
   <div class="prose stack">
-    <p>Un modello linguistico moderno trasforma il testo in token, ogni token in un vettore (l'embedding, vedi la guida sul training), e poi fa passare quei vettori attraverso una pila di blocchi identici. Ogni blocco ha due stadi, sempre nello stesso ordine.</p>
-    <p><b>L'attenzione</b> è il momento in cui i token si parlano: ogni token guarda gli altri, decide quali contano per lui e ne mescola le informazioni nel proprio vettore. <b>La rete feed-forward</b> (FFN, Feed-Forward Network) è il momento in cui ogni token lavora da solo: il suo vettore passa in due o tre moltiplicazioni per matrice, che applicano ciò che il modello ha imparato. Attorno a entrambi ci sono una normalizzazione e una connessione residua, che somma l'ingresso all'uscita, così ogni blocco aggiunge qualcosa invece di riscrivere tutto. Il meccanismo completo, con query, key e value, le teste multiple e il conto dei pesi di Llama 2 7B, è nel capitolo sugli strati della guida sul training: qui basta l'idea dei due stadi.</p>
+    <p>Un modello linguistico moderno trasforma il testo in token, ogni token in un vettore (l'embedding, vedi la guida sul training), e poi fa passare quei vettori attraverso una pila di blocchi identici. <mark>Ogni blocco ha due stadi, sempre nello stesso ordine.</mark></p>
+    <p><b>L'attenzione</b> è il momento in cui i token si parlano: ogni token guarda gli altri, decide quali contano per lui e ne mescola le informazioni nel proprio vettore.</p>
+    <p><b>La rete feed-forward</b> (FFN, Feed-Forward Network) è il momento in cui ogni token lavora da solo: il suo vettore passa in due o tre moltiplicazioni per matrice, che applicano ciò che il modello ha imparato.</p>
+    <p>Attorno a entrambi ci sono una <b>normalizzazione</b> e una <b>connessione residua</b>, che somma l'ingresso all'uscita, così <mark>ogni blocco aggiunge qualcosa invece di riscrivere tutto</mark>.</p>
+    <p class="note">Il meccanismo completo, con query, key e value, le teste multiple e il conto dei pesi di Llama 2 7B, è nel capitolo sugli strati della guida sul training: qui basta l'idea dei due stadi.</p>
   </div>
 
   <div class="vx"><div class="vx-stack">
@@ -264,13 +267,42 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="dove-parametri" class="anchor">Dove stanno i parametri</h3>
   <div class="prose stack">
-    <p>Con un vettore di dimensione <i>d</i>, l'attenzione di un blocco ha quattro matrici quadrate (query, key, value, output): circa <code>4·d²</code> parametri. La FFN classica allarga il vettore a <code>4·d</code> e lo riporta a <i>d</i>: due matrici da <code>d × 4d</code>, cioè <code>8·d²</code>. Quindi <b>circa due terzi dei parametri di un blocco stanno nella FFN</b>. Tenete a mente questo numero: è il motivo per cui i modelli a esperti del capitolo 6 intervengono proprio lì.</p>
+    <p>Con un vettore di dimensione <i>d</i>, l'attenzione di un blocco ha quattro matrici quadrate (query, key, value, output). La FFN classica allarga il vettore a <code>4·d</code> e lo riporta a <i>d</i>: due matrici da <code>d × 4d</code>. Il conto dei parametri:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · parametri di un blocco</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">attenzione</span><span class="o">=</span><span class="r">4 · <var>d</var> · <var>d</var> = 4<var>d</var><sup>2</sup></span></div>
+      <small>quattro matrici quadrate: query, key, value, output</small>
+      <div class="vx-eq"><span class="l">FFN</span><span class="o">=</span><span class="r">2 · <var>d</var> · 4<var>d</var> = 8<var>d</var><sup>2</sup></span></div>
+      <small>due matrici da <var>d</var> × 4<var>d</var></small>
+      <div class="vx-eq res"><span class="l">quota della FFN</span><span class="o">=</span><span class="r"><span class="fr"><span>8<var>d</var><sup>2</sup></span> <span>4<var>d</var><sup>2</sup> + 8<var>d</var><sup>2</sup></span></span> = <span class="fr"><span>2</span> <span>3</span></span></span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Quindi <mark><b>circa due terzi dei parametri di un blocco stanno nella FFN</b></mark>. Tenete a mente questo numero: è il motivo per cui i modelli a esperti del capitolo 6 intervengono proprio lì.</p>
   </div>
   <div class="vx"><p class="vx-cap">Un blocco con d = 4.096, FFN classica</p>
     <div class="ratio" role="img" aria-label="Attenzione 67 milioni di parametri, FFN 134 milioni"><span class="a" style="flex:1">attenzione · 4d² ≈ 67 M</span><span class="i" style="flex:2">FFN · 8d² ≈ 134 M</span></div>
     <p class="vx-foot">Le varianti moderne (SwiGLU, Swish-Gated Linear Unit; attenzione a gruppi) spostano un po' le proporzioni, non l'ordine di grandezza.</p>
   </div>
-  <p class="callout"><b>La mappa della guida in una frase.</b> BERT e GPT differiscono nell'<b>attenzione</b> (chi vede chi) e nell'<b>obiettivo</b>; i modelli densi e quelli sparsi differiscono nella <b>FFN</b> (una per tutti, o tante tra cui scegliere).</p>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1">
+    <figcaption class="vx-cap">Mappa concettuale · il mattone comune</figcaption>
+    <ul><li><span class="c">Blocco Transformer</span>
+      <ul>
+        <li><em class="r">primo stadio</em> <span class="c hot">Attenzione</span>
+          <ul><li><em class="r">serve a</em> <span class="c">far parlare i token tra loro</span></li>
+              <li><em class="r">qui differiscono</em> <span class="c">BERT e GPT <small>capitoli 2–3</small></span></li></ul></li>
+        <li><em class="r">secondo stadio</em> <span class="c hot">FFN</span>
+          <ul><li><em class="r">serve a</em> <span class="c">far lavorare ogni token da solo</span></li>
+              <li><em class="r">contiene</em> <span class="c">circa ⅔ dei parametri</span></li>
+              <li><em class="r">nei MoE diventa</em> <span class="c">tanti esperti <small>capitoli 5–7</small></span></li></ul></li>
+        <li><em class="r">attorno a entrambi</em> <span class="c">Normalizzazione e residuo</span>
+          <ul><li><em class="r">fanno sì che</em> <span class="c">ogni blocco aggiunga invece di riscrivere</span></li></ul></li>
+        <li><em class="r">si ripete</em> <span class="c">× N blocchi</span>
+          <ul><li><em class="r">e finisce con</em> <span class="c">la testa di uscita <small>cambia con il compito</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
+  <div class="rd sum"><span class="rd-k">La mappa della guida in una frase</span><p>BERT e GPT differiscono nell'<b>attenzione</b> (chi vede chi) e nell'<b>obiettivo</b>; i modelli densi e quelli sparsi differiscono nella <b>FFN</b> (una per tutti, o tante tra cui scegliere).</p></div>
 </section>
 
 <!-- ============ 2 ============ -->
@@ -279,9 +311,9 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <span class="eyebrow">2 · BERT</span>
     <h2>Un lettore che guarda a destra e a sinistra, e non scrive</h2>
   </div>
-  <p class="sub prose">BERT (Bidirectional Encoder Representations from Transformers) è un modello di Google del 2018 che produce una rappresentazione del testo, non del testo nuovo.</p>
+  <p class="sub prose">BERT (Bidirectional Encoder Representations from Transformers) è un modello di Google del 2018 che produce <mark>una rappresentazione del testo, non del testo nuovo</mark>.</p>
   <div class="prose stack">
-    <p>Immaginate un lettore esperto a cui date una frase con una parola cancellata: «il gatto ___ sul divano». Per indovinarla usa quello che viene <em>prima</em> e quello che viene <em>dopo</em>. È esattamente ciò che fa BERT: ogni token guarda tutti gli altri, in entrambe le direzioni. Il nome lo dice: <i>bidirectional encoder</i>, un codificatore che legge in due direzioni.</p>
+    <p>Immaginate un lettore esperto a cui date una frase con una parola cancellata: «il gatto ___ sul divano». Per indovinarla usa quello che viene <em>prima</em> e quello che viene <em>dopo</em>. È esattamente ciò che fa BERT: <mark>ogni token guarda tutti gli altri, in entrambe le direzioni</mark>. Il nome lo dice: <i>bidirectional encoder</i>, un codificatore che legge in due direzioni.</p>
     <p>Il risultato non è una frase ma <b>un vettore per ogni token</b> (768 numeri nella versione base), che ne descrive il significato nel contesto: la parola «pesca» in «vado a pesca» e in «mangio una pesca» esce con due vettori diversi. Su quei vettori si costruisce poi il compito che serve.</p>
   </div>
 
@@ -306,7 +338,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="bert-uso" class="anchor">Come si usa: si aggiunge una testa piccola</h3>
   <div class="prose stack">
-    <p>BERT pre-addestrato non sa fare nulla di utile da solo: sa rappresentare. Per un compito si aggiunge sopra uno strato piccolo e si fa un breve fine-tuning (addestramento di rifinitura) su esempi etichettati.</p>
+    <p>BERT pre-addestrato non sa fare nulla di utile da solo: <b>sa rappresentare</b>. Per un compito si aggiunge sopra uno strato piccolo e si fa un breve fine-tuning (addestramento di rifinitura) su esempi etichettati.</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Compito</th><th>Che cosa si legge dall'uscita</th><th>Esempio</th></tr></thead>
@@ -318,6 +350,23 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     </tbody></table></div></div>
   <p class="callout"><b>Dove si trova BERT oggi.</b> Non come chatbot ma dietro le quinte: modelli di embedding per la ricerca, <i>reranker</i> che riordinano i risultati, classificatori veloci ed economici. I discendenti (RoBERTa, DistilBERT, DeBERTa, ModernBERT) mantengono l'idea: encoder bidirezionale, uscita come rappresentazione.</p>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 2">
+    <figcaption class="vx-cap">Mappa concettuale · BERT</figcaption>
+    <ul><li><span class="c">BERT</span>
+      <ul>
+        <li><em class="r">è un</em> <span class="c hot">encoder bidirezionale</span>
+          <ul><li><em class="r">ogni token guarda</em> <span class="c">tutti gli altri, in entrambe le direzioni</span></li>
+              <li><em class="r">produce</em> <span class="c">un vettore per token <small>768 numeri nella versione base</small></span></li></ul></li>
+        <li><em class="r">si allena con</em> <span class="c">due esercizi</span>
+          <ul><li><em class="r">MLM</em> <span class="c">indovina la parola coperta <small>15% dei token</small></span></li>
+              <li><em class="r">NSP</em> <span class="c">la seconda frase segue la prima? <small>poi abbandonato</small></span></li></ul></li>
+        <li><em class="r">si usa con</em> <span class="c hot">una testa piccola + fine-tuning</span>
+          <ul><li><em class="r">serve a</em> <span class="c">classificare, etichettare token, rispondere a domande</span></li>
+              <li><em class="r">serve anche a</em> <span class="c">la ricerca per significato</span></li></ul></li>
+        <li><em class="r">oggi sta</em> <span class="c">dietro le quinte</span>
+          <ul><li><em class="r">come</em> <span class="c">embedding, reranker, classificatori</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Encoder</dt><dd>La pila di blocchi in cui ogni token può guardare tutti gli altri. Produce rappresentazioni.</dd><span class="ex">BERT, RoBERTa</span></div>
     <div><dt>[CLS]</dt><dd>Token speciale messo all'inizio: il suo vettore finale riassume la sequenza ed è quello usato per classificare.</dd><span class="ex">[CLS] il film è bello [SEP]</span></div>
@@ -332,7 +381,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>La differenza tecnica sta in una matrice triangolare</h2>
   </div>
   <div class="prose stack">
-    <p>GPT (Generative Pre-trained Transformer) usa lo stesso blocco di BERT. Le differenze sono quattro, e discendono tutte dalla prima.</p>
+    <p>GPT (Generative Pre-trained Transformer) usa lo stesso blocco di BERT. <mark>Le differenze sono quattro, e discendono tutte dalla prima.</mark></p>
   </div>
   <div class="vx"><ol class="vx-steps">
     <li class="hot"><span><b>La maschera di attenzione.</b> In BERT ogni token guarda tutti; in GPT ogni token guarda solo sé stesso e i token <em>precedenti</em>. È una maschera causale: la matrice «chi vede chi» è un triangolo.</span></li>
@@ -355,8 +404,8 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="perche-non-genera" class="anchor">Perché BERT non scrive e GPT non «legge» a ritroso</h3>
   <div class="prose stack">
-    <p>BERT è stato allenato a riempire buchi <em>avendo il contesto da entrambi i lati</em>. Per scrivere un testo nuovo da sinistra a destra, il contesto di destra non esiste ancora: il modello lavora fuori dalle condizioni in cui ha imparato. Si può forzare (riempire più maschere a turni), ma il risultato è scadente.</p>
-    <p>GPT, al contrario, è nato per scrivere: l'obiettivo di addestramento e l'uso coincidono, token dopo token. Il prezzo è che, a parità di dimensione, ogni token ha un contesto solo a metà, e per compiti di pura comprensione su frasi brevi un encoder piccolo resta competitivo e molto più economico. Con la scala, però, i modelli decoder hanno imparato anche a capire: basta formulare il compito come testo da continuare.</p>
+    <p>BERT è stato allenato a riempire buchi <em>avendo il contesto da entrambi i lati</em>. Per scrivere un testo nuovo da sinistra a destra, il contesto di destra non esiste ancora: <mark>il modello lavora fuori dalle condizioni in cui ha imparato</mark>. Si può forzare (riempire più maschere a turni), ma il risultato è scadente.</p>
+    <p>GPT, al contrario, è nato per scrivere: <b>l'obiettivo di addestramento e l'uso coincidono</b>, token dopo token. Il prezzo è che, a parità di dimensione, ogni token ha un contesto solo a metà, e per compiti di pura comprensione su frasi brevi un encoder piccolo resta competitivo e molto più economico. <mark>Con la scala, però, i modelli decoder hanno imparato anche a capire</mark>: basta formulare il compito come testo da continuare.</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th></th><th>BERT (encoder)</th><th>GPT (decoder)</th></tr></thead>
@@ -369,6 +418,24 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <tr><td>Punto forte</td><td>rappresentazioni, ricerca, classificazione a basso costo</td><td>generazione, conversazione, ragionamento</td></tr>
     </tbody></table></div></div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 3">
+    <figcaption class="vx-cap">Mappa concettuale · BERT contro GPT</figcaption>
+    <ul><li><span class="c">BERT contro GPT</span>
+      <ul>
+        <li><em class="r">la differenza di partenza è</em> <span class="c hot">la maschera di attenzione</span>
+          <ul><li><em class="r">BERT</em> <span class="c">tutti vedono tutti</span></li>
+              <li><em class="r">GPT</em> <span class="c">ognuno vede solo i precedenti (causale)</span></li></ul></li>
+        <li><em class="r">ne discende</em> <span class="c">l'obiettivo</span>
+          <ul><li><em class="r">BERT</em> <span class="c">token coperti, circa 15%</span></li>
+              <li><em class="r">GPT</em> <span class="c">token successivo, in ogni posizione</span></li></ul></li>
+        <li><em class="r">ne discende</em> <span class="c">l'uscita</span>
+          <ul><li><em class="r">BERT</em> <span class="c">un vettore per token</span></li>
+              <li><em class="r">GPT</em> <span class="c">probabilità del token successivo</span></li></ul></li>
+        <li><em class="r">ne discende</em> <span class="c">l'inferenza</span>
+          <ul><li><em class="r">BERT</em> <span class="c">una passata</span></li>
+              <li><em class="r">GPT</em> <span class="c hot">un token alla volta, con cache KV</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Maschera causale</dt><dd>Impedisce a ogni token di guardare quelli successivi: la matrice di attenzione diventa triangolare.</dd><span class="ex">«dorme» vede «il», «gatto», «dorme»</span></div>
     <div><dt>Autoregressivo</dt><dd>Genera un token alla volta, e ogni token generato diventa ingresso per il successivo.</dd><span class="ex">il → gatto → dorme → …</span></div>
@@ -383,7 +450,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Tre modi di montare il blocco, e perché ne ha vinto uno</h2>
   </div>
   <div class="prose stack">
-    <p>Il Transformer originale (Vaswani e colleghi, 2017) era pensato per la traduzione e aveva due pile: una che legge la frase di partenza, una che scrive quella d'arrivo. BERT ha tenuto solo la prima, GPT solo la seconda. Ne escono tre famiglie.</p>
+    <p>Il Transformer originale (Vaswani e colleghi, 2017) era pensato per la traduzione e aveva due pile: una che legge la frase di partenza, una che scrive quella d'arrivo. BERT ha tenuto solo la prima, GPT solo la seconda. Ne escono <b>tre famiglie</b>.</p>
   </div>
   <div class="vx fam">
     <div class="vx-card"><h5><small>encoder-only</small>Legge tutto, restituisce vettori</h5>
@@ -397,7 +464,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <p style="margin:0;font-size:.86rem">Transformer originale, T5, BART, Whisper. Traduzione, riassunti, trascrizione.</p></div>
   </div>
   <div class="prose stack">
-    <p>Nell'encoder-decoder il decoder ha un terzo stadio in ogni blocco, l'<b>attenzione incrociata</b>: oltre a guardare i token che ha già scritto, guarda i vettori prodotti dall'encoder sulla frase di partenza. T5 (Google, 2019) lo allena coprendo interi tratti di testo e chiedendo al decoder di riscriverli.</p>
+    <p>Nell'encoder-decoder il decoder ha un terzo stadio in ogni blocco, l'<dfn>attenzione incrociata</dfn>: oltre a guardare i token che ha già scritto, guarda i vettori prodotti dall'encoder sulla frase di partenza. T5 (Google, 2019) lo allena coprendo interi tratti di testo e chiedendo al decoder di riscriverli.</p>
   </div>
 
   <h3 id="perche-decoder" class="anchor">Perché i grandi modelli sono quasi tutti decoder-only</h3>
@@ -409,7 +476,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </ol></div>
 
   <h3 id="decoder-moderno" class="anchor">Dentro un decoder moderno</h3>
-  <div class="prose stack"><p>Il decoder del 2026 è ancora il blocco del 2017, con alcuni pezzi sostituiti da versioni più efficienti. Nessuno cambia l'idea di fondo; cambiano costo, stabilità e lunghezza del contesto.</p></div>
+  <div class="prose stack"><p>Il decoder del 2026 è ancora il blocco del 2017, con alcuni pezzi sostituiti da versioni più efficienti. <mark>Nessuno cambia l'idea di fondo; cambiano costo, stabilità e lunghezza del contesto.</mark></p></div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Pezzo</th><th>Originale</th><th>Oggi, di solito</th><th>Perché</th></tr></thead>
     <tbody>
@@ -423,6 +490,25 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
   </div>
   <p class="note">Esistono anche architetture che sostituiscono in parte l'attenzione, come i modelli a spazio di stati (SSM, State Space Model, per esempio Mamba) e gli ibridi che alternano i due tipi di strato. Riducono il costo sui contesti lunghi; sono fuori dal perimetro di questa guida.</p>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 4">
+    <figcaption class="vx-cap">Mappa concettuale · le famiglie di architetture</figcaption>
+    <ul><li><span class="c">Famiglie di architetture</span>
+      <ul>
+        <li><em class="r">encoder-only</em> <span class="c">legge tutto, restituisce vettori</span>
+          <ul><li><em class="r">esempi</em> <span class="c">BERT, RoBERTa</span></li>
+              <li><em class="r">serve a</em> <span class="c">embedding, classificazione, reranking</span></li></ul></li>
+        <li><em class="r">decoder-only</em> <span class="c hot">scrive un token alla volta</span>
+          <ul><li><em class="r">esempi</em> <span class="c">GPT, Llama, Qwen</span></li>
+              <li><em class="r">vince perché</em> <span class="c">ogni token insegna e un formato basta per tutto</span></li>
+              <li><em class="r">vince anche perché</em> <span class="c">si scala in modo semplice</span></li></ul></li>
+        <li><em class="r">encoder-decoder</em> <span class="c">legge una cosa, ne scrive un'altra</span>
+          <ul><li><em class="r">è fatto di</em> <span class="c">due pile e attenzione incrociata</span></li>
+              <li><em class="r">esempi</em> <span class="c">T5, Whisper</span></li></ul></li>
+        <li><em class="r">un decoder moderno ha</em> <span class="c">pezzi più efficienti</span>
+          <ul><li><em class="r">come</em> <span class="c">RoPE, RMSNorm, SwiGLU, GQA</span></li>
+              <li><em class="r">e spesso</em> <span class="c">una FFN a esperti <small>capitolo 5</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Decoder</dt><dd>La pila di blocchi con maschera causale, che genera testo un token alla volta.</dd><span class="ex">GPT, Llama, Qwen</span></div>
     <div><dt>Attenzione incrociata</dt><dd>Stadio del decoder in cui i token in scrittura guardano i vettori prodotti dall'encoder.</dd><span class="ex">T5, Whisper</span></div>
@@ -437,9 +523,10 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Quanti parametri ha un modello, e quanti ne usa per ogni token</h2>
   </div>
   <div class="prose stack">
-    <p>In un modello <b>denso</b> ogni token attraversa tutti i parametri: con 70 miliardi di pesi, ogni parola prodotta passa per 70 miliardi di pesi. Il costo di calcolo per token cresce quindi insieme alla dimensione del modello: circa <code>2 × parametri</code> operazioni in virgola mobile (FLOPs, floating point operations) per ogni token generato, una moltiplicazione e una somma per peso.</p>
-    <p>In un modello <b>sparso</b> a esperti (MoE, Mixture of Experts) la FFN (rete feed-forward) di un blocco viene sostituita da tante FFN alternative, e ogni token ne usa solo alcune. Nascono così due numeri diversi: i <b>parametri totali</b>, che devono stare tutti in memoria, e i <b>parametri attivi</b>, quelli che un token usa davvero e che determinano il costo di calcolo. È come un ospedale con cento specialisti: sono tutti sul libro paga, ma ogni paziente ne vede due.</p>
+    <p>In un modello <dfn>denso</dfn> <mark>ogni token attraversa tutti i parametri</mark>: con 70 miliardi di pesi, ogni parola prodotta passa per 70 miliardi di pesi. Il costo di calcolo per token cresce quindi insieme alla dimensione del modello: circa <code>2 × parametri</code> operazioni in virgola mobile (FLOPs, floating point operations) per ogni token generato, una moltiplicazione e una somma per peso.</p>
+    <p>In un modello <dfn>sparso</dfn> a esperti (MoE, Mixture of Experts) la FFN (rete feed-forward) di un blocco viene sostituita da tante FFN alternative, e <mark>ogni token ne usa solo alcune</mark>. Nascono così due numeri diversi: i <dfn>parametri totali</dfn>, che devono stare tutti in memoria, e i <dfn>parametri attivi</dfn>, quelli che un token usa davvero e che determinano il costo di calcolo.</p>
   </div>
+  <div class="rd ex"><span class="rd-k">Un'analogia</span><p>È come un ospedale con cento specialisti: sono tutti sul libro paga, ma ogni paziente ne vede due.</p></div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Modello</th><th>Totali</th><th>Attivi per token</th><th>Esperti per strato</th><th>Scelti per token</th></tr></thead>
     <tbody>
@@ -450,6 +537,23 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <tr><td>gpt-oss-120b (OpenAI, 2025)</td><td class="m">117 B</td><td class="m">5,1 B</td><td class="m">128</td><td class="m">4</td></tr>
     </tbody></table></div>
     <p class="vx-foot">«8x7B» non significa 56 miliardi: gli esperti sostituiscono solo le FFN, mentre attenzione ed embedding sono condivisi. Per questo i totali sono 46,7 B.</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · quanto costa un token in un modello denso</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">FLOPs per token</span><span class="o">≈</span><span class="r">2 × <var>P</var></span></div>
+      <small>una moltiplicazione e una somma per peso; <var>P</var> = numero di parametri</small>
+      <div class="vx-eq"><span class="l">con <var>P</var> = 70 miliardi</span><span class="o">=</span><span class="r">2 × 70 miliardi</span></div>
+      <small>ogni parola prodotta passa per tutti i 70 miliardi di pesi</small>
+      <div class="vx-eq res"><span class="l">costo per token</span><span class="o">≈</span><span class="r">140 miliardi di FLOPs</span></div>
+    </div>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · perché «8x7B» non fa 56 miliardi</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">lettura ingenua</span><span class="o">=</span><span class="r">8 × 7 B = 56 B</span></div>
+      <small>otto modelli da 7 miliardi, messi uno accanto all'altro</small>
+      <div class="vx-eq res"><span class="l">parametri totali reali</span><span class="o">=</span><span class="r">46,7 B</span></div>
+      <small>gli esperti sostituiscono solo le FFN; attenzione ed embedding sono condivisi</small>
+    </div>
   </div>
 
   <div class="lab">
@@ -490,6 +594,21 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <div class="vx-rec"><span>addestramento più delicato<small>bilanciamento del carico, stabilità del router</small></span></div></div>
   </div></div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 5">
+    <figcaption class="vx-cap">Mappa concettuale · denso e sparso</figcaption>
+    <ul><li><span class="c">Denso e sparso</span>
+      <ul>
+        <li><em class="r">modello denso</em> <span class="c">ogni token usa tutti i parametri</span>
+          <ul><li><em class="r">costa</em> <span class="c">circa 2 × parametri FLOPs per token</span></li></ul></li>
+        <li><em class="r">modello sparso (MoE)</em> <span class="c hot">tante FFN, ogni token ne usa alcune</span>
+          <ul><li><em class="r">parametri totali</em> <span class="c hot">determinano la memoria</span></li>
+              <li><em class="r">parametri attivi</em> <span class="c hot">determinano il calcolo</span></li></ul></li>
+        <li><em class="r">si guadagna</em> <span class="c">più conoscenza a parità di calcolo</span>
+          <ul><li><em class="r">e anche</em> <span class="c">addestramento economico, generazione veloce</span></li></ul></li>
+        <li><em class="r">si paga</em> <span class="c">memoria e comunicazione</span>
+          <ul><li><em class="r">e anche</em> <span class="c">addestramento più delicato</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Parametri totali</dt><dd>Tutti i pesi del modello: determinano la memoria necessaria.</dd><span class="ex">DeepSeek-V3: 671 B</span></div>
     <div><dt>Parametri attivi</dt><dd>I pesi effettivamente usati per elaborare un token: determinano il calcolo.</dd><span class="ex">DeepSeek-V3: 37 B</span></div>
@@ -503,8 +622,9 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <span class="eyebrow">6 · Com'è fatto un modello a esperti</span>
     <h2>Non è un router davanti a un modello: è una FFN moltiplicata in ogni blocco</h2>
   </div>
+  <div class="rd warn"><span class="rd-k">L'idea intuitiva, ma sbagliata</span><p>L'idea intuitiva è: un modello, un router all'ingresso che smista la domanda all'esperto giusto. <b>Non funziona così.</b> Non c'è un router davanti e non ci sono esperti interi, ciascuno un modello completo.</p></div>
   <div class="prose stack">
-    <p>L'idea intuitiva è: un modello, un router all'ingresso che smista la domanda all'esperto giusto. <b>Non funziona così.</b> Non c'è un router davanti e non ci sono esperti interi, ciascuno un modello completo. Il cambio avviene dentro ogni blocco, e riguarda solo la FFN (Feed-Forward Network, la rete feed-forward del capitolo 1).</p>
+    <p><mark>Il cambio avviene dentro ogni blocco, e riguarda solo la FFN</mark> (Feed-Forward Network, la rete feed-forward del capitolo 1).</p>
   </div>
   <div class="vx"><div class="vx-pair">
     <div class="vx-box"><h5>Blocco denso</h5>
@@ -543,8 +663,25 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 </span><span class="ln">        y = y + condiviso(h)                   <span class="tk-cm"># lavora per ogni token</span>
 </span><span class="ln">    <span class="tk-kw">return</span> y
 </span></code></pre></div>
-  <p class="callout"><b>Risposta breve alla domanda «cambia solo il router?».</b> No. Il router è la parte visibile, ma per averlo bisogna moltiplicare le FFN in ogni blocco, allenare il router insieme al resto tenendolo in equilibrio, e distribuire gli esperti su più GPU. Attenzione ed embedding restano invece quelli di un modello denso.</p>
+  <div class="rd sum"><span class="rd-k">Risposta breve alla domanda «cambia solo il router?»</span><p><b>No.</b> Il router è la parte visibile, ma per averlo bisogna moltiplicare le FFN in ogni blocco, allenare il router insieme al resto tenendolo in equilibrio, e distribuire gli esperti su più GPU. Attenzione ed embedding restano invece quelli di un modello denso.</p></div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 6">
+    <figcaption class="vx-cap">Mappa concettuale · com'è fatto un modello a esperti</figcaption>
+    <ul><li><span class="c">Modello a esperti (MoE)</span>
+      <ul>
+        <li><em class="r">non è</em> <span class="c">un router davanti a un modello</span>
+          <ul><li><em class="r">è invece</em> <span class="c hot">una FFN moltiplicata in ogni blocco</span></li></ul></li>
+        <li><em class="r">la FFN diventa</em> <span class="c hot">N esperti</span>
+          <ul><li><em class="r">ogni esperto è</em> <span class="c">una FFN completa</span></li>
+              <li><em class="r">sceglie</em> <span class="c">un router per ogni blocco</span></li>
+              <li><em class="r">a volte aggiunge</em> <span class="c">esperti condivisi</span></li></ul></li>
+        <li><em class="r">restano densi</em> <span class="c">attenzione, embedding, testa</span>
+          <ul><li><em class="r">perciò</em> <span class="c">attivi ≠ totali ÷ esperti</span></li></ul></li>
+        <li><em class="r">cambiano anche</em> <span class="c">addestramento e infrastruttura</span>
+          <ul><li><em class="r">si risolve con</em> <span class="c">bilanciamento <small>capitolo 7</small></span></li>
+              <li><em class="r">richiede</em> <span class="c">parallelismo per esperti su più GPU</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Esperto</dt><dd>Una delle FFN alternative di un blocco MoE. Non è un modello a sé e non ha un argomento assegnato.</dd><span class="ex">una delle 128 FFN di Qwen3</span></div>
     <div><dt>Esperto condiviso</dt><dd>Esperto usato da tutti i token, in aggiunta a quelli scelti dal router.</dd><span class="ex">DeepSeek-V3, Llama 4</span></div>
@@ -559,7 +696,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <h2>Un prodotto scalare, i k punteggi più alti e una forza che tiene tutti al lavoro</h2>
   </div>
   <div class="prose stack">
-    <p>Il router non legge la domanda e non conosce argomenti. Lavora su un vettore alla volta: il vettore <i>h</i> di un token, così com'è dopo l'attenzione di quel blocco (e la normalizzazione che precede la FFN). I passi sono questi; il quarto, la rinormalizzazione, è usato da Mixtral, Qwen3 e molti altri, ma non da tutti: Switch Transformer, con un solo esperto per token, e DeepSeek-V2 ne fanno a meno.</p>
+    <p><mark>Il router non legge la domanda e non conosce argomenti.</mark> Lavora su un vettore alla volta: il vettore <i>h</i> di un token, così com'è dopo l'attenzione di quel blocco (e la normalizzazione che precede la FFN). I passi sono questi; il quarto, la rinormalizzazione, è usato da Mixtral, Qwen3 e molti altri, ma non da tutti: Switch Transformer, con un solo esperto per token, e DeepSeek-V2 ne fanno a meno.</p>
   </div>
   <div class="vx"><ol class="vx-steps">
     <li><span class="vx-li"><span><b>Punteggi.</b> Moltiplica <i>h</i> per la matrice del router <i>W</i> (d righe, una colonna per esperto): esce un punteggio per esperto.</span><em>s = h · W</em></span></li>
@@ -569,8 +706,8 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
     <li><span class="vx-li"><span><b>Combinazione.</b> L'uscita è la somma delle uscite degli esperti scelti, ciascuna moltiplicata per il suo peso.</span><em>y = Σ gᵢ · Eᵢ(h)</em></span></li>
   </ol></div>
   <div class="prose stack">
-    <p><b>Come impara a scegliere.</b> Nessuno etichetta i token con «questo va all'esperto 5». La matrice del router si allena come ogni altro peso: l'errore sul token successivo torna indietro anche attraverso i pesi <i>g</i>, e sposta <i>W</i> in modo che gli esperti che hanno aiutato ricevano punteggi più alti in casi simili.</p>
-    <p><b>Che cosa finiscono per rappresentare gli esperti.</b> Non «aree» tematiche. Gli autori di Mixtral hanno misurato come vengono assegnati i token di testi di matematica, biologia, filosofia e articoli scientifici: la distribuzione sugli esperti è quasi la stessa per tutti gli argomenti. Le regolarità sono sintattiche: in Python la parola <code>self</code> passa spesso per lo stesso esperto, i token di indentazione finiscono quasi sempre sugli stessi esperti, e token consecutivi tendono a scegliere gli stessi esperti.</p>
+    <p><b>Come impara a scegliere.</b> Nessuno etichetta i token con «questo va all'esperto 5». La matrice del router si allena come ogni altro peso: l'errore sul token successivo torna indietro anche attraverso i pesi <i>g</i>, e sposta <i>W</i> in modo che <mark>gli esperti che hanno aiutato ricevano punteggi più alti in casi simili</mark>.</p>
+    <p><b>Che cosa finiscono per rappresentare gli esperti.</b> Non «aree» tematiche. Gli autori di Mixtral hanno misurato come vengono assegnati i token di testi di matematica, biologia, filosofia e articoli scientifici: <mark>la distribuzione sugli esperti è quasi la stessa per tutti gli argomenti</mark>. <b>Le regolarità sono sintattiche</b>: in Python la parola <code>self</code> passa spesso per lo stesso esperto, i token di indentazione finiscono quasi sempre sugli stessi esperti, e token consecutivi tendono a scegliere gli stessi esperti.</p>
   </div>
 
   <div class="lab">
@@ -593,7 +730,7 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
 
   <h3 id="bilanciamento" class="anchor">Il problema del bilanciamento</h3>
   <div class="prose stack">
-    <p>Lasciato a sé, il router tende al <b>collasso</b>: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile, riceve ancora più token. Dopo un po' pochi esperti fanno tutto il lavoro e gli altri sono pesi sprecati, e nel frattempo le GPU (Graphics Processing Unit) che ospitano gli esperti più scelti fanno da collo di bottiglia. Le contromisure principali:</p>
+    <p>Lasciato a sé, il router tende al <dfn>collasso</dfn>: un esperto che all'inizio riceve qualche token in più viene allenato di più, diventa più utile, riceve ancora più token. Dopo un po' <mark>pochi esperti fanno tutto il lavoro e gli altri sono pesi sprecati</mark>, e nel frattempo le GPU (Graphics Processing Unit) che ospitano gli esperti più scelti fanno da collo di bottiglia. Le contromisure principali:</p>
   </div>
   <div class="vx"><div class="scroll-x"><table class="vx-table">
     <thead><tr><th>Tecnica</th><th>Come funziona</th><th>Dove</th></tr></thead>
@@ -605,6 +742,22 @@ textarea{width:100%;font-family:var(--mono);font-size:.9rem;background:var(--sur
       <tr><td>Scelta da parte dell'esperto</td><td>invertire la domanda: ogni esperto sceglie i suoi k token migliori, così il carico è uniforme per costruzione</td><td>Expert Choice (Google, 2022)</td></tr>
     </tbody></table></div></div>
 
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 7">
+    <figcaption class="vx-cap">Mappa concettuale · come sceglie il router</figcaption>
+    <ul><li><span class="c">Il router</span>
+      <ul>
+        <li><em class="r">lavora su</em> <span class="c">un vettore per volta</span>
+          <ul><li><em class="r">non conosce</em> <span class="c">argomenti, solo regolarità sintattiche</span></li></ul></li>
+        <li><em class="r">sceglie in cinque passi</em> <span class="c hot">punteggi → probabilità → top-k → pesi → combinazione</span>
+          <ul><li><em class="r">top-k</em> <span class="c">gli altri esperti non vengono calcolati</span></li></ul></li>
+        <li><em class="r">impara</em> <span class="c">come ogni altro peso</span>
+          <ul><li><em class="r">grazie a</em> <span class="c">l'errore sul token successivo</span></li></ul></li>
+        <li><em class="r">rischia il</em> <span class="c hot">collasso</span>
+          <ul><li><em class="r">si risolve con</em> <span class="c">perdita ausiliaria</span></li>
+              <li><em class="r">si risolve con</em> <span class="c">capacità per esperto</span></li>
+              <li><em class="r">si risolve con</em> <span class="c">bias senza perdita ausiliaria</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <dl class="gloss">
     <div><dt>Router</dt><dd>Strato lineare che, in ogni blocco MoE, dà un punteggio a ogni esperto per il token corrente.</dd><span class="ex">s = h · W</span></div>
     <div><dt>Top-k</dt><dd>La regola che tiene solo i k esperti con il punteggio più alto.</dd><span class="ex">Mixtral: k = 2 su 8</span></div>
@@ -982,6 +1135,60 @@ window.XREF_CONFIG={
 .xref-pop .vx-state{grid-template-columns:1fr;gap:6px}
 .xref-pop [data-xcase],.xref-pop [data-xscen]{border:0;padding:0;background:transparent}
 .xref-pop [data-xcase]>h5>small,.xref-pop [data-xscen]>h5>small{display:none}
+/* 12 · lettura: grassetto, evidenziazione, termini e riquadri nel testo (AUTHORING.md §12) */
+.prose{line-height:1.68}
+.prose b,.prose strong,.rd b,.rd strong,.callout b,.callout strong{font-weight:600;color:var(--ink)}
+mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+dfn{font-style:normal;font-weight:600;color:var(--accent)}
+.callout>b:first-child,.callout>strong:first-child{color:var(--accent)}
+.rd{margin:18px 0;max-width:68ch;padding:12px 16px 12px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.6}
+.rd>*+*{margin-top:8px}
+.rd ul,.rd ol{margin:8px 0 0;padding-left:1.2em}
+.rd li+li{margin-top:4px}
+.rd-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.rd.sum{background:var(--accent-soft)}
+.rd.warn{border-left-color:var(--bad);background:var(--bad-soft)}
+.rd.warn .rd-k{color:var(--bad)}
+.rd.key{border-left-color:var(--good);background:var(--good-soft)}
+.rd.key .rd-k{color:var(--good)}
+.rd.ex{border-left-color:var(--line);background:var(--surface)}
+.rd.ex .rd-k{color:var(--muted)}
+/* 13 · calcoli: formule e passaggi in un riquadro (AUTHORING.md §12) */
+.vx-math{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px 14px;max-width:100%;overflow-x:auto}
+.vx-math-h{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.vx-eqs{display:grid;grid-template-columns:auto auto 1fr;column-gap:.6em;row-gap:8px;align-items:center;font-family:var(--serif);font-size:1.08rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.vx-eq{display:contents}
+.vx-eq>.l{text-align:right;white-space:nowrap}
+.vx-eq>.o{color:var(--accent);font-weight:600;text-align:center}
+.vx-eq>.r{white-space:nowrap}
+.vx-eq>small,.vx-eqs>small{grid-column:3;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin-top:-4px}
+.vx-eq.res>.r{font-weight:650;background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:4px;padding:1px 6px;justify-self:start}
+.vx-math var,.vx-formula var{font-style:italic;font-family:var(--serif)}
+.vx-math sub,.vx-math sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .2em .1em}
+.fr>span:last-child{padding:.1em .2em 0}
+.vx-math-f{font-size:.88rem;color:var(--muted);margin:10px 0 0;font-family:var(--sans)}
+.vx-math-f b{color:var(--ink)}
+/* 14 · mappa concettuale: albero di concetti con le relazioni scritte sui rami */
+.vx-cmap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px}
+.vx-cmap ul{list-style:none;margin:0;padding:0}
+.vx-cmap .c{display:inline-block;font-weight:600;font-size:.92rem;line-height:1.3;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.vx-cmap .c.hot{border-color:var(--accent);background:var(--accent-soft)}
+.vx-cmap .c small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.vx-cmap .r{display:block;font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--accent);margin:0 0 3px;letter-spacing:.02em}
+.vx-cmap>ul>li{text-align:center}
+.vx-cmap>ul>li>.c{background:var(--accent);color:var(--bg);border-color:var(--accent);font-family:var(--serif);font-size:1.05rem;padding:7px 14px}
+.vx-cmap>ul>li>ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:22px;position:relative;text-align:left}
+.vx-cmap>ul>li>ul::before{content:"";position:absolute;left:8%;right:8%;top:-12px;border-top:1px solid var(--accent)}
+.vx-cmap>ul>li>ul>li{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.vx-cmap>ul>li>ul>li::before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:1px solid var(--accent)}
+.vx-cmap li li ul{margin:8px 0 0 6px;padding-left:12px;border-left:1px solid var(--line)}
+.vx-cmap li li li{position:relative;margin-top:8px}
+.vx-cmap li li li::before{content:"";position:absolute;left:-12px;top:.9em;width:10px;border-top:1px solid var(--line)}
+.vx-cmap-x{margin:14px 0 0;font-size:.84rem;color:var(--muted)}
+.vx-cmap-x b{color:var(--ink);font-weight:600}
+@media (max-width:640px){.vx-cmap>ul>li>ul::before,.vx-cmap>ul>li>ul>li::before{display:none}.vx-cmap>ul>li>ul{margin-top:12px}}
 </style>
 <script>
 /* schede codice: pulsante Copia (copia le righe senza numeri) */

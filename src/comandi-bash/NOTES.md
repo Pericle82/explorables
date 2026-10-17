@@ -14,3 +14,4 @@ Sorgenti in questa cartella: `head.html`, `extra.css`, `body.html` (testo e sche
 - Capitolo 0: terminale e shell, bash e zsh, grammatica di un comando, Linux e macOS, come chiedere aiuto, quattro gesti.
 - Pipe; awk (e cut) per estrarre valori da tabelle; lsof -i con awk e `lsof -t`.
 - «Chi occupa una porta»: `lsof -iTCP:PORTA -sTCP:LISTEN -n -P`, ss, netstat (forma Linux e macOS), `lsof -ti`, `kill` e `kill -9`, la 4173 di `vite preview` (richiesta di Joe del 15/10).
+- 17/10/2026: richiesta di Joe «i documenti sono difficili da leggere»: formattazione per la lettura secondo AUTHORING.md §12 (`<mark>` sulle frasi chiave, `<dfn>`, riquadri `.rd`, calcoli in `.vx-math`, mappe `.vx-cmap`). Il testo non cambia.

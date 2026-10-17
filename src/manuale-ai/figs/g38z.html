@@ -1,0 +1,28 @@
+<!-- after: Esempi e analogie -->
+<figure class="vx vx-cmap" aria-label="Mappa concettuale della Parte IV: dentro il Transformer">
+    <figcaption class="vx-cap">Mappa concettuale · Parte IV, dentro il Transformer</figcaption>
+    <ul><li><span class="c">Dentro il Transformer</span>
+      <ul>
+        <li><em class="r">è l’architettura</em> <span class="c hot">Transformer <small>#25</small></span>
+          <ul><li><em class="r">si impila in</em> <span class="c">Layer <small>#26</small></span></li>
+              <li><em class="r">legge con l’</em> <span class="c">Encoder <small>#27</small></span></li>
+              <li><em class="r">scrive con il</em> <span class="c">Decoder <small>#28</small></span></li></ul>
+        </li>
+        <li><em class="r">scambia informazioni con l’</em> <span class="c hot">Attention <small>#29</small></span>
+          <ul><li><em class="r">applicata al testo stesso è</em> <span class="c">Self-attention <small>#30</small></span></li>
+              <li><em class="r">usa tre vettori</em> <span class="c">Query, Key e Value <small>#31</small></span></li>
+              <li><em class="r">ripetuta in parallelo è</em> <span class="c">Multi-head attention <small>#32</small></span></li>
+              <li><em class="r">si legge nella</em> <span class="c">Attention map <small>#36</small></span></li></ul>
+        </li>
+        <li><em class="r">l’ordine arriva dal</em> <span class="c">Positional encoding <small>#33</small></span>
+          <ul><li><em class="r">oggi spesso con</em> <span class="c">RoPE <small>#34</small></span></li></ul>
+        </li>
+        <li><em class="r">per non guardare avanti serve la</em> <span class="c">Causal mask <small>#35</small></span>
+          <ul><li><em class="r">vale nel</em> <span class="c">Decoder <small>#28</small></span></li></ul>
+        </li>
+        <li><em class="r">poi passa dalla</em> <span class="c">Feed-forward network <small>#37</small></span>
+          <ul><li><em class="r">spegne alcuni valori con la</em> <span class="c">Funzione di attivazione <small>#38</small></span></li></ul>
+        </li>
+      </ul></li></ul>
+    <p class="vx-cmap-x">In ogni layer <small>#26</small> l’attention <small>#29</small> fa scambiare informazioni tra i token, poi la feed-forward <small>#37</small> rielabora ciascun token da solo.</p>
+  </figure>

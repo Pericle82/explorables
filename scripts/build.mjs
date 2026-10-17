@@ -136,7 +136,9 @@ if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
 
 // --- pagina d'esame e materiale di riferimento per l'esaminatore ---
 function htmlToText(h) {
-  return h.replace(/<(script|style|svg|button|nav)\b[\s\S]*?<\/\1>/gi, "")
+  // le mappe concettuali ripetono concetti già nel testo: fuori dal materiale dell'esaminatore
+  return h.replace(/<figure class="vx vx-cmap"[\s\S]*?<\/figure>/gi, "")
+    .replace(/<(script|style|svg|button|nav)\b[\s\S]*?<\/\1>/gi, "")
     .replace(/<(br|\/p|\/li|\/tr|\/h[1-6]|\/pre|\/div|\/dt|\/dd|\/table|\/ul|\/ol)[^>]*>/gi, "\n")
     .replace(/<\/t[dh]>/gi, " | ").replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&")

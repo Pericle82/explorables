@@ -40,9 +40,10 @@
   <div class="sec-head"><span class="eyebrow">1 · Che cos'è il machine learning</span><h2>Un programma che migliora con l'esperienza invece che con nuove righe di codice</h2></div>
   <div class="prose stack">
     <p class="q">Un programma di filtro antispam scritto a mano è un elenco di regole: «se contiene "vinci", è spam». Dopo la decima regola smette di funzionare. <b>Che cosa fa di diverso un programma che impara?</b></p>
-    <p>Arthur Samuel, nel 1959, definì il machine learning come «il campo di studio che dà ai computer la capacità di imparare senza essere esplicitamente programmati». Il suo programma di dama giocò decine di migliaia di partite contro se stesso e, tenendo conto di quali posizioni portavano a vincere, finì per battere il suo autore. La differenza sta in <i>chi scrive la regola</i>. Nel programma tradizionale la scrive il programmatore. In un programma che impara il programmatore scrive una <b>forma</b> di regola con dei numeri lasciati liberi (i <b>parametri</b>), un modo di <b>misurare quanto la regola sbaglia</b> sugli esempi, e un <b>procedimento</b> che muove i numeri per sbagliare meno. I numeri giusti li trovano i dati. Tutta la guida è lo svolgimento di questa frase: cambiano la forma del modello, la misura dell'errore e il tipo di dati, ma il ciclo è sempre quello.</p>
+    <p>Arthur Samuel, nel 1959, definì il machine learning come «il campo di studio che <mark>dà ai computer la capacità di imparare senza essere esplicitamente programmati</mark>». Il suo programma di dama giocò decine di migliaia di partite contro se stesso e, tenendo conto di quali posizioni portavano a vincere, finì per battere il suo autore. <mark>La differenza sta in <i>chi scrive la regola</i>.</mark> Nel programma tradizionale la scrive il programmatore.</p>
   </div>
-  <div class="diag">
+  <div class="rd key"><span class="rd-k">Il ciclo di ogni algoritmo</span><p>In un programma che impara il programmatore scrive una <b>forma</b> di regola con dei numeri lasciati liberi (i <dfn>parametri</dfn>), un modo di <b>misurare quanto la regola sbaglia</b> sugli esempi, e un <b>procedimento</b> che muove i numeri per sbagliare meno. <mark>I numeri giusti li trovano i dati.</mark> Tutta la guida è lo svolgimento di questa frase: cambiano la forma del modello, la misura dell'errore e il tipo di dati, ma il ciclo è sempre quello.</p></div>
+    <div class="diag">
     <span class="box">dati<br><small class="muted">esempi</small></span><span class="arr">→</span>
     <span class="box hot">modello con parametri<br><small class="muted">f(x) = …w…</small></span><span class="arr">→</span>
     <span class="box">misura dell'errore<br><small class="muted">costo J</small></span><span class="arr">→</span>
@@ -51,8 +52,10 @@
 
   <h3 id="s1-tipi" class="anchor">Supervisionato e non supervisionato: con o senza la risposta</h3>
   <div class="prose stack">
-    <p>I due grandi tipi di machine learning si distinguono per <b>che cosa contengono i dati</b>. Nell'<b>apprendimento supervisionato</b> ogni esempio è una coppia: un input x e la risposta giusta y, scritta da qualcuno. Email → spam o no; audio → trascrizione; immagine di un pezzo → difettoso o no; dati di una casa → prezzo di vendita. Il modello vede migliaia di coppie e impara a produrre y da x, così da farlo poi su x mai visti. È il tipo che produce più valore economico oggi, ed è la Parte I e II di questa guida. Dentro il supervisionato ci sono due famiglie: la <b>regressione</b>, quando y è un numero tra infiniti possibili (un prezzo, una temperatura), e la <b>classificazione</b>, quando y è una tra poche categorie (spam/non spam, gatto/cane/cavallo, benigno/maligno).</p>
-    <p>Nell'<b>apprendimento non supervisionato</b> i dati hanno solo gli x: nessuno ha scritto la risposta, e il compito è trovare una struttura. Raggruppare clienti simili senza sapere in anticipo quali gruppi esistono (<i>clustering</i>, capitolo 11); segnalare la transazione che non somiglia a nessun'altra (<i>rilevamento di anomalie</i>, capitolo 12); comprimere molte variabili in poche (<i>riduzione di dimensionalità</i>). Un terzo tipo, l'<b>apprendimento per rinforzo</b> (capitolo 14), non ha né le risposte né solo gli x: ha un agente che agisce e riceve ricompense, e deve scoprire da solo quali azioni le producono.</p>
+    <p>I due grandi tipi di machine learning <mark>si distinguono per <b>che cosa contengono i dati</b></mark>. Nell'<dfn>apprendimento supervisionato</dfn> ogni esempio è una coppia: un input x e la risposta giusta y, scritta da qualcuno. Email → spam o no; audio → trascrizione; immagine di un pezzo → difettoso o no; dati di una casa → prezzo di vendita. Il modello vede migliaia di coppie e impara a produrre y da x, così da farlo poi su x mai visti. È il tipo che produce più valore economico oggi, ed è la Parte I e II di questa guida.</p>
+    <p>Dentro il supervisionato ci sono <mark>due famiglie</mark>: la <dfn>regressione</dfn>, quando y è un numero tra infiniti possibili (un prezzo, una temperatura), e la <dfn>classificazione</dfn>, quando y è una tra poche categorie (spam/non spam, gatto/cane/cavallo, benigno/maligno).</p>
+    <p>Nell'<dfn>apprendimento non supervisionato</dfn> <mark>i dati hanno solo gli x</mark>: nessuno ha scritto la risposta, e il compito è trovare una struttura. Raggruppare clienti simili senza sapere in anticipo quali gruppi esistono (<i>clustering</i>, capitolo 11); segnalare la transazione che non somiglia a nessun'altra (<i>rilevamento di anomalie</i>, capitolo 12); comprimere molte variabili in poche (<i>riduzione di dimensionalità</i>).</p>
+    <p>Un terzo tipo, l'<dfn>apprendimento per rinforzo</dfn> (capitolo 14), non ha né le risposte né solo gli x: ha <mark>un agente che agisce e riceve ricompense</mark>, e deve scoprire da solo quali azioni le producono.</p>
   </div>
   <div class="scroll-x"><table class="vx-table"><thead><tr><th>Tipo</th><th>Che cosa c'è nei dati</th><th>Che cosa impara</th><th>Esempi</th><th>Capitoli</th></tr></thead><tbody>
     <tr><td>Supervisionato · regressione</td><td>x e un numero y</td><td>a prevedere il numero</td><td>prezzo di una casa, domanda di energia</td><td>2–4</td></tr>
@@ -63,15 +66,31 @@
 
   <h3 id="s1-caso" class="anchor">L'esempio che ci accompagna: il prezzo di una casa</h3>
   <div class="prose stack">
-    <p>Per tutta la Parte I useremo un dataset minuscolo, abbastanza piccolo da seguire ogni numero: la superficie di alcune case vendute, in metri quadri, e il prezzo a cui sono state vendute, in migliaia di euro. È un problema di regressione supervisionata: abbiamo x (la superficie) e y (il prezzo), e vogliamo una funzione che, data la superficie di una casa nuova, ne stimi il prezzo.</p>
+    <p>Per tutta la Parte I useremo un dataset minuscolo, abbastanza piccolo da seguire ogni numero: la superficie di alcune case vendute, in metri quadri, e il prezzo a cui sono state vendute, in migliaia di euro. È un problema di regressione supervisionata: abbiamo x (la superficie) e y (il prezzo), e <mark>vogliamo una funzione che, data la superficie di una casa nuova, ne stimi il prezzo</mark>.</p>
   </div>
   <div class="scroll-x"><table class="vx-table" style="max-width:560px"><thead><tr><th>esempio i</th><th>superficie x<sup>(i)</sup> (m²)</th><th>prezzo y<sup>(i)</sup> (k€)</th></tr></thead><tbody>
     <tr><td class="m">1</td><td class="m">50</td><td class="m">150</td></tr><tr><td class="m">2</td><td class="m">65</td><td class="m">185</td></tr><tr><td class="m">3</td><td class="m">80</td><td class="m">210</td></tr><tr><td class="m">4</td><td class="m">95</td><td class="m">265</td></tr><tr><td class="m">5</td><td class="m">110</td><td class="m">290</td></tr><tr><td class="m">6</td><td class="m">130</td><td class="m">350</td></tr>
   </tbody></table></div>
-  <div class="prose stack">
-    <p><b>La notazione, una volta per tutte.</b> I dati di addestramento si chiamano <b>training set</b>; il loro numero è <b>m</b> (qui 6). Il singolo esempio è x<sup>(i)</sup>, y<sup>(i)</sup>, con l'indice tra parentesi (non è una potenza). La funzione che il modello produce si chiama f, oppure ŷ («y cappello»): la stima, da non confondere con il valore vero y. La variabile di ingresso x si chiama anche <b>feature</b> (caratteristica), quella di uscita y <b>target</b> (obiettivo) o etichetta.</p>
-  </div>
-
+    <div class="rd key"><span class="rd-k">La notazione, una volta per tutte</span><p>I dati di addestramento si chiamano <dfn>training set</dfn>; il loro numero è <b>m</b> (qui 6). Il singolo esempio è x<sup>(i)</sup>, y<sup>(i)</sup>, con l'indice tra parentesi (non è una potenza). La funzione che il modello produce si chiama f, oppure ŷ («y cappello»): la stima, da non confondere con il valore vero y. La variabile di ingresso x si chiama anche <dfn>feature</dfn> (caratteristica), quella di uscita y <dfn>target</dfn> (obiettivo) o etichetta.</p></div>
+  
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 1">
+    <figcaption class="vx-cap">Mappa concettuale · che cos'è il machine learning</figcaption>
+    <ul><li><span class="c">Machine learning</span>
+      <ul>
+        <li><em class="r">si basa su un ciclo</em> <span class="c hot">Modello, errore, procedimento</span>
+          <ul><li><em class="r">il modello ha</em> <span class="c">parametri liberi</span></li>
+              <li><em class="r">l'errore si misura con</em> <span class="c">il costo J sugli esempi</span></li>
+              <li><em class="r">il procedimento</em> <span class="c">muove i parametri per sbagliare meno</span></li></ul></li>
+        <li><em class="r">con la risposta</em> <span class="c hot">Supervisionato</span>
+          <ul><li><em class="r">y è un numero:</em> <span class="c">regressione</span></li>
+              <li><em class="r">y è una categoria:</em> <span class="c">classificazione</span></li></ul></li>
+        <li><em class="r">senza la risposta</em> <span class="c">Non supervisionato</span>
+          <ul><li><em class="r">serve a trovare</em> <span class="c">una struttura nei dati</span></li>
+              <li><em class="r">ad esempio</em> <span class="c">clustering e anomalie <small>capitoli 11–12</small></span></li></ul></li>
+        <li><em class="r">con azioni e ricompense</em> <span class="c">Apprendimento per rinforzo</span>
+          <ul><li><em class="r">impara</em> <span class="c">una strategia <small>capitolo 14</small></span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 1</p>
     <ul>
@@ -88,10 +107,11 @@
   <div class="sec-head"><span class="eyebrow">2 · La prima retta che impara</span><h2>Un modello è una forma con dei numeri liberi; il costo dice quanto sbaglia</h2></div>
   <div class="prose stack">
     <p class="q">Guardando i sei punti del dataset, un essere umano traccerebbe «a occhio» una retta che li attraversa e la userebbe per stimare il prezzo di una casa da 100 m². <b>Come si traduce quell'«a occhio» in qualcosa che un programma può fare?</b></p>
-    <p>Prima si fissa la <b>forma</b>: una retta. Una retta è <span class="k">f(x) = w · x + b</span>, dove w è la pendenza (quanti k€ in più per ogni m² in più) e b l'intercetta (il prezzo «di base» a superficie zero). w e b sono i <b>parametri</b>: i due numeri liberi del modello. Scegliere la retta significa scegliere w e b. Il modello si chiama <b>regressione lineare</b> a una variabile (o <i>univariata</i>), ed è il più semplice modello supervisionato: tutto ciò che impareremo dopo è una variazione di questo.</p>
-    <p>Poi serve un modo di dire <b>quanto una retta è sbagliata</b>, con un numero, perché solo un numero si può minimizzare. Per ogni esempio la retta stima ŷ<sup>(i)</sup> = w·x<sup>(i)</sup> + b, e il vero prezzo è y<sup>(i)</sup>: la differenza ŷ<sup>(i)</sup> − y<sup>(i)</sup> è l'<b>errore</b> (o residuo) su quell'esempio. Si eleva al quadrato, per due motivi: così gli errori positivi e negativi non si cancellano, e un errore grande pesa più di due piccoli (sbagliare di 40 costa quattro volte sbagliare di 20). Si sommano i quadrati su tutti gli m esempi, e si divide per 2m: dividere per m dà la media, così il costo non cresce solo perché i dati sono di più; il 2 è una comodità, perché semplifica la derivata del capitolo 3 senza cambiare dove sta il minimo.</p>
+    <p>Prima si fissa la <b>forma</b>: una retta. Una retta è <span class="k">f(x) = w · x + b</span>, dove w è la pendenza (quanti k€ in più per ogni m² in più) e b l'intercetta (il prezzo «di base» a superficie zero). w e b sono i <dfn>parametri</dfn>: i due numeri liberi del modello. <mark>Scegliere la retta significa scegliere w e b.</mark> Il modello si chiama <dfn>regressione lineare</dfn> a una variabile (o <i>univariata</i>), ed è il più semplice modello supervisionato: tutto ciò che impareremo dopo è una variazione di questo.</p>
+    <p>Poi serve un modo di dire <mark><b>quanto una retta è sbagliata</b>, con un numero</mark>, perché solo un numero si può minimizzare. Per ogni esempio la retta stima ŷ<sup>(i)</sup> = w·x<sup>(i)</sup> + b, e il vero prezzo è y<sup>(i)</sup>: la differenza ŷ<sup>(i)</sup> − y<sup>(i)</sup> è l'<dfn>errore</dfn> (o residuo) su quell'esempio.</p>
   </div>
-  <div class="vx vx-formula">J(w, b) <span class="op">=</span> 1 / 2m · Σ<sub>i=1…m</sub> ( f(x<sup>(i)</sup>) − y<sup>(i)</sup> )² <small>La funzione di costo (o <i>cost function</i>) dell'errore quadratico medio. J è un numero: dipende da w e b, cioè dalla retta scelta, e vale 0 solo se la retta passa per tutti i punti. L'obiettivo del training è trovare w e b che rendono J più piccolo possibile.</small></div>
+  <div class="rd key"><span class="rd-k">Perché il quadrato, e perché 2m</span><p>Si eleva al quadrato, per due motivi: così gli errori positivi e negativi non si cancellano, e <mark>un errore grande pesa più di due piccoli</mark> (sbagliare di 40 costa quattro volte sbagliare di 20). Si sommano i quadrati su tutti gli m esempi, e si divide per 2m: dividere per m dà la media, così il costo non cresce solo perché i dati sono di più; il 2 è una comodità, perché semplifica la derivata del capitolo 3 senza cambiare dove sta il minimo.</p></div>
+    <div class="vx vx-formula">J(w, b) <span class="op">=</span> 1 / 2m · Σ<sub>i=1…m</sub> ( f(x<sup>(i)</sup>) − y<sup>(i)</sup> )² <small>La funzione di costo (o <i>cost function</i>) dell'errore quadratico medio. J è un numero: dipende da w e b, cioè dalla retta scelta, e vale 0 solo se la retta passa per tutti i punti. L'obiettivo del training è trovare w e b che rendono J più piccolo possibile.</small></div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: muovi la retta, guarda il costo</h3><span class="tag">matematica reale</span></div>
     <p>I sei punti sono il dataset del capitolo 1. Muovi w e b: le linee verticali sono gli errori su ogni esempio, e il costo J è la media dei loro quadrati, diviso 2. Prova a portarlo più in basso che puoi a mano.</p>
@@ -110,8 +130,25 @@
     <p class="note">Il minimo esatto per questi dati è w ≈ 2,50 e b ≈ 21,2, con J ≈ 19,4: nessuna retta può fare meglio, perché i punti non sono perfettamente allineati. Trovarlo a mano è faticoso già con due parametri; con mille è impossibile. Il capitolo 3 fa fare al computer esattamente quello che stai facendo tu, ma con una bussola.</p>
   </div>
   <div class="prose stack">
-    <p><b>Il costo come paesaggio.</b> Per ogni coppia (w, b) c'è un valore di J: se si disegna J al variare di w e b si ottiene una superficie a forma di ciotola, con un solo punto più basso. Per la regressione lineare con l'errore quadratico è sempre così (la funzione è <i>convessa</i>): non ci sono avvallamenti secondari in cui restare bloccati. Tagliando la ciotola a quote fisse si ottengono le <b>curve di livello</b>, ellissi concentriche attorno al minimo: le useremo nel capitolo 4 per capire perché conviene scalare le feature.</p>
+    <p><b>Il costo come paesaggio.</b> Per ogni coppia (w, b) c'è un valore di J: se si disegna J al variare di w e b si ottiene <mark>una superficie a forma di ciotola, con un solo punto più basso</mark>. Per la regressione lineare con l'errore quadratico è sempre così (la funzione è <i>convessa</i>): non ci sono avvallamenti secondari in cui restare bloccati.</p>
+    <p>Tagliando la ciotola a quote fisse si ottengono le <dfn>curve di livello</dfn>, ellissi concentriche attorno al minimo: le useremo nel capitolo 4 per capire perché conviene scalare le feature.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 2">
+    <figcaption class="vx-cap">Mappa concettuale · la prima retta che impara</figcaption>
+    <ul><li><span class="c">Regressione lineare</span>
+      <ul>
+        <li><em class="r">ha la forma</em> <span class="c hot">f(x) = w·x + b</span>
+          <ul><li><em class="r">i parametri sono</em> <span class="c">w pendenza e b intercetta</span></li></ul></li>
+        <li><em class="r">si valuta con</em> <span class="c hot">Costo J(w, b)</span>
+          <ul><li><em class="r">è la media di</em> <span class="c">errori al quadrato, diviso 2</span></li>
+              <li><em class="r">vale 0 solo se</em> <span class="c">la retta passa per tutti i punti</span></li></ul></li>
+        <li><em class="r">visto come paesaggio è</em> <span class="c">una ciotola convessa</span>
+          <ul><li><em class="r">ha</em> <span class="c">un solo minimo</span></li>
+              <li><em class="r">tagliata a quote dà</em> <span class="c">le curve di livello</span></li></ul></li>
+        <li><em class="r">si trova con</em> <span class="c">discesa del gradiente <small>capitolo 3</small></span>
+</li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 2</p>
     <ul>
@@ -130,12 +167,28 @@
   <div class="sec-head"><span class="eyebrow">3 · Discesa del gradiente</span><h2>Scendere la ciotola un passo alla volta, nella direzione più ripida</h2></div>
   <div class="prose stack">
     <p class="q">Sei in una valle nebbiosa e devi raggiungere il punto più basso. Non vedi la valle: senti solo la pendenza del terreno sotto i piedi. <b>Che cosa fai?</b></p>
-    <p>Fai un passo in discesa, nella direzione in cui il terreno scende di più; ti fermi, risenti la pendenza, fai un altro passo. È la <b>discesa del gradiente</b> (<i>gradient descent</i>), il procedimento che trova i parametri in quasi tutto il machine learning, dalle rette alle reti neurali con miliardi di pesi. La «pendenza del terreno» ha un nome matematico: la <b>derivata</b> del costo rispetto a un parametro, ∂J/∂w, che dice di quanto cambierebbe J se aumentassi w di pochissimo. Positiva: salendo con w il costo sale, quindi w va diminuito. Negativa: va aumentato. Grande: siamo su un pendio ripido, lontani dal fondo. Vicina a zero: siamo quasi sul fondo. Il <b>gradiente</b> è l'insieme delle derivate rispetto a tutti i parametri: la direzione di massima salita, e il suo opposto è la direzione di massima discesa.</p>
+    <p>Fai un passo in discesa, <mark>nella direzione in cui il terreno scende di più</mark>; ti fermi, risenti la pendenza, fai un altro passo. È la <dfn>discesa del gradiente</dfn> (<i>gradient descent</i>), il procedimento che trova i parametri in quasi tutto il machine learning, dalle rette alle reti neurali con miliardi di pesi.</p>
+    <p>La «pendenza del terreno» ha un nome matematico: la <dfn>derivata</dfn> del costo rispetto a un parametro, ∂J/∂w, che <mark>dice di quanto cambierebbe J se aumentassi w di pochissimo</mark>. Positiva: salendo con w il costo sale, quindi w va diminuito. Negativa: va aumentato. Grande: siamo su un pendio ripido, lontani dal fondo. Vicina a zero: siamo quasi sul fondo.</p>
+    <p>Il <dfn>gradiente</dfn> è l'insieme delle derivate rispetto a tutti i parametri: la direzione di massima salita, e il suo opposto è la direzione di massima discesa.</p>
   </div>
   <div class="vx vx-formula">ripeti fino a convergenza: <br>w <span class="op">←</span> w − α · ∂J/∂w <br>b <span class="op">←</span> b − α · ∂J/∂b <small>α (alfa) è il <b>learning rate</b>, la lunghezza del passo: un numero piccolo e positivo, per esempio 0,01. Le due righe si eseguono <b>simultaneamente</b>: si calcolano entrambe le derivate con i vecchi w e b, poi si aggiornano entrambi. Aggiornare w e poi usare il nuovo w per calcolare la derivata di b funziona quasi, ma non è l'algoritmo.</small></div>
   <div class="prose stack">
-    <p><b>Le derivate per la regressione lineare</b> si calcolano a mano, ed è qui che il 2 nel denominatore di J ripaga: ∂J/∂w = 1/m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>) · x<sup>(i)</sup>, e ∂J/∂b = 1/m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>). Leggile così: la derivata rispetto a b è l'errore medio (se in media stimiamo troppo alto, b scende); quella rispetto a w è l'errore medio pesato per x (gli esempi con x grande spostano di più la pendenza). Questa versione, che a ogni passo usa <i>tutti</i> gli m esempi, si chiama <b>batch gradient descent</b>.</p>
-    <p><b>Il learning rate decide tutto.</b> Troppo piccolo, e servono migliaia di passi minuscoli. Troppo grande, e il passo scavalca il fondo atterrando più in alto di prima, poi scavalca di nuovo dall'altra parte: il costo oscilla e <i>diverge</i>. La cosa notevole è che con α fisso il passo si accorcia da solo avvicinandosi al minimo, perché la derivata diminuisce: non serve ridurre α durante la discesa. Il laboratorio mostra tutte e tre le situazioni sulla ciotola del nostro dataset, con b tenuto fermo al suo valore ottimo per poter disegnare J in due dimensioni.</p>
+    <p><b>Le derivate per la regressione lineare</b> si calcolano a mano, ed è qui che il 2 nel denominatore di J ripaga:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · le derivate della regressione lineare</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">∂<var>J</var>/∂<var>w</var></span><span class="o">=</span><span class="r"><span class="fr"><span>1</span> <span><var>m</var></span></span> · Σ ( <var>f</var>(<var>x</var><sup>(<var>i</var>)</sup>) − <var>y</var><sup>(<var>i</var>)</sup> ) · <var>x</var><sup>(<var>i</var>)</sup></span></div>
+      <small>errore medio, pesato per x</small>
+      <div class="vx-eq"><span class="l">∂<var>J</var>/∂<var>b</var></span><span class="o">=</span><span class="r"><span class="fr"><span>1</span> <span><var>m</var></span></span> · Σ ( <var>f</var>(<var>x</var><sup>(<var>i</var>)</sup>) − <var>y</var><sup>(<var>i</var>)</sup> )</span></div>
+      <small>errore medio</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Leggile così: <mark>la derivata rispetto a b è l'errore medio</mark> (se in media stimiamo troppo alto, b scende); quella rispetto a w è l'errore medio pesato per x (gli esempi con x grande spostano di più la pendenza). Questa versione, che a ogni passo usa <i>tutti</i> gli m esempi, si chiama <dfn>batch gradient descent</dfn>.</p>
+  </div>
+  <div class="rd key"><span class="rd-k">Il learning rate decide tutto</span><p>Troppo piccolo, e servono migliaia di passi minuscoli. Troppo grande, e il passo scavalca il fondo atterrando più in alto di prima, poi scavalca di nuovo dall'altra parte: il costo oscilla e <i>diverge</i>. La cosa notevole è che <mark>con α fisso il passo si accorcia da solo avvicinandosi al minimo</mark>, perché la derivata diminuisce: non serve ridurre α durante la discesa.</p></div>
+  <div class="prose stack">
+    <p>Il laboratorio mostra tutte e tre le situazioni sulla ciotola del nostro dataset, con b tenuto fermo al suo valore ottimo per poter disegnare J in due dimensioni.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: la discesa su J(w)</h3><span class="tag">matematica reale</span></div>
@@ -150,6 +203,23 @@
     <p class="callout" id="gdMsg"></p>
     <p class="note">Nota la scala di α: con x intorno a 100 m², la derivata ∂J/∂w contiene x² ≈ 10.000, quindi i passi sensati sono dell'ordine di 10⁻⁴. È il primo segnale di un problema che il capitolo 4 risolve con il <i>feature scaling</i>: la scala giusta di α dipende dalla scala dei dati.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 3">
+    <figcaption class="vx-cap">Mappa concettuale · la discesa del gradiente</figcaption>
+    <ul><li><span class="c">Discesa del gradiente</span>
+      <ul>
+        <li><em class="r">usa</em> <span class="c">la derivata ∂J/∂w</span>
+          <ul><li><em class="r">dice</em> <span class="c">verso e ripidità del pendio</span></li>
+              <li><em class="r">l'insieme delle derivate è</em> <span class="c">il gradiente</span></li></ul></li>
+        <li><em class="r">aggiorna con</em> <span class="c hot">w ← w − α·∂J/∂w</span>
+          <ul><li><em class="r">per</em> <span class="c">tutti i parametri insieme</span></li>
+              <li><em class="r">si ferma quando</em> <span class="c">J smette di scendere</span></li></ul></li>
+        <li><em class="r">dipende dal</em> <span class="c hot">learning rate α</span>
+          <ul><li><em class="r">troppo piccolo:</em> <span class="c">lentissima</span></li>
+              <li><em class="r">troppo grande:</em> <span class="c">oscilla e diverge</span></li></ul></li>
+        <li><em class="r">nella versione</em> <span class="c">batch</span>
+          <ul><li><em class="r">a ogni passo usa</em> <span class="c">tutti gli m esempi</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 3</p>
     <ul>
@@ -168,23 +238,70 @@
   <div class="sec-head"><span class="eyebrow">4 · Più variabili</span><h2>Il prezzo dipende da superficie, stanze, piano, età: vettori, scaling e feature</h2></div>
   <div class="prose stack">
     <p class="q">Una casa non ha solo la superficie: ha il numero di stanze, il piano, l'età. <b>Come si estende la retta a quattro input?</b> E perché, appena lo si fa, la discesa del gradiente comincia a comportarsi male?</p>
-    <p>La forma resta lineare: ogni feature ha il suo peso, <span class="k">f(x) = w₁x₁ + w₂x₂ + w₃x₃ + w₄x₄ + b</span>. Si scrive in modo compatto raccogliendo le feature in un <b>vettore</b> x = [x₁, x₂, x₃, x₄] e i pesi in un vettore w: <span class="k">f(x) = w · x + b</span>, dove il punto è il <b>prodotto scalare</b> (si moltiplicano le componenti a coppie e si sommano). Ogni peso ha un significato leggibile: w₂ = 15 dice «ogni stanza in più vale 15 k€, a parità del resto»; un w₄ negativo dice che l'età abbassa il prezzo. Il modello si chiama regressione lineare <i>multipla</i> (non «multivariata», che indica più <i>output</i>).</p>
-    <p><b>Vettorizzazione.</b> Il prodotto scalare si può scrivere come un ciclo for su n feature, oppure come <span class="k">np.dot(w, x) + b</span>. La seconda forma non è solo più corta: NumPy la esegue con istruzioni del processore che moltiplicano molte coppie <i>in parallelo</i> e sommano in blocco, e con n grande la differenza è di decine di volte. La stessa idea vale per il gradiente: i Σ su tutti gli esempi diventano prodotti tra matrici, ed è così che il training di una rete neurale su GPU diventa possibile. Le derivate della discesa del gradiente restano quelle del capitolo 3, una per ogni w<sub>j</sub>: ∂J/∂w<sub>j</sub> = 1/m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>) · x<sub>j</sub><sup>(i)</sup>.</p>
+    <p>La forma resta lineare: <mark>ogni feature ha il suo peso</mark>, <span class="k">f(x) = w₁x₁ + w₂x₂ + w₃x₃ + w₄x₄ + b</span>. Si scrive in modo compatto raccogliendo le feature in un <dfn>vettore</dfn> x = [x₁, x₂, x₃, x₄] e i pesi in un vettore w: <span class="k">f(x) = w · x + b</span>, dove il punto è il <dfn>prodotto scalare</dfn> (si moltiplicano le componenti a coppie e si sommano).</p>
+    <p>Ogni peso ha un significato leggibile: <mark>w₂ = 15 dice «ogni stanza in più vale 15 k€, a parità del resto»</mark>; un w₄ negativo dice che l'età abbassa il prezzo.</p>
+    <p>Il modello si chiama regressione lineare <i>multipla</i> (non «multivariata», che indica più <i>output</i>).</p>
+    <p><dfn>Vettorizzazione</dfn>. Il prodotto scalare si può scrivere come un ciclo for su n feature, oppure come <span class="k">np.dot(w, x) + b</span>. La seconda forma non è solo più corta: NumPy la esegue con istruzioni del processore che moltiplicano molte coppie <i>in parallelo</i> e sommano in blocco, e con n grande <mark>la differenza è di decine di volte</mark>.</p>
+    <p>La stessa idea vale per il gradiente: i Σ su tutti gli esempi diventano prodotti tra matrici, ed è così che il training di una rete neurale su GPU diventa possibile. Le derivate della discesa del gradiente restano quelle del capitolo 3, una per ogni w<sub>j</sub>: ∂J/∂w<sub>j</sub> = 1/m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>) · x<sub>j</sub><sup>(i)</sup>.</p>
   </div>
 
   <h3 id="s4-scaling" class="anchor">Feature scaling: perché le scale diverse rallentano la discesa</h3>
   <div class="prose stack">
     <p class="q">La superficie va da 50 a 130, il numero di stanze da 1 a 5. Perché questo dovrebbe disturbare la discesa del gradiente?</p>
-    <p>Perché il peso di una feature grande deve essere piccolo e viceversa: se x₁ (superficie) vale 100 e x₂ (stanze) vale 3, un w₁ = 2 sposta il prezzo di 200 mentre un w₂ = 2 lo sposta di 6. La ciotola del costo diventa allora una <b>valle stretta e lunga</b>: ripidissima lungo w₁ (basta un filo per cambiare molto il prezzo), piattissima lungo w₂. La discesa del gradiente, che segue la pendenza locale, rimbalza da una parete all'altra della valle stretta facendo passi minuscoli lungo l'asse lungo: serve un α piccolo per non divergere su w₁, e con quell'α lungo w₂ si impiega un'eternità.</p>
-    <p>Il rimedio è portare tutte le feature su una scala simile, tipicamente intorno a [−1, 1]. <b>Scaling per il massimo</b>: x/max. <b>Normalizzazione per media</b> (<i>mean normalization</i>): (x − μ)/(max − min), centrata sullo zero. <b>Z-score</b>: (x − μ)/σ, con μ media e σ deviazione standard della feature nel training set; è la più usata.</p>
-    <p><b>La normalizzazione per media sulle case del capitolo 1.</b> Le superfici sono 50, 65, 80, 95, 110 e 130 m². Servono tre numeri, tutti calcolati sul training set: il minimo (50), il massimo (130) e la <b>media vera</b> μ = 530 / 6 ≈ 88,3. Il denominatore è l'ampiezza dell'intervallo, max − min = 80. Ogni superficie diventa x′ = (x − 88,3) / 80 (la colonna centrale è lo scarto x − μ, quella a destra il valore scalato x′):</p>
+    <p>Perché il peso di una feature grande deve essere piccolo e viceversa: se x₁ (superficie) vale 100 e x₂ (stanze) vale 3, un w₁ = 2 sposta il prezzo di 200 mentre un w₂ = 2 lo sposta di 6. <mark>La ciotola del costo diventa allora una <b>valle stretta e lunga</b></mark>: ripidissima lungo w₁ (basta un filo per cambiare molto il prezzo), piattissima lungo w₂.</p>
+    <p>La discesa del gradiente, che segue la pendenza locale, <mark>rimbalza da una parete all'altra della valle stretta</mark> facendo passi minuscoli lungo l'asse lungo: serve un α piccolo per non divergere su w₁, e con quell'α lungo w₂ si impiega un'eternità.</p>
+    <p>Il rimedio è <mark>portare tutte le feature su una scala simile</mark>, tipicamente intorno a [−1, 1].</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formule · tre modi di scalare</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span><var>x</var></span> <span>max</span></span></span></div>
+      <small><b>Scaling per il massimo</b></small>
+      <div class="vx-eq"><span class="l"><var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span><var>x</var> − <var>μ</var></span> <span>max − min</span></span></span></div>
+      <small><b>Normalizzazione per media</b> (<i>mean normalization</i>): centrata sullo zero</small>
+      <div class="vx-eq"><span class="l"><var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span><var>x</var> − <var>μ</var></span> <span><var>σ</var></span></span></span></div>
+      <small><b>Z-score</b>, con μ media e σ deviazione standard della feature nel training set; è la più usata</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><b>La normalizzazione per media sulle case del capitolo 1.</b> Le superfici sono 50, 65, 80, 95, 110 e 130 m². Servono tre numeri, tutti calcolati sul training set: il minimo (50), il massimo (130) e la <b>media vera</b> μ. Il denominatore è l'ampiezza dell'intervallo, max − min.</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · media e ampiezza delle superfici</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">somma</span><span class="o">=</span><span class="r">50 + 65 + 80 + 95 + 110 + 130 = 530</span></div>
+      <div class="vx-eq res"><span class="l"><var>μ</var></span><span class="o">=</span><span class="r"><span class="fr"><span>530</span> <span>6</span></span> ≈ 88,3</span></div>
+      <div class="vx-eq res"><span class="l">max − min</span><span class="o">=</span><span class="r">130 − 50 = 80</span></div>
+      <div class="vx-eq"><span class="l"><var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span><var>x</var> − 88,3</span> <span>80</span></span></span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Ogni superficie diventa x′ (la colonna centrale è lo scarto x − μ, quella a destra il valore scalato x′):</p>
   </div>
   <div class="scroll-x"><table class="vx-table" style="max-width:560px"><thead><tr><th>superficie x (m²)</th><th>scarto dalla media</th><th>valore scalato</th></tr></thead><tbody>
     <tr><td class="m">50</td><td class="m">−38,3</td><td class="m">−0,479</td></tr><tr><td class="m">65</td><td class="m">−23,3</td><td class="m">−0,292</td></tr><tr><td class="m">80</td><td class="m">−8,3</td><td class="m">−0,104</td></tr><tr><td class="m">95</td><td class="m">6,7</td><td class="m">0,083</td></tr><tr><td class="m">110</td><td class="m">21,7</td><td class="m">0,271</td></tr><tr><td class="m">130</td><td class="m">41,7</td><td class="m">0,521</td></tr>
   </tbody></table></div>
   <div class="prose stack">
-    <p>Che cosa si nota. La media delle x′ è esattamente 0: sottrarre μ sposta il centro dei dati sullo zero. I valori vanno da −0,479 a 0,521, un intervallo largo esattamente 1, perché si è diviso proprio per l'ampiezza max − min; non è quindi [−1, 1] pieno, ma un tratto largo 1 che sta dentro [−1, 1] e che è simmetrico solo se i dati lo sono. Qui la casa più piccola è più vicina alla media di quella più grande (38 m² contro 42), e infatti −0,479 è più vicino a zero di 0,521. Se al posto di μ si usasse il punto medio tra minimo e massimo, (50 + 130) / 2 = 90, si otterrebbe un [−0,5, 0,5] perfetto, ma la media delle x′ non sarebbe più zero (−0,021): per questo serve la media vera e non bastano minimo e massimo.</p>
-    <p>Qualunque scaling si scelga, va applicato con gli <i>stessi</i> numeri del training set (μ, minimo e massimo, oppure μ e σ) anche ai dati nuovi al momento della previsione: il modello ha imparato sulle feature scalate e si aspetta quelle. Una casa nuova di 150 m² diventa (150 − 88,3) / 80 ≈ 0,771, anche se supera il massimo del training set: non si ricalcolano minimo e massimo con la casa nuova.</p>
+    <p>Che cosa si nota. La media delle x′ è esattamente 0: <mark>sottrarre μ sposta il centro dei dati sullo zero</mark>. I valori vanno da −0,479 a 0,521, un intervallo largo esattamente 1, perché si è diviso proprio per l'ampiezza max − min; non è quindi [−1, 1] pieno, ma un tratto largo 1 che sta dentro [−1, 1] e che è simmetrico solo se i dati lo sono.</p>
+    <p>Qui la casa più piccola è più vicina alla media di quella più grande (38 m² contro 42), e infatti −0,479 è più vicino a zero di 0,521.</p>
+    <p>Se al posto di μ si usasse il punto medio tra minimo e massimo, si otterrebbe un [−0,5, 0,5] perfetto, ma la media delle x′ non sarebbe più zero: <mark>per questo serve la media vera e non bastano minimo e massimo</mark>.</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · il punto medio al posto della media</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">punto medio</span><span class="o">=</span><span class="r"><span class="fr"><span>50 + 130</span> <span>2</span></span> = 90</span></div>
+      <div class="vx-eq res"><span class="l">media delle <var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span>88,3 − 90</span> <span>80</span></span> ≈ −0,021</span></div>
+      <small>non è zero</small>
+    </div>
+  </div>
+    <div class="rd warn"><span class="rd-k">Gli stessi numeri del training set</span><p>Qualunque scaling si scelga, va applicato con gli <i>stessi</i> numeri del training set (μ, minimo e massimo, oppure μ e σ) anche ai dati nuovi al momento della previsione: <mark>il modello ha imparato sulle feature scalate e si aspetta quelle</mark>.</p></div>
+  <div class="prose stack">
+    <p>Una casa nuova di 150 m² diventa:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · una casa nuova</p>
+    <div class="vx-eqs">
+      <div class="vx-eq res"><span class="l"><var>x</var>′</span><span class="o">=</span><span class="r"><span class="fr"><span>150 − 88,3</span> <span>80</span></span> ≈ 0,771</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Anche se supera il massimo del training set: non si ricalcolano minimo e massimo con la casa nuova.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: la valle stretta e lo scaling</h3><span class="tag">matematica reale · due feature</span></div>
@@ -202,13 +319,35 @@
 
   <h3 id="s4-check" class="anchor">Controllare che la discesa funzioni, e scegliere α</h3>
   <div class="prose stack">
-    <p>Il grafico da guardare sempre è <b>J in funzione del numero di iterazioni</b> (la <i>curva di apprendimento</i>): se la discesa funziona, scende a ogni passo e poi si appiattisce. Se sale, anche solo a tratti, α è troppo grande (o c'è un errore nel codice: con α abbastanza piccolo J <i>deve</i> scendere a ogni iterazione). Un metodo pratico per scegliere α: provare valori distanziati di circa tre volte, 0,001, 0,003, 0,01, 0,03, 0,1…, scegliere il più grande che fa ancora scendere J in modo regolare, o poco meno. Quando J scende di meno di una soglia (per esempio 0,001) in un'iterazione si può dichiarare la convergenza, ma guardare il grafico è più affidabile di qualsiasi soglia.</p>
+    <p>Il grafico da guardare sempre è <mark><b>J in funzione del numero di iterazioni</b></mark> (la <i>curva di apprendimento</i>): se la discesa funziona, scende a ogni passo e poi si appiattisce. Se sale, anche solo a tratti, α è troppo grande (o c'è un errore nel codice: con α abbastanza piccolo J <i>deve</i> scendere a ogni iterazione).</p>
+    <p>Un metodo pratico per scegliere α: provare valori distanziati di circa tre volte, 0,001, 0,003, 0,01, 0,03, 0,1…, scegliere il più grande che fa ancora scendere J in modo regolare, o poco meno. Quando J scende di meno di una soglia (per esempio 0,001) in un'iterazione si può dichiarare la convergenza, ma <mark>guardare il grafico è più affidabile di qualsiasi soglia</mark>.</p>
   </div>
 
   <h3 id="s4-feature" class="anchor">Feature engineering e regressione polinomiale</h3>
   <div class="prose stack">
-    <p>Il modello è lineare nei parametri, non necessariamente nei dati: nessuno vieta di <i>costruire</i> nuove feature dalle vecchie. Se hai la larghezza e la profondità del lotto, la feature che conta è probabilmente l'area, larghezza × profondità: creala e dalla al modello. Se la relazione tra superficie e prezzo non è una retta ma si piega, aggiungi x² e x³ come feature: <span class="k">f(x) = w₁x + w₂x² + w₃x³ + b</span> è ancora una regressione lineare (nei w), ma disegna una curva. È la <b>regressione polinomiale</b>, e qui lo scaling diventa indispensabile: se x va fino a 130, x² arriva a 17.000 e x³ a due milioni. Scegliere le feature giuste, con la conoscenza del problema, è spesso ciò che fa la differenza tra un modello mediocre e uno buono; nel capitolo 7 vedremo che le reti neurali imparano da sole feature intermedie, ed è il motivo del loro successo.</p>
+    <p>Il modello è <mark>lineare nei parametri, non necessariamente nei dati</mark>: nessuno vieta di <i>costruire</i> nuove feature dalle vecchie. Se hai la larghezza e la profondità del lotto, la feature che conta è probabilmente l'area, larghezza × profondità: creala e dalla al modello.</p>
+    <p>Se la relazione tra superficie e prezzo non è una retta ma si piega, aggiungi x² e x³ come feature: <span class="k">f(x) = w₁x + w₂x² + w₃x³ + b</span> è ancora una regressione lineare (nei w), ma disegna una curva. È la <dfn>regressione polinomiale</dfn>, e qui lo scaling diventa indispensabile: se x va fino a 130, x² arriva a 17.000 e x³ a due milioni.</p>
+    <p><mark>Scegliere le feature giuste, con la conoscenza del problema, è spesso ciò che fa la differenza</mark> tra un modello mediocre e uno buono; nel capitolo 7 vedremo che le reti neurali imparano da sole feature intermedie, ed è il motivo del loro successo.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 4">
+    <figcaption class="vx-cap">Mappa concettuale · più variabili</figcaption>
+    <ul><li><span class="c">Più variabili</span>
+      <ul>
+        <li><em class="r">il modello è</em> <span class="c">f(x) = w·x + b con vettori</span>
+          <ul><li><em class="r">un peso</em> <span class="c">per ogni feature</span></li>
+              <li><em class="r">si calcola veloce con</em> <span class="c">np.dot (vettorizzazione)</span></li></ul></li>
+        <li><em class="r">scale diverse richiedono</em> <span class="c hot">Feature scaling</span>
+          <ul><li><em class="r">evita</em> <span class="c">la valle stretta e lunga</span></li>
+              <li><em class="r">può essere</em> <span class="c">per il massimo, per media o z-score</span></li>
+              <li><em class="r">va applicato anche</em> <span class="c">ai dati nuovi, con gli stessi numeri</span></li></ul></li>
+        <li><em class="r">si controlla con</em> <span class="c">la curva di J per iterazione</span>
+          <ul><li><em class="r">deve</em> <span class="c">scendere sempre</span></li>
+              <li><em class="r">se sale</em> <span class="c">α è troppo grande</span></li></ul></li>
+        <li><em class="r">si arricchisce con</em> <span class="c hot">Feature engineering</span>
+          <ul><li><em class="r">ad esempio</em> <span class="c">regressione polinomiale</span></li>
+              <li><em class="r">richiede</em> <span class="c">lo scaling</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 4</p>
     <ul>
@@ -227,14 +366,37 @@
   <div class="sec-head"><span class="eyebrow">5 · Classificare</span><h2>Quando la risposta è sì o no: la regressione logistica</h2></div>
   <div class="prose stack">
     <p class="q">Un tumore è maligno (1) o benigno (0), e conosciamo la sua dimensione. <b>Perché non usare la retta del capitolo 2, con una soglia a 0,5?</b></p>
-    <p>Perché la retta non sa che y è una categoria. Funziona finché i dati sono «comodi», ma basta aggiungere un esempio di tumore molto grande, chiaramente maligno, perché la retta si inclini per inseguirlo, sposti la soglia a destra e cominci a classificare come benigni tumori che prima classificava bene. Inoltre produce valori sotto 0 e sopra 1, che come «probabilità di essere maligno» non significano nulla. Serve un modello che produca sempre un numero tra 0 e 1 e che non si lasci trascinare dagli esempi estremi.</p>
-    <p>La <b>regressione logistica</b> (che, nonostante il nome, è un algoritmo di classificazione) prende la stessa combinazione lineare z = w·x + b e la passa attraverso la funzione <b>sigmoide</b>, <span class="k">g(z) = 1 / (1 + e<sup>−z</sup>)</span>: una S che vale 0,5 per z = 0, tende a 1 per z grande e a 0 per z molto negativo. L'uscita <span class="k">f(x) = g(w·x + b)</span> si legge come la <b>probabilità che y sia 1</b> dato x: f = 0,7 vuol dire «70% maligno». Per decidere si confronta con una soglia, di solito 0,5: f ≥ 0,5 equivale a z ≥ 0, cioè <span class="k">w·x + b ≥ 0</span>. L'insieme dei punti in cui w·x + b = 0 è il <b>confine di decisione</b> (<i>decision boundary</i>): una retta se le feature sono due, un piano se tre; e con feature polinomiali (x₁², x₂²…) diventa un cerchio o una forma qualsiasi, come nel capitolo 4.</p>
+    <p><mark>Perché la retta non sa che y è una categoria.</mark> Funziona finché i dati sono «comodi», ma basta aggiungere un esempio di tumore molto grande, chiaramente maligno, perché la retta si inclini per inseguirlo, sposti la soglia a destra e cominci a classificare come benigni tumori che prima classificava bene.</p>
+    <p>Inoltre produce valori sotto 0 e sopra 1, che come «probabilità di essere maligno» non significano nulla. <mark>Serve un modello che produca sempre un numero tra 0 e 1</mark> e che non si lasci trascinare dagli esempi estremi.</p>
+    <p>La <dfn>regressione logistica</dfn> (che, nonostante il nome, è un algoritmo di classificazione) prende la stessa combinazione lineare z = w·x + b e la passa attraverso la funzione <dfn>sigmoide</dfn>, <span class="k">g(z) = 1 / (1 + e<sup>−z</sup>)</span>: una S che vale 0,5 per z = 0, tende a 1 per z grande e a 0 per z molto negativo. L'uscita <span class="k">f(x) = g(w·x + b)</span> si legge come <mark>la <b>probabilità che y sia 1</b> dato x</mark>: f = 0,7 vuol dire «70% maligno».</p>
+    <p>Per decidere si confronta con una soglia, di solito 0,5: f ≥ 0,5 equivale a z ≥ 0, cioè <span class="k">w·x + b ≥ 0</span>. L'insieme dei punti in cui w·x + b = 0 è il <dfn>confine di decisione</dfn> (<i>decision boundary</i>): una retta se le feature sono due, un piano se tre; e con feature polinomiali (x₁², x₂²…) diventa un cerchio o una forma qualsiasi, come nel capitolo 4.</p>
   </div>
 
   <h3 id="s5-costo" class="anchor">Il costo: perché il quadrato non va più bene e che cosa lo sostituisce</h3>
+    <div class="rd warn"><span class="rd-k">Il quadrato non va più bene</span><p>Se si usa l'errore quadratico con la sigmoide dentro, <mark>la ciotola del costo smette di essere una ciotola</mark>: diventa un terreno pieno di avvallamenti locali, e la discesa del gradiente si ferma nel primo che trova.</p></div>
   <div class="prose stack">
-    <p>Se si usa l'errore quadratico con la sigmoide dentro, la ciotola del costo smette di essere una ciotola: diventa un terreno pieno di avvallamenti locali, e la discesa del gradiente si ferma nel primo che trova. Serve una misura dell'errore pensata per le probabilità. Per un singolo esempio, la <b>perdita</b> (loss) della regressione logistica è <span class="k">−log(f(x))</span> se y = 1 e <span class="k">−log(1 − f(x))</span> se y = 0. Leggila: se il vero valore è 1 e il modello dice 0,99, la perdita è −log 0,99 ≈ 0,01, quasi nulla; se dice 0,5 è 0,69; se dice 0,01 è 4,6, enorme. Più il modello è sicuro della cosa sbagliata, più la perdita cresce, senza limite. Le due righe si scrivono in una sola, perché y vale 0 o 1: <span class="k">L = −y·log(f) − (1 − y)·log(1 − f)</span>. Il costo J è la media delle perdite sugli m esempi, e con questa scelta torna a essere <b>convesso</b>: un solo minimo. (Nel capitolo 2 della guida sul training degli LLM la stessa funzione, chiamata cross-entropy, è la loss con cui si addestrano i modelli linguistici.)</p>
-    <p>Il colpo di scena è nella discesa del gradiente: le derivate hanno <b>la stessa identica forma</b> della regressione lineare, ∂J/∂w<sub>j</sub> = 1/m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>) · x<sub>j</sub><sup>(i)</sup>. Cambia solo che cosa è f: w·x + b prima, g(w·x + b) ora. Tutto il resto (vettorizzazione, scaling, controllo della curva di J, scelta di α) si trasferisce senza modifiche.</p>
+    <p>Serve una misura dell'errore pensata per le probabilità. Per un singolo esempio, la <dfn>perdita</dfn> (loss) della regressione logistica è <span class="k">−log(f(x))</span> se y = 1 e <span class="k">−log(1 − f(x))</span> se y = 0. Leggila:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Calcolo · la perdita quando il vero valore è 1</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">il modello dice 0,99</span><span class="o">=</span><span class="r">−log 0,99 ≈ 0,01</span></div>
+      <small>quasi nulla</small>
+      <div class="vx-eq"><span class="l">il modello dice 0,5</span><span class="o">=</span><span class="r">−log 0,5 ≈ 0,69</span></div>
+      <div class="vx-eq res"><span class="l">il modello dice 0,01</span><span class="o">=</span><span class="r">−log 0,01 ≈ 4,6</span></div>
+      <small>enorme</small>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Più il modello è sicuro della cosa sbagliata, <mark>più la perdita cresce, senza limite</mark>. Le due righe si scrivono in una sola, perché y vale 0 o 1: <span class="k">L = −y·log(f) − (1 − y)·log(1 − f)</span>. Il costo J è la media delle perdite sugli m esempi, e con questa scelta torna a essere <b>convesso</b>: un solo minimo. (Nel capitolo 2 della guida sul training degli LLM la stessa funzione, chiamata cross-entropy, è la loss con cui si addestrano i modelli linguistici.)</p>
+    <p>Il colpo di scena è nella discesa del gradiente: le derivate hanno <mark><b>la stessa identica forma</b> della regressione lineare</mark>:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · il gradiente della regressione logistica</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l">∂<var>J</var>/∂<var>w</var><sub><var>j</var></sub></span><span class="o">=</span><span class="r"><span class="fr"><span>1</span> <span><var>m</var></span></span> · Σ ( <var>f</var>(<var>x</var><sup>(<var>i</var>)</sup>) − <var>y</var><sup>(<var>i</var>)</sup> ) · <var>x</var><sub><var>j</var></sub><sup>(<var>i</var>)</sup></span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Cambia solo che cosa è f: w·x + b prima, g(w·x + b) ora. Tutto il resto (vettorizzazione, scaling, controllo della curva di J, scelta di α) si trasferisce senza modifiche.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: sigmoide, confine di decisione e perdita</h3><span class="tag">matematica reale</span></div>
@@ -250,6 +412,23 @@
     <p class="callout" id="lgMsg"></p>
     <p class="note">Il confine di decisione è x = −b/w: cambiando b la S trasla, cambiando w si irrigidisce. Con dati perfettamente separabili la discesa del gradiente continuerebbe a crescere w all'infinito (una S sempre più verticale abbassa sempre un po' il costo): è uno dei motivi per cui, nel capitolo 6, si aggiunge la regolarizzazione.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 5">
+    <figcaption class="vx-cap">Mappa concettuale · classificare</figcaption>
+    <ul><li><span class="c">Regressione logistica</span>
+      <ul>
+        <li><em class="r">serve a</em> <span class="c hot">classificare sì/no</span>
+          <ul><li><em class="r">perché la retta</em> <span class="c">esce da [0, 1] e un esempio estremo sposta la soglia</span></li></ul></li>
+        <li><em class="r">usa</em> <span class="c hot">la sigmoide g(z)</span>
+          <ul><li><em class="r">produce</em> <span class="c">la probabilità che y = 1</span></li>
+              <li><em class="r">si decide con</em> <span class="c">una soglia, di solito 0,5</span></li></ul></li>
+        <li><em class="r">separa con</em> <span class="c">il confine di decisione w·x + b = 0</span>
+          <ul><li><em class="r">diventa curvo con</em> <span class="c">feature polinomiali</span></li></ul></li>
+        <li><em class="r">si misura con</em> <span class="c hot">la perdita logistica</span>
+          <ul><li><em class="r">è</em> <span class="c">convessa</span></li>
+              <li><em class="r">punisce</em> <span class="c">la sicurezza sbagliata</span></li>
+              <li><em class="r">ha un gradiente</em> <span class="c">della stessa forma della lineare</span></li></ul></li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 5</p>
     <ul>
@@ -269,14 +448,33 @@
   <div class="sec-head"><span class="eyebrow">6 · Overfitting</span><h2>Un modello che impara a memoria i dati ha smesso di imparare il problema</h2></div>
   <div class="prose stack">
     <p class="q">Un polinomio di grado 5 passa esattamente per tutti e sei i punti del dataset: costo zero. <b>È il modello migliore?</b></p>
-    <p>No, e si vede appena arriva una casa nuova: la curva che si contorce per toccare ogni punto del training set stima prezzi assurdi tra un punto e l'altro. Ha imparato il <b>rumore</b> dei sei esempi, non la relazione tra superficie e prezzo. Si dice che il modello ha <b>overfit</b> (si è sovradattato) o che ha <b>alta varianza</b>: cambiando di poco i dati di training, la curva cambierebbe moltissimo. All'estremo opposto c'è l'<b>underfit</b>, o <b>alto bias</b>: una retta su dati che si piegano ha un pregiudizio (la relazione è lineare) che i dati non confermano, e sbaglia sia sul training set sia sui dati nuovi. Il modello che <b>generalizza</b> sta nel mezzo: va bene sui dati di training e quasi altrettanto bene su quelli mai visti. Lo stesso accade nella classificazione: un confine di decisione che si avvolge attorno a ogni singolo esempio ha overfit.</p>
-    <p>Tre rimedi, in ordine di preferenza. <b>Più dati</b>: con molti esempi un modello flessibile non riesce più a inseguire il rumore, perché il rumore si media; è il rimedio migliore quando si può. <b>Meno feature</b>: usare solo quelle che contano (<i>feature selection</i>), a costo di buttare informazione. <b>Regolarizzazione</b>: tenere tutte le feature ma impedire ai parametri di diventare grandi, che è ciò che permette alla curva di contorcersi.</p>
+    <p>No, e si vede appena arriva una casa nuova: la curva che si contorce per toccare ogni punto del training set stima prezzi assurdi tra un punto e l'altro. <mark>Ha imparato il <b>rumore</b> dei sei esempi, non la relazione tra superficie e prezzo.</mark></p>
+    <p>Si dice che il modello ha <dfn>overfit</dfn> (si è sovradattato) o che ha <dfn>alta varianza</dfn>: cambiando di poco i dati di training, la curva cambierebbe moltissimo.</p>
+    <p>All'estremo opposto c'è l'<dfn>underfit</dfn>, o <dfn>alto bias</dfn>: una retta su dati che si piegano ha un pregiudizio (la relazione è lineare) che i dati non confermano, e sbaglia sia sul training set sia sui dati nuovi. <mark>Il modello che <dfn>generalizza</dfn> sta nel mezzo</mark>: va bene sui dati di training e quasi altrettanto bene su quelli mai visti. Lo stesso accade nella classificazione: un confine di decisione che si avvolge attorno a ogni singolo esempio ha overfit.</p>
   </div>
-
+  <div class="rd key"><span class="rd-k">Tre rimedi, in ordine di preferenza</span><p><b>Più dati</b>: con molti esempi un modello flessibile non riesce più a inseguire il rumore, perché il rumore si media; <mark>è il rimedio migliore quando si può</mark>. <b>Meno feature</b>: usare solo quelle che contano (<i>feature selection</i>), a costo di buttare informazione. <b>Regolarizzazione</b>: tenere tutte le feature ma impedire ai parametri di diventare grandi, che è ciò che permette alla curva di contorcersi.</p></div>
+  
   <h3 id="s6-reg" class="anchor">Regolarizzazione: una tassa sui parametri grandi</h3>
   <div class="prose stack">
-    <p>L'idea è aggiungere al costo un termine che cresce con la grandezza dei pesi: <span class="k">J(w, b) = 1/2m · Σ (f(x<sup>(i)</sup>) − y<sup>(i)</sup>)² + λ/2m · Σ<sub>j</sub> w<sub>j</sub>²</span>. Il primo pezzo chiede di adattarsi ai dati, il secondo di tenere i w piccoli; <b>λ</b> (lambda, il <i>parametro di regolarizzazione</i>) decide il compromesso. λ = 0: nessuna tassa, si torna all'overfitting. λ enorme: tutti i w vengono schiacciati a zero e resta f = b, una retta orizzontale, underfitting. Nel mezzo c'è il valore giusto, e il capitolo 9 spiega come sceglierlo con i dati. Per convenzione b non si regolarizza: non cambia la forma della curva, solo la sua altezza.</p>
-    <p>Nella discesa del gradiente il termine aggiunge λ/m · w<sub>j</sub> alla derivata, e la regola di aggiornamento diventa <span class="k">w<sub>j</sub> ← w<sub>j</sub>(1 − α·λ/m) − α · (derivata di prima)</span>: a ogni passo ogni peso viene prima <b>moltiplicato per un numero appena sotto 1</b> (per esempio 0,9998) e poi aggiornato come sempre. La regolarizzazione è letteralmente un restringimento continuo dei pesi, che il termine dei dati contrasta solo dove serve davvero. Per la regressione logistica è identico: stessa tassa, stesso restringimento.</p>
+    <p>L'idea è aggiungere al costo un termine che cresce con la grandezza dei pesi:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · il costo con la regolarizzazione</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>J</var>(<var>w</var>, <var>b</var>)</span><span class="o">=</span><span class="r"><span class="fr"><span>1</span> <span>2<var>m</var></span></span> · Σ ( <var>f</var>(<var>x</var><sup>(<var>i</var>)</sup>) − <var>y</var><sup>(<var>i</var>)</sup> )² + <span class="fr"><span><var>λ</var></span> <span>2<var>m</var></span></span> · Σ<sub><var>j</var></sub> <var>w</var><sub><var>j</var></sub>²</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>Il primo pezzo chiede di adattarsi ai dati, il secondo di tenere i w piccoli; <dfn>λ</dfn> (lambda, il <i>parametro di regolarizzazione</i>) decide il compromesso.</p>
+    <p>λ = 0: nessuna tassa, si torna all'overfitting. λ enorme: tutti i w vengono schiacciati a zero e resta f = b, una retta orizzontale, underfitting. Nel mezzo c'è il valore giusto, e il capitolo 9 spiega come sceglierlo con i dati. Per convenzione b non si regolarizza: non cambia la forma della curva, solo la sua altezza.</p>
+    <p>Nella discesa del gradiente il termine aggiunge λ/m · w<sub>j</sub> alla derivata, e la regola di aggiornamento diventa:</p>
+  </div>
+  <div class="vx vx-math"><p class="vx-math-h">Formula · l'aggiornamento con la regolarizzazione</p>
+    <div class="vx-eqs">
+      <div class="vx-eq"><span class="l"><var>w</var><sub><var>j</var></sub></span><span class="o">←</span><span class="r"> <var>w</var><sub><var>j</var></sub> (1 − <var>α</var> · <span class="fr"><span><var>λ</var></span> <span><var>m</var></span></span>) − <var>α</var> · (derivata di prima)</span></div>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p>A ogni passo ogni peso viene prima <b>moltiplicato per un numero appena sotto 1</b> (per esempio 0,9998) e poi aggiornato come sempre. <mark>La regolarizzazione è letteralmente un restringimento continuo dei pesi</mark>, che il termine dei dati contrasta solo dove serve davvero. Per la regressione logistica è identico: stessa tassa, stesso restringimento.</p>
   </div>
   <div class="lab">
     <div class="lab-head"><h3>Laboratorio: grado del polinomio e λ</h3><span class="tag">matematica reale</span></div>
@@ -291,6 +489,26 @@
     </div>
     <p class="note">Le feature polinomiali sono scalate con lo z-score prima dell'adattamento, come richiede il capitolo 4; il grafico mostra la curva nelle unità originali. L'errore di test è la misura che conta: è ciò che il modello farà sulle case che non ha mai visto.</p>
   </div>
+  <figure class="vx vx-cmap" aria-label="Mappa concettuale del capitolo 6">
+    <figcaption class="vx-cap">Mappa concettuale · overfitting</figcaption>
+    <ul><li><span class="c">Overfitting</span>
+      <ul>
+        <li><em class="r">significa</em> <span class="c hot">alta varianza</span>
+          <ul><li><em class="r">costo basso sul</em> <span class="c">training set</span></li>
+              <li><em class="r">costo alto sui</em> <span class="c">dati nuovi</span></li></ul></li>
+        <li><em class="r">all'opposto c'è</em> <span class="c">underfitting (alto bias)</span>
+          <ul><li><em class="r">il modello è</em> <span class="c">troppo rigido</span></li>
+              <li><em class="r">sbaglia</em> <span class="c">anche sul training set</span></li></ul></li>
+        <li><em class="r">l'obiettivo è</em> <span class="c">generalizzare</span>
+          <ul><li><em class="r">andare bene sui</em> <span class="c">dati mai visti</span></li></ul></li>
+        <li><em class="r">si cura con</em> <span class="c hot">la regolarizzazione</span>
+          <ul><li><em class="r">aggiunge al costo</em> <span class="c">λ/2m · Σw²</span></li>
+              <li><em class="r">a ogni passo</em> <span class="c">restringe i pesi</span></li>
+              <li><em class="r">λ enorme</em> <span class="c">porta all'underfitting</span></li></ul></li>
+        <li><em class="r">oppure con</em> <span class="c">più dati o meno feature</span>
+</li>
+      </ul></li></ul>
+  </figure>
   <div class="recap">
     <p class="recap-title">In sintesi · capitolo 6</p>
     <ul>

@@ -48,3 +48,7 @@ a.ref{text-decoration:none;border-bottom:1px dotted var(--accent)}
 .ia3-box:nth-child(3){border-color:var(--accent)}
 .ia3-axis{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.7rem;color:var(--muted);border-top:2px solid var(--line);border-image:linear-gradient(90deg,var(--line),var(--accent)) 1;padding-top:4px;margin-bottom:10px}
 .ia3-axis span:last-child{text-align:right;color:var(--accent)}
+
+/* lettura: evidenziazione e parole chiave nei campi (stesso stile di shared/vx.html §12) */
+.fld mark,.oneline mark,.fld li mark{background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;padding:0 .15em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.fld b,.fld strong,.oneline b{font-weight:600;color:var(--ink)}
